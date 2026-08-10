@@ -18,7 +18,8 @@ export {
   HistoryView, SquadView, TrophyView, HallScreen, EndScreen, NationalView, SocialView,
   AchievementScreen, BackupScreen, AkademieScreen, TalentZeile,
   KarriereRueckblick, SaisonRueckblick, WildcardEnthuellung, WildcardCard,
-  Balken, AusbauRing, Strahlen, Funken, zumAnfang,
-  akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, AKA_MAX, bilanzErgaenzen, hsvChance,
+  Balken, AusbauRing, Strahlen, Funken, zumAnfang, Avatar, hautBereich, haarBereich, SKIN, HAIRC, REGION,
+  zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, ZUEGE_ORDNUNG, KOPFFORM, AUGENFARBE, mische,
+  akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, AKA_MAX, bilanzErgaenzen, hsvChance,
   EVENTS, META, LEAGUES, INVEST, WILDCARDS, VERSION, VERSION_INFO,
 };

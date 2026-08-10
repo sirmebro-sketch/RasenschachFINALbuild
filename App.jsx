@@ -7,8 +7,8 @@ import { SCHRIFTEN } from "./schriften.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "33.14";
-const VERSION_INFO = "Die Ehrentafel der Akademie liegt jetzt als Karton auf der Seite — Kopfband je Rang, Nummer, Stempel für den Besten.";
+const VERSION = "34.1";
+const VERSION_INFO = "Die Vorschau bleibt beim Blättern oben hängen — und sechs Frisuren und Bärte sitzen jetzt sauber am Kopf.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -2455,103 +2455,409 @@ function haarBereich(id) {
   return [0, 4];
 }
 
-function Avatar({ seed = 1, club, size = 72, ring, g, nat, meta }) {
+/* ==========================================================================
+   PORTRÄT
+   --------------------------------------------------------------------------
+   Bis 33.16 steckten alle Merkmale in EINER Zahl, ausgelesen mit
+   `(h >> bit) % n`. Das ist kein abgetrenntes Feld: `h >> bit` enthält
+   ALLE höheren Bits, und ein Zuschlag von 2^bit trägt in jedes höhere
+   Merkmal hinein. Gemessen an 400 Proben änderte ein Druck auf „Schmuck"
+   im Schnitt 8 von 13 Merkmalen mit, „Kinn" 7 von 13. Deshalb würfelte
+   die Feineinstellung das halbe Porträt neu.
+
+   Jetzt: die Merkmale liegen als eigenes Objekt (`zuege`) vor. Wer eines
+   ändert, ändert genau eines — der Fehler ist damit nicht behoben, sondern
+   unmöglich gemacht. Aus einer alten Kennung (Zahl) werden die Merkmale
+   über eine Mischfunktion abgeleitet, die je Merkmal einen eigenen Strom
+   zieht; Überlappung kann es dort ebenfalls nicht geben.
+
+   ACHTUNG: Alte Spielstände tragen nur die Zahl. Ihre Gesichter sehen nach
+   diesem Umbau ANDERS aus als vorher — bei einer Neuzeichnung aller Teile
+   ließe sich das ohnehin nicht vermeiden. Der Spielstand bleibt gültig.
+   ========================================================================== */
+
+/* Ein eigener Zufallsstrom je Merkmal. xorshift auf Kennung ⊕ Merkmalsnummer:
+   gleiche Kennung ⇒ gleiches Gesicht, aber kein Merkmal hängt am anderen. */
+function mische(kennung, i) {
+  let x = ((kennung | 0) ^ ((i + 1) * 0x9E3779B1)) >>> 0;
+  x ^= x << 13; x >>>= 0;
+  x ^= x >>> 17;
+  x ^= x << 5;  x >>>= 0;
+  return x >>> 0;
+}
+
+/* Augenfarben. Bis 33.16 wurde `eyeC` berechnet und NIE benutzt — die Augen
+   waren immer #2A2118. Der Regler „Augen" in der Feineinstellung hat deshalb
+   sichtbar nichts getan. Jetzt trägt die Iris die Farbe wirklich. */
+const AUGENFARBE = [
+  { n: "Dunkelbraun", c: "#3B2416" }, { n: "Braun", c: "#6B4423" },
+  { n: "Bernstein",   c: "#9C6B24" }, { n: "Haselnuss", c: "#7A6A34" },
+  { n: "Grün",        c: "#4A6B45" }, { n: "Graublau",  c: "#5A7183" },
+  { n: "Blau",        c: "#3E6C8E" },
+];
+
+/* Kopfformen. Wange (b) und Kiefer (j) als Zahlen, damit Haare und Bart
+   sich danach richten können, statt vier Mal von Hand nachgezeichnet zu
+   werden. kinn ist die Höhe der Kinnspitze. */
+const KOPFFORM = [
+  { n: "Oval",   b: 25, j: 15, kinn: 71 },
+  { n: "Rund",   b: 27, j: 19, kinn: 69 },
+  { n: "Kantig", b: 26, j: 21, kinn: 70 },
+  { n: "Schmal", b: 23, j: 12, kinn: 73 },
+  { n: "Herz",   b: 26, j: 11, kinn: 72 },
+];
+const kopfPfad = (k) => {
+  const l = 50 - k.b, r = 50 + k.b, jl = 50 - k.j, jr = 50 + k.j;
+  return "M" + l + ",40 C" + l + ",21 " + (l + 9) + ",12 50,12 C" + (r - 9) + ",12 " + r + ",21 " + r + ",40"
+    + " C" + r + ",52 " + jr + "," + (k.kinn - 8) + " " + jr + "," + (k.kinn - 6)
+    + " C" + jr + "," + (k.kinn - 1) + " " + (50 + k.j * .45) + "," + k.kinn + " 50," + k.kinn
+    + " C" + (50 - k.j * .45) + "," + k.kinn + " " + jl + "," + (k.kinn - 1) + " " + jl + "," + (k.kinn - 6)
+    + " C" + jl + "," + (k.kinn - 8) + " " + l + ",52 " + l + ",40 Z";
+};
+
+/* Zahl der Auswahlmöglichkeiten je Merkmal. `mk_haar` und `mk_acc` schalten
+   zusätzliche frei — die Grundzahl ist trotzdem deutlich größer als vorher. */
+const ZUEGE_ANZAHL = (meta, w) => ({
+  kopf: KOPFFORM.length,
+  haut: 6,
+  haar: HAIRC.length,
+  frisur: w ? (meta && meta.mk_haar ? 14 : 10) : (meta && meta.mk_haar ? 16 : 12),
+  bart: w ? 1 : 10,
+  brauen: 5,
+  augen: 5,
+  augenfarbe: AUGENFARBE.length,
+  nase: 5,
+  mund: 5,
+  ohren: 3,
+  wangen: 3,
+  schmuck: meta && meta.mk_acc ? 6 : 2,
+});
+
+/* Reihenfolge ist die Nummer im Mischstrom — NIE umsortieren, sonst ändert
+   sich jedes bestehende Gesicht. Neues immer hinten anhängen. */
+const ZUEGE_ORDNUNG = ["haut", "haar", "frisur", "bart", "brauen", "augen", "augenfarbe",
+  "nase", "mund", "ohren", "wangen", "schmuck", "kopf"];
+
+/* Merkmale aus einer alten Kennung ableiten. Hautton und Haarfarbe bleiben
+   im Rahmen der Herkunft — das war vorher so und bleibt so. */
+function zuegeAusKennung(kennung, g, nat, meta) {
+  const h = Math.abs(kennung | 0), w = g === "w";
+  const A = ZUEGE_ANZAHL(meta, w);
+  const z = {};
+  ZUEGE_ORDNUNG.forEach((k, i) => { z[k] = mische(h, i) % A[k]; });
+  const TONE = hautBereich(nat), HAAR = haarBereich(nat);
+  z.haut = TONE[0] + (z.haut % (TONE[1] - TONE[0] + 1));
+  z.haar = HAAR[0] + (z.haar % (HAAR[1] - HAAR[0] + 1));
+  if (w) z.bart = 0;
+  return z;
+}
+
+/* Ein Merkmal weiterdrehen — genau eines. Ersetzt `bitDrehen`. */
+function zugDrehen(zuege, feld, richtung, g, nat, meta) {
+  const A = ZUEGE_ANZAHL(meta, g === "w");
+  const z = { ...zuege };
+  if (feld === "haut" || feld === "haar") {
+    const R = feld === "haut" ? hautBereich(nat) : haarBereich(nat);
+    const spanne = R[1] - R[0] + 1;
+    const rel = ((z[feld] - R[0]) % spanne + spanne) % spanne;
+    z[feld] = R[0] + ((rel + richtung) % spanne + spanne) % spanne;
+    return z;
+  }
+  const n = A[feld] || 1;
+  if (n <= 1) return z;
+  z[feld] = (((z[feld] || 0) + richtung) % n + n) % n;
+  return z;
+}
+
+function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
   const K = meta || {};
-  const h = Math.abs(seed | 0);
   const w = g === "w";
-  /* Hauttöne und Haarfarben nach Herkunftsregion, damit das Porträt passt */
-  const reg = REGION[nat] || "de";
-  /* SKIN von hell (0) nach dunkel (5), HAIRC von schwarz (0) über braun
-     bis blond (4), grau (5) und rot (6). */
-  const TONE = hautBereich(nat), HAIR = haarBereich(nat);
-  const spanne = (r, arr, x) => arr[r[0] + (x % (r[1] - r[0] + 1))];
-  const skin = spanne(TONE, SKIN, h);
-  const dark = shade(skin, -34);
-  const hair = spanne(HAIR, HAIRC, h >> 3);
-  const hs = w ? ((h >> 6) % (K.mk_haar ? 8 : 6)) : ((h >> 6) % (K.mk_haar ? 11 : 8));
-  const bd = w ? -1 : (h >> 9) % 5;
-  const br = (h >> 12) % 4, ey = (h >> 14) % 4, mo = (h >> 16) % 4, ac = (h >> 19) % 9;
-  const nose = (h >> 22) % 3, ohr = (h >> 24) % 3, kinn = (h >> 26) % 3;
-  const acc = K.mk_acc ? (h >> 28) % 5 : 0;
-  const eyeC = ["#3A2A1E", "#2A3A4A", "#3A4A2A", "#1A1410"][(h >> 11) % 4];
+  const z = zuege || zuegeAusKennung(seed, g, nat, K);
+  const kennung = Math.abs((seed | 0)) % 999979;
+
+  const kopf = KOPFFORM[z.kopf % KOPFFORM.length] || KOPFFORM[0];
+  const haut = SKIN[clamp(z.haut, 0, SKIN.length - 1)];
+  const schatten = shade(haut, -26);      /* Flächenschatten, keine Verläufe */
+  const tief = shade(haut, -46);
+  const haar = HAIRC[clamp(z.haar, 0, HAIRC.length - 1)];
+  const haarHell = shade(haar, 26);
+  const iris = (AUGENFARBE[z.augenfarbe % AUGENFARBE.length] || AUGENFARBE[0]).c;
   const [c1, c2] = clubColors(club);
-  const eyeY = 47 + (ey === 1 ? 1 : 0);
+  const R = rahmenFuer(K);
+
+  const augenY = 46 + (z.augen === 3 ? 1.5 : 0);
+  const lidH = z.augen === 1 ? 2.6 : z.augen === 4 ? 4.2 : 3.4;   /* Lidspalt */
+  const kinnY = kopf.kinn;
+  const kopfD = kopfPfad(kopf);
+
+  /* Haaransatz folgt der Kopfbreite, damit keine Frisur neben dem Kopf sitzt. */
+  const hl = 50 - kopf.b, hr = 50 + kopf.b;
+  const dach = (tiefe) => "M" + hl + "," + (40 - tiefe) + " C" + hl + ",20 " + (hl + 9) + ",11 50,11 C"
+    + (hr - 9) + ",11 " + hr + ",20 " + hr + "," + (40 - tiefe);
+  /* Die geschlossene Kappe. Alle Verzierungen — Scheitel, Stacheln, Zöpfe —
+     werden darauf BESCHNITTEN. Ohne das ragen sie über den Kopf hinaus und
+     sehen aus wie eine Krone; genau das zeigte der erste Musterbogen. */
+  const kappe = dach(1) + " C" + (hr - 4) + ",25 " + (hl + 4) + ",25 " + hl + ",39 Z";
+  const kid = "hk" + kennung;
+
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: "block", flexShrink: 0, borderRadius: 0, background: "#0B0E15", border: ring ? (() => { const R = rahmenFuer(K); return R ? R.w + "px solid " + R.c : "1px solid " + ring; })() : "none",
-        boxShadow: rahmenFuer(K) ? "0 0 12px -2px " + rahmenFuer(K).c : undefined }} role="img" aria-label="Spielerporträt">
-      <clipPath id={"av" + h % 999979}><rect width="100" height="100" rx="3" /></clipPath>
-      <g clipPath={"url(#av" + h % 999979 + ")"}>
-        <rect width="100" height="100" fill="#0B0E15" />
-        {/* Trikot */}
-        <path d="M6,100 C6,84 24,76 50,76 C76,76 94,84 94,100 Z" fill={c1} />
-        <path d="M40,77 L50,88 L60,77" fill="none" stroke={c2} strokeWidth="3.5" />
-        {/* Hals */}
-        <path d="M42,62 h16 v14 c0,4 -16,4 -16,0 Z" fill={dark} />
+    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label="Spielerporträt"
+      style={{ display: "block", flexShrink: 0, borderRadius: 0, background: "#0B120E",
+        border: ring ? (R ? R.w + "px solid " + R.c : "1px solid " + ring) : "none",
+        boxShadow: R ? "0 0 12px -2px " + R.c : undefined }}>
+      <clipPath id={"av" + kennung}><rect width="100" height="100" /></clipPath>
+      <clipPath id={kid}><path d={kappe} /></clipPath>
+      <g clipPath={"url(#av" + kennung + ")"}>
+        {/* Grund: Rasen bei Nacht, nicht das alte Marineblau. Zwei flache
+            Töne statt eines Verlaufs — dieselbe Sprache wie der Rest. */}
+        <rect width="100" height="100" fill="#0B120E" />
+        <path d="M0,64 H100 V100 H0 Z" fill="#0E1712" />
+
+        {/* Schultern und Trikot */}
+        <path d="M2,100 C4,82 22,74 50,74 C78,74 96,82 98,100 Z" fill={c1} />
+        <path d="M2,100 C4,82 22,74 34,74 L40,100 Z" fill={shade(c1, -16)} />
+        <path d="M40,74 L50,87 L60,74 L56,73 L50,82 L44,73 Z" fill={c2} />
+
+        {/* Hals mit Schatten unter dem Kiefer */}
+        <path d={"M43," + (kinnY - 10) + " h14 v14 c0,4 -14,4 -14,0 Z"} fill={schatten} />
+        <path d={"M43," + (kinnY - 10) + " h14 v4 c-4,3 -10,3 -14,0 Z"} fill={tief} />
+
         {/* Ohren */}
-        <ellipse cx="24" cy="46" rx="5" ry="7" fill={skin} /><ellipse cx="76" cy="46" rx="5" ry="7" fill={skin} />
-        {ac === 0 && <circle cx="76" cy="52" r="2" fill="#C8A24B" />}
-        {/* Kopf */}
-        <path d="M25,40 C25,22 35,13 50,13 C65,13 75,22 75,40 C75,58 65,70 50,70 C35,70 25,58 25,40 Z" fill={skin} />
-        {/* Haare hinten */}
-        {hs === 3 && <ellipse cx="50" cy="30" rx="33" ry="25" fill={hair} />}
-        {hs === 4 && <path d="M22,36 C20,58 22,72 27,74 L27,36 Z M78,36 C80,58 78,72 73,74 L73,36 Z" fill={hair} />}
-        {hs === 5 && <circle cx="50" cy="11" r="9" fill={hair} />}
-        {/* Kopf erneut über Afro-Masse */}
-        {hs === 3 && <path d="M25,40 C25,22 35,13 50,13 C65,13 75,22 75,40 C75,58 65,70 50,70 C35,70 25,58 25,40 Z" fill={skin} />}
-        {/* Haare oben */}
-        {hs === 0 && <path d="M25,41 C24,21 36,14 50,14 C64,14 76,21 75,41 C71,28 62,23 50,23 C38,23 29,28 25,41 Z" fill={hair} />}
-        {hs === 1 && <path d="M25,40 C25,20 37,14 50,14 C64,14 76,21 75,38 C74,26 66,20 54,20 C42,20 31,26 25,40 Z" fill={hair} />}
-        {hs === 2 && <g fill={hair}><circle cx="33" cy="27" r="9" /><circle cx="45" cy="21" r="10" /><circle cx="58" cy="22" r="10" /><circle cx="69" cy="29" r="8" /></g>}
-        {hs === 4 && <path d="M25,40 C25,20 37,13 50,13 C64,13 76,20 75,40 C70,26 62,21 50,21 C38,21 29,27 25,40 Z" fill={hair} />}
-        {hs === 5 && <path d="M26,38 C27,21 38,15 50,15 C63,15 74,21 74,38 C70,27 62,23 50,23 C38,23 30,27 26,38 Z" fill={hair} />}
-        {hs === 7 && !w && <path d="M45,13 C40,24 40,33 43,40 L57,40 C60,33 60,24 55,13 Z" fill={hair} />}
-        {/* Langes Haar für weibliche Porträts */}
-        {w && (hs === 0 || hs === 1) && <path d="M22,38 C21,60 24,78 30,80 C28,64 27,50 28,40 Z M78,38 C79,60 76,78 70,80 C72,64 73,50 72,40 Z" fill={hair} />}
-        {w && hs === 2 && <><circle cx="50" cy="10" r="8" fill={hair} /><path d="M50,12 C58,12 62,18 60,26" fill="none" stroke={hair} strokeWidth="5" /></>}
-        {w && hs === 3 && <path d="M24,36 C22,56 26,74 32,78 C30,62 30,48 32,38 Z M76,36 C78,56 74,74 68,78 C70,62 70,48 68,38 Z" fill={hair} />}
-        {w && hs === 4 && <><path d="M70,26 C82,32 84,52 78,68 C78,50 74,36 66,30 Z" fill={hair} /></>}
-        {w && hs === 5 && <circle cx="72" cy="24" r="7" fill={hair} />}
-        {w && <path d="M25,40 C25,20 37,13 50,13 C64,13 76,20 75,40 C70,25 62,20 50,20 C38,20 29,26 25,40 Z" fill={hair} />}
-        {/* Freigeschaltete Accessoires */}
-        {acc === 1 && <rect x="26" y="29" width="48" height="5" rx="2.5" fill={shade(c1, 30)} />}
-        {acc === 2 && <><circle cx="39" cy="47" r="8" fill="none" stroke="#2A3244" strokeWidth="1.6" />
-          <circle cx="61" cy="47" r="8" fill="none" stroke="#2A3244" strokeWidth="1.6" />
-          <path d="M47,47 L53,47" stroke="#2A3244" strokeWidth="1.6" /></>}
-        {acc === 3 && <><path d="M42,84 Q50,90 58,84" fill="none" stroke="#C7A24B" strokeWidth="2" />
-          <circle cx="50" cy="88.5" r="2.4" fill="#C7A24B" /></>}
-        {acc === 4 && <><circle cx="27" cy="52" r="2" fill="#C7A24B" /><circle cx="73" cy="52" r="2" fill="#C7A24B" /></>}
-        {/* Nase, Ohren, Kinnpartie */}
-        {nose === 0 && <path d="M50,49 L48,57 Q50,58.5 52,57" fill="none" stroke={shade(skin, -40)} strokeWidth="1.3" strokeLinecap="round" />}
-        {nose === 1 && <path d="M50,48 L47,58 Q50,60 53,58" fill="none" stroke={shade(skin, -46)} strokeWidth="1.6" strokeLinecap="round" />}
-        {nose === 2 && <path d="M50,50 L49,56 Q50,57.4 51,56" fill="none" stroke={shade(skin, -36)} strokeWidth="1.1" strokeLinecap="round" />}
-        {ohr > 0 && <><ellipse cx="26" cy="50" rx={ohr === 2 ? 4.4 : 3.2} ry={ohr === 2 ? 6.4 : 5} fill={skin} />
-          <ellipse cx="74" cy="50" rx={ohr === 2 ? 4.4 : 3.2} ry={ohr === 2 ? 6.4 : 5} fill={skin} /></>}
-        {kinn === 1 && <path d="M44,74 Q50,77 56,74" fill="none" stroke={shade(skin, -28)} strokeWidth="1.1" />}
-        {kinn === 2 && <ellipse cx="50" cy="74" rx="4.5" ry="2.2" fill={shade(skin, -20)} opacity=".5" />}
-        {/* Augenbrauen */}
-        <g fill={shade(hair, -14)}>
-          {br === 0 && <><rect x="33" y="40" width="14" height="3" rx="1.5" /><rect x="53" y="40" width="14" height="3" rx="1.5" /></>}
-          {br === 1 && <><path d="M33,42 L47,39 L47,42 Z" /><path d="M67,42 L53,39 L53,42 Z" /></>}
-          {br === 2 && <><path d="M33,40 L47,41.5 L47,44 L33,42.5 Z" /><path d="M67,40 L53,41.5 L53,44 L67,42.5 Z" /></>}
+        {(() => { const ry = 5.6 + z.ohren * 1.2, cy = 47, ex = kopf.b - 1;
+          return (<g fill={haut}>
+            <ellipse cx={50 - ex} cy={cy} rx={3.6} ry={ry} />
+            <ellipse cx={50 + ex} cy={cy} rx={3.6} ry={ry} />
+            <ellipse cx={50 - ex + .8} cy={cy} rx={1.1} ry={ry - 3.2} fill={schatten} opacity=".7" />
+            <ellipse cx={50 + ex - .8} cy={cy} rx={1.1} ry={ry - 3.2} fill={schatten} opacity=".7" />
+          </g>); })()}
+
+        {/* Kopf, dazu eine Schattenseite — Volumen ohne Verlauf */}
+        <path d={kopfD} fill={haut} />
+        {/* Schattenseite NUR an der aeusseren Wange. Ein Schatten bis zur Mitte
+            hinterlaesst eine harte Naht mitten im Gesicht — das sah aus wie ein
+            Riss und war der groesste Makel des ersten Wurfs. */}
+        <path d={"M" + (50 + kopf.b - 10) + ",16 C" + (50 + kopf.b - 2) + ",20 " + (50 + kopf.b) + ",28 "
+          + (50 + kopf.b) + ",40 C" + (50 + kopf.b) + ",52 " + (50 + kopf.j) + "," + (kinnY - 8) + " "
+          + (50 + kopf.j) + "," + (kinnY - 6) + " C" + (50 + kopf.j) + "," + (kinnY - 3) + " "
+          + (50 + kopf.j * .7) + "," + (kinnY - 1) + " " + (50 + kopf.j * .5) + "," + (kinnY - 1)
+          + " C" + (50 + kopf.j * .8) + "," + (kinnY - 9) + " " + (50 + kopf.b - 7) + ",30 "
+          + (50 + kopf.b - 10) + ",16 Z"} fill={schatten} opacity=".2" />
+
+        {/* Wangenknochen / Kinngrübchen */}
+        {z.wangen === 1 && <ellipse cx="50" cy={kinnY - 6} rx="3.6" ry="2" fill={schatten} opacity=".55" />}
+        {z.wangen === 2 && <><path d={"M" + (50 - kopf.j - 1) + "," + (kinnY - 16) + " q4,7 7,10"} fill="none"
+          stroke={schatten} strokeWidth="1.4" strokeLinecap="round" opacity=".6" />
+          <path d={"M" + (50 + kopf.j + 1) + "," + (kinnY - 16) + " q-4,7 -7,10"} fill="none"
+            stroke={schatten} strokeWidth="1.4" strokeLinecap="round" opacity=".6" /></>}
+
+        {/* ---- Haare hinter dem Kopf ---- */}
+        {!w && z.frisur === 5 && <ellipse cx="50" cy="30" rx={kopf.b + 9} ry="25" fill={haar} />}
+        {!w && z.frisur === 8 && <g fill={haar}>
+          {[0, 1, 2, 3].map((i) => <rect key={i} x={50 - kopf.b + 4 + i * ((kopf.b * 2 - 12) / 3)}
+            y="34" width="4" height={20 + (i % 2) * 6} rx="2" />)}</g>}
+        {w && (z.frisur === 1 || z.frisur === 6) && <path d={"M" + (hl - 2) + ",36 C" + (hl - 4) + ",62 "
+          + (hl + 1) + ",82 " + (hl + 7) + ",84 C" + (hl + 4) + ",64 " + (hl + 3) + ",48 " + (hl + 4) + ",38 Z"
+          + " M" + (hr + 2) + ",36 C" + (hr + 4) + ",62 " + (hr - 1) + ",82 " + (hr - 7) + ",84 C"
+          + (hr - 4) + ",64 " + (hr - 3) + ",48 " + (hr - 4) + ",38 Z"} fill={haar} />}
+        {w && z.frisur === 2 && <ellipse cx="50" cy="34" rx={kopf.b + 8} ry="26" fill={haar} />}
+        {w && z.frisur === 4 && <circle cx={50 + kopf.b - 3} cy="22" r="7.5" fill={haar} />}
+        {w && z.frisur === 5 && <path d={"M" + (hr - 4) + ",24 C" + (hr + 10) + ",32 " + (hr + 11) + ",56 "
+          + (hr + 4) + ",72 C" + (hr + 4) + ",52 " + (hr - 1) + ",34 " + (hr - 8) + ",28 Z"} fill={haar} />}
+
+        {/* Kopf noch einmal über die Haarmasse, damit das Gesicht frei bleibt */}
+        {((!w && (z.frisur === 5 || z.frisur === 8)) || (w && z.frisur === 2))
+          && <path d={kopfD} fill={haut} />}
+        {/* Knoten sitzt OBEN, nicht hinter dem Kopf — hinten war er unsichtbar
+            und die Frisur sah aus wie eine Glatze. */}
+        {!w && z.frisur === 9 && <circle cx="50" cy="9.5" r="7" fill={haar} />}
+
+        {/* ---- Frisuren auf dem Kopf ----
+            0 rasiert · 1 kurz · 2 Seitenscheitel · 3 Undercut · 4 Locken
+            5 Afro · 6 Igel · 7 Halbglatze · 8 Zöpfe · 9 Knoten
+            10 Vokuhila · 11 Glatze · 12–15 freigeschaltet
+            Bei Frauen: 0 kurz · 1 lang offen · 2 voluminös · 3 Bob
+            4 Knoten · 5 Seitenzopf · 6 lang mit Scheitel · 7 Pixie … */}
+        {!w && <>
+          {z.frisur === 0 && <g><path d={kappe} fill={haar} />
+            <path d={"M" + (hl + 3) + ",38 q" + (kopf.b - 3) + ",-9 " + (kopf.b * 2 - 6) + ",0 q-"
+              + (kopf.b - 3) + ",4 -" + (kopf.b * 2 - 6) + ",0 Z"} fill={haut} opacity=".35" /></g>}
+          {z.frisur === 1 && <path d={dach(1) + " C" + (hr - 4) + ",25 " + (hl + 4) + ",25 " + hl + ",39 Z"} fill={haar} />}
+          {z.frisur === 2 && <><path d={kappe} fill={haar} />
+            <path d={"M" + (hl + 4) + ",30 C" + (hl + 10) + ",20 " + (50 + 6) + ",20 " + (hr - 2) + ",27 C"
+              + (50 + 4) + ",25 " + (hl + 12) + ",28 " + (hl + 4) + ",38 Z"} fill={haarHell} opacity=".5" /></>}
+          {z.frisur === 3 && <><path d={dach(-4) + " C" + (hr - 5) + ",22 " + (hl + 5) + ",22 " + hl + ",44 Z"} fill={haar} />
+            <g clipPath={"url(#" + kid + ")"}>
+              <rect x={hl - 4} y="27" width="7" height="20" fill={haut} />
+              <rect x={hr - 3} y="27" width="7" height="20" fill={haut} /></g></>}
+          {z.frisur === 4 && <g fill={haar}>
+            <path d={kappe} />
+            {[0, 1, 2, 3, 4, 5].map((i) => <circle key={i} cx={50 - kopf.b + 3 + i * ((kopf.b * 2 - 6) / 5)}
+              cy={19 + (i % 2 ? 3 : 0)} r="7.5" />)}</g>}
+          {z.frisur === 5 && <path d={dach(2) + " C" + (hr - 4) + ",24 " + (hl + 4) + ",24 " + hl + ",38 Z"} fill={haar} />}
+          {z.frisur === 6 && (() => {
+            /* Eine durchgehende Zackenlinie ueber der Kappe. Einzelne Dreiecke
+               schwebten sichtbar ueber dem Kopf. */
+            const n = 6, von = 50 - kopf.b + 2, bis = 50 + kopf.b - 2, br = (bis - von) / n;
+            let d = "M" + von + ",26";
+            for (let i = 0; i < n; i++) d += " L" + (von + br * (i + .5)) + "," + (8 + (i % 2) * 3)
+              + " L" + (von + br * (i + 1)) + "," + (20 - (i % 2) * 2);
+            d += " L" + bis + ",26 Z";
+            return <g fill={haar}><path d={kappe} /><path d={d} /></g>; })()}
+          {z.frisur === 7 && <g clipPath={"url(#" + kid + ")"}><path d={kappe} fill={haar} />
+            {/* Zurückweichender Haaransatz: die Stirn wird frei, an den Schläfen
+                und hinten bleibt Haar stehen. Eine Ellipse obendrauf las sich
+                als Stirnband — das war der zweite Fehlversuch hier. */}
+            <path d={"M" + (hl - 1) + ",41 C" + (hl + 2) + ",22 " + (hr - 2) + ",22 " + (hr + 1) + ",41 Z"}
+              fill={haut} /></g>}
+          {z.frisur === 8 && <><path d={kappe} fill={haar} />
+            <g clipPath={"url(#" + kid + ")"}>
+              {[0, 1, 2, 3, 4].map((i) => <path key={i} d={"M" + (50 - kopf.b + 5 + i * ((kopf.b * 2 - 10) / 4))
+                + ",8 v38"} stroke={haut} strokeWidth="1.4" opacity=".38" fill="none" />)}</g></>}
+          {z.frisur === 9 && <path d={dach(1) + " C" + (hr - 4) + ",25 " + (hl + 4) + ",25 " + hl + ",39 Z"} fill={haar} />}
+          {z.frisur === 10 && <><path d={dach(1) + " C" + (hr - 4) + ",25 " + (hl + 4) + ",25 " + hl + ",39 Z"} fill={haar} />
+            <path d={"M" + (hl - 1) + ",34 C" + (hl - 2) + ",54 " + (hl + 1) + ",66 " + (hl + 5) + ",68 L"
+              + (hl + 3) + ",38 Z M" + (hr + 1) + ",34 C" + (hr + 2) + ",54 " + (hr - 1) + ",66 "
+              + (hr - 5) + ",68 L" + (hr - 3) + ",38 Z"} fill={haar} />
+            {/* Ohren noch einmal darüber: langes Haar gehört HINTER das Ohr.
+                Ohne das verschwanden die Ohren und der Vokuhila sah aus wie
+                ein Bob — im Kreuzbogen bei drei von fünf Kopfformen. */}
+            {(() => { const ry2 = 5.6 + z.ohren * 1.2, ex2 = kopf.b - 1;
+              return (<g fill={haut}>
+                <ellipse cx={50 - ex2} cy="47" rx={3.6} ry={ry2} />
+                <ellipse cx={50 + ex2} cy="47" rx={3.6} ry={ry2} />
+                <ellipse cx={50 - ex2 + .8} cy="47" rx={1.1} ry={ry2 - 3.2} fill={schatten} opacity=".7" />
+                <ellipse cx={50 + ex2 - .8} cy="47" rx={1.1} ry={ry2 - 3.2} fill={schatten} opacity=".7" />
+              </g>); })()}</>}
+          {z.frisur === 12 && <><path d={dach(1) + " C" + (hr - 4) + ",25 " + (hl + 4) + ",25 " + hl + ",39 Z"} fill={haar} />
+            <path d={dach(1) + " C" + (hr - 4) + ",25 " + (hl + 4) + ",25 " + hl + ",39 Z"} fill={haarHell} opacity=".5"
+              transform="translate(0,-3) scale(1,0.94)" /></>}
+          {z.frisur === 13 && <><path d={kappe} fill={haar} />
+            <g clipPath={"url(#" + kid + ")"}>
+              {[0, 1, 2, 3].map((i) => <rect key={i} x={50 - kopf.b + 6 + i * ((kopf.b * 2 - 12) / 3)} y="6"
+                width="2.2" height="40" fill={haut} opacity=".55" />)}</g></>}
+          {z.frisur === 14 && <path d={dach(3) + " C" + (hr - 6) + ",22 " + (hl + 6) + ",22 " + hl + ",37 Z"} fill={haar} />}
+          {z.frisur === 15 && <><path d={kappe} fill={haar} />
+            <path d={"M" + (50 - 9) + ",13 q9,-10 18,0 q-9,4 -18,0 Z"} fill={haarHell} /></>}
+        </>}
+
+        {w && <>
+          <path d={dach(1) + " C" + (hr - 4) + ",25 " + (hl + 4) + ",25 " + hl + ",39 Z"} fill={haar} />
+          {z.frisur === 3 && <path d={"M" + (hl - 1) + ",34 C" + (hl - 3) + ",50 " + (hl + 1) + ",58 "
+            + (hl + 6) + ",59 L" + (hl + 6) + ",40 Z M" + (hr + 1) + ",34 C" + (hr + 3) + ",50 "
+            + (hr - 1) + ",58 " + (hr - 6) + ",59 L" + (hr - 6) + ",40 Z"} fill={haar} />}
+          {z.frisur === 4 && <circle cx="50" cy="10" r="7.5" fill={haar} />}
+          {z.frisur === 7 && <path d={dach(3) + " C" + (hr - 6) + ",23 " + (hl + 6) + ",23 " + hl + ",37 Z"} fill={haar} />}
+          {z.frisur === 8 && <g fill={haar}>{[0, 1, 2, 3].map((i) =>
+            <circle key={i} cx={50 - kopf.b + 5 + i * ((kopf.b * 2 - 10) / 3)} cy="20" r="8" />)}</g>}
+          {z.frisur === 9 && <path d={"M" + (50 - 6) + ",12 q6,-6 12,0 q-6,4 -12,0 Z"} fill={haarHell} />}
+        </>}
+
+        {/* ---- Augenbrauen ---- */}
+        <g fill={shade(haar, -12)}>
+          {z.brauen === 0 && <><rect x="33" y="39.5" width="13" height="2.6" rx="1.3" />
+            <rect x="54" y="39.5" width="13" height="2.6" rx="1.3" /></>}
+          {z.brauen === 1 && <><path d="M33,41.5 Q39.5,37.6 46,40.4 L46,42.6 Q39.5,40.2 33,43.4 Z" />
+            <path d="M67,41.5 Q60.5,37.6 54,40.4 L54,42.6 Q60.5,40.2 67,43.4 Z" /></>}
+          {z.brauen === 2 && <><path d="M33,39.6 L46,41.4 L46,43.6 L33,42 Z" />
+            <path d="M67,39.6 L54,41.4 L54,43.6 L67,42 Z" /></>}
+          {z.brauen === 3 && <><rect x="34.5" y="40" width="10.5" height="1.9" rx="1" />
+            <rect x="55" y="40" width="10.5" height="1.9" rx="1" /></>}
+          {z.brauen === 4 && <><path d="M32.5,42.4 Q39.5,36.8 46.5,41 L46.5,43.6 Q39.5,39.4 32.5,44.6 Z" />
+            <path d="M67.5,42.4 Q60.5,36.8 53.5,41 L53.5,43.6 Q60.5,39.4 67.5,44.6 Z" /></>}
         </g>
-        {/* Augen */}
-        <ellipse cx="40" cy={eyeY} rx="5.4" ry={ey === 2 ? 3 : 4} fill="#F4F6F8" />
-        <ellipse cx="60" cy={eyeY} rx="5.4" ry={ey === 2 ? 3 : 4} fill="#F4F6F8" />
-        <circle cx="40.5" cy={eyeY} r="2.4" fill="#2A2118" /><circle cx="60.5" cy={eyeY} r="2.4" fill="#2A2118" />
-        {/* Nase */}
-        <path d="M50,49 L47,58 C48.5,59.5 51.5,59.5 53,58 Z" fill={shade(skin, -20)} />
-        {/* Mund */}
-        {mo === 0 && <path d="M43,64 Q50,68 57,64" fill="none" stroke={shade(skin, -60)} strokeWidth="2.2" strokeLinecap="round" />}
-        {mo === 1 && <rect x="43" y="64" width="14" height="2.4" rx="1.2" fill={shade(skin, -60)} />}
-        {mo === 2 && <path d="M43,65 Q50,62 57,65" fill="none" stroke={shade(skin, -60)} strokeWidth="2.2" strokeLinecap="round" />}
-        {w && <ellipse cx="50" cy="65" rx="7" ry="2.6" fill={shade(skin, -52)} opacity=".55" />}
-        {/* Bart */}
-        {bd === 1 && <path d="M27,46 C29,64 39,70 50,70 C61,70 71,64 73,46 C70,58 62,63 50,63 C38,63 30,58 27,46 Z" fill={hair} opacity=".28" />}
-        {bd === 2 && <path d="M27,44 C29,66 39,72 50,72 C61,72 71,66 73,44 C69,58 62,62 50,62 C38,62 31,58 27,44 Z" fill={hair} />}
-        {bd === 3 && <path d="M44,66 h12 v5 c0,3 -12,3 -12,0 Z" fill={hair} />}
-        {bd === 4 && <rect x="42" y="60.5" width="16" height="3.5" rx="1.5" fill={hair} />}
-        {/* Stirnband */}
-        {ac === 1 && <rect x="25" y="30" width="50" height="6" fill={c1} opacity=".95" />}
+
+        {/* ---- Augen: Lidspalt, Iris in der gewählten Farbe, Pupille, Glanz ----
+            Vorher waren es zwei weiße Ellipsen mit einem Punkt darin. */}
+        {[40, 60].map((cx) => (
+          <g key={cx}>
+            <path d={"M" + (cx - 6) + "," + augenY + " q6," + (-lidH - 1.6) + " 12,0 q-6," + (lidH + 1.6) + " -12,0 Z"}
+              fill="#F2F4F1" />
+            <circle cx={cx} cy={augenY - .3} r={Math.min(3.1, lidH + .5)} fill={iris} />
+            <circle cx={cx} cy={augenY - .3} r={Math.min(1.5, lidH * .45)} fill="#120E0B" />
+            <circle cx={cx - 1.1} cy={augenY - 1.5} r=".8" fill="#FFFFFF" opacity=".85" />
+            <path d={"M" + (cx - 6) + "," + augenY + " q6," + (-lidH - 1.8) + " 12,0"} fill="none"
+              stroke={shade(haut, -62)} strokeWidth={z.augen === 2 ? 1.5 : 1} strokeLinecap="round" />
+            {z.augen === 4 && <path d={"M" + (cx - 6.4) + "," + (augenY + 1.6) + " q6,2.4 12.8,0"} fill="none"
+              stroke={shade(haut, -30)} strokeWidth=".9" opacity=".7" />}
+          </g>))}
+
+        {/* ---- Nase ---- */}
+        {(() => {
+          const y0 = 49, y1 = 56 + (z.nase === 3 ? 1.5 : 0);
+          const br = [2.5, 3.2, 2, 2.9, 2.7][z.nase] || 2.5;
+          return (<g>
+            <path d={"M50," + y0 + " C" + (50 - br * .5) + "," + (y0 + 6) + " " + (50 - br) + "," + (y1 - 3)
+              + " " + (50 - br) + "," + y1 + " q" + br + ",2 " + (br * 2) + ",0 C" + (50 + br) + "," + (y1 - 3)
+              + " " + (50 + br * .5) + "," + (y0 + 6) + " 50," + y0 + " Z"} fill={schatten} opacity=".45" />
+            <ellipse cx={50 - br * .75} cy={y1 - .4} rx=".9" ry=".7" fill={tief} />
+            <ellipse cx={50 + br * .75} cy={y1 - .4} rx=".9" ry=".7" fill={tief} />
+          </g>); })()}
+
+        {/* ---- Mund ---- */}
+        {(() => {
+          const y = kinnY - 8;
+          const lippe = w ? shade(haut, -48) : shade(haut, -58);
+          if (z.mund === 0) return <path d={"M43," + y + " Q50," + (y + 4) + " 57," + y}
+            fill="none" stroke={lippe} strokeWidth="2" strokeLinecap="round" />;
+          if (z.mund === 1) return <rect x="43" y={y - 1} width="14" height="2.4" rx="1.2" fill={lippe} />;
+          if (z.mund === 2) return <path d={"M42.5," + (y + 1) + " Q50," + (y - 2.6) + " 57.5," + (y + 1)
+            + " Q50," + (y + 2) + " 42.5," + (y + 1) + " Z"} fill={lippe} />;
+          if (z.mund === 3) return <><path d={"M43.5," + y + " q6.5,3.4 13,0 q-6.5,2.4 -13,0 Z"} fill={shade(haut, -70)} />
+            <path d={"M43.5," + y + " q6.5,-1 13,0"} fill="none" stroke={lippe} strokeWidth="1.5" strokeLinecap="round" /></>;
+          return <><path d={"M43," + (y - .6) + " Q50," + (y - 3) + " 57," + (y - .6) + " Q50," + (y + 3.4)
+            + " 43," + (y - .6) + " Z"} fill={lippe} />
+            <path d={"M43," + (y - .6) + " q7,1.2 14,0"} fill="none" stroke={tief} strokeWidth=".7" opacity=".6" /></>;
+        })()}
+
+        {/* ---- Bartwuchs ----
+            0 keiner · 1 Stoppeln · 2 Drei-Tage · 3 Schnauzer · 4 Kinnbart
+            5 Ziegenbart · 6 Vollbart kurz · 7 Vollbart lang · 8 Kinnriemen
+            9 Backenbart */}
+        {!w && z.bart > 0 && (() => {
+          const y = kinnY, jl = 50 - kopf.j - 2, jr = 50 + kopf.j + 2;
+          const rahmen = "M" + (50 - kopf.b + 1) + ",44 C" + (50 - kopf.b + 2) + "," + (y - 8) + " " + jl + ","
+            + (y + 2) + " 50," + (y + 2) + " C" + jr + "," + (y + 2) + " " + (50 + kopf.b - 2) + ","
+            + (y - 8) + " " + (50 + kopf.b - 1) + ",44 C" + (50 + kopf.b - 5) + "," + (y - 10) + " "
+            + (50 + 8) + "," + (y - 5) + " 50," + (y - 5) + " C" + (50 - 8) + "," + (y - 5) + " "
+            + (50 - kopf.b + 5) + "," + (y - 10) + " " + (50 - kopf.b + 1) + ",44 Z";
+          return (<g fill={haar}>
+            {z.bart === 1 && <path d={rahmen} opacity=".22" />}
+            {z.bart === 2 && <path d={rahmen} opacity=".45" />}
+            {z.bart === 3 && <path d={"M41," + (kinnY - 13.5) + " q9,-3.4 18,0 q-2.5,3 -5.5,3 q-3.5,0 -3.5,-1.4 q0,1.4 -3.5,1.4 q-3,0 -5.5,-3 Z"} />}
+            {z.bart === 4 && <path d={"M44," + (kinnY - 3.5) + " q6,-1.6 12,0 q-1,5.5 -6,5.5 q-5,0 -6,-5.5 Z"} />}
+            {(z.bart === 5) && <><path d={"M41," + (kinnY - 13.5) + " q9,-3.4 18,0 q-2.5,3 -5.5,3 q-3.5,0 -3.5,-1.4 q0,1.4 -3.5,1.4 q-3,0 -5.5,-3 Z"} />
+              <path d={"M45," + (kinnY - 3.5) + " q5,-1.4 10,0 q-1,5.5 -5,5.5 q-4,0 -5,-5.5 Z"} /></>}
+            {z.bart === 6 && <path d={rahmen} />}
+            {z.bart === 7 && <><path d={rahmen} />
+              <path d={"M" + (50 - kopf.j) + "," + (y - 3) + " q" + kopf.j + ",14 " + (kopf.j * 2) + ",0 q-"
+                + kopf.j + ",5 -" + (kopf.j * 2) + ",0 Z"} /></>}
+            {/* Kinnriemen: schmales Band der Kieferlinie entlang. Die frühere
+                Fassung war ein Pfad mit fast deckungsgleicher Innen- und
+                Außenkante — im Musterbogen war schlicht nichts zu sehen. */}
+            {z.bart === 8 && <path d={"M" + (50 - kopf.b + 1) + ",44 C" + (50 - kopf.b + 2) + "," + (y - 8)
+              + " " + jl + "," + (y + 2) + " 50," + (y + 2) + " C" + jr + "," + (y + 2) + " "
+              + (50 + kopf.b - 2) + "," + (y - 8) + " " + (50 + kopf.b - 1) + ",44 L" + (50 + kopf.b - 6) + ",44 C"
+              + (50 + kopf.b - 7) + "," + (y - 9) + " " + (50 + kopf.j * .8) + "," + (y - 3) + " 50," + (y - 3) + " C"
+              + (50 - kopf.j * .8) + "," + (y - 3) + " " + (50 - kopf.b + 7) + "," + (y - 9) + " "
+              + (50 - kopf.b + 6) + ",44 Z"} />}
+            {/* Koteletten: zwei senkrechte Streifen vor den Ohren. */}
+            {/* Koteletten laufen nach unten schmal aus und setzen am Haaransatz
+                an. Als Rechtecke lasen sie sich als angeklemmte Balken. */}
+            {z.bart === 9 && <><path d={"M" + (50 - kopf.b + 4) + ",39 h4.6 l-1.4," + (y - 51) + " h-2.4 Z"} />
+              <path d={"M" + (50 + kopf.b - 8.6) + ",39 h4.6 l-1.4," + (y - 51) + " h-2.4 Z"} /></>}
+          </g>); })()}
+
+        {/* ---- Schmuck ---- */}
+        {z.schmuck === 1 && <><circle cx={50 - kopf.b + 1} cy="52" r="1.8" fill="#C8A24B" />
+          <circle cx={50 + kopf.b - 1} cy="52" r="1.8" fill="#C8A24B" /></>}
+        {z.schmuck === 2 && <rect x={50 - kopf.b} y="31" width={kopf.b * 2} height="5.5" fill={c1} />}
+        {z.schmuck === 3 && <><circle cx="39" cy={augenY} r="8.4" fill="none" stroke="#243026" strokeWidth="1.5" />
+          <circle cx="61" cy={augenY} r="8.4" fill="none" stroke="#243026" strokeWidth="1.5" />
+          <path d={"M47.4," + augenY + " H52.6"} stroke="#243026" strokeWidth="1.5" /></>}
+        {z.schmuck === 4 && <><path d="M43,88 Q50,93 57,88" fill="none" stroke="#C7A24B" strokeWidth="1.8" />
+          <circle cx="50" cy="91.4" r="2.2" fill="#C7A24B" /></>}
+        {z.schmuck === 5 && <path d={"M" + (50 - kopf.b + 3) + ",30 h" + (kopf.b * 2 - 6) + " v3 h-"
+          + (kopf.b * 2 - 6) + " Z"} fill={shade(c2, 20)} />}
       </g>
     </svg>
   );
@@ -5726,7 +6032,7 @@ function createPlayer(cfg) {
     : (pick(pool.filter((c) => c.s <= (g === "w" ? 74 : 66))) || pick(pool) || CLUBS[0]);
   const p = {
     name: (cfg.name || "").trim() || "Der Namenlose", nation: nat, pos: cfg.pos, foot: cfg.foot,
-    number: cfg.number, avatar: cfg.avatar ?? ri(1, 999999), type, mode, g, bei: cfg.bei || "",
+    number: cfg.number, avatar: cfg.avatar ?? ri(1, 999999), zuege: cfg.zuege || null, type, mode, g, bei: cfg.bei || "",
     statur: cfg.statur || "normal",
     lauf: ++laufZaehler,                        // eindeutige Kennung dieser Laufbahn
     traum: cfg.traum || null, traumMale: 0,
@@ -7515,6 +7821,19 @@ table.led td.r,table.led th.r{text-align:right;}
   margin:-15px -16px 12px;padding:5px 11px;font-weight:700;font-size:9.5px;
   letter-spacing:.16em;text-transform:uppercase;color:var(--bg);}
 .band.matt{background:var(--ln2);color:var(--tx);}
+/* ---- Zwei Formen fuer zwei Prestigeleitern ---------------------------------
+   Die Seltenheit der Wildcard traegt ein GEFUELLTES BAND ueber die volle
+   Kartenbreite. Die Errungenschaftsstufe traegt eine KOMPAKTE MARKE mitten
+   im Text. Beide sind gefuellt — unterschieden wird ueber Breite und Ort,
+   nicht ueber die Farbe. Das ist noetig, weil „Aussergewoehnlich" gegen
+   Stufe Platin nur dE76 34 auseinanderliegt.
+
+   Ein Umriss fuer die Seltenheit war in 33.15 ausprobiert und wieder
+   verworfen: er nahm der Wildcard-Karte ihren Auftritt. Nicht erneut
+   vorschlagen, ohne das zu bedenken.                                       */
+.stufe{display:inline-block;padding:1px 6px;color:var(--karton);font-weight:700;
+  font-size:9px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;}
+.stufe.punkt{width:10px;height:10px;padding:0;margin-right:6px;vertical-align:-1px;}
 .karton .eb{color:var(--tinte2);}
 .karton .m{color:var(--tinte2);}
 .karton .bar{background:rgba(20,23,26,.10);border-color:rgba(20,23,26,.24);}
@@ -8918,7 +9237,7 @@ function Pass({ p, full, wachstum }) {
       <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
         {/* Lichtbild — auf jedem Pass derselbe harte Rahmen */}
         <div style={{ border: "2px solid var(--tinte)", padding: 2, flexShrink: 0, background: c1 + "1A" }}>
-          <Avatar seed={p.avatar} club={p.club} size={62} g={p.g} nat={p.nation.id} meta={p.meta} />
+          <Avatar seed={p.avatar} zuege={p.zuege} club={p.club} size={62} g={p.g} nat={p.nation.id} meta={p.meta} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="d" style={{ fontSize: 19, wordBreak: "break-word", display: "flex",
@@ -9378,7 +9697,7 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
             <div className="band matt"><span>Titelgeschichte</span><span style={{ letterSpacing: ".08em" }}>
               Saison {save.p.year}/{String(save.p.year + 1).slice(2)}</span></div>
             <div style={{ display: "flex", gap: 11, alignItems: "center" }}>
-              <Avatar seed={save.p.avatar} club={save.p.club} size={52} ring="var(--ln2)"
+              <Avatar seed={save.p.avatar} zuege={save.p.zuege} club={save.p.club} size={52} ring="var(--ln2)"
                 g={save.p.g} nat={save.p.nation ? save.p.nation.id : null} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="d" style={{ fontSize: 20, wordBreak: "break-word" }}>{save.p.name}</div>
@@ -9456,6 +9775,24 @@ function bitDrehen(seed, bit, n, richtung) {
   return h + (neu - alt) * Math.pow(2, bit);
 }
 
+/* Reihenfolge der Regler in der Feineinstellung. Was einen Namen hat, zeigt
+   ihn an — „Frisur 7/12" allein sagt niemandem, was er einstellt. */
+const PORTRAET_REGLER = (g) => [
+  ["Kopfform", "kopf", (z) => (KOPFFORM[z.kopf] || {}).n],
+  ["Hautton", "haut", null],
+  ["Haarfarbe", "haar", null],
+  ["Frisur", "frisur", null],
+  ...(g === "w" ? [] : [["Bartwuchs", "bart", null]]),
+  ["Augenform", "augen", null],
+  ["Augenfarbe", "augenfarbe", (z) => (AUGENFARBE[z.augenfarbe] || {}).n],
+  ["Augenbrauen", "brauen", null],
+  ["Nase", "nase", null],
+  ["Mund", "mund", null],
+  ["Ohren", "ohren", null],
+  ["Wangen und Kinn", "wangen", null],
+  ["Schmuck", "schmuck", null],
+];
+
 function CreateScreen({ onStart, onBack, meta }) {
   const [name, setName] = useState("");
   const [nation, setNation] = useState("GER");
@@ -9478,6 +9815,22 @@ function CreateScreen({ onStart, onBack, meta }) {
   const beinamen = ["mk_bei1", "mk_bei2", "mk_bei3"].filter((k) => meta && meta[k])
     .flatMap((k) => BEINAMEN[k] || []);
   const [avatar, setAvatar] = useState(() => ri(1, 999999));
+  /* Die Merkmale liegen einzeln vor. Jeder Regler ändert genau eines —
+     das ist der Grund, warum die Feineinstellung nicht mehr würfelt. */
+  const [zuege, setZuege] = useState(() => zuegeAusKennung(ri(1, 999999), "m", "GER", meta));
+  /* Herkunft oder Geschlecht gewechselt: Hautton und Haarfarbe müssen in den
+     Rahmen der neuen Herkunft, sonst stünde ein Wert dort, den die Regler gar
+     nicht erreichen können. Alles andere bleibt, wie es eingestellt war. */
+  useEffect(() => {
+    setZuege((z) => {
+      const T = hautBereich(nation), H = haarBereich(nation);
+      const A = ZUEGE_ANZAHL(meta, gender === "w");
+      const n = { ...z, haut: clamp(z.haut, T[0], T[1]), haar: clamp(z.haar, H[0], H[1]) };
+      Object.keys(A).forEach((k) => { if (n[k] >= A[k]) n[k] = A[k] - 1; });
+      if (gender === "w") n.bart = 0;
+      return n;
+    });
+  }, [nation, gender]);
   const [fein, setFein] = useState(false);
   const [statur, setStatur] = useState("normal");
   const [club, setClub] = useState(null);
@@ -9515,8 +9868,15 @@ function CreateScreen({ onStart, onBack, meta }) {
     <Shell>
       <div className="fade">
         <div className="d" style={{ fontSize: 26 }}>Spielerpass anlegen</div>
-        <div className="pan pad" style={{ marginTop: 12, display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-          <Avatar seed={avatar} club={CLUBS.find((c) => c.n === club) || null} size={86} ring="var(--ln2)" g={gender} nat={nation} meta={meta} />
+        {/* Der Vorschaublock bleibt beim Blättern oben hängen. Sonst stellt man
+            unten Feinheiten ein, ohne zu sehen, was sie am Gesicht bewirken —
+            und dasselbe gilt für Verein (Trikotfarben) und Name.
+            `.pan` bringt `position:relative` mit; die Angabe hier sticht sie
+            aus, weil sie direkt am Element steht. Der Grund ist deckend, sonst
+            läge der Text darunter durch. */}
+        <div className="pan pad" style={{ marginTop: 12, display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap",
+          position: "sticky", top: 0, zIndex: 5, borderBottomWidth: 2, background: "var(--pan)" }}>
+          <Avatar zuege={zuege} seed={avatar} club={CLUBS.find((c) => c.n === club) || null} size={86} ring="var(--ln2)" g={gender} nat={nation} meta={meta} />
           <div style={{ flex: 1, minWidth: 180 }}>
             <div className="d" style={{ fontSize: 20 }}>{nat.flag} {name.trim() || "Der Namenlose"}</div>
             <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 4 }}>
@@ -9524,7 +9884,8 @@ function CreateScreen({ onStart, onBack, meta }) {
             </div>
             {club && <div className="m" style={{ fontSize: 10.5, color: "var(--go)", marginTop: 3 }}>{club}</div>}
             <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "wrap" }}>
-              <button className="btn sm" onClick={() => setAvatar(ri(1, 999999))}>Neu würfeln</button>
+              <button className="btn sm" onClick={() => { const k = ri(1, 999999); setAvatar(k);
+                setZuege(zuegeAusKennung(k, gender, nation, meta)); }}>Neu würfeln</button>
               <button className="btn sm" onClick={() => setFein(!fein)}>
                 <span className="m" style={{ fontSize: 11 }}>{fein ? "Feinheiten zu" : "Feinheiten"}</span></button>
             </div>
@@ -9535,22 +9896,30 @@ function CreateScreen({ onStart, onBack, meta }) {
           <div className="pan pad" style={{ marginTop: 10 }}>
             <div className="eb" style={{ marginBottom: 8 }}>Porträt anpassen</div>
             <div className="g2">
-              {[["Hautton", 0, 6], ["Frisur", 6, meta && meta.mk_haar ? 11 : 8], ["Haarfarbe", 3, 7],
-                ["Augen", 11, 4], ["Augenbrauen", 12, 4], ["Blick", 14, 4], ["Mund", 16, 4],
-                ["Nase", 22, 3], ["Ohren", 24, 3], ["Kinn", 26, 3],
-                ["Bart", 19, 9], ["Schmuck", 28, meta && meta.mk_acc ? 5 : 1]].map(([lbl, bit, n]) => (
-                <div key={lbl} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                  <span className="m" style={{ fontSize: 11, color: "var(--mu)" }}>{lbl}</span>
-                  <div style={{ display: "flex", gap: 4 }}>
-                    <button className="btn sm" style={{ padding: "4px 10px" }}
-                      onClick={() => setAvatar(bitDrehen(avatar, bit, n, -1))}>‹</button>
-                    <button className="btn sm" style={{ padding: "4px 10px" }}
-                      onClick={() => setAvatar(bitDrehen(avatar, bit, n, 1))}>›</button>
-                  </div>
-                </div>))}
+              {PORTRAET_REGLER(gender).map(([lbl, feld, wert]) => {
+                const anz = ZUEGE_ANZAHL(meta, gender === "w");
+                const spanne = feld === "haut" ? hautBereich(nation) : feld === "haar" ? haarBereich(nation) : null;
+                const n = spanne ? spanne[1] - spanne[0] + 1 : (anz[feld] || 1);
+                const jetzt = spanne ? zuege[feld] - spanne[0] + 1 : (zuege[feld] || 0) + 1;
+                return (
+                  <div key={feld} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                    <span className="m" style={{ fontSize: 11, color: "var(--mu)" }}>
+                      {lbl}{wert ? " · " + wert(zuege) : ""}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span className="m" style={{ fontSize: 9.5, color: "var(--ln2)", minWidth: 30, textAlign: "right" }}>
+                        {n > 1 ? jetzt + "/" + n : "—"}</span>
+                      <button className="btn sm" style={{ padding: "4px 10px" }} disabled={n <= 1}
+                        onClick={() => setZuege((z) => zugDrehen(z, feld, -1, gender, nation, meta))}>‹</button>
+                      <button className="btn sm" style={{ padding: "4px 10px" }} disabled={n <= 1}
+                        onClick={() => setZuege((z) => zugDrehen(z, feld, 1, gender, nation, meta))}>›</button>
+                    </div>
+                  </div>);
+              })}
             </div>
             <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 9 }}>
               Hautton und Haarfarbe bleiben im Rahmen dessen, was zu deiner Herkunft passt.
+              Jeder Regler ändert genau ein Merkmal — alles andere bleibt stehen.
             </div>
           </div>)}
 
@@ -9698,7 +10067,7 @@ function CreateScreen({ onStart, onBack, meta }) {
 
         <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
           <button className="btn pri" style={{ maxWidth: 200 }}
-            onClick={() => onStart({ name, nation, pos, foot, number: clamp(parseInt(number || "1", 10) || 1, 1, 99),
+            onClick={() => onStart({ name, nation, pos, foot, zuege, number: clamp(parseInt(number || "1", 10) || 1, 1, 99),
               type, mode, avatar, gender, club, bei, speed, traum, statur })}>
             <span className="d" style={{ fontSize: 17 }}>Los geht's</span>
           </button>
@@ -10670,7 +11039,8 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
             const e = erreicht.filter((a) => a.s === k).length;
             return (
               <button key={k} className={"btn sm" + (filter === k ? " on" : "")} onClick={() => setFilter(k)}>
-                <span style={{ color: STUFEN[k].col }}>{STUFEN[k].n}</span>
+                <span className="stufe punkt" aria-hidden="true" style={{ background: STUFEN[k].col }} />
+                <span>{STUFEN[k].n}</span>
                 <span className="m" style={{ color: "var(--mu)", marginLeft: 5, fontSize: 10 }}>{e}/{n}</span>
               </button>);
           })}
@@ -10691,8 +11061,11 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
                            : { opacity: .62 }}>
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 6 }}>
                   <span className="d" style={{ fontSize: 14.5, color: hat ? "var(--tinte)" : "var(--mu)" }}>{a.n}</span>
-                  <span className="m" style={{ fontSize: 9, color: hat ? st.colK : "var(--ln2)", opacity: .9 }}>
-                    {hat ? st.n : nr}</span>
+                  {/* Erspielt: gefüllter Block in der Stufenfarbe. Nicht erspielt:
+                      nur die Nummer, damit das Leerfeld leer bleibt. */}
+                  {hat
+                    ? <span className="m stufe" style={{ background: st.colK }}>{st.n}</span>
+                    : <span className="m" style={{ fontSize: 9, color: "var(--ln2)", opacity: .9 }}>{nr}</span>}
                 </div>
                 <div style={{ fontSize: 11.5, color: hat ? "var(--tinte2)" : "var(--mu)", marginTop: 3 }}>{a.t}</div>
                 {a.lohn && META[a.lohn] && (
@@ -10743,7 +11116,7 @@ function HallScreen({ hall, onBack }) {
                     <div className="d" style={{ fontSize: 34, color: i === 0 ? "var(--go)" : "var(--ln2)",
                       minWidth: 34, textAlign: "right", lineHeight: 1 }}>{i + 1}</div>
                     {h.avatar != null && (
-                      <Avatar seed={h.avatar} club={heim} size={56} ring="var(--ln2)" g={h.g} nat={h.natId} />)}
+                      <Avatar seed={h.avatar} zuege={h.zuege} club={heim} size={56} ring="var(--ln2)" g={h.g} nat={h.natId} />)}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="d" style={{ fontSize: 17, wordBreak: "break-word" }}>{h.nat} {h.name}</div>
                       <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 2 }}>
@@ -10815,7 +11188,8 @@ function EndScreen({ p, onNew, onHall, onAka }) {
             <div className="g2">
               {p.neueErfolge.map((a) => (
                 <div key={a.id} style={{ fontSize: 12 }}>
-                  <span style={{ color: STUFEN[a.s].col }}>{a.n}</span>
+                  <span className="stufe punkt" aria-hidden="true" style={{ background: STUFEN[a.s].col }} />
+                  <span>{a.n}</span>
                   {a.lohn && META[a.lohn] && (
                     <span className="m" style={{ fontSize: 10, color: "var(--ok)", display: "block" }}>
                       schaltet frei: {META[a.lohn].n}</span>)}
@@ -11154,7 +11528,7 @@ function FlutlichtApp() {
       speed: !!q.speed,
       /* Ab 33.10 für die Würdigung in der Ruhmeshalle. Ältere Einträge haben
          das nicht — jede Auswertung muss ohne diese Felder auskommen. */
-      avatar: q.avatar, g: q.g, natId: q.nation.id, von: q.year + 1 - (q.age - 16), bis: q.year + 1,
+      avatar: q.avatar, zuege: q.zuege, g: q.g, natId: q.nation.id, von: q.year + 1 - (q.age - 16), bis: q.year + 1,
       heimat, heimatSpiele: heimat ? proVerein[heimat] : 0,
       apps: q.tot.apps, assists: q.tot.assists, saisons: q.seasons.length });
   };

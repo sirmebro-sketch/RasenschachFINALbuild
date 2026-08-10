@@ -5,8 +5,8 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 33.14** · Stand 10. August 2026
-*Eigene Schriften · harte Form · Farbkonzept · Sammelalbum · Titelblatt und Optionen · Ehrentafel als Karton*
+**Fassung 34.1** · Stand 10. August 2026
+*Eigene Schriften · harte Form · Farbkonzept · Sammelalbum · Titelblatt und Optionen · Ehrentafel als Karton · Form statt Farbe · **neue Spielerporträts***
 
 > Die Abschnitte 1 bis 8 beschreiben das Spiel und die Arbeitsweise und gelten
 > unverändert. Alles ab „Fassungen 33.3 bis 33.7" ist neuer und **hat Vorrang**,
@@ -231,6 +231,7 @@ Teile: `aufbau` · `kalib` · `ansicht` · `rueck` · `bau`
 | `vorschau.py` | erzeugt die Vorschaufassung für den Chat |
 | `uebersicht.cjs` | erzeugt `UEBERSICHT.md` aus den Spieldaten |
 | `browsertest.sh` | baut den Browsertest als Einzeldatei (siehe unten) |
+| `portraetbogen.cjs` | rendert Porträts als Bildtafel — ohne das ist Grafik blind |
 | `messwerkzeug.js` | Diagnose, Bildrate und A/B-Schalter für den Browsertest |
 | `startprobe.cjs` | fährt die fertige Einzeldatei in jsdom hoch |
 | `appicon.py` | erzeugt den Android-Symbolsatz aus einem Bild |
@@ -308,7 +309,10 @@ und `@capacitor/preferences`). `UEBERSICHT.md` ist auf 33.13 neu erzeugt.
 Rückwärtsprüfung mit alten Sicherungen, echter Produktionsbau.
 **Was er nicht abdeckt:** alles, was nur auf dem Gerät sichtbar wird — Schriften
 in der WebView, `preserve-3d` beim Wenden des Passes, `navigator.wakeLock`.
-Dafür gibt es den Browsertest als Einzeldatei (siehe unten).
+Dafür gibt es den Browsertest als Einzeldatei: `bash pruefstand/browsertest.sh App.jsx`.
+**Alle drei sind am 10.8.2026 auf dem Gerät bestätigt worden** (siehe „Auf dem Gerät
+geprüft"). Nach jeder Änderung an Schriften, Pass oder Wachsperre gehört das wiederholt —
+der Prüfstand kann es strukturell nicht.
 
 ---
 
@@ -636,35 +640,227 @@ vollständig. **Bei 48 dp ist er nicht mehr lesbar** — das ist der Preis einer
 vollflächigen Illustration als Symbol. Wer Lesbarkeit will, braucht ein
 reduziertes Zeichen (Ball und XI), keine Szene.
 
-## Offene Punkte (Stand 33.14)
+## Auf dem Gerät geprüft — 10.8.2026
 
-1. **Auf dem Gerät noch nicht gemessen.** Drei Dinge kann nur Chrome auf dem Handy
-   beantworten, und die Antwort steht noch aus: wendet der Pass sauber (`preserve-3d`),
-   greift `navigator.wakeLock`, und steht im Impressum „Fassung 33.14" **ohne**
-   „SCHRIFT FEHLT". Der Browsertest liegt bereit (`pruefstand/browsertest.sh`).
-   **Achtung:** `wakeLock` gibt es nur im sicheren Zusammenhang. Aus der Downloads-App
-   heraus wird die Datei meist über `content://` geöffnet — dann ist der Schalter
-   gesperrt, und das sagt **nichts** über die APK. Dafür braucht es `http://localhost`
-   oder https. Die Diagnosezeile im Messwerkzeug nennt den Grund.
-2. **Halbtonraster über die volle Seite** — noch nicht auf Rechenaufwand bei sehr
-   langen Ansichten gemessen. Das Messwerkzeug im Browsertest hat dafür drei
-   A/B-Schalter (Raster · Klebeschatten · Schräglage und Deckkraft), weil neben dem
-   Raster auch die 162 Felder verdächtig sind: jedes nicht erreichte trägt
-   `opacity:.62`, also eine eigene Transparenzebene.
-3. **Zwei Restüberschneidungen** in den Farben: `aussen` gegen Stufe Platin (58) und
-   `hsv` gegen `--tx` (46). **Nicht** einzeln verschieben — die Schwelle 60 war
-   willkürlich gesetzt. Vereinbart ist die strukturelle Lösung: Errungenschaftsstufe
-   als **gefüllter Block**, Seltenheit als **Rahmen**. Dann trennen sich die beiden
-   Leitern nach Form statt nach Farbe, und eine Überschneidung im Farbraum ist
-   folgenlos.
-4. **Karton weiter ausrollen?** Jetzt an Spielerpass, Errungenschaften und
-   Akademie-Ehrentafel. Ein weiterer Kandidat ist nicht offensichtlich — eher
-   aufhören als aus Gewohnheit weitermachen.
-5. **`zahlenPruefen` greift in der Ruhmeshalle nicht**, weil die Werte in `.zellen`
-   dort als reine Textknoten neben der Beschriftung stehen. Dieselbe Stelle wurde in
-   der Ehrentafel berichtigt. Nachziehen, wenn ohnehin an der Ruhmeshalle gearbeitet wird.
+Kevin hat den Browsertest 33.14 in Chrome auf dem Handy gefahren. Ergebnis:
+
+* **Der Pass wendet sauber**, die Rückseite scheint nicht durch. Damit ist
+  `preserve-3d` mit den drei getrennten Ebenen (Perspektive · Drehung · Seiten)
+  auf der echten WebView bestätigt — bis dahin war es nur in jsdom geprüft, und
+  jsdom hat kein 3D.
+* **„Bildschirm anlassen" greift.** `navigator.wakeLock` als reine
+  Netzschnittstelle reicht, es braucht kein Kapsel-Erweiterungsmodul.
+* **Das Impressum zeigt „Fassung 33.14" ohne „SCHRIFT FEHLT".** Anton und
+  Archivo kommen also wirklich auf dem Gerät an. Das ist die einzige Prüfung,
+  die den Fehler aus 33.3 endgültig ausschließt — im Prüfstand ist sie
+  strukturell unmöglich, weil jsdom kein `getContext` hat.
+* **Kein Ruckeln** beim Durchscrollen der 162 Errungenschaften.
+
+**Was dabei nicht gemessen wurde:** Zahlen aus dem Messwerkzeug liegen nicht vor,
+und die drei A/B-Schalter wurden nicht einzeln durchgefahren. Der Befund ist
+„nichts zu sehen", nicht „gemessen und für gut befunden". Für die Frage, ob das
+Halbtonraster bezahlbar ist, reicht das: es gab nichts zuzuordnen. Sollte auf
+einem schwächeren Gerät doch etwas auffallen, liegt das Werkzeug bereit.
+
+### 33.15 · Zwei Formen statt zweier Farbleitern
+Die zwei Restüberschneidungen sind **nicht** durch Farbverschieben erledigt worden,
+sondern durch eine Unterscheidung, die keine Farbe braucht:
+
+> **Was man sich erspielt hat, ist ein gefüllter Block.
+> Was einem zugefallen ist, trägt nur einen Umriss.**
+
+Errungenschaftsstufe und Absolventenrang sind erspielt — gefüllt. Die Seltenheit
+der Wildcard ist gezogen — umrandet. Damit unterscheidet die **Form**, und eine
+Überschneidung im Farbraum ist folgenlos.
+
+**Warum die alte Messung nichts taugte.** Die Schwelle 60 war nicht nur willkürlich
+gesetzt, sie stand auf dem falschen Maß: gemessen wurde der **euklidische Abstand im
+RGB-Raum** (Skala 0–441). Der hat mit dem Sehen nichts zu tun. Nachgerechnet in
+ΔE76 (CIE-Lab) sieht die Lage anders aus:
+
+| Paar | RGB-Abstand (alt) | ΔE76 (perzeptuell) |
+|---|---|---|
+| `aussen` gegen Stufe Platin | 58 | **34,2** |
+| `hsv` gegen `--tx` | 46 | **18,8** |
+| `RARITY.normal` gegen `--mu` | 21 | **4,6** ← stand nie auf der Liste |
+
+`hsv` gegen `--tx` sah nach RGB mittelmäßig aus und ist perzeptuell einer der engsten
+Fälle überhaupt. Und `RARITY.normal` gegen `--mu` bei ΔE 4,6 ist praktisch dieselbe
+Farbe — das ist nie aufgefallen, weil das falsche Maß es nicht zeigte. **Sind alle drei
+jetzt egal?** Ladder gegen Ladder ja, weil die Form trennt. Farbe gegen Bedeutungsfarbe
+(`--mu`, `--tx`) bleibt eine offene Frage — dafür trennt die Form nicht, denn beide sind
+Text. Steht als offener Punkt.
+
+**Geändert (vier Zeichenstellen, zwei Regeln):**
+* `.band.umriss` — Band ohne Füllung, nur eine 2-px-Linie darunter in der Seltenheitsfarbe.
+  Eingesetzt an der **Wildcard-Karte** und in der **Ruhmeshalle**. Die Karte trägt den
+  Rahmen jetzt mit 2 px statt 1 px, damit der Umriss die Farbe wirklich hält.
+  **→ In 33.16 wieder zurückgenommen, siehe unten.**
+* `.stufe` / `.stufe.punkt` — gefüllter Block. Im **Errungenschaftsgitter** trägt die
+  erreichte Karte den Stufennamen als gefüllte Marke in `colK` (Text `--karton`), die
+  **Filterknöpfe** und die Liste am **Karriereende** bekommen einen gefüllten Punkt in `col`.
+* Der Verlauf auf der Wildcard-Karte bleibt: 12 % Deckung sind ein Hauch, kein Block.
+* **Die Enthüllung bleibt unberührt.** Dort tritt die Seltenheit als Einzige auf, bildfüllend,
+  und die Dramaturgie lebt von Fläche. Wo nichts zu verwechseln ist, braucht es keine
+  Unterscheidung. Das ist eine bewusste Ausnahme, keine Lücke.
+
+Kontraste gemessen: gefüllte Stufenmarke (`--karton` auf `colK`) 5,16 bis 6,48 · Stufenpunkt
+auf `--pan` 4,51 bis 15,22 · Seltenheit als Umriss und Beschriftung auf `--pan` 5,25 bis 13,37.
+Alle über der Schwelle.
+
+Prüfstand: **173 Prüfungen** (vorher 157, also 16 neue), 6× 63 Ansichten, alle Zielbänder,
+0 Fehler. Bündel **1.024,64 kB** (vorher 1.023,58 — Zuwachs 1,06 kB).
+
+### 33.15 · Der Prüfstand hat grün gemeldet, obwohl der Aufbau gescheitert war
+Beim Einbauen habe ich einen Kommentaranfang in `ansichten.jsx` zerstört. esbuild brach
+ab — und der Prüfstand **lief weiter** und meldete „157 Prüfungen bestanden, 0 Fehler".
+Denn `a.js` aus dem vorigen Lauf lag noch da. Nur der Rückgabewert verriet es.
+
+`pruefen.sh` bricht jetzt nach einem gescheiterten Aufbau ab, mit Begründung, statt ein
+altes Bündel zu prüfen. **Gegengeprobt** mit absichtlich kaputtem Prüfskript: Rückgabewert 1,
+Meldung „ABBRUCH", keine Prüfzahlen. Das war die gefährlichste Sorte Fehler — grüne Wiese
+über kaputtem Code.
+
+### 33.16 · Der Umriss ist wieder raus
+Kevin am Gerät: die Wildcard-Karte gefiel ihm vor der Änderung besser. **Zurückgebaut**,
+und zwar vollständig — `WildcardCard` ist Zeichen für Zeichen wieder die aus 33.14
+(gegengeprüft gegen die ausgelieferte Datei). Die Ruhmeshalle geht mit: dieselbe Sache
+darf nicht an zwei Orten zweierlei aussehen. `.band.umriss` ist als tote Regel entfernt.
+
+**Was das kostet, offen gesagt:** die Unterscheidung ruht jetzt nicht mehr auf
+*gefüllt gegen umrandet*, sondern auf **Breite und Ort** — die Seltenheit als Band über
+die volle Kartenbreite, die Errungenschaftsstufe als kompakte Marke mitten im Text.
+Das ist schwächer als der Umriss, aber es ist keine Farbunterscheidung, und die beiden
+Formen treffen ohnehin nur am Karriereende in einer Ansicht aufeinander. Der gemessene
+Abstand `aussen` gegen Platin bleibt bei ΔE 34,2 — die Farben sind unverändert.
+
+**Behalten aus 33.15:** die gefüllte Stufenmarke im Errungenschaftsgitter, die
+Filterpunkte und die Marke am Karriereende. Daran gab es nichts auszusetzen, und sie
+sind für sich genommen besser als der dünne farbige Text davor.
+
+**Für den nächsten Anlauf:** einen Umriss für die Seltenheit nicht erneut vorschlagen,
+ohne zu bedenken, dass er der Wildcard-Karte den Auftritt nimmt. Der Hinweis steht auch
+als Kommentar an der CSS-Regel. Wer die Trennung härter will, sollte am *Ort* ansetzen,
+nicht an der Füllung.
+
+Prüfstand: **180 Prüfungen** (vorher 173), 6× 63 Ansichten, alle Zielbänder, 0 Fehler.
+Der Prüfblock prüft jetzt die Gegenrichtung mit: die Seltenheit darf nie als kompakte
+Marke erscheinen, die Stufe nie als Band über die volle Breite.
+
+## 34.0 · Die Spielerporträts
+
+### Der Fehler, der jahrelang stand
+Alle Merkmale steckten in **einer** Zahl, ausgelesen mit `(h >> bit) % n`. Das ist
+**kein abgetrenntes Feld**: `h >> bit` enthält *alle* höheren Bits, und ein Zuschlag
+von `2^bit` trägt in jedes höhere Merkmal hinein. Deshalb würfelte die Feineinstellung
+das halbe Gesicht neu. An 400 Proben nachgerechnet, ein Druck auf ›:
+
+| Regler | änderte tatsächlich |
+|---|---|
+| Schmuck | 8,0 von 13 Merkmalen |
+| Kinn | 7,0 von 13 |
+| Ohren | 6,0 von 13 |
+| Nase | 5,0 von 13 |
+| Bart | 4,0 von 13 |
+| Frisur | 2,9 von 13 |
+| Hautton | 1,2 von 13 |
+
+**Nicht gepflastert, sondern unmöglich gemacht:** die Merkmale liegen als eigenes
+Objekt `zuege` vor, jedes zieht über `mische(kennung, i)` einen **eigenen**
+Zufallsstrom. Überlappung kann es dort nicht geben. Gemessen nach dem Umbau:
+**3.120 Reglerdrücke, Mittel 1,00 geänderte Merkmale, Höchstwert 1.**
+Der Prüfstand schlägt außerdem an, wenn ein Regler *gar nichts* tut — ein
+wirkungsloser Regler ist so falsch wie ein zu wirksamer.
+
+### Zwei Fehler, die beim Hinsehen auffielen
+* **Die Augenfarbe wurde berechnet und nie gezeichnet.** `eyeC` stand im Code, die
+  Augen waren aber immer `#2A2118`. Der Regler „Augen" hat sichtbar nichts getan.
+  Jetzt trägt die Iris die Farbe; geprüft wird, dass **alle** Augenfarben im Bild
+  nachweisbar sind (7 von 7).
+* **Vier Frisuren zeichneten außerhalb des Kopfes** — Zöpfe, Igel, Rasurmuster und
+  Undercut schwebten als Zacken und Balken über dem Schädel. Ursache: kein Beschnitt.
+  Es gibt jetzt eine Haarkappe als eigenen Pfad und einen `clipPath` darauf.
+
+### Was es jetzt gibt
+5 Kopfformen · 16 Frisuren · 10 Bartformen · 7 Augenfarben · 5 Augenformen ·
+5 Augenbrauen · 5 Nasen · 5 Münder · 3 Ohrgrößen · 3 Wangen-/Kinnvarianten ·
+6 Schmuckstücke. **57 gezeichnete Auswahlmöglichkeiten allein in den acht
+Formmerkmalen.** Der Prüfstand zählt nach, dass jede davon auch etwas zeichnet —
+ein Wert ohne Bild wäre eine Auswahl, die es nur auf dem Papier gibt.
+
+Zeichnerisch: Augen mit Lidspalt, Iris, Pupille und Glanz statt weißer Ellipse mit
+Punkt · Flächenschatten an Wange und Hals · Nase und Mund neu · Trikot mit
+Schulterschatten · Grund von Marineblau `#0B0E15` auf **Rasen bei Nacht** `#0B120E`,
+damit das Porträt zum Farbkonzept gehört und nicht daneben steht. Keine Verläufe,
+nur flache Tonstufen — dieselbe Sprache wie der Rest.
+
+### Ohne Augen geht Grafik nicht
+Neu: `pruefstand/portraetbogen.cjs`. Rendert echte `<Avatar>`-Ausgaben als SVG-Tafel,
+in drei Betriebsarten: Zufallsbogen, Musterbogen je Merkmal, Großansicht einzelner
+Werte. In PNG wandeln mit cairosvg. **Ohne dieses Werkzeug wären fünf sichtbare
+Mängel unentdeckt geblieben**, die kein Prüfskript findet: eine harte Naht mitten im
+Gesicht (Schatten lief bis zur Mitte), eine zu lange dunkle Nase, ein offener Mund als
+schwarzes Loch, ein unsichtbarer Kinnriemen und ein Schnauzer, der auf dem Mund saß.
+Jede dieser Nachbesserungen ist gegen einen neu gerenderten Bogen geprüft worden.
+
+### Was das kostet
+**Alte Spielstände tragen nur die Kennung. Ihre Gesichter sehen nach diesem Umbau
+ANDERS aus als vorher.** Bei einer Neuzeichnung aller Teile ließe sich das ohnehin
+nicht vermeiden. Der Spielstand bleibt gültig, die Rückwärtsprüfung läuft durch.
+Neue Laufbahnen speichern die Merkmale ausdrücklich (`p.zuege`), auch in der
+Ruhmeshalle — die bleiben dann über jede weitere Fassung stabil.
+
+**`ZUEGE_ORDNUNG` NIE umsortieren.** Die Reihenfolge ist die Nummer im Mischstrom;
+eine Umsortierung ändert jedes bestehende Gesicht. Neues immer hinten anhängen.
+
+### 34.1 · Angeheftete Vorschau, und sechs Sitzfehler behoben
+**Die Vorschau in der Spielererstellung bleibt beim Blättern oben hängen**
+(`position:sticky`, `top:0`, deckender Grund, `zIndex:5`). Vorher stellte man
+unten Feinheiten ein und sah oben nicht, was sie bewirken — dasselbe beim Verein
+(Trikotfarben) und beim Namen. `.tbar` gibt es nur im Spielbildschirm, `top:0` war
+hier also frei. Der Prüfstand zählt nach: genau ein angehefteter Block, Porträt
+darin, deckender Grund.
+
+**Sechs Fehler im Sitz der Teile**, gefunden mit einem neuen **Kreuzbogen**
+(`portraetbogen.cjs kreuz`) — jede Ausprägung über *jeder* Kopfform. Im
+Zufallsbogen fallen solche Fälle kaum auf, im Kreuz sofort:
+
+| Teil | war | ist |
+|---|---|---|
+| Undercut | helle Flächen mitten im Haar, schwebende Insel | rasierte Seite bis zur Haarkante |
+| Zöpfe | Striche endeten auf halber Höhe (Strichcode-Kante), Zöpfe standen seitlich heraus | laufen am Haaransatz aus, innerhalb der Kopfbreite |
+| Rasurmuster | dieselbe harte Querkante | läuft aus |
+| Vokuhila | verdeckte die Ohren, sah aus wie ein Bob | Ohren liegen darüber — langes Haar gehört dahinter |
+| Kinnbart und Ziegenbart | klebten am Mund, lasen sich als offener Mund | 3,5 Einheiten tiefer, klar getrennt |
+| Koteletten | lagen auf den Ohren, dann als angeklemmte Balken davor | verjüngen sich nach unten, setzen am Haaransatz an |
+
+Jede Berichtigung ist gegen einen neu gerenderten Kreuzbogen geprüft, nicht gegen
+eine Vermutung.
+
+## Offene Punkte (Stand 34.1)
+
+1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
+   als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
+   im Zufallsbogen wirkt rund ein Fünftel der Gesichter kahl. Rechnerisch richtig,
+   gestalterisch vielleicht zu viel — das ist Kevins Entscheidung, keine Aufgabe
+   für den Prüfstand.
+2. **Weibliche Porträts sind weniger weit** als die männlichen: 10 bzw. 14 Frisuren
+   gegen 12 bzw. 16, und die langen Haarformen liegen hinter dem Kopf, wo sie bei
+   62 px kaum wirken. Nachziehen, sobald die männlichen stehen.
+3. **Farbe gegen Bedeutungsfarbe** ist noch offen. Die Form trennt die beiden
+   Prestigeleitern, aber nicht Text von Text: `RARITY.normal` (#7E8A84) liegt bei
+   **ΔE 4,6** zu `--mu` (#8A9690) und `hsv` bei **ΔE 18,8** zu `--tx`. Erst prüfen,
+   ob sie überhaupt je in derselben Zeile stehen — wenn nicht, ist es folgenlos.
+   **Nicht blind verschieben.**
+4. **`zahlenPruefen` greift in der Ruhmeshalle nicht**, weil die Werte in `.zellen`
+   dort als reine Textknoten neben der Beschriftung stehen. In der Ehrentafel schon
+   berichtigt. Nachziehen, wenn ohnehin an der Ruhmeshalle gearbeitet wird.
+5. **Das Symbol ist bei 48 dp nicht mehr lesbar.** Wer Lesbarkeit will, braucht ein
+   reduziertes Zeichen (Ball und XI), keine Szene. Gestalterische Entscheidung.
 6. **Alte Spielstände** tragen `speed` und `mode` weiter am Spieler; die Voreinstellung
-   greift nur bei neuen Laufbahnen. Das ist so gewollt, sollte aber im Blick bleiben.
+   greift nur bei neuen Laufbahnen. So gewollt, sollte aber im Blick bleiben.
+7. **Aus Abschnitt 7 weiterhin offen:** Akademie im Karriere-Rückblick erwähnen,
+   Jugendturniere mit Namen und Gegner sichtbar machen.
 
 ## Zusätzliche Stolperfallen
 

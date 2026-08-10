@@ -35,7 +35,11 @@ Im Repository liegen sie **flach neben App.jsx**, nicht in einem `src`-Ordner.
 **Werkzeug**
 
     appicon.py      App-Symbol erzeugen (im Repo unter symbol/)
-    appicon.png     die EINE Bilddatei des Symbols (im Repo unter symbol/)
+
+`symbol/appicon.png` — die EINE Bilddatei des Symbols — liegt **nur im
+Repository**, nicht im Projektwissen: ein Bild lässt sich dort nicht
+durchsuchen und wäre nur Ballast. Wer das Symbol wechselt, tauscht diese
+eine Datei im Repository; den ganzen Satz erzeugt `appicon.py` beim Bauen.
 
 ## Auf dem Gerät prüfen
 
@@ -54,6 +58,11 @@ Solange es aus ist, läuft davon kein Code.
 **`navigator.wakeLock` braucht einen sicheren Zusammenhang.** Über `content://`
 oder `file://` ist der Schalter „Bildschirm anlassen" gesperrt — das ist die
 Umgebung, nicht die App. Für diesen Punkt `http://localhost` oder https nutzen.
+
+**Stand 10.8.2026 auf dem Gerät bestätigt:** Pass wendet sauber, Wachsperre
+greift, Impressum ohne „SCHRIFT FEHLT", kein Ruckeln in den Errungenschaften.
+**Nach jeder Änderung an Schriften, Pass oder Wachsperre wiederholen** — der
+Prüfstand kann diese drei Dinge strukturell nicht sehen.
 
 ## Prüfen
 

@@ -3,7 +3,9 @@ import { createRoot } from "react-dom/client";
 import { act } from "react";
 import App, { MenuScreen, EndScreen, AkademieScreen, TalentZeile,
   WildcardEnthuellung, Balken, AusbauRing, akaNaechster, akaLeistbar,
-  ACHIEVEMENTS, RARITY, AKA_MAX, leereBilanz, hsvChance, akaStufe, akaSumme, akaRestkosten,
+  ACHIEVEMENTS, RARITY, STUFEN, WildcardCard, AchievementScreen,
+  Avatar, CreateScreen, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
+  AKA_MAX, leereBilanz, hsvChance, akaStufe, akaSumme, akaRestkosten,
   leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, vcPosten, akaBonus,
   ABTEILUNGEN, createPlayer, develop, simulateSeason, makeOffers, marketValue,
   verdict, NATIONS, TYPES, MODES, POS, pick } from "./probe.jsx";
@@ -297,6 +299,180 @@ console.log("\n=== Nächster Schritt ===");
 });
 mach("Ausbau-Ring", <AusbauRing von={14} bis={36} farbe="var(--ac)" />);
 mach("Ausbau-Ring · leer", <AusbauRing von={0} bis={36} farbe="var(--ac)" />);
+
+/* ---------- Porträt: ein Regler ändert genau ein Merkmal ----------
+   Bis 33.16 änderte ein Druck auf „Schmuck" im Schnitt 8 von 13 Merkmalen
+   mit, weil `(h >> bit) % n` kein abgetrenntes Feld ist. Hier wird gezählt,
+   nicht behauptet: über alle Merkmale, beide Richtungen, viele Kennungen. */
+console.log("\n=== Porträt ===");
+{
+  const felder = Object.keys(ZUEGE_ANZAHL({}, false));
+  let schlimmster = 0, schlimmsterName = "";
+  let gesamt = 0, faelle = 0, wirkungslos = 0;
+  for (let k = 0; k < 120; k++) {
+    const kennung = 1000 + k * 7919;
+    const z = zuegeAusKennung(kennung, "m", "GER", {});
+    felder.forEach((f) => {
+      [1, -1].forEach((r) => {
+        const n = zugDrehen(z, f, r, "m", "GER", {});
+        const geaendert = felder.filter((x) => n[x] !== z[x]);
+        gesamt += geaendert.length; faelle++;
+        if (geaendert.length > schlimmster) { schlimmster = geaendert.length; schlimmsterName = f; }
+        /* Ein Regler, der nichts tut, ist genauso falsch wie einer, der zu viel tut. */
+        if (geaendert.length === 0 && (ZUEGE_ANZAHL({}, false)[f] > 1)
+            && !(f === "haut" || f === "haar")) wirkungslos++;
+      });
+    });
+  }
+  if (schlimmster > 1) zeige("Porträt", "ein Regler änderte " + schlimmster + " Merkmale (" + schlimmsterName + ")");
+  else ok++;
+  if (wirkungslos) zeige("Porträt", wirkungslos + " Reglerdrücke ohne jede Wirkung");
+  else ok++;
+  console.log("  Regler          " + faelle + " Drücke · Mittel " + (gesamt / faelle).toFixed(2)
+    + " geänderte Merkmale · Höchstwert " + schlimmster + " (vorher bis 8)");
+
+  /* Gleiche Kennung ⇒ gleiches Gesicht. Ohne das wäre jeder Spielstand ein Glücksspiel. */
+  const a1 = JSON.stringify(zuegeAusKennung(4242, "m", "BRA", {}));
+  const a2 = JSON.stringify(zuegeAusKennung(4242, "m", "BRA", {}));
+  if (a1 !== a2) zeige("Porträt", "gleiche Kennung liefert verschiedene Merkmale");
+  else ok++;
+
+  /* Hautton und Haarfarbe müssen im Rahmen der Herkunft bleiben — auch nach
+     beliebig vielem Weiterdrehen. */
+  let raus = 0;
+  ["GER", "NGA", "JPN", "BRA", "SEN", "NOR"].forEach((nat) => {
+    const T = hautBereich(nat), H = haarBereich(nat);
+    let z = zuegeAusKennung(777, "m", nat, {});
+    for (let i = 0; i < 40; i++) {
+      z = zugDrehen(z, "haut", 1, "m", nat, {});
+      z = zugDrehen(z, "haar", -1, "m", nat, {});
+      if (z.haut < T[0] || z.haut > T[1] || z.haar < H[0] || z.haar > H[1]) raus++;
+    }
+  });
+  if (raus) zeige("Porträt", raus + "× Hautton oder Haarfarbe außerhalb der Herkunft");
+  else ok++;
+  console.log("  Herkunft        6 Länder × 40 Drehungen · 0 Ausreißer");
+
+  /* Jedes Merkmal muss auch etwas ZEICHNEN. Ein Wert ohne Bild ist eine
+     Auswahlmöglichkeit, die es nur auf dem Papier gibt. */
+  const A = ZUEGE_ANZAHL({ mk_haar: true, mk_acc: true }, false);
+  const leer = [];
+  ["frisur", "bart", "mund", "nase", "brauen", "augen", "kopf", "schmuck"].forEach((f) => {
+    for (let v = 0; v < A[f]; v++) {
+      const z = { ...zuegeAusKennung(4242, "m", "GER", { mk_haar: true, mk_acc: true }), [f]: v };
+      const r = mach("Porträt " + f + " " + v, <Avatar zuege={z} g="m" nat="GER" size={64} />, 0);
+      if (!r) { leer.push(f + " " + v + " (Absturz)"); continue; }
+      const teile = r.div.querySelectorAll("path,circle,ellipse,rect,g").length;
+      if (teile < 12) leer.push(f + " " + v + " (nur " + teile + " Teile)");
+    }
+  });
+  if (leer.length) zeige("Porträt", "Merkmale ohne Bild: " + leer.join(", "));
+  else ok++;
+  const summe = ["frisur", "bart", "mund", "nase", "brauen", "augen", "kopf", "schmuck"]
+    .reduce((a, f) => a + A[f], 0);
+  console.log("  Gestaltung      " + summe + " gezeichnete Auswahlmöglichkeiten in 8 Merkmalen · "
+    + AUGENFARBE.length + " Augenfarben · " + KOPFFORM.length + " Kopfformen");
+
+  /* Die Augenfarbe wurde bis 33.16 berechnet und nie gezeichnet. */
+  const farben = new Set();
+  for (let v = 0; v < AUGENFARBE.length; v++) {
+    const z = { ...zuegeAusKennung(4242, "m", "GER", {}), augenfarbe: v, schmuck: 0 };
+    const r = mach("Augenfarbe " + v, <Avatar zuege={z} g="m" nat="GER" size={64} />, 0);
+    if (r) [...r.div.querySelectorAll("circle")].forEach((c) => farben.add(c.getAttribute("fill")));
+  }
+  const gefunden = AUGENFARBE.filter((f) => farben.has(f.c)).length;
+  if (gefunden !== AUGENFARBE.length)
+    zeige("Porträt", "nur " + gefunden + " von " + AUGENFARBE.length + " Augenfarben landen im Bild");
+  else ok++;
+  console.log("  Augenfarbe      " + gefunden + " von " + AUGENFARBE.length + " im Bild nachweisbar");
+
+  /* Der Vorschaublock der Erstellung muss angeheftet bleiben. Sonst stellt man
+     unten Feinheiten ein und sieht oben nicht, was sie bewirken. Eine reine
+     Stilangabe verschwindet bei einem Umbau lautlos — deshalb hier gezählt. */
+  const erst = mach("Spielererstellung", <CreateScreen onStart={() => {}} onBack={() => {}} meta={{}} />);
+  if (erst) {
+    const angeheftet = [...erst.div.querySelectorAll(".pan")]
+      .filter((e) => e.style.position === "sticky" && e.style.top === "0px");
+    if (angeheftet.length !== 1)
+      zeige("Spielererstellung", angeheftet.length + " angeheftete Blöcke, erwartet genau 1");
+    else ok++;
+    if (angeheftet[0] && !angeheftet[0].querySelector("svg"))
+      zeige("Spielererstellung", "im angehefteten Block steckt kein Porträt");
+    else ok++;
+    if (angeheftet[0] && !angeheftet[0].style.background)
+      zeige("Spielererstellung", "der angeheftete Block ist durchsichtig — Text läge darunter durch");
+    else ok++;
+    console.log("  Kopfleiste      angeheftet ✓ · Porträt darin ✓ · deckender Grund ✓");
+  }
+
+  /* Alte Spielstände tragen nur die Kennung — das Porträt muss trotzdem stehen. */
+  /* Mindestlänge 0: ein Porträt enthält keinen Text, `mach` würde es sonst
+     als „Ansicht bleibt leer" melden. */
+  const alt = mach("Porträt aus alter Kennung", <Avatar seed={123456} g="m" nat="ESP" size={64} />, 0);
+  if (alt && alt.div.querySelectorAll("path").length < 8)
+    zeige("Porträt", "aus einer alten Kennung entsteht kein vollständiges Bild");
+  else if (alt) ok++;
+}
+
+/* ---------- Zwei Formen für zwei Prestigeleitern ----------
+   Der Umriss für die Seltenheit war in 33.15 da und ist wieder raus — er nahm
+   der Wildcard-Karte ihren Auftritt. Beide Leitern sind also wieder gefüllt,
+   und die Unterscheidung liegt in BREITE und ORT: die Seltenheit als Band über
+   die volle Kartenbreite, die Errungenschaftsstufe als kompakte Marke im Text.
+   Geprüft wird genau das, weil eine Unterscheidung, die nur in der Beschreibung
+   lebt, beim nächsten Umbau verschwindet. */
+console.log("\n=== Form statt Farbe ===");
+{
+  const karte = mach("Wildcard-Karte", <WildcardCard card={{ n: "Eiserner Wille", t: "Text", r: "aussen" }} />);
+  if (karte) {
+    const alsRgb = (h) => "rgb(" + [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)).join(", ") + ")";
+    const b = karte.div.querySelector(".band");
+    if (!b) zeige("Wildcard-Karte", "kein Band gefunden");
+    else {
+      if (b.style.background !== alsRgb(RARITY.aussen.col))
+        zeige("Wildcard-Karte", "Bandfüllung " + b.style.background + " statt " + alsRgb(RARITY.aussen.col));
+      else ok++;
+      if (b.classList.contains("umriss")) zeige("Wildcard-Karte", "Band ist wieder umrandet — das war 33.15 und ist verworfen");
+      else ok++;
+    }
+    /* Die Seltenheit darf NIE als kompakte Stufenmarke auftreten. */
+    if (karte.div.querySelectorAll(".stufe").length)
+      zeige("Wildcard-Karte", "Seltenheit als Stufenmarke gezeichnet — die Formen sind vertauscht");
+    else ok++;
+    console.log("  Wildcard        Band gefüllt ✓ · kein Umriss ✓ · keine Stufenmarke ✓");
+  }
+
+  Object.keys(RARITY).forEach((art) => {
+    const r = mach("Wildcard · " + art, <WildcardCard card={{ n: "X", t: "Y", r: art }} />, 0);
+    if (!r) return;
+    const b = r.div.querySelector(".band");
+    if (!b || !b.style.background) zeige("Seltenheit · " + art, "Band ohne Füllung");
+    else ok++;
+  });
+  console.log("  sieben Stufen   alle Bänder gefüllt");
+
+  /* Die Errungenschaftsstufe: kompakte Marke, gefüllt, und KEIN Band über
+     die volle Breite — sonst sähe sie aus wie eine Seltenheit. */
+  const ach = {}; ACHIEVEMENTS.slice(0, 9).forEach((a) => { ach[a.id] = true; });
+  const gitter = mach("Errungenschaften", <AchievementScreen ach={ach} meta={{}} onBack={() => {}} />);
+  if (gitter) {
+    const marken = [...gitter.div.querySelectorAll(".stufe")].filter((e) => !e.classList.contains("punkt"));
+    const punkte = gitter.div.querySelectorAll(".stufe.punkt").length;
+    const ohne = marken.filter((e) => !e.style.background).length;
+    const baender = gitter.div.querySelectorAll(".band").length;
+    if (marken.length !== 9) zeige("Errungenschaften", marken.length + " Stufenmarken für 9 erreichte");
+    else ok++;
+    if (ohne) zeige("Errungenschaften", ohne + " Stufenmarken ohne Füllung");
+    else ok++;
+    if (punkte !== Object.keys(STUFEN).length)
+      zeige("Errungenschaften", punkte + " Filterpunkte, erwartet " + Object.keys(STUFEN).length);
+    else ok++;
+    if (baender) zeige("Errungenschaften", baender + " Bänder über die volle Breite — die gehören der Seltenheit");
+    else ok++;
+    console.log("  Errungenschaften " + marken.length + " gefüllte Marken · " + punkte
+      + " Filterpunkte · " + baender + " Bänder");
+  }
+}
 
 /* ---------- Ehrentafel als Karton ----------
    Der Karton erscheint nur dort, wo wirklich jemand herausgekommen ist.

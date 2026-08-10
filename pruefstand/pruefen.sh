@@ -77,7 +77,17 @@ E="npx --yes esbuild@0.23.0"
 $E "$BAU/probe.jsx"      --bundle --outfile="$BAU/motor.js"  --platform=node --format=cjs --log-level=error || FEHLER=1
 $E "$BAU/ansichten.jsx"  --bundle --outfile="$BAU/a.js"      --platform=node --format=cjs --log-level=error || FEHLER=1
 $E "$BAU/rueckwaerts.jsx" --bundle --outfile="$BAU/r.js"     --platform=node --format=cjs --log-level=error || FEHLER=1
-[ "$FEHLER" = 0 ] && echo "Prüfstand steht: $BAU"
+# Scheitert der Aufbau, liegen die Buendel des VORIGEN Laufs noch da. Ohne
+# diesen Abbruch pruefen die naechsten Schritte froehlich den alten Stand und
+# melden „alle Pruefungen bestanden" — grueneste Wiese ueber kaputtem Code.
+if [ "$FEHLER" != 0 ]; then
+  echo
+  echo "ABBRUCH: der Aufbau ist gescheitert. Die folgenden Schritte wuerden ein"
+  echo "         Buendel aus einem frueheren Lauf pruefen und ein falsches"
+  echo "         Ergebnis melden. Erst den Uebersetzungsfehler oben beheben."
+  exit 1
+fi
+echo "Prüfstand steht: $BAU"
 fi
 
 # --------------------------------------------------------------------------
