@@ -1,0 +1,24 @@
+
+/* ------------------------------------------------------------------
+   Ausfuhren nur für den Prüfstand. Diese Zeilen hängt aufbau an eine
+   Kopie der App.jsx an — die ausgelieferte Datei bleibt unberührt.
+   Wenn ein Name hier fehlt, bricht der Prüfstand mit einer klaren
+   Meldung ab; dann diese Liste ergänzen.
+   ------------------------------------------------------------------ */
+export {
+  /* Motor */
+  createPlayer, develop, drawEvents, applyFx, simulateSeason, makeOffers, marketValue,
+  ovrOf, verdict, makeSquad, netWorth, loyalty, leereBilanz, pick, CONT,
+  POS, NATIONS, TYPES, MODES, CLUBS,
+  /* Akademie */
+  leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, vcPosten, akaBonus, akaRuhm,
+  ABTEILUNGEN, akaStufe, akaPreis, akaRestkosten, akaSumme, akaSpanne, talentBauen, AKA_KEY,
+  /* Ansichten */
+  Shell, Pass, Guard, MenuScreen, CreateScreen, CompetitionView, StatsView, MoneyView,
+  HistoryView, SquadView, TrophyView, HallScreen, EndScreen, NationalView, SocialView,
+  AchievementScreen, BackupScreen, AkademieScreen, TalentZeile,
+  KarriereRueckblick, SaisonRueckblick, WildcardEnthuellung, WildcardCard,
+  Balken, AusbauRing, Strahlen, Funken, zumAnfang,
+  akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, AKA_MAX, bilanzErgaenzen, hsvChance,
+  EVENTS, META, LEAGUES, INVEST, WILDCARDS, VERSION, VERSION_INFO,
+};
