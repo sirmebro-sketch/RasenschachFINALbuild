@@ -1,0 +1,186 @@
+name: APK bauen
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+
+    steps:
+      - name: Projekt holen
+        uses: actions/checkout@v4
+
+      - name: Node einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Java 17 einrichten
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android-SDK einrichten
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+
+      - name: Umgebung anzeigen
+        run: |
+          echo "Node:   $(node -v)"
+          echo "npm:    $(npm -v)"
+          echo "Java:   $(java -version 2>&1 | head -1)"
+          echo "SDK:    ${ANDROID_SDK_ROOT:-nicht gesetzt}"
+          ls -la
+
+      - name: Signaturschluessel bereitstellen
+        run: |
+          # Ein fester Schluessel sorgt dafuer, dass sich spaetere Fassungen ueber
+          # die installierte App legen lassen, ohne Daten zu verlieren.
+          mkdir -p signing
+          if [ ! -f signing/debug.keystore ]; then
+            echo "Kein Schluessel vorhanden - es wird einmalig einer erzeugt."
+            keytool -genkeypair -v \
+              -keystore signing/debug.keystore \
+              -storepass android -keypass android \
+              -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 20000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+            echo "NEUER_SCHLUESSEL=ja" >> $GITHUB_ENV
+          else
+            echo "Vorhandener Schluessel wird verwendet - Updates bleiben moeglich."
+          fi
+          mkdir -p "$HOME/.android"
+          cp signing/debug.keystore "$HOME/.android/debug.keystore"
+          keytool -list -v -keystore signing/debug.keystore -storepass android | grep -i "SHA1:" | head -1
+
+      - name: Schluessel im Projekt sichern
+        if: env.NEUER_SCHLUESSEL == 'ja'
+        run: |
+          git config user.name "APK-Bauvorgang"
+          git config user.email "actions@github.com"
+          git add -f signing/debug.keystore
+          git commit -m "Signaturschluessel angelegt - bitte nicht loeschen"
+          git push
+
+      - name: Pakete installieren
+        run: npm install --no-audit --no-fund
+
+      - name: Weboberflaeche bauen
+        run: npm run build
+
+      - name: Ergebnis der Weboberflaeche pruefen
+        run: |
+          test -f dist/index.html || { echo "FEHLER: dist/index.html fehlt"; exit 1; }
+          ls -la dist
+          # Die Schriften liegen als Base64 in schriften.js und werden in das
+          # Buendel hineingebacken. Fehlt die Datei oder wird sie nicht mehr
+          # eingebunden, faellt die App stumm auf Roboto zurueck - das faellt
+          # sonst erst auf dem Geraet auf. Deshalb hier zaehlen.
+          BUENDEL=$(ls dist/assets/index-*.js | head -1)
+          N=$(grep -o '@font-face' "$BUENDEL" | wc -l)
+          echo "Schriftschnitte im Buendel: $N"
+          [ "$N" -ge 5 ] || { echo "FEHLER: erwartet 5 Schriftschnitte, gefunden $N"; exit 1; }
+          grep -q 'fonts.googleapis' "$BUENDEL" \
+            && { echo "FEHLER: Buendel laedt Schriften aus dem Netz nach"; exit 1; } \
+            || echo "Kein Nachladen aus dem Netz."
+
+      - name: Android-Projekt anlegen
+        run: |
+          if [ ! -d android ]; then npx cap add android; fi
+          npx cap sync android
+
+      - name: App-Symbol erzeugen und einsetzen
+        run: |
+          # Das Android-Verzeichnis wird bei jedem Lauf neu angelegt, deshalb
+          # muss das eigene Symbol danach hineinkopiert werden. Ohne diesen
+          # Schritt traegt die App das Standardsymbol von Capacitor.
+          #
+          # Im Projekt liegt nur EIN Bild (symbol/appicon.png). Der ganze Satz
+          # aus fuenf Bildschirmdichten wird hier erzeugt - so muss beim
+          # Wechseln des Symbols nur diese eine Datei getauscht werden.
+          if [ -f symbol/appicon.png ] && [ -f symbol/appicon.py ]; then
+            python3 -m pip install --quiet --upgrade Pillow
+            # Die 0 am Ende ist die Rahmenbreite. Das Bild im Projekt ist bereits
+            # randlos aufbereitet - die automatische Erkennung soll hier nicht raten,
+            # sie wuerde am dunklen Nachthimmel weiterschneiden. Wer ein gerahmtes
+            # Bild einsetzt, streicht die 0 und laesst erkennen.
+            python3 symbol/appicon.py symbol/appicon.png symbol/erzeugt 0
+            RES=android/app/src/main/res
+            # Nur die Bilder und die Zusammensetzungsvorschrift ersetzen.
+            # Die Farbe in values/ und die Vektorvorlagen in drawable/ bleiben
+            # liegen - sie werden nicht mehr verwendet, und ein Loeschen koennte
+            # Verweise brechen.
+            rm -f $RES/mipmap-*/ic_launcher*.png
+            rm -f $RES/mipmap-anydpi-v26/ic_launcher*.xml
+            cp -rv symbol/erzeugt/res/. $RES/
+            echo "--- eingesetzte Symbole ---"
+            find $RES -name 'ic_launcher*' | sort
+          else
+            echo "HINWEIS: symbol/appicon.png oder symbol/appicon.py fehlt -"
+            echo "         es bleibt beim Standardsymbol von Capacitor."
+          fi
+
+      - name: Name und Symbol im Ergebnis pruefen
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          S=android/app/src/main/res/values/strings.xml
+          echo "--- Name ---"; grep -o 'Rasenschach[^<"]*' $S | sort -u
+          grep -q 'Rasenschach XI' $S || { echo "FEHLER: App heisst nicht Rasenschach XI"; exit 1; }
+          echo "--- Symbolverweis im Manifest ---"; grep -o 'android:icon="[^"]*"' $M
+          test -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png \
+            || { echo "FEHLER: eigenes Symbol fehlt"; exit 1; }
+          echo "Name und Symbol sitzen."
+
+      - name: Gradle vorbereiten
+        run: |
+          echo "sdk.dir=${ANDROID_SDK_ROOT}" > android/local.properties
+          {
+            echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m"
+            echo "org.gradle.daemon=false"
+            echo "org.gradle.parallel=true"
+            echo "android.useAndroidX=true"
+          } >> android/gradle.properties
+          chmod +x android/gradlew
+          cat android/local.properties
+
+      - name: APK bauen
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace --warning-mode=none
+
+      - name: Signatur der fertigen APK anzeigen
+        if: always()
+        run: |
+          APK=$(find android -name "app-debug.apk" -type f | head -1)
+          if [ -n "$APK" ]; then
+            echo "APK: $APK"
+            "$ANDROID_SDK_ROOT"/build-tools/34.0.0/apksigner verify --print-certs "$APK" | grep -i "SHA-1" | head -2 || true
+          fi
+
+      - name: Ergebnis suchen
+        if: always()
+        run: |
+          echo "--- gefundene APK-Dateien ---"
+          find android -name "*.apk" -type f 2>/dev/null || true
+          echo "--- Inhalt des Ausgabeordners ---"
+          ls -laR android/app/build/outputs 2>/dev/null || echo "kein Ausgabeordner vorhanden"
+
+      - name: APK zum Herunterladen bereitstellen
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rasenschach-APK
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+
+      - name: Fehlerbericht
+        if: failure()
+        run: |
+          echo "Der Bauvorgang ist fehlgeschlagen."
+          echo "Bitte den obigen Schritt mit dem roten Kreuz aufklappen"
+          echo "und die letzten 30 Zeilen weitergeben."
