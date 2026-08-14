@@ -7,8 +7,8 @@ import { SCHRIFTEN } from "./schriften.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "34.12";
-const VERSION_INFO = "Der Frauenfußball redet jetzt weiblich: alle Ereignistexte werden umgeformt, mit Artikeln und Plural.";
+const VERSION = "34.15";
+const VERSION_INFO = "Rückblick-Karten: größere Überschriften, ein Tabellenausschnitt statt einer nackten Zahl und eine Karte für verpasste Spiele.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -2943,7 +2943,28 @@ function roleFor(ovr, clubS, trust, rivalOvr) {
   if (d >= -13) return { key:"bench", label:"Ergänzungsspieler", f:.30 };
   return { key:"tribune", label:"Tribüne", f:.09 };
 }
-const growthAge = (a) => (a <= 18 ? 1 : a <= 21 ? .92 : a <= 24 ? .62 : a <= 26 ? .34 : a <= 28 ? .16 : a <= 30 ? .05 : 0);
+/* Wachstum nach Alter. Bis 34.13 stand hier eine Kurve, die mit 16 auf voller
+   Kraft lief und ab 25 fast nichts mehr zuliess:
+     <=18 1.0 · <=21 .92 · <=24 .62 · <=26 .34 · <=28 .16 · <=30 .05 · sonst 0
+   Gemessen an 250 Laufbahnen ergab das +5 bis +6 Punkte mit 16, ab 25 praktisch
+   nichts, Höchststärke im Median mit 24 — und einen Median-Abstand von
+   **12 Punkten zum Potenzial**, das damit fast nie erreicht wurde.
+
+   Die neue Kurve nimmt vorn heraus und gibt hinten dazu. Der Gipfel liegt nicht
+   mehr bei 21, sondern breiter zwischen 19 und 24, und bis 30 ist noch etwas
+   drin. Sprünge mit 16 sind damit kleiner, dafür entwickelt sich ein Spieler
+   über die ganze erste Hälfte der Zwanziger weiter — auch ein mittelmässiger,
+   was für ein Spiel mit 1.239 Vereinen wichtiger ist als der Ausnahmefall. */
+const growthAge = (a) => (a <= 17 ? .44 : a <= 19 ? .62 : a <= 21 ? .70 : a <= 24 ? .64
+  : a <= 26 ? .50 : a <= 28 ? .36 : a <= 30 ? .21 : a <= 32 ? .09 : .03);
+/* Nachholen: wer weit unter seinen Anlagen liegt, hat auch mit 27 noch Luft.
+   Der Bonus wirkt auf das EFFEKTIVE ALTER, nicht als Multiplikator auf die
+   Menge — das war der erste Versuch und ein Denkfehler: als Multiplikator
+   verstärkte er ausgerechnet die Sechzehnjährigen, wo die Lücke am grössten
+   ist. Über das Alter greift er nur dort, wo die Kurve schon abfällt: mit 16
+   ist man nicht „noch jünger", mit 28 aber sehr wohl „wie 25".
+   Bis 6 Punkte Rückstand nichts, dann bis zu vier Jahre Gutschrift. */
+const nachholJahre = (gap) => clamp((gap - 6) / 5, 0, 4);
 const declineAge = (a) => (a <= 29 ? 0 : a <= 31 ? .6 : a <= 33 ? 1.5 : a <= 35 ? 2.6 : a <= 37 ? 3.6 : 4.6);
 
 const TRAINING = [
@@ -3009,15 +3030,23 @@ function autoTraining(p) {
   const schnitt = AK.reduce((a, k) => a + p.attrs[k] * anteil[k], 0);
   const rueckstand = {};
   AK.forEach((k) => { rueckstand[k] = clamp((schnitt + 3 - p.attrs[k]) / 14, -.3, 1.0); });
+  /* Kopfraum: was an einem Wert überhaupt noch zu holen ist. Bis 34.12 fehlte
+     das — `rueckstand` misst nur den Abstand zum eigenen Schnitt, und ein Wert
+     bei 99 galt als voll trainierbar, solange die Position ihn stark
+     gewichtet. Gemessen: Schuss und Tempo auf 99, und der Trainerstab schickte
+     weiter zum Abschlusstraining. Ab 96 fällt der Nutzen steil, bei 99 ist er
+     fast weg — die Einheit wäre verschenkt. */
+  const kopfraum = {};
+  AK.forEach((k) => { kopfraum[k] = clamp((99 - p.attrs[k]) / 8, .04, 1); });
   let best = "defensiv", bestWert = -1;
   TRAINING.forEach((t) => {
     const keys = Object.keys(t.bias);
     if (!keys.length) return;                   // Regeneration nur als Notfall, siehe oben
     const gew = keys.reduce((a, k) => a + t.bias[k], 0);
     /* Nutzen: was die Einheit trifft, gewichtet nach Bedeutung für die
-       Position und danach, wie weit der Wert zurückliegt.              */
+       Position, nach dem Rückstand — und danach, ob da noch Luft ist.   */
     let wert = 0;
-    keys.forEach((k) => { wert += (t.bias[k] / gew) * anteil[k] * (1 + rueckstand[k] * .6); });
+    keys.forEach((k) => { wert += (t.bias[k] / gew) * anteil[k] * (1 + rueckstand[k] * .6) * kopfraum[k]; });
     if (t.note) wert *= 1.12;                   // Spielintelligenz zahlt auf die Note ein
     if (p.age >= 31 && t.fit) wert *= 1.15;     // ältere Spieler brauchen Substanz
     if (p.age <= 19 && t.id === "kraft") wert *= 1.12;
@@ -6402,7 +6431,11 @@ function develop(p) {
   const t = TRAINING.find((x) => x.id === p.training) || TRAINING[4];
   const gap = Math.max(0, p.potential - p.ovr);
   const mins = clamp((p.seasons.length ? p.seasons[p.seasons.length - 1].apps : 20) / 40, .25, 1.1);
-  const base = gap * .22 * growthAge(p.age) * (t.mult ?? 1) * (.6 + mins * .5)
+  /* .22 → .28: die flachere Alterskurve hat weniger Fläche, dadurch blieb der
+     Abstand zum Potenzial noch grösser als vorher (13 statt 12 Punkte). Der
+     höhere Grundfaktor gleicht das aus, ohne den frühen Sprung zurückzubringen
+     — der hängt an der Alterskurve, nicht hieran. */
+  const base = gap * .28 * growthAge(p.age - nachholJahre(gap)) * (t.mult ?? 1) * (.6 + mins * .5)
     * (.8 + p.morale / 340) * (.85 + p.trust / 380) * rnd(.75, 1.25)
     * (1 + perk(p, "dev") + (p.wcMod ? p.wcMod.dev : 0)) * (p.life.kids >= 2 ? .94 : 1);
   const dec = declineAge(p.age) * p.mode.decay
@@ -6556,7 +6589,11 @@ function simulateSeason(p) {
       p.ovr = ovrOf(p.attrs, p.pos);
     } else if (injury.sev === "mittel") p.injuryProne = clamp(p.injuryProne + 5, 3, 95);
   }
-  missed += p.ban || 0;
+  /* Sperrspiele getrennt festhalten. Sie flossen bisher nur in `missed` ein
+     und waren danach verloren — die Wrapped-Karte kann sonst nicht sagen, ob
+     jemand verletzt war oder gesperrt. */
+  const gesperrteSpiele = p.ban || 0;
+  missed += gesperrteSpiele;
   const avail = clamp(total - missed, 0, total);
   const apps = clamp(Math.round(avail * ro.f * clamp(.78 + p.fitness / 420, .6, 1.1) * rnd(.9, 1.08)), 0, avail);
 
@@ -6783,6 +6820,7 @@ function simulateSeason(p) {
     year: p.year + "/" + String(p.year + 1).slice(2), y: p.year + 1, age: p.age,
     club: club.n, clubRef: club, league: club.l, land: club.c, ovr: p.ovr, mv: p.mv, pos: p.pos,
     apps, goals, assists, cs, note, rank, N, role: ro.label, trophies, awards, injury, europe,
+    banned: gesperrteSpiele,
     ntCaps, ntGoals, ntNote, ntLevel: p.nt.level, ntTeam, ntRolle: p.nt.rolle, dstat, kapiNeu, rep: Math.round(p.rep),
     kapitaen: !!p.flags.kapitaen, ntKapitaen: !!p.nt.kapitaen,
     ntMajor: (p.nt.majors.length && p.nt.majors[p.nt.majors.length - 1].y === p.year + 1) ? p.nt.majors[p.nt.majors.length - 1] : null,
@@ -7695,12 +7733,12 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
             </div>
           </div>)}
 
-        <div className="tabs" style={{ marginTop: 14 }} ref={reiterRef}>
+        <div className="tabhuelle"><div className="tabs" style={{ marginTop: 14 }} ref={reiterRef}>
           {REITER.map(([k, l]) => (
             <button key={k} className={"btn sm" + (reiter === k ? " on" : "")}
               style={{ flexShrink: 0 }}
               onClick={() => { setReiter(k); zumAnfang(reiterRef.current); }}>{l}</button>))}
-        </div>
+        </div></div>
 
         {reiter === "ausbau" && (
           <div className="g1" style={{ marginTop: 12 }}>
@@ -8143,8 +8181,22 @@ table.led td.r,table.led th.r{text-align:right;}
   grid-template-areas:"pass buehne" "zustand buehne";}}
 @media(min-width:1180px){.main{grid-template-columns:320px 1fr;}}
 @media(orientation:landscape) and (max-height:520px){.tbar{position:static;}}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;}
+/* Reiterleiste. Man sah ihr nicht an, dass sie weitergeht — wer die Ränder
+   nicht kannte, hat die hinteren Reiter nie gefunden. Drei Zeichen dagegen:
+   1. eine Linie darunter, die die Leiste als Leiste lesbar macht,
+   2. ein Verlauf am rechten Rand, der andeutet, dass etwas abgeschnitten ist,
+   3. Einrasten beim Wischen, damit ein Reiter nie halb abgeschnitten steht.
+   Der Verlauf hängt an der Hülle, nicht an der rollenden Leiste — sonst
+   würde er mitwandern statt am Rand zu bleiben. */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:7px;
+  scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;}
+.tabs>*{scroll-snap-align:start;flex-shrink:0;}
 .tabs::-webkit-scrollbar{display:none;}
+.tabhuelle{position:relative;}
+.tabhuelle::after{content:"";position:absolute;right:0;top:0;bottom:7px;width:28px;
+  pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg));}
+.tabhuelle::before{content:"";position:absolute;left:0;right:0;bottom:4px;height:1px;
+  background:var(--ln2);opacity:.7;}
 @media (prefers-reduced-motion:reduce){.fade{animation:none;}}
 `;
 /* Der Speicher der Ruhmeshalle steht nicht in jeder Umgebung bereit
@@ -8262,7 +8314,7 @@ const META = {
   mx_reroll: { n:"Zweiter Versuch",   t:"Die Wildcard darf zweimal getauscht werden",  typ:"regel" },
   mx_ntbonus:{ n:"Verbandskontakt",   t:"Der Weg ins Nationalteam ist etwas kürzer",   typ:"regel", sperrt:["w_intl"] },
   mx_offers: { n:"Volles Postfach",   t:"Ein zusätzliches Transferangebot je Fenster", typ:"regel", sperrt:["w_berater"] },
-  mx_events: { n:"Bewegtes Leben",    t:"Häufiger drei statt zwei Ereignisse",         typ:"regel" },
+  mx_events: { n:"Bewegtes Leben",    t:"Ab und zu drei Ereignisse statt zwei",       typ:"regel" },
   /* Freigeschaltete Ereignisse */
   me_mentor:   { n:"Alte Bekannte",     t:"Drei Ereignisse rund um Weggefährten früherer Laufbahnen", typ:"ereignis" },
   me_netzwerk: { n:"Netzwerk",          t:"Drei Ereignisse, die Türen öffnen",                        typ:"ereignis" },
@@ -9253,10 +9305,33 @@ function SaisonRueckblick({ p, s, onFertig }) {
       <Zahl v={s.note} dez={1} dauer={1400} className="d"
         style={{ fontSize: "clamp(52px,17vw,104px)", lineHeight: 1, color: noteCol(s.note) }} />
       <div className="eb" style={{ marginTop: 4 }}>Saisonnote</div>
-      <div style={{ marginTop: 20, fontSize: "clamp(22px,6.5vw,40px)", lineHeight: 1 }} className="d">
-        <span style={{ color: s.rank <= 3 ? "var(--ok)" : s.rank >= s.N - 2 ? "var(--bad)" : "var(--tx)" }}>
-          <Zahl v={s.rank} /></span>
-        <span style={{ fontSize: ".5em", color: "var(--mu)" }}>&nbsp;von {s.N} · {s.league}</span>
+      {/* Ein Ausschnitt aus der Tabelle statt einer nackten Zahl: zwei Plätze
+          darüber, zwei darunter, die eigene Zeile hervorgehoben. Man sieht auf
+          einen Blick, ob es eng war oder eindeutig. Die Nachbarn sind nicht
+          erfunden — nur Platznummern; Vereinsnamen hätten wir nicht. */}
+      <div style={{ marginTop: 18, textAlign: "left", maxWidth: 280, marginLeft: "auto", marginRight: "auto" }}>
+        <div className="eb" style={{ marginBottom: 5 }}>{s.league}</div>
+        {(() => {
+          const von = clamp(s.rank - 2, 1, Math.max(1, s.N - 4));
+          const zeilen = [];
+          for (let r = von; r < von + 5 && r <= s.N; r++) zeilen.push(r);
+          return zeilen.map((r) => {
+            const ich = r === s.rank;
+            return (
+              <div key={r} style={{ display: "flex", alignItems: "baseline", gap: 9,
+                padding: "3px 7px", borderLeft: "3px solid " + (ich ? "var(--go)" : "transparent"),
+                background: ich ? "rgba(242,194,48,.12)" : "transparent" }}>
+                <span className="d" style={{ fontSize: ich ? 19 : 14, minWidth: 26,
+                  color: ich ? "var(--go)" : "var(--mu)" }}>{r}</span>
+                <span className="m" style={{ fontSize: ich ? 13.5 : 11.5,
+                  color: ich ? "var(--tx)" : "var(--ln2)", overflow: "hidden",
+                  textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {ich ? s.club : "—"}</span>
+              </div>);
+          });
+        })()}
+        <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 5, textAlign: "right" }}>
+          Platz {s.rank} von {s.N}</div>
       </div>
       {s.move && <div className="m" style={{ fontSize: 12.5, marginTop: 8,
         color: s.move.dir === "auf" ? "var(--ok)" : "var(--bad)" }}>
@@ -9266,6 +9341,36 @@ function SaisonRueckblick({ p, s, onFertig }) {
           {s.dstat.duelle} Zweikämpfe · {Math.round(s.dstat.quote * 100)} % gewonnen · {s.dstat.eroberungen} Balleroberungen
         </div>)}
     </div>), noteCol(s.note));
+
+  /* Verpasste Spiele. Die Karte fehlte ganz — dabei ist eine Saison mit
+     18 Ausfällen etwas völlig anderes als eine durchgespielte, und genau
+     das erzählt ein Rückblick. Nur zeigen, wenn wirklich etwas ausgefallen
+     ist; eine Karte mit einer Null wäre die Sorte leere Seite, die Kevin
+     beanstandet hat. */
+  {
+    const verletzt = (s.injury && s.injury.games) || 0;
+    const gesperrt = s.banned || 0;
+    const weg = verletzt + gesperrt;
+    if (weg > 0) S("Ausgefallen", weg === 1 ? "Ein Spiel nicht dabei" : weg + " Spiele nicht dabei", (
+      <div style={{ textAlign: "center" }}>
+        <Zahl v={weg} className="d" style={{ fontSize: "clamp(52px,17vw,104px)", lineHeight: 1,
+          color: weg >= 12 ? "var(--bad)" : "var(--go)" }} />
+        <div className="eb" style={{ marginTop: 4 }}>verpasste Spiele</div>
+        <div style={{ display: "flex", justifyContent: "center", gap: "clamp(18px,7vw,44px)", marginTop: 20 }}>
+          <div><Zahl v={verletzt} className="d" style={{ fontSize: "clamp(26px,8vw,44px)", lineHeight: 1,
+            color: "var(--bad)" }} />
+            <div className="eb" style={{ marginTop: 3 }}>verletzt</div></div>
+          <div><Zahl v={gesperrt} className="d" style={{ fontSize: "clamp(26px,8vw,44px)", lineHeight: 1,
+            color: "var(--go)" }} />
+            <div className="eb" style={{ marginTop: 3 }}>gesperrt</div></div>
+        </div>
+        {s.injury && s.injury.name && (
+          <div className="m" style={{ fontSize: 12.5, color: "var(--mu)", marginTop: 18 }}>
+            {s.injury.name}</div>)}
+        <div className="m" style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 12 }}>
+          {s.apps} von {s.apps + weg} möglichen Einsätzen</div>
+      </div>), weg >= 12 ? "var(--bad)" : "var(--go)");
+  }
 
   /* Nationalmannschaft und Wert auf einer Seite */
   S((s.ntCaps || 0) > 0 ? "Land und Wert" : "Dein Wert",
@@ -9305,8 +9410,14 @@ function SaisonRueckblick({ p, s, onFertig }) {
           background: k <= i ? "var(--go)" : "var(--ln2)" }} />)}
       </div>
       <div key={i} className="rs-rein" style={{ zIndex: 3, width: "100%", maxWidth: 460, textAlign: "center" }}>
-        <div className="eb" style={{ color: se.farbe, letterSpacing: ".18em" }}>{se.kopf.toUpperCase()}</div>
-        <div className="m" style={{ fontSize: 12, color: "var(--mu)", margin: "3px 0 22px" }}>{se.unter}</div>
+        {/* Die Überschrift war eine Kleinschrift-Zeile wie jede andere — man
+            wusste bei manchen Karten nicht, worum es geht. Jetzt in der
+            Anzeigeschrift und deutlich grösser, mit einem Strich in der
+            Kartenfarbe darunter. */}
+        <div className="d" style={{ color: se.farbe, fontSize: "clamp(19px,5.6vw,28px)",
+          lineHeight: 1.05, letterSpacing: ".01em" }}>{se.kopf}</div>
+        <div style={{ height: 2, width: 46, background: se.farbe, margin: "8px 0 6px", opacity: .8 }} />
+        <div className="m" style={{ fontSize: 12.5, color: "var(--mu)", margin: "0 0 20px" }}>{se.unter}</div>
         {se.inhalt}
       </div>
       <div className="m rs-auf" style={{ position: "absolute", bottom: 22, fontSize: 11, color: "var(--mu)" }}>
@@ -12092,7 +12203,13 @@ function FlutlichtApp() {
     setOvrAlt(p.ovr);
     setGrowth(develop(q));
     q.mv = marketValue(q);
-    const evs = drawEvents(q, q.speed ? 1 : (chance(meta.mx_events ? .3 : .5) ? 2 : 3));
+    /* Zwei pro Saison, Punkt. Vorher war es in der HÄLFTE aller Saisons drei
+       (chance(.5) ? 2 : 3) — das war zu viel, eine Saison bestand fast nur aus
+       Entscheidungen. Drei gibt es jetzt nur mit der Freischaltung „Bewegtes
+       Leben", und auch dann nur in jeder vierten Saison. Damit bekommt die
+       Freischaltung erst ihren Sinn: vorher senkte sie die Zahl nicht, sie
+       verschob nur eine ohnehin hohe Wahrscheinlichkeit. */
+    const evs = drawEvents(q, q.speed ? 1 : (meta.mx_events && chance(.25) ? 3 : 2));
     evs.forEach((e) => { q.evLog[e.id] = q.seasons.length; });
     setP(q); setQueue(evs); setEi(0); setEr(null); setLog([]);
     if (evs.length) setStep("event"); else runSeason(q);
@@ -12706,13 +12823,13 @@ function FlutlichtApp() {
             </div>)}
 
           <div className="pan pad" ref={reiterRef}>
-            <div className="tabs" style={{ marginBottom: 10 }}>
+            <div className="tabhuelle"><div className="tabs" style={{ marginBottom: 10 }}>
               {TABS.map(([k, l]) => (
                 <button key={k} className={"btn sm" + (tab === k ? " on" : "")} style={{ flexShrink: 0 }}
                   onClick={() => { setTab(k); zumAnfang(reiterRef.current); }}>
                   <span className="d" style={{ fontSize: 13, color: tab === k ? "var(--ac)" : "var(--mu)" }}>{l}</span>
                 </button>))}
-            </div>
+            </div></div>
             <Guard key={tab}>
               {tab === "verlauf" && <HistoryView p={p} />}
               {tab === "statistik" && <StatsView p={p} />}

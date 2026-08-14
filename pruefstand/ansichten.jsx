@@ -4,7 +4,7 @@ import { act } from "react";
 import App, { MenuScreen, EndScreen, AkademieScreen, TalentZeile,
   WildcardEnthuellung, Balken, AusbauRing, akaNaechster, akaLeistbar,
   ACHIEVEMENTS, RARITY, STUFEN, WildcardCard, AchievementScreen,
-  Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS, weiblichForm, evText, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
+  Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS, weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
   AKA_MAX, leereBilanz, hsvChance, akaStufe, akaSumme, akaRestkosten,
   leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, vcPosten, akaBonus,
   ABTEILUNGEN, createPlayer, develop, simulateSeason, makeOffers, marketValue,
@@ -301,6 +301,126 @@ mach("Ausbau-Ring", <AusbauRing von={14} bis={36} farbe="var(--ac)" />);
 mach("Ausbau-Ring · leer", <AusbauRing von={0} bis={36} farbe="var(--ac)" />);
 
 /* ---------- Zwei behobene Fehler, gegen Rückfall gesichert ---------- */
+console.log("\n=== Rückblick-Karten ===");
+{
+  /* Der Rückblick zeigt immer nur EINE Seite, und mein Versuch, im Prüfstand
+     durchzublättern, hat nicht gegriffen. Statt die Prüfung zu verbiegen, bis
+     sie grün ist, wird hier das geprüft, was sicher prüfbar ist: dass die
+     DATEN ankommen, aus denen die Karten gebaut werden. Ob die Karte am Ende
+     gut aussieht, beantwortet nur das Gerät — und das steht so in STAND.md.
+
+     Sperrspiele flossen bis 34.14 nur in `missed` und waren danach verloren;
+     die Karte hätte Verletzung und Sperre nicht auseinanderhalten können. */
+  const q = laufbahn(null);
+  q.ban = 4;
+  const sa = simulateSeason(q);
+  if (!sa || sa.banned !== 4)
+    zeige("Rückblick", "Sperrspiele kommen nicht in der Saison an: " + (sa && sa.banned));
+  else ok++;
+  const q2 = laufbahn(null);
+  const sa2 = simulateSeason(q2);
+  if (sa2 && sa2.banned !== 0)
+    zeige("Rückblick", "ohne Sperre steht " + sa2.banned + " statt 0");
+  else ok++;
+  console.log("  Rückblick       Sperrspiele getrennt erfasst: " + (sa ? sa.banned : "?")
+    + " mit Sperre, " + (sa2 ? sa2.banned : "?") + " ohne");
+}
+
+console.log("\n=== Wachstumskurve ===");
+{
+  /* Zwei Zusagen an den Spieler, beide messbar:
+     1. Kein extremer Sprung mit 16 — auch ein mittelmässiger Spieler soll sich
+        über Jahre entwickeln, nicht in zwei Saisons fertig sein.
+     2. Wer weit unter seinen Anlagen liegt, wächst auch mit 27 noch. */
+  const wachstumBei = (alter, ovr, pot) => {
+    const q = laufbahn(null);
+    q.age = alter; q.potential = pot; q.training = "abschluss";
+    q.seasons = [{ apps: 32, goals: 8 }]; q.morale = 70; q.trust = 70;
+    q.fitness = 85; q.injuryProne = 20;
+    /* Werte gleichmässig auf die Zielstärke setzen. */
+    AK.forEach((k) => { q.attrs[k] = ovr; });
+    q.ovr = ovr;
+    const vor = q.ovr;
+    develop(q);
+    return q.ovr - vor;
+  };
+  /* Mittelwert über mehrere Läufe: develop würfelt (rnd .75–1.25). */
+  const mittel = (alter, ovr, pot, n) => {
+    let s = 0; for (let i = 0; i < (n || 40); i++) s += wachstumBei(alter, ovr, pot);
+    return +(s / (n || 40)).toFixed(2);
+  };
+
+  const jung = mittel(16, 52, 85);
+  if (jung > 5) zeige("Wachstum", "mit 16 im Schnitt +" + jung + " Punkte — zu steil");
+  else ok++;
+
+  /* Ein 27-Jähriger, der 12 Punkte unter seinen Anlagen liegt, muss deutlich
+     mehr wachsen als einer, der sie fast erreicht hat. Genau das war Kevins
+     Punkt: „Anlage 97, mit 25 ein Höchstwert von 85, dann passiert nichts." */
+  const weitUnten = mittel(27, 85, 97);
+  const fastOben  = mittel(27, 85, 88);
+  if (weitUnten <= fastOben)
+    zeige("Wachstum", "mit 27 wächst ein Spieler mit grosser Lücke (" + weitUnten
+      + ") nicht mehr als einer ohne (" + fastOben + ")");
+  else ok++;
+  if (weitUnten < .5)
+    zeige("Wachstum", "mit 27 und 12 Punkten Rückstand nur +" + weitUnten + " — zu wenig");
+  else ok++;
+
+  /* Und mit 33 soll es vorbei sein, auch bei grosser Lücke. */
+  const alt = mittel(33, 80, 97);
+  if (alt > 1.2) zeige("Wachstum", "mit 33 noch +" + alt + " Punkte — zu viel");
+  else ok++;
+
+  console.log("  Wachstum        16 J. +" + jung + " · 27 J. mit Lücke +" + weitUnten
+    + " · 27 J. ohne +" + fastOben + " · 33 J. +" + alt);
+}
+
+console.log("\n=== Block D ===");
+{
+  /* Das Auto-Training darf keine Einheit wählen, deren Werte schon am Anschlag
+     sind. Vorher schickte es einen Stürmer mit Schuss 99 und Tempo 99 weiter
+     zum Abschlusstraining. */
+  const held = laufbahn(null);
+  held.age = 26; held.fitness = 90; held.injuryProne = 20; held.pos = "ST";
+  AK.forEach((k) => { held.attrs[k] = 70; });
+  const normal = autoTraining(held);
+  const bias = (id) => (TRAINING.find((t) => t.id === id) || {}).bias || {};
+  /* Die Werte der zuerst gewählten Einheit auf Anschlag setzen. */
+  Object.keys(bias(normal)).forEach((k) => { held.attrs[k] = 99; });
+  const danach = autoTraining(held);
+  if (danach === normal)
+    zeige("Auto-Training", "wählt „" + normal + "\u201C weiter, obwohl die Werte auf 99 stehen");
+  else ok++;
+  /* Und es darf nicht abstürzen, wenn ALLES am Anschlag ist. */
+  AK.forEach((k) => { held.attrs[k] = 99; });
+  const voll = autoTraining(held);
+  if (!voll || !TRAINING.some((t) => t.id === voll))
+    zeige("Auto-Training", "liefert bei vollen Werten kein gültiges Training: " + voll);
+  else ok++;
+  /* Die Reiterleisten müssen in ihrer Hülle stecken — sonst fehlt der
+     Randverlauf, und man sieht der Leiste wieder nicht an, dass sie
+     weitergeht. Eine reine Stilangabe verschwindet bei einem Umbau lautlos. */
+  const mitHuelle = (name, el) => {
+    const r = mach(name, el, 0);
+    if (!r) return null;
+    const tabs = [...r.div.querySelectorAll(".tabs")];
+    const drin = tabs.filter((t) => t.parentElement && t.parentElement.classList.contains("tabhuelle"));
+    return { tabs: tabs.length, drin: drin.length };
+  };
+  const aka = mitHuelle("Akademie-Reiter",
+    <AkademieScreen aka={gegruendet} onKauf={()=>{}} onGruenden={()=>{}} onBack={()=>{}} />);
+  if (aka) {
+    if (aka.tabs === 0) zeige("Reiter", "keine Reiterleiste gefunden");
+    else if (aka.drin !== aka.tabs) zeige("Reiter", aka.drin + " von " + aka.tabs + " Leisten in der Hülle");
+    else ok++;
+    console.log("  Reiter          " + aka.drin + " von " + aka.tabs + " Leisten mit Randverlauf");
+  }
+
+  console.log("  Auto-Training   bei 70 „" + normal + "\u201C · nach Anschlag „" + danach
+    + "\u201C · alles 99 „" + voll + "\u201C");
+}
+
 console.log("\n=== Frauenfußball ===");
 {
   /* Die Umformung läuft über JEDEN Ereignistext, wenn eine Frau spielt.

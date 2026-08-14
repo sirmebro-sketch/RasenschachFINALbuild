@@ -22,7 +22,7 @@ export {
   zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, ZUEGE_ORDNUNG, KOPFFORM, AUGENFARBE, mische,
   RESSORT, Kolumnentitel, Folio, akaAusbau, AKA_STUFEN, titelgeschichte, MONATE,
   ZURUECK, useZurueck, namensVorschlag, rollSperren, ANLEITUNG,
-  weiblichForm, evText, WEIBLICH,
+  weiblichForm, evText, WEIBLICH, autoTraining, TRAINING, AK,
   rahmenFuer, rahmenOffen, RAHMEN,
   akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, AKA_MAX, bilanzErgaenzen, hsvChance,
   EVENTS, META, LEAGUES, INVEST, WILDCARDS, VERSION, VERSION_INFO,

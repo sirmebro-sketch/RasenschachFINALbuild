@@ -5,7 +5,7 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 34.12** · Stand 10. August 2026
+**Fassung 34.15** · Stand 10. August 2026
 *Eigene Schriften · harte Form · Sammelalbum · neue Spielerporträts · **das Heft: dunkles Zeitungspapier***
 
 > Die Abschnitte 1 bis 8 beschreiben das Spiel und die Arbeitsweise und gelten
@@ -1387,7 +1387,149 @@ Prüfstand: **316 Prüfungen** (vorher 304), 0 Fehler. Bündel **1.059,03 kB**.
   („im Kader stehen drei, die geboren wurden, als du…"), bleiben unberührt — das
   fällt nur beim Spielen auf.
 
-## Offene Punkte (Stand 34.12)
+## 34.13 · Block D, erster Teil
+
+### Ereignisse: zwei pro Saison
+Die Bedingung war `chance(.5) ? 2 : 3` — **in der Hälfte aller Saisons drei**. Eine
+Saison bestand damit fast nur aus Entscheidungen. Jetzt sind es zwei; drei gibt es
+ausschliesslich mit der Freischaltung „Bewegtes Leben", und auch dann nur in jeder
+vierten Saison.
+
+Nebenbei bekommt die Freischaltung erst dadurch ihren Sinn: vorher stand dort
+`chance(mx_events ? .3 : .5)` — sie verschob eine ohnehin hohe Wahrscheinlichkeit,
+statt etwas freizuschalten. Der Beschreibungstext ist mitgezogen („Ab und zu drei
+Ereignisse statt zwei").
+
+### Auto-Training trainierte volle Werte weiter
+**Gemessen, nicht vermutet:** ein Stürmer mit Schuss 99 und Tempo 99 bekam weiterhin
+Abschlusstraining. Ursache: `rueckstand` misst nur den Abstand zum eigenen Schnitt.
+Ein Wert bei 99 gilt darin als voll trainierbar, solange die Position ihn stark
+gewichtet — der Deckel bei 99 kam in der Rechnung schlicht nicht vor.
+
+Neu ist ein **Kopfraum**-Faktor `(99 − Wert) / 8`, gedeckelt auf 0,04 bis 1. Ab 96
+fällt der Nutzen steil, bei 99 ist er fast weg.
+
+| Werte | vorher | jetzt |
+|---|---|---|
+| alle auf 70 | abschluss | abschluss |
+| Schuss + Tempo auf 99 | **abschluss** | technik |
+| dazu Dribbling + Pass auf 99 | **abschluss** | kraft |
+| alles auf 99 | abschluss | abschluss *(dann ist es egal)* |
+
+### Die Reiter waren nicht als Reiter erkennbar
+Drei Zeichen dagegen: eine **Linie** unter der Leiste, ein **Verlauf am rechten Rand**
+(deutet an, dass etwas abgeschnitten ist) und **Einrasten beim Wischen**, damit kein
+Reiter halb abgeschnitten stehenbleibt. Der Verlauf hängt an einer Hülle, nicht an der
+rollenden Leiste — sonst würde er mitwandern statt am Rand zu bleiben.
+
+Der Prüfstand zählt, dass jede Leiste in ihrer Hülle steckt: eine reine Stilangabe
+verschwindet bei einem Umbau sonst lautlos.
+
+Prüfstand: **320 Prüfungen**, 0 Fehler. Bündel **1.060,16 kB**.
+
+### Aus Block D noch offen
+* **Wrapped-Karten**: zu leer, Überschriften zu klein, Karte für verpasste Spiele
+  fehlt, Tabellenausschnitt statt reiner Platzierung.
+* **Mehr Möglichkeiten für Vermächtnis-Coins** (Wildcard neu ziehen, Saisonschub,
+  Werte über 99 …) — das ist neue Spielmechanik, kein Fehler.
+* **Freischaltungen als eigenes Untermenü**, verdichtet.
+* **Wachstumskurve** in den ersten Saisons: gemessen (Start 51, erste Saison +5,
+  Höchstwert +10), Entscheidung über eine Anpassung steht aus.
+
+## 34.14 · Die Wachstumskurve
+
+### Gemessen — und der Befund war schärfer als der Verdacht
+250 Laufbahnen, Alter für Alter. Die alte Kurve
+(`<=18 1.0 · <=21 .92 · <=24 .62 · <=26 .34 · <=28 .16 · <=30 .05 · sonst 0`) ergab:
+
+| Alter | Zuwachs (Mittel) |
+|---|---|
+| 16 | **+6,2** |
+| 17 | +3,9 |
+| 18 | +2,5 |
+| 22–24 | +0,7 |
+| ab 25 | **praktisch 0** |
+
+Höchststärke im Median mit **24**. Und: **der Median-Spieler blieb 12 Punkte unter
+seinem Potenzial** — die Zahl wurde also fast nie erreicht. Genau Kevins Beobachtung:
+„Anlage 97, mit 25 ein Höchstwert von 85, dann passiert nicht mehr viel."
+
+### Zwei Änderungen
+**1. Flachere Kurve.** Vorn genommen, hinten gegeben. Der Gipfel liegt nicht mehr bei
+21, sondern breit zwischen 19 und 24, und bis 30 ist noch etwas drin. Das ist für ein
+Spiel mit 1.239 Vereinen wichtiger als der Ausnahmefall: auch ein mittelmässiger
+Spieler soll sich über Jahre entwickeln, statt nach zwei Saisons fertig zu sein.
+
+**2. Nachholen über das EFFEKTIVE ALTER.** Wer weit unter seinen Anlagen liegt, wird
+für die Kurve jünger gerechnet — bis zu vier Jahre Gutschrift bei grossem Rückstand.
+
+*Der erste Versuch war ein Denkfehler:* Ich hatte das Nachholen als **Multiplikator auf
+die Menge** gebaut. Damit verstärkte es ausgerechnet die Sechzehnjährigen, wo die Lücke
+am grössten ist — der frühe Sprung wurde schlimmer statt besser (+6,5 statt +6,2). Über
+das Alter greift es nur dort, wo die Kurve abfällt: mit 16 ist man nicht „noch jünger",
+mit 28 aber sehr wohl „wie 25".
+
+**3. Grundfaktor .22 → .28.** Die flachere Kurve hat weniger Fläche; ohne Ausgleich
+wäre der Abstand zum Potenzial noch grösser geworden (13 statt 12).
+
+### Ergebnis
+| | vorher | jetzt |
+|---|---|---|
+| Zuwachs mit 16 | +6,2 | **+3,2** |
+| Zuwachs mit 27, 12 Punkte Rückstand | ±0 | **+1,4** |
+| Zuwachs mit 27, fast am Potenzial | ±0 | ±0 |
+| Zuwachs mit 33 | −1,0 | −0,9 |
+| Höchststärke im Median mit | 24 | **27** |
+| Abstand zum Potenzial (Median) | 12 | **11** |
+
+**Alle vier Zielbänder der Kalibrierung halten** — das war die eigentliche Gefahr bei
+diesem Eingriff.
+
+Der Prüfstand hält die Zusagen fest: kein Sprung über +5 mit 16, ein Spieler mit Lücke
+muss mit 27 mehr wachsen als einer ohne, und mit 33 ist Schluss.
+
+Prüfstand: **324 Prüfungen**, 0 Fehler. Bündel **1.060,19 kB**.
+
+## 34.15 · Die Rückblick-Karten
+
+Drei der vier gemeldeten Mängel behoben:
+
+**Überschriften zu klein.** Sie standen in derselben Kleinschrift wie jede andere
+Zeile — bei manchen Karten wusste man nicht, worum es geht. Jetzt in der
+Anzeigeschrift (`clamp(19px,5.6vw,28px)`) mit einem Strich in der Kartenfarbe darunter.
+
+**Nur eine Platzzahl statt Tabelle.** Jetzt ein Ausschnitt: zwei Plätze darüber, zwei
+darunter, die eigene Zeile hervorgehoben. Man sieht auf einen Blick, ob es eng war.
+Die Nachbarplätze stehen ohne Vereinsnamen — die haben wir für die Tabelle nicht, und
+sie zu erfinden wäre schlimmer als ein Strich.
+
+**Karte für verpasste Spiele fehlte ganz.** Eine Saison mit 18 Ausfällen ist etwas
+anderes als eine durchgespielte, und genau das erzählt ein Rückblick. Die Karte zeigt
+verletzt und gesperrt getrennt, nennt die Verletzung beim Namen und setzt die Einsätze
+ins Verhältnis. **Sie erscheint nur, wenn wirklich etwas ausgefallen ist** — eine Karte
+mit einer Null wäre genau die leere Seite, die beanstandet wurde.
+
+Dafür musste `simulateSeason` erweitert werden: **Sperrspiele flossen bisher nur in
+`missed` und waren danach verloren.** Die Karte hätte Verletzung und Sperre nicht
+auseinanderhalten können. Jetzt steht `banned` in der Saison.
+
+### Eine Prüfung, die ich nicht hinbekommen habe
+Der Rückblick zeigt immer nur eine Seite. Mein Versuch, im Prüfstand durchzublättern
+und den Text aller Karten zu sammeln, hat nicht gegriffen — der Weiter-Knopf wurde
+nicht ausgelöst. **Statt die Prüfung zu verbiegen, bis sie grün ist**, prüft sie jetzt
+die Datenlage: dass `banned` mit 4 ankommt und ohne Sperre 0 ist. Ob die Karten gut
+aussehen, beantwortet nur das Gerät.
+
+Prüfstand: **326 Prüfungen**, 0 Fehler. Bündel **1.062,15 kB**.
+
+### Aus Block D bleibt offen
+* **Mehr Möglichkeiten für Vermächtnis-Coins** (Wildcard neu ziehen, Saisonschub,
+  Werte über 99). Das ist keine Fehlerbehebung, sondern **neue Spielmechanik** mit
+  Folgen für die Kalibrierung — jede neue Ausgabemöglichkeit verschiebt, wie schnell
+  die Akademie ausgebaut wird, und das steht in einem Zielband.
+* **Freischaltungen als verdichtetes Untermenü.**
+
+## Offene Punkte (Stand 34.15)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;

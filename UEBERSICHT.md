@@ -3,7 +3,7 @@
 > Diese Datei wird aus dem Quelltext erzeugt, nicht von Hand gepflegt.
 > Jede Zahl stammt aus den Daten des laufenden Spiels.
 
-**Fassung 34.12** · erzeugt am 14. August 2026
+**Fassung 34.15** · erzeugt am 14. August 2026
 
 ## Inhalt auf einen Blick
 
@@ -2605,7 +2605,7 @@ Dauerhafte Vorteile, die über alle Laufbahnen hinweg bestehen bleiben.
 | Zweiter Versuch | Die Wildcard darf zweimal getauscht werden |
 | Verbandskontakt | Der Weg ins Nationalteam ist etwas kürzer |
 | Volles Postfach | Ein zusätzliches Transferangebot je Fenster |
-| Bewegtes Leben | Häufiger drei statt zwei Ereignisse |
+| Bewegtes Leben | Ab und zu drei Ereignisse statt zwei |
 | Alte Bekannte | Drei Ereignisse rund um Weggefährten früherer Laufbahnen |
 | Netzwerk | Drei Ereignisse, die Türen öffnen |
 | Der Ruf eilt voraus | Drei Ereignisse, weil man deinen Namen kennt |
