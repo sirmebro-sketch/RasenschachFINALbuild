@@ -46,7 +46,12 @@
       ["navigator.wakeLock", "wakeLock" in navigator ? "vorhanden" : "FEHLT"],
       ["localStorage", sp],
       ["Geraetepixel", String(window.devicePixelRatio || 1)],
-      ["Fenster", window.innerWidth + " x " + window.innerHeight]
+      ["Fenster", window.innerWidth + " x " + window.innerHeight],
+      /* Welcher Weg für die Zurück-Taste greift. Bei „keiner" tut die Taste
+         nichts — dann ist pushState gesperrt (file:// oder content://) und es
+         gibt kein Capacitor-Plugin. */
+      ["Zurück-Taste", (window.RS_ZURUECK_WEG || "unbekannt")],
+      ["history.length", String((window.history && window.history.length) || 0)]
     ];
   }
 

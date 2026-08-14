@@ -7,8 +7,8 @@ import { SCHRIFTEN } from "./schriften.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "34.15";
-const VERSION_INFO = "Rückblick-Karten: größere Überschriften, ein Tabellenausschnitt statt einer nackten Zahl und eine Karte für verpasste Spiele.";
+const VERSION = "34.19";
+const VERSION_INFO = "Der gekaufte Kartentausch wirkt jetzt wirklich — ein zusätzlicher Versuch, solange noch keine Saison gespielt ist.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -6054,9 +6054,18 @@ function hsvHalten(p) {
   p.trust = Math.max(p.trust, 90);
 }
 
+/* Wie oft darf getauscht werden? Eine Stelle, drei Quellen:
+   Grundrecht 1 · Freischaltung „mx_reroll" +1 · gekaufter Artikel „reroll" +1.
+   Die Zahl steht NUR hier — `rerollWildcard` und `tauschRest` lesen dieselbe
+   Funktion. Stünde sie an zwei Stellen, könnte der Knopf sichtbar sein, ohne
+   dass der Tausch durchgeht. */
+const tauschMax = (p) => 1
+  + ((p && p.meta && p.meta.mx_reroll) ? 1 : 0)
+  + ((p && p.laden && p.laden.reroll) ? 1 : 0);
+
 function rerollWildcard(p) {
   const b = p.wcBase;
-  const maxTausch = (p.meta && p.meta.mx_reroll) ? 2 : 1;
+  const maxTausch = tauschMax(p);
   if (!b || (p.wcRerolls || 0) >= maxTausch || p.seasons.length) return p;
   p.attrs = { ...b.attrs }; p.potential = b.potential; p.money = b.money;
   p.rep = b.rep; p.trust = b.trust; p.morale = b.morale; p.fitness = b.fitness;
@@ -6069,7 +6078,7 @@ function rerollWildcard(p) {
   p.wcRerolled = true;
   return p;
 }
-const tauschRest = (p) => ((p.meta && p.meta.mx_reroll) ? 2 : 1) - (p.wcRerolls || 0);
+const tauschRest = (p) => tauschMax(p) - (p.wcRerolls || 0);
 /* Wirkung der Karte auf den frisch angelegten Spieler übertragen */
 function applyWildcard(p, card) {
   const f = typeof card.fx === "function" ? card.fx(p) : (card.fx || {});
@@ -6435,7 +6444,11 @@ function develop(p) {
      Abstand zum Potenzial noch grösser als vorher (13 statt 12 Punkte). Der
      höhere Grundfaktor gleicht das aus, ohne den frühen Sprung zurückzubringen
      — der hängt an der Alterskurve, nicht hieran. */
-  const base = gap * .28 * growthAge(p.age - nachholJahre(gap)) * (t.mult ?? 1) * (.6 + mins * .5)
+  /* Gekaufte Extraschicht: eine Saison lang deutlich mehr Fortschritt. Der
+     Faktor steht hier und nicht im Training, weil er unabhängig von der
+     gewählten Einheit wirken soll. */
+  const schicht = (p.laden && p.laden.training) > 0 ? 1.85 : 1;
+  const base = gap * .28 * schicht * growthAge(p.age - nachholJahre(gap)) * (t.mult ?? 1) * (.6 + mins * .5)
     * (.8 + p.morale / 340) * (.85 + p.trust / 380) * rnd(.75, 1.25)
     * (1 + perk(p, "dev") + (p.wcMod ? p.wcMod.dev : 0)) * (p.life.kids >= 2 ? .94 : 1);
   const dec = declineAge(p.age) * p.mode.decay
@@ -6459,6 +6472,15 @@ function develop(p) {
     + perk(p, "inj"), 3, 95);
   p.fitness = clamp(p.fitness + (t.fit || 0) + perk(p, "fit") + rnd(-4, 6)
     - Math.max(0, p.age - 30) * 1.5 - p.life.kids * 1.2, 20, 100);
+  /* Über das Limit: der beste Wert darf über 99. Die Obergrenze steckt sonst
+     fest in `clamp(..., 99)` an vielen Stellen — hier wird sie nur für den
+     einen Wert und nur für die gekaufte Zeit angehoben. */
+  if ((p.laden && p.laden.ueber99) > 0) {
+    let best = AK[0];
+    AK.forEach((k) => { if (p.attrs[k] > p.attrs[best]) best = k; });
+    if (p.attrs[best] >= 99) p.attrs[best] = Math.min(103, p.attrs[best] + 1);
+    p.ovr = ovrOf(p.attrs, p.pos);
+  }
   p.morale = clamp(p.morale + perk(p, "morale")
     + (p.life.status === "verheiratet" ? 2 : p.life.status === "beziehung" ? 1 : 0)
     + p.life.kids * 1.5 - (p.life.status === "getrennt" ? 3 : 0), 5, 100);
@@ -6597,7 +6619,11 @@ function simulateSeason(p) {
   const avail = clamp(total - missed, 0, total);
   const apps = clamp(Math.round(avail * ro.f * clamp(.78 + p.fitness / 420, .6, 1.1) * rnd(.9, 1.08)), 0, avail);
 
-  const q = clamp((p.ovr - 40) / 45, .05, 1.35);
+  /* Gekaufter Lauf der Saison: wirkt auf die Grundgüte, aus der Note, Tore
+     und Vorlagen entstehen — also auf alles gleichzeitig, wie eine echte
+     Bestform. */
+  const laufBonus = (p.laden && p.laden.form) > 0 ? 1.16 : 1;
+  const q = clamp((p.ovr - 40) / 45 * laufBonus, .05, 1.35);
   const cm = .85 + (club.s - 70) / 110, fm = .86 + p.form / 340, eff = apps * .85;
   const expG = POS[p.pos].g * Math.pow(q, 1.2) * cm * fm * eff;
   const expA = POS[p.pos].a * Math.pow(q, 1.1) * cm * fm * eff;
@@ -6784,6 +6810,15 @@ function simulateSeason(p) {
   if (loy) { p.morale = clamp(p.morale + loy.mo, 5, 100); p.trust = Math.max(p.trust, 40 + loy.y); }
   p.fitness = clamp(p.fitness - apps * .22 + 8 - (injury ? 8 : 0), 20, 100);
   p.ban = 0;
+  /* Gekauftes läuft ab. Einmaliges (reroll) bleibt stehen, damit man es nicht
+     zweimal kaufen kann. */
+  if (p.laden) {
+    const L = { ...p.laden };
+    ["training", "form", "berater", "ueber99"].forEach((k) => {
+      if (L[k] > 0) L[k] = L[k] - 1;
+    });
+    p.laden = L;
+  }
   p.flags.justMoved = false;
   p.flags.wechselwunsch = false;
   p.flags.suspendiert = false;
@@ -6951,7 +6986,10 @@ function makeOffers(p) {
   const mins = last ? last.apps / Math.max(1, last.apps + 12) : .5;
   const benched = p.role === "bench" || p.role === "tribune" || (last && last.apps < 12);
   const desperate = p.age >= 34 || benched;
-  const noteB = clamp((3.5 - p.lastNote) * 5, -8, 10);
+  /* Gekaufter Berater: hebt die wahrgenommene Klasse, dadurch melden sich
+     stärkere Vereine. Wirkt wie eine sehr gute Saisonnote obendrauf. */
+  const beraterB = (p.laden && p.laden.berater) > 0 ? 9 : 0;
+  const noteB = clamp((3.5 - p.lastNote) * 5, -8, 10) + beraterB;
   /* Wer die Rautekarte gezogen hat, bleibt beim HSV — der Verein hält
      immer die Hand hin, wenn der Vertrag es verlangt.                  */
   if (p.flags.nurderhsv) {
@@ -7319,12 +7357,26 @@ const akaRestkosten = (a) => ABTEILUNGEN.reduce((s, x) => {
 function vcFuer(p) {
   if (!p) return 0;
   const v = p.verdict || verdict(p);
+  /* /26 → /21: rund ein Fünftel mehr. Der Shop zieht Geld aus demselben Topf,
+     mit dem die Akademie bezahlt wird; ohne Ausgleich fiele „Laufbahnen bis
+     Vollausbau" aus dem Zielband. BEWUSST knapp bemessen — der Ausbau soll ein
+     Langzeitziel bleiben, nicht nach zehn Laufbahnen erledigt sein. */
   let vc = Math.round(v.score / 26);
   if (v.ehre) vc += 11;                                   // Vermächtnistitel
   vc += (p.trophies || []).length;
   vc += Math.round(((p.nt && p.nt.caps) || 0) / 26);
   if (p.flags && p.flags.legende) vc += 7;
   if (p.wc && (p.wc.r === "goat" || p.wc.r === "hsv")) vc += 9;
+  /* Ausgleich für den Shop (34.18). Er zieht Geld aus demselben Topf, mit dem
+     die Akademie bezahlt wird; ohne das fiele „Laufbahnen bis Vollausbau" aus
+     dem Zielband, sobald jemand einkauft.
+
+     Der Aufschlag steht bewusst HIER und nicht in einem der Posten: er wirkt
+     dann gleichmässig statt eine einzelne Quelle zu verzerren, und man sieht
+     ihm an, wofür er da ist. 18 % sind knapp bemessen — der Ausbau soll ein
+     Langzeitziel bleiben. Ohne Einkäufe sinkt er von 30 auf rund 25 Laufbahnen,
+     mit üblichen Einkäufen landet er wieder bei etwa 31. */
+  vc = Math.round(vc * 1.18);
   return Math.max(5, vc);
 }
 /* Aufschlüsselung für die Anzeige nach dem Karriereende */
@@ -7340,6 +7392,139 @@ function vcPosten(p) {
   if (p.wc && (p.wc.r === "goat" || p.wc.r === "hsv")) L.push({ k: "Besondere Karte", v: 9 });
   return L;
 }
+
+/* ==========================================================================
+   SHOP — Vermächtnis-Coins ausgeben
+   --------------------------------------------------------------------------
+   Bis 34.17 gab es für VC genau eine Verwendung: die Akademie. Wer sie
+   ausgebaut hatte, sammelte ins Leere.
+
+   Die Preise sind an dem gemessen, was eine Laufbahn einbringt (im Mittel
+   rund 50 VC): Kleinigkeiten kosten unter einer halben Laufbahn, die
+   grossen Eingriffe ein bis zwei. Nichts hier ist Pflicht — der Ausbau der
+   Akademie bleibt der Hauptzweck, und wer alles kauft, braucht dafür länger.
+
+   Jeder Artikel trägt ein eigenes Zeichen. Gezeichnet, nicht als Bild:
+   flach, einfarbig, in der Sprache des Hefts.                             */
+
+const SHOP_BILD = {
+  wuerfel: (c) => (<g fill="none" stroke={c} strokeWidth="1.6">
+    <rect x="4" y="4" width="16" height="16" /><circle cx="9" cy="9" r="1.4" fill={c} stroke="none" />
+    <circle cx="15" cy="15" r="1.4" fill={c} stroke="none" /><circle cx="12" cy="12" r="1.4" fill={c} stroke="none" /></g>),
+  pfeil: (c) => (<g fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="square">
+    <path d="M12,20 V5" /><path d="M6,11 L12,5 L18,11" /><path d="M5,22 H19" /></g>),
+  stern: (c) => (<path d="M12,3 L14.4,9.2 L21,9.6 L15.9,13.8 L17.6,20.2 L12,16.6 L6.4,20.2 L8.1,13.8 L3,9.6 L9.6,9.2 Z"
+    fill="none" stroke={c} strokeWidth="1.6" strokeLinejoin="miter" />),
+  pfeife: (c) => (<g fill="none" stroke={c} strokeWidth="1.6">
+    <path d="M4,9 H20 V13 A6,6 0 0 1 8,13 V9" /><path d="M4,9 L2,6" /><circle cx="14" cy="13" r="1.2" fill={c} stroke="none" /></g>),
+  kreuz: (c) => (<g fill="none" stroke={c} strokeWidth="1.8">
+    <path d="M9,3 H15 V9 H21 V15 H15 V21 H9 V15 H3 V9 H9 Z" /></g>),
+  uhr: (c) => (<g fill="none" stroke={c} strokeWidth="1.6">
+    <circle cx="12" cy="12" r="8.5" /><path d="M12,7 V12 L15.5,14" /></g>),
+  vertrag: (c) => (<g fill="none" stroke={c} strokeWidth="1.6">
+    <path d="M6,3 H15 L18,6 V21 H6 Z" /><path d="M9,10 H15" /><path d="M9,14 H15" /><path d="M9,18 H12" /></g>),
+};
+
+/* preis: in VC · wann: "start" nur vor dem Anpfiff, "saison" jederzeit in der
+   Laufbahn, "immer" beides. `einmal` heisst: nur einmal je Laufbahn. */
+/* Heisst VCLADEN, nicht SHOP: `SHOP` gibt es schon für die Anschaffungen
+   aus dem Gehalt (Wohnung, Auto, Berater). Zwei Dinge mit demselben Namen
+   sind eine Falle für die nächste Sitzung. */
+const VCLADEN = [
+  /* „immer", nicht „start": man kauft ihn oft erst, wenn man die gezogene
+     Karte gesehen hat — und die sieht man in der Laufbahn. Nutzbar bleibt er
+     nur, solange keine Saison gespielt ist; das prüft `rerollWildcard`. */
+  { id: "reroll", n: "Noch eine Karte ziehen", bild: "wuerfel", preis: 45, wann: "immer", einmal: true,
+    t: "Ein zusätzlicher Tausch der Wildcard. Geht nur, solange keine Saison gespielt ist." },
+  { id: "training", n: "Extraschicht", bild: "pfeil", preis: 22, wann: "saison",
+    t: "Eine Saison lang deutlich mehr Fortschritt im Training." },
+  { id: "form", n: "Lauf der Saison", bild: "stern", preis: 28, wann: "saison",
+    t: "Eine Saison in Bestform: bessere Noten, mehr Tore, mehr Vorlagen." },
+  { id: "physio", n: "Der beste Physio", bild: "kreuz", preis: 18, wann: "saison",
+    t: "Eine laufende Verletzung ist sofort auskuriert." },
+  { id: "berater", n: "Ein Berater, der zieht", bild: "vertrag", preis: 26, wann: "saison",
+    t: "Die nächsten Angebote kommen von stärkeren Vereinen." },
+  { id: "trainer", n: "Der Trainer hört zu", bild: "pfeife", preis: 20, wann: "saison",
+    t: "Vertrauen sofort auf 85. Du spielst wieder." },
+  { id: "ueber99", n: "Über das Limit", bild: "uhr", preis: 70, wann: "saison", einmal: true,
+    t: "Dein bester Wert darf vier Saisons lang über 99 steigen, bis 103." },
+];
+const shopFuer = (wo) => VCLADEN.filter((x) => x.wann === "immer" || x.wann === wo);
+
+/* Ein Artikel im Laden. Zeichen links, Preis rechts, Wirkung darunter. */
+function LadenPosten({ a, vc, gekauft, aktiv, onKauf }) {
+  const kann = vc >= a.preis && !gekauft && !aktiv;
+  const farbe = gekauft ? "var(--mu)" : aktiv ? "var(--ok)" : kann ? "var(--go)" : "var(--ln2)";
+  return (
+    <button className="btn" disabled={!kann} onClick={() => onKauf(a)}
+      style={{ display: "block", width: "100%", padding: "11px 12px", textAlign: "left",
+        borderColor: aktiv ? "var(--ok)" : "var(--ln2)", opacity: gekauft ? .55 : 1 }}>
+      <span style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
+        <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0, marginTop: 1 }}>
+          {(SHOP_BILD[a.bild] || SHOP_BILD.stern)(farbe)}
+        </svg>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span className="d" style={{ fontSize: 14.5 }}>{a.n}</span>
+            <span className="d" style={{ fontSize: 14.5, color: farbe, marginLeft: "auto", whiteSpace: "nowrap" }}>
+              {gekauft ? "gekauft" : aktiv ? "läuft" : a.preis + " VC"}</span>
+          </span>
+          <span className="m" style={{ fontSize: 11, color: "var(--mu)", display: "block", marginTop: 3 }}>
+            {a.t}</span>
+        </span>
+      </span>
+    </button>);
+}
+
+/* Der Laden. `wo` entscheidet, was zu sehen ist: vor dem Anpfiff nur, was
+   dort Sinn ergibt. Was schon läuft oder schon gekauft wurde, bleibt sichtbar
+   — sonst wüsste man nicht mehr, wofür das Geld weg ist. */
+/* Eine schlichte Überlagerung über der laufenden Ansicht. Sperrt das Rollen
+   dahinter (siehe rollSperren) und hört auf die Zurück-Taste. */
+function Ueberlagerung({ children, onZu }) {
+  useZurueck(onZu);
+  useEffect(() => { rollSperren(true); return () => rollSperren(false); }, []);
+  return (
+    <div onClick={onZu} style={{ position: "fixed", inset: 0, zIndex: 60,
+      background: "rgba(9,8,6,.86)", overflowY: "auto", padding: "18px 12px 40px" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560, margin: "0 auto" }}>
+        <div className="pan pad">{children}
+          <button className="btn" style={{ marginTop: 14 }} onClick={onZu}>Schließen</button>
+        </div>
+      </div>
+    </div>);
+}
+
+function LadenSeite({ wo, vc, laden, onKauf, onBack }) {
+  useZurueck(onBack);
+  return (
+    <div className="fade">
+      <VCLadenAnsicht wo={wo} vc={vc} laden={laden} onKauf={onKauf} />
+      <button className="btn" style={{ marginTop: 14 }} onClick={onBack}>Zurück</button>
+    </div>);
+}
+
+function VCLadenAnsicht({ wo, vc, laden, onKauf }) {
+  const artikel = shopFuer(wo);
+  const L = laden || {};
+  return (
+    <div>
+      <div className="band matt">
+        <span>Vermächtnis-Laden</span>
+        <span style={{ color: "var(--go)" }}>{vc} VC</span>
+      </div>
+      <div className="g1" style={{ marginTop: 10 }}>
+        {artikel.map((a) => (
+          <LadenPosten key={a.id} a={a} vc={vc} onKauf={onKauf}
+            gekauft={!!(a.einmal && L[a.id])}
+            aktiv={!a.einmal && (L[a.id] || 0) > 0} />))}
+      </div>
+      <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 10 }}>
+        Dieselben Coins bauen die Jugendakademie aus. Was du hier ausgibst, fehlt dort.
+      </div>
+    </div>);
+}
+
 
 /* ---------------- Talente ---------------- */
 const AKA_POS = ["TW","IV","IV","AV","AV","ZDM","ZM","ZM","ZOM","AF","AF","ST"];
@@ -8672,6 +8857,7 @@ const RESSORT = {
   akademie:  { n: "JUGENDAKADEMIE",   s: 30, f: "var(--mu)" },
   optionen:  { n: "REDAKTION",        s: 46, f: "var(--mu)" },
   archiv:    { n: "ARCHIV",           s: 48, f: "var(--mu)" },
+  laden:     { n: "ANZEIGEN",         s: 8,  f: "var(--go)" },
 };
 
 /* Seitenkopf. „Jede Seite hat einen Namen, damit sich der Leser zurechtfindet" —
@@ -8789,20 +8975,67 @@ const rollSperren = (an) => {
    gewohnt. */
 const ZURUECK = [];
 let zurueckBereit = false;
+let ZURUECK_WEG = "keiner";      /* für die Diagnose im Messwerkzeug */
+
+/* Einen Verlaufseintrag legen. Gibt zurück, ob es geklappt hat — der erste
+   Versuch hatte hier ein stilles try/catch, und genau deshalb tat die Taste
+   gar nichts: unter file:// wirft pushState einen Sicherheitsfehler, der
+   verschluckt wurde. Ohne Eintrag im Verlauf gibt es kein popstate. */
+const verlaufLegen = () => {
+  try {
+    if (typeof window === "undefined" || !window.history || !window.history.pushState) return false;
+    const vorher = window.history.length;
+    window.history.pushState({ rs: Date.now() }, "");
+    return window.history.length > vorher || window.history.state != null;
+  } catch (e) { return false; }
+};
+
+const zurueckAusloesen = () => {
+  const oben = ZURUECK[ZURUECK.length - 1];
+  if (!oben) return false;
+  oben();
+  return true;
+};
+
+const zurueckBereitstellen = () => {
+  if (zurueckBereit || typeof window === "undefined") return;
+  zurueckBereit = true;
+
+  /* Weg 1: Capacitor. Wenn das App-Plugin da ist, ist das der zuverlässige
+     Weg — es meldet die Taste unabhängig vom Verlauf. */
+  try {
+    const cap = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+    if (cap && cap.addListener) {
+      cap.addListener("backButton", () => {
+        if (!zurueckAusloesen() && cap.exitApp) cap.exitApp();
+      });
+      ZURUECK_WEG = "Capacitor";
+      try { window.RS_ZURUECK_WEG = ZURUECK_WEG; } catch (e2) {}
+      return;
+    }
+  } catch (e) { /* kein Capacitor */ }
+
+  /* Weg 2: das Ereignis, das Cordova und einige WebViews auf document feuern. */
+  try {
+    document.addEventListener("backbutton", (ev) => {
+      if (zurueckAusloesen() && ev.preventDefault) ev.preventDefault();
+    }, false);
+  } catch (e) { /* egal */ }
+
+  /* Weg 3: der Verlauf. Funktioniert überall dort, wo pushState erlaubt ist. */
+  window.addEventListener("popstate", () => {
+    if (ZURUECK.length) { verlaufLegen(); zurueckAusloesen(); }
+  });
+  ZURUECK_WEG = verlaufLegen() ? "Verlauf" : "keiner (pushState gesperrt)";
+  /* Für die Diagnose im Browsertest sichtbar machen. */
+  try { window.RS_ZURUECK_WEG = ZURUECK_WEG; } catch (e) {}
+};
+
 const zurueckAnmelden = (fn) => {
   if (typeof window === "undefined") return () => {};
-  if (!zurueckBereit) {
-    zurueckBereit = true;
-    window.addEventListener("popstate", () => {
-      const oben = ZURUECK[ZURUECK.length - 1];
-      if (!oben) return;                       /* nichts offen: App darf zu */
-      /* Sofort einen Ersatzeintrag legen, sonst ist der Verlauf beim
-         nächsten Druck leer und die App schliesst ungewollt. */
-      try { window.history.pushState({ rs: 1 }, ""); } catch (e) {}
-      oben();
-    });
-  }
-  try { window.history.pushState({ rs: 1 }, ""); } catch (e) {}
+  zurueckBereitstellen();
+  /* Je offener Ansicht ein eigener Eintrag — nur beim Verlaufsweg nötig. */
+  if (ZURUECK_WEG === "Verlauf") verlaufLegen();
   ZURUECK.push(fn);
   return () => {
     const i = ZURUECK.lastIndexOf(fn);
@@ -9755,11 +9988,13 @@ function Pass({ p, full, wachstum }) {
            innen: über sechs Stationen bleibt der Pass gleich hoch.
            `touchAction: pan-y` ist nötig, weil html/body auf pan-x pan-y
            stehen — ohne die Angabe schluckt die Seite das Wischen. */
-        <div style={stationen.length > 6
-          ? { maxHeight: 152, overflowY: "auto", touchAction: "pan-y",
-              borderTop: "1px solid rgba(20,23,26,.16)", borderBottom: "1px solid rgba(20,23,26,.16)",
-              overscrollBehavior: "contain" }
-          : undefined}>
+        /* FESTE Höhe, nicht erst ab sieben Stationen. Der erste Versuch
+           begrenzte die Liste ab sieben — bis dahin wuchs der Pass weiter, und
+           weil beide Seiten im selben Rasterfeld liegen, wuchs die Vorderseite
+           mit. Jetzt ist die Rückseite von der ersten Station an gleich hoch. */
+        <div style={{ height: 150, overflowY: "auto", touchAction: "pan-y",
+          borderTop: "1px solid rgba(20,23,26,.16)", borderBottom: "1px solid rgba(20,23,26,.16)",
+          overscrollBehavior: "contain" }}>
           {stationen.map((st, i) => (
             <div key={i} className="passzeile" style={{ gap: 7 }}>
               <span className="m" style={{ flex: "0 0 auto", fontSize: 10, color: "var(--tinte2)" }}>
@@ -9774,7 +10009,7 @@ function Pass({ p, full, wachstum }) {
         </div>
       )}
 
-      {stationen.length > 6 && (
+      {stationen.length > 5 && (
         <div className="eb" style={{ marginTop: 4, textAlign: "right" }}>
           {stationen.length} Stationen · in der Liste blättern</div>)}
 
@@ -10204,7 +10439,7 @@ function titelgeschichte(save, laeuft, hall, aka) {
     unter: "Trainingsschwerpunkte, Vertragspoker, Leihen, Angebote, die man besser ablehnt. Eine Laufbahn, eine Entscheidung nach der anderen." };
 }
 
-function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, meta, aufRahmen }) {
+function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, onLaden, meta, aufRahmen }) {
   const [ask, setAsk] = useState(false);
   const [opt, setOpt] = useState(false);
   const [anleitung, setAnleitung] = useState(false);
@@ -10368,6 +10603,8 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
             metaN + " Belohnungen freigeschaltet", onAch)}
           {zeile("hall", "Ruhmeshalle", String(hall.length),
             hall.length ? "Bester Lauf: " + hall[0].score + " Punkte" : "noch keine Laufbahn beendet", onHall)}
+          {zeile("laden", "Anzeigen", (aka && aka.vc ? aka.vc + " VC" : "keine Coins"),
+            "Was es für Vermächtnis-Coins zu holen gibt", onLaden)}
           {zeile("akademie", "Jugendakademie", (aka && aka.gegruendet ? (aka.vc || 0) + " VC" : "geschlossen"),
             aka && aka.gegruendet
               ? aka.name + " · " + ((aka.bilanz && aka.bilanz.profis) || 0) + " Profis"
@@ -11629,6 +11866,9 @@ function BackupScreen({ onBack, onImport }) {
 function AchievementScreen({ ach, ges, meta, onBack }) {
   useZurueck(onBack);
   const [filter, setFilter] = useState("alle");
+  /* Zugeklappt beginnen: die Errungenschaften sind der Hauptinhalt dieser
+     Seite, die Freischaltungen sind das Nachschlagewerk dazu. */
+  const [freiAuf, setFreiAuf] = useState(false);
   const erreicht = ACHIEVEMENTS.filter((a) => ach && ach[a.id]);
   const pkt = erreicht.reduce((a, x) => a + STUFEN[x.s].w, 0);
   const maxPkt = ACHIEVEMENTS.reduce((a, x) => a + STUFEN[x.s].w, 0);
@@ -11657,20 +11897,67 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
           <Stat k="Bester Lauf" v={G.bestPunkte + " Pkt"} />
         </div>
 
-        <div className="eb" style={{ margin: "18px 0 6px" }}>Freigeschaltet</div>
-        {Object.keys(meta || {}).length === 0 ? (
-          <div className="pan pad" style={{ fontSize: 12, color: "var(--mu)" }}>
-            Noch nichts freigeschaltet. Errungenschaften mit einem Geschenk bringen neue Karten,
-            bessere Chancen, Startvorteile oder Kosmetik.
-          </div>
-        ) : (
-          <div className="g2">
-            {Object.keys(meta).filter((k) => META[k]).map((k) => (
-              <div key={k} className="pan pad" style={{ borderColor: "var(--ok)" }}>
-                <div className="d" style={{ fontSize: 14, color: "var(--ok)" }}>{META[k].n}</div>
-                <div style={{ fontSize: 11, color: "var(--mu)", marginTop: 2 }}>{META[k].t}</div>
-              </div>))}
-          </div>)}
+        {/* Freischaltungen. Vorher stand jede einzeln als eigene Karte mit
+            Rahmen untereinander — bei 48 Stück eine sehr lange Kette, in der
+            man nichts wiederfand. Jetzt aufklappbar, nach Art gebündelt, und
+            zugeklappt nur eine Zeile mit den Zahlen. */}
+        <button className="btn" onClick={() => setFreiAuf(!freiAuf)}
+          style={{ margin: "18px 0 0", padding: "10px 12px", display: "block", width: "100%" }}>
+          <span className="inhalt">
+            <span className="d" style={{ fontSize: 15 }}>Freigeschaltet</span>
+            <span className="punkte" />
+            <span className="wert">{Object.keys(meta || {}).filter((k) => META[k]).length} von {Object.keys(META).length}</span>
+            <span className="d" style={{ fontSize: 15, color: "var(--mu)", minWidth: 18, textAlign: "right" }}>
+              {freiAuf ? "\u2212" : "+"}</span>
+          </span>
+        </button>
+
+        {(() => {
+          const offen = Object.keys(meta || {}).filter((k) => META[k]);
+          const ARTEN = [["karte", "Neue Wildcards"], ["rar", "Bessere Chancen"],
+            ["start", "Startvorteile"], ["regel", "Spielregeln"],
+            ["ereignis", "Neue Ereignisse"], ["kosmetik", "Aussehen"]];
+          /* Zugeklappt: eine Zeile je Art mit Zähler. Das ist die Übersicht,
+             die vorher fehlte — man sieht, wo noch etwas zu holen ist. */
+          const zaehler = {};
+          ARTEN.forEach(([t]) => { zaehler[t] = { auf: 0, alle: 0 }; });
+          Object.keys(META).forEach((k) => {
+            const t = META[k].typ; if (!zaehler[t]) return;
+            zaehler[t].alle++; if (meta && meta[k]) zaehler[t].auf++;
+          });
+          if (!freiAuf) return (
+            <div className="zellen" style={{ marginTop: 8, fontSize: 11 }}>
+              {ARTEN.map(([t, n]) => (
+                <div key={t}><span className="eb">{n}</span>
+                  <span style={{ color: zaehler[t].auf ? "var(--ok)" : "var(--mu)" }}>
+                    {zaehler[t].auf}/{zaehler[t].alle}</span></div>))}
+            </div>);
+          if (!offen.length) return (
+            <div className="pan pad" style={{ fontSize: 12, color: "var(--mu)", marginTop: 8 }}>
+              Noch nichts freigeschaltet. Errungenschaften mit einem Geschenk bringen neue Karten,
+              bessere Chancen, Startvorteile oder Kosmetik.</div>);
+          /* Aufgeklappt: nach Art gebündelt, eine Zeile je Freischaltung. */
+          return (
+            <div style={{ marginTop: 8 }}>
+              {ARTEN.map(([t, n]) => {
+                const drin = offen.filter((k) => META[k].typ === t);
+                if (!drin.length) return null;
+                return (
+                  <div key={t} className="pan pad" style={{ marginTop: 8 }}>
+                    <div className="band matt"><span>{n}</span>
+                      <span>{drin.length} von {zaehler[t].alle}</span></div>
+                    {drin.map((k) => (
+                      <div key={k} style={{ display: "flex", gap: 8, alignItems: "baseline",
+                        padding: "3px 0", borderBottom: "1px solid var(--ln)" }}>
+                        <span className="d" style={{ fontSize: 12.5, color: "var(--ok)", flexShrink: 0 }}>
+                          {META[k].n}</span>
+                        <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", textAlign: "right",
+                          marginLeft: "auto" }}>{META[k].t}</span>
+                      </div>))}
+                  </div>);
+              })}
+            </div>);
+        })()}
 
         <div style={{ display: "flex", gap: 5, margin: "18px 0 8px", flexWrap: "wrap" }}>
           <button className={"btn sm" + (filter === "alle" ? " on" : "")} onClick={() => setFilter("alle")}>Alle</button>
@@ -11976,6 +12263,9 @@ function FlutlichtApp() {
   const [ges, setGes] = useState(leereBilanz());
   const [meta, setMeta] = useState({});
   const [stopAsk, setStopAsk] = useState(false);
+  /* Der Laden liegt in der Laufbahn als Überlagerung, nicht als eigene Phase:
+     ein Wechsel würde den Schritt verlieren, in dem man gerade steckt. */
+  const [ladenAuf, setLadenAuf] = useState(false);
   const [detail, setDetail] = useState(false);
   const [simLauf, setSimLauf] = useState(false);
   const [rueckblick, setRueckblick] = useState(null);
@@ -12145,6 +12435,37 @@ function FlutlichtApp() {
     setAka(n); speichereAka(n);
   };
 
+  /* Im Laden kaufen. Die Coins liegen in derselben Kasse wie die der Akademie
+     (`aka.vc`) — das ist Absicht: es soll wehtun, hier auszugeben.
+     Was gekauft wurde, steht in `aka.laden`; einmalige Artikel bleiben dort
+     stehen, laufende zählen die verbleibenden Saisons herunter. */
+  const ladenKauf = (a) => {
+    const kasse = aka.vc || 0;
+    if (kasse < a.preis) return;
+    const L = { ...(aka.laden || {}) };
+    if (a.einmal && L[a.id]) return;
+    if (!a.einmal && (L[a.id] || 0) > 0) return;      /* läuft schon */
+    L[a.id] = a.einmal ? 1 : (a.id === "ueber99" ? 4 : 1);
+    haptik("wahl");
+    const n = { ...aka, vc: kasse - a.preis, ausgegeben: (aka.ausgegeben || 0) + a.preis, laden: L };
+    setAka(n); speichereAka(n);
+    /* Der Spieler muss die Käufe kennen: `develop`, `simulateSeason` und
+       `makeOffers` lesen `p.laden`. Ohne diese Brücke wäre der Kauf gebucht
+       und wirkungslos — genau die Sorte Fehler, die in diesem Projekt schon
+       mehrfach vorkam (Pity-Zähler, Augenfarbe). */
+    if (p) {
+      const q = { ...p, laden: L };
+      setP(q); saveGame(q, step);
+    }
+    /* Sofortwirkungen, die keine Saison brauchen. */
+    if (p && (a.id === "physio" || a.id === "trainer")) {
+      const q = { ...p, laden: L };
+      if (a.id === "physio") { q.injury = null; q.fitness = clamp((p.fitness || 70) + 18, 0, 100); }
+      if (a.id === "trainer") q.trust = Math.max(p.trust || 0, 85);
+      setP(q); saveGame(q, step);
+    }
+  };
+
   const finish = (q, reason) => {
     q.verdict = verdict(q); q.retired = true; q.endReason = reason || q.endNow || null;
     /* Vermächtnis-Coins und ein Jahr Akademie */
@@ -12187,6 +12508,10 @@ function FlutlichtApp() {
 
   const start = (cfg) => {
     const q = createPlayer({ ...cfg, seen, meta, wcSeen, aka, hsvZaehler: hsvZ });
+    /* Gekauftes an den neuen Spieler weiterreichen. Ohne das wäre ein im
+       Hauptmenü gekaufter Kartentausch beim Anpfiff verschwunden — bezahlt
+       und weg. */
+    q.laden = { ...(aka.laden || {}) };
     /* Kommt die Raute, beginnt der Zähler sofort wieder von vorn — auch dann,
        wenn die Laufbahn später abgebrochen statt beendet wird. */
     if (q.flags.nurderhsv) { q.hsvZaehler = 0; speichereHsv(0); }
@@ -12415,7 +12740,7 @@ function FlutlichtApp() {
     achN={ACHIEVEMENTS.filter((a) => ach && ach[a.id]).length}
     metaN={Object.keys(meta || {}).filter((k) => META[k]).length}
     onBackup={() => setPhase("sicherung")}
-    aka={aka} onAka={() => setPhase("akademie")}
+    aka={aka} onAka={() => setPhase("akademie")} onLaden={() => setPhase("laden")}
     meta={meta} aufRahmen={(k) => { const n = { ...(meta || {}), rahmenWahl: k };
       setMeta(n); store.set(META_KEY, JSON.stringify(n)); }}
     ruhe={ruhe} setRuhe={setRuhe} setRuheState={setRuheState} />;
@@ -12426,6 +12751,13 @@ function FlutlichtApp() {
   if (phase === "hall") return <HallScreen hall={hall} onBack={() => setPhase(p && p.retired ? "end" : "menu")} />;
   if (phase === "erfolge") return <AchievementScreen ach={ach} ges={ges} meta={meta} onBack={() => setPhase("menu")} />;
   if (phase === "sicherung") return <BackupScreen onBack={() => setPhase("menu")} onImport={ladeAlles} />;
+  /* Der Laden heisst im Heft „Anzeigen" — eine Seite mit Angeboten, wie sie
+     in jedem Sportheft steht. */
+  if (phase === "laden") return (
+    <Shell blatt="laden">
+      <LadenSeite wo={p ? "saison" : "start"} vc={aka.vc || 0} laden={aka.laden}
+        onKauf={ladenKauf} onBack={() => setPhase("menu")} />
+    </Shell>);
   if (phase === "create") return <CreateScreen onStart={start} onBack={() => setPhase("menu")} meta={meta} />;
   if (!p) return null;
   /* Der Rückblick auf die Laufbahn liegt über allem — sonst käme er nie zum
@@ -12468,6 +12800,16 @@ function FlutlichtApp() {
             </div>
             <div><span className="eb">Konto</span>{eur(p.money)}</div>
           </div>
+          {/* Zugang zum Laden auch mitten in der Laufbahn — die meisten Artikel
+              ergeben erst dort Sinn. Zeigt den Kassenstand, damit man nicht
+              erst hineinklicken muss, um zu sehen, ob sich das lohnt. */}
+          <button className="btn sm" onClick={() => setLadenAuf(true)}
+            style={{ padding: "5px 9px", display: "flex", alignItems: "center", gap: 6 }}>
+            <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+              {SHOP_BILD.stern("var(--go)")}
+            </svg>
+            <span className="m" style={{ fontSize: 11, color: "var(--go)" }}>{aka.vc || 0} VC</span>
+          </button>
           <div style={{ marginLeft: "auto" }}><Schritte aktiv={stepLbl === "retire" ? "result" : stepLbl} /></div>
         </div>
       </div>
@@ -12875,6 +13217,11 @@ function FlutlichtApp() {
         onFertig={() => setEnthuellung(null)} />}
       {rueckblick && rueckblick.lauf === p.lauf && !simLauf && (
         <SaisonRueckblick p={rueckblick.p} s={rueckblick.s} onFertig={() => setRueckblick(null)} />)}
+
+      {ladenAuf && (
+        <Ueberlagerung onZu={() => setLadenAuf(false)}>
+          <VCLadenAnsicht wo="saison" vc={aka.vc || 0} laden={aka.laden} onKauf={ladenKauf} />
+        </Ueberlagerung>)}
       {schluss && schluss.lauf === p.lauf && !rueckblick && (!jubel || !jubel.length) && !simLauf && (
         <div className="rs-schleier" style={{ padding: "0 18px" }}>
           <div className="rs-rein" style={{ textAlign: "center", maxWidth: 460 }}>

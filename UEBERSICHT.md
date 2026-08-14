@@ -3,7 +3,7 @@
 > Diese Datei wird aus dem Quelltext erzeugt, nicht von Hand gepflegt.
 > Jede Zahl stammt aus den Daten des laufenden Spiels.
 
-**Fassung 34.15** · erzeugt am 14. August 2026
+**Fassung 34.19** · erzeugt am 14. August 2026
 
 ## Inhalt auf einen Blick
 

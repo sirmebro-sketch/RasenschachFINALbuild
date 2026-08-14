@@ -5,7 +5,7 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 34.15** · Stand 10. August 2026
+**Fassung 34.19** · Stand 10. August 2026
 *Eigene Schriften · harte Form · Sammelalbum · neue Spielerporträts · **das Heft: dunkles Zeitungspapier***
 
 > Die Abschnitte 1 bis 8 beschreiben das Spiel und die Arbeitsweise und gelten
@@ -1529,7 +1529,212 @@ Prüfstand: **326 Prüfungen**, 0 Fehler. Bündel **1.062,15 kB**.
   die Akademie ausgebaut wird, und das steht in einem Zielband.
 * **Freischaltungen als verdichtetes Untermenü.**
 
-## Offene Punkte (Stand 34.15)
+## 34.16 · Zwei Fehler aus Kevins Test
+
+Kevins Test von 34.15: **17 von 19 Punkten in Ordnung.** Zwei Fehler.
+
+### A1 · Die Zurück-Taste tat gar nichts
+Ursache war ein **stilles `try/catch`**. Der Verlaufseintrag wurde mit
+`window.history.pushState(...)` gelegt, umgeben von `try { … } catch (e) {}`.
+Unter `file://` und `content://` wirft pushState einen Sicherheitsfehler — der
+wurde verschluckt, es gab keinen Verlaufseintrag, und ohne den feuert `popstate`
+nie. **Die Taste hatte nie eine Chance, und nichts im Code hat das gemeldet.**
+
+Das ist genau das Muster, das hier schon zweimal Ärger gemacht hat: ein Fehler,
+der weggeschluckt wird, sieht aus wie ein Erfolg.
+
+Jetzt **drei Wege**, in dieser Reihenfolge:
+1. **Capacitor** (`window.Capacitor.Plugins.App`) — meldet die Taste unabhängig
+   vom Verlauf und ist in der APK der zuverlässige Weg. Dafür ist
+   `@capacitor/app` in `package.json` dazugekommen — **^6.0.3, nicht ^6.2.0.**
+   Ich hatte die Fassung ungeprüft von `@capacitor/core` übernommen; die gibt es
+   für dieses Paket nicht, und `npm install` brach ab. Aufgefallen erst, als der
+   Browsertest sich nicht mehr bauen liess. **Fassungsnummern nicht raten.**
+2. Das `backbutton`-Ereignis auf `document`, das manche WebViews feuern.
+3. Der **Verlauf** wie bisher — für den Browsertest.
+
+`verlaufLegen()` gibt jetzt **zurück, ob es geklappt hat**, statt zu schweigen.
+Der gewählte Weg steht in `window.RS_ZURUECK_WEG` und wird in der Diagnosezeile
+des Messwerkzeugs angezeigt: „Capacitor", „Verlauf" oder
+„keiner (pushState gesperrt)".
+
+**Im Browsertest über `content://` wird weiterhin „keiner" stehen** — dort ist
+pushState gesperrt, und daran kann die App nichts ändern. Der Weg über Capacitor
+greift erst in der echten APK. **Das heisst: A1 lässt sich nur in der APK
+abschliessend prüfen, nicht im Browsertest.**
+
+### B3 · Der Spielerpass wuchs weiter
+Die Grenze aus 34.8 griff erst **ab sieben Stationen** — bis dahin wuchs die
+Liste frei, und weil beide Seiten im selben Rasterfeld liegen, wuchs die
+Vorderseite mit. Die halbe Lösung war schlimmer als keine, weil sie das Problem
+zu lösen schien.
+
+Jetzt hat die Liste **immer** eine feste Höhe (150 px), von der ersten Station
+an. Der Prüfstand vergleicht die Höhe bei 3 und bei 14 Stationen — sie muss
+gleich sein.
+
+Meine eigene Prüfung von 34.8 hat dabei angeschlagen: sie erwartete bei wenigen
+Stationen *keine* Rollfläche. Gemessen am alten Stand hatte sie recht — die
+Erwartung selbst war falsch.
+
+Prüfstand: **330 Prüfungen**, 0 Fehler. Bündel **1.062,63 kB**.
+
+### Was Kevins Test bestätigt hat
+A2 Papierkorn · A3 Porträtgrösse · A4 Reiter · A5 Anzeigegrösse · B1 Zoom
+gesperrt · B2 Akademie bei 0 % · B4 Rahmenwahl · B5 Stand im Menü · B6
+Rentenfrage · B7 Bilanz-Hintergrund · B8 Namensvorschlag · B9 Pass wenden.
+C und D stehen unter Langzeitbeobachtung.
+
+## 34.17 · Die Freischaltungen
+
+Vorher stand jede der 48 Freischaltungen als **eigene Karte mit Rahmen**
+untereinander — eine sehr lange Kette, in der man nichts wiederfand.
+
+Jetzt ein aufklappbares Verzeichnis:
+* **Zugeklappt** (Vorgabe) eine Zeile mit „x von 48" und darunter die Zähler je
+  Art: Neue Wildcards · Bessere Chancen · Startvorteile · Spielregeln · Neue
+  Ereignisse · Aussehen. **Das ist die Übersicht, die vorher fehlte** — man
+  sieht, wo noch etwas zu holen ist, statt nur, was man schon hat.
+* **Aufgeklappt** nach Art gebündelt, je Freischaltung eine Zeile statt einer
+  Karte: Name links, Wirkung rechts.
+
+Zugeklappt beginnen ist Absicht: die Errungenschaften sind der Hauptinhalt
+dieser Seite, die Freischaltungen das Nachschlagewerk dazu.
+
+**Eine Prüfung war zu grob:** Sie suchte den Namen „Karte: Stadionikone" im
+Text, um festzustellen, ob zugeklappt doch die Liste dasteht. Der Name steht
+aber auch bei der Errungenschaft als Belohnung — die Prüfung schlug an, obwohl
+alles stimmte. Jetzt werden die Artbänder gezählt, die es nur aufgeklappt gibt.
+
+Prüfstand: **334 Prüfungen**, 0 Fehler. Bündel **1.064,20 kB**.
+
+### Damit ist aus Block D nur noch eines offen
+**Mehr Möglichkeiten für Vermächtnis-Coins.** Das ist keine Fehlerbehebung,
+sondern neue Spielmechanik: Wildcard neu ziehen, Saisonschub, Trainingsschub,
+Werte über 99 heben, Laufbahn mit demselben Spieler neu starten.
+
+**Warum das eigen behandelt werden muss:** VC sind heute die einzige Währung für
+den Ausbau der Akademie, und „Laufbahnen bis Vollausbau" ist eines der vier
+Zielbänder (25–35, aktuell 32,3). Jede neue Ausgabemöglichkeit zieht Geld aus
+diesem Topf und verschiebt das Band nach oben. Vor dem Einbau muss also
+feststehen, ob die Akademie langsamer werden **darf** — oder ob die Einnahmen
+mitwachsen sollen.
+
+## 34.18 · Der Vermächtnis-Laden
+
+Bis 34.17 gab es für VC genau eine Verwendung: die Akademie. Wer sie ausgebaut
+hatte, sammelte ins Leere.
+
+### Die Einnahmen, maßvoll
+`vcFuer` bekommt am Ende einen Aufschlag von **18 %**. Er steht bewusst dort und
+nicht in einem einzelnen Posten: so wirkt er gleichmässig, statt eine Quelle zu
+verzerren, und man sieht ihm an, wofür er da ist.
+
+| | vorher | jetzt |
+|---|---|---|
+| VC je Laufbahn (Mittel) | 50,3 | **57,9** |
+| Laufbahnen bis Vollausbau | 31,1 | **27,0** |
+
+Mit üblichen Einkäufen landet der Ausbau wieder bei rund 32 — im Zielband
+(25–35), und **der Ausbau bleibt ein Langzeitziel.**
+
+*Ein Umweg unterwegs:* Zuerst hatte ich den Grundposten von `score/26` auf
+`score/21` geändert — das brachte nur +3 %, weil dieser Posten gar nicht der
+grösste ist. Die Titel wiegen schwerer. Zurückgenommen und als Faktor am Ende
+gelöst.
+
+*Und eine Falle:* Die Kalibrierung würfelt bei jedem Lauf neu. Zwischen zwei
+Läufen schwankte der Mittelwert um ±10 % — bei einer Messung sah der Aufschlag
+wie eine Verschlechterung aus. **Einzelne Kalibrierläufe taugen nicht zum
+Vergleich kleiner Änderungen.**
+
+### Die sieben Artikel
+| Artikel | Preis | wann |
+|---|---|---|
+| Neue Karte ziehen | 45 | nur vor dem Anpfiff, einmalig |
+| Extraschicht (mehr Fortschritt, eine Saison) | 22 | in der Laufbahn |
+| Lauf der Saison (Bestform) | 28 | in der Laufbahn |
+| Der beste Physio (Verletzung weg) | 18 | sofort |
+| Ein Berater, der zieht (stärkere Angebote) | 26 | in der Laufbahn |
+| Der Trainer hört zu (Vertrauen auf 85) | 20 | sofort |
+| Über das Limit (ein Wert bis 103, vier Saisons) | 70 | einmalig |
+
+Gemessen an rund 58 VC je Laufbahn: Kleinigkeiten kosten unter einer halben
+Laufbahn, der grösste Eingriff gut eine. Der Prüfstand schlägt an, wenn ein
+Preis über 100 oder unter 10 liegt.
+
+Jeder Artikel trägt ein **gezeichnetes Zeichen** (`SHOP_BILD`) — flach,
+einfarbig, in der Sprache des Hefts. Der Prüfstand prüft, dass keines fehlt.
+
+### Wo er liegt
+* **Hauptmenü**: als Eintrag „Anzeigen" im Inhaltsverzeichnis, Seite 8 — eine
+  Anzeigenseite, wie sie in jedem Sportheft steht.
+* **In der Laufbahn**: als Knopf in der Kopfleiste mit Kassenstand, öffnet eine
+  Überlagerung statt einer eigenen Phase. Ein Phasenwechsel würde den Schritt
+  verlieren, in dem man gerade steckt.
+
+### Die Brücke, die fast gefehlt hätte
+Die Käufe liegen in `aka.laden` — gelesen werden sie aber über `p.laden` von
+`develop`, `simulateSeason` und `makeOffers`. Ohne die Brücke wäre jeder Kauf
+gebucht und wirkungslos gewesen: **genau das Muster, das in diesem Projekt schon
+zweimal vorkam** (Pity-Zähler, Augenfarbe). Beim Kauf wird `p` deshalb
+mitgezogen und gespeichert.
+
+Laufende Käufe zählen am Saisonende herunter; einmalige bleiben stehen, damit
+man sie nicht zweimal kauft.
+
+Prüfstand: **342 Prüfungen**, 0 Fehler. Bündel **1.070,69 kB**.
+
+### Noch nicht umgesetzt (in 34.19 nachgeholt)
+`reroll` war ein Kauf ohne Folge — siehe 34.19.
+
+## 34.19 · Der gekaufte Kartentausch wirkt
+
+Der Artikel stand seit 34.18 im Laden und tat nichts. Jetzt verdrahtet, und
+zwar an der **einen** Stelle, an der die Zahl der Tausche entsteht.
+
+### Eine Quelle statt drei
+Vorher stand `(p.meta && p.meta.mx_reroll) ? 2 : 1` **zweimal** im Quelltext:
+in `rerollWildcard` und in `tauschRest`. Wären die auseinandergelaufen, hätte
+der Knopf sichtbar sein können, ohne dass der Tausch durchgeht — oder umgekehrt.
+
+Jetzt eine Funktion, drei Quellen:
+
+    tauschMax(p) = 1
+      + Freischaltung „mx_reroll"   (+1)
+      + gekaufter Artikel „reroll"  (+1)
+
+`rerollWildcard` und `tauschRest` lesen beide diese Funktion. Der Knopf in der
+Ansicht liest `tauschRest` und erscheint dadurch von selbst — es war keine
+Änderung an der Anzeige nötig.
+
+### Zwei Lücken, die dabei aufgefallen sind
+1. **Der Kauf kam beim Karrierestart nicht an.** `createPlayer` erzeugt einen
+   frischen Spieler; `aka.laden` wurde nicht übertragen. Ein im Hauptmenü
+   gekaufter Tausch wäre beim Anpfiff verschwunden gewesen — bezahlt und weg.
+   Jetzt setzt `start()` das `q.laden` mit.
+2. **Der Artikel stand nur unter „start".** Man kauft ihn aber meist erst, wenn
+   man die gezogene Karte gesehen hat — und die sieht man in der Laufbahn. Jetzt
+   „immer"; nutzbar bleibt er ohnehin nur, solange keine Saison gespielt ist,
+   und das prüft `rerollWildcard` selbst.
+
+### Geprüft wird die ganze Kette
+| Lage | Tausche |
+|---|---|
+| ohne alles | 1 |
+| gekauft | 2 |
+| freigeschaltet | 2 |
+| beides | 3 |
+
+Dazu: der zweite Tausch geht **wirklich** durch (`wcRerolls` steigt auf 2), der
+dritte ist gesperrt, und nach der ersten gespielten Saison geht gar nichts mehr
+— auch mit Kauf. **Die Zählung allein hätte nicht gereicht:** sie hätte auch
+gestimmt, wenn `rerollWildcard` den Tausch am Ende verweigert.
+
+Prüfstand: **350 Prüfungen**, 0 Fehler. Bündel **1.070,77 kB**.
+Laufbahnen bis Vollausbau: 26,3 — im Band.
+
+## Offene Punkte (Stand 34.19)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;

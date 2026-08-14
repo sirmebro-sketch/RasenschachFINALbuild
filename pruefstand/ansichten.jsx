@@ -4,7 +4,7 @@ import { act } from "react";
 import App, { MenuScreen, EndScreen, AkademieScreen, TalentZeile,
   WildcardEnthuellung, Balken, AusbauRing, akaNaechster, akaLeistbar,
   ACHIEVEMENTS, RARITY, STUFEN, WildcardCard, AchievementScreen,
-  Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS, weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
+  Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass, VCLADEN, SHOP_BILD, shopFuer, VCLadenAnsicht, tauschRest, rerollWildcard, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS, weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
   AKA_MAX, leereBilanz, hsvChance, akaStufe, akaSumme, akaRestkosten,
   leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, vcPosten, akaBonus,
   ABTEILUNGEN, createPlayer, develop, simulateSeason, makeOffers, marketValue,
@@ -301,6 +301,113 @@ mach("Ausbau-Ring", <AusbauRing von={14} bis={36} farbe="var(--ac)" />);
 mach("Ausbau-Ring · leer", <AusbauRing von={0} bis={36} farbe="var(--ac)" />);
 
 /* ---------- Zwei behobene Fehler, gegen Rückfall gesichert ---------- */
+console.log("\n=== Vermächtnis-Laden ===");
+{
+  /* Preise müssen zum Verdienst passen: eine Laufbahn bringt im Mittel rund
+     50 VC. Nichts darf mehr als zwei Laufbahnen kosten, sonst ist es kein
+     Angebot mehr, sondern eine Sperre. */
+  const teuer = VCLADEN.filter((a) => a.preis > 100);
+  if (teuer.length) zeige("Laden", "zu teuer: " + teuer.map((a) => a.n + " " + a.preis).join(", "));
+  else ok++;
+  const billig = VCLADEN.filter((a) => a.preis < 10);
+  if (billig.length) zeige("Laden", "zu billig, wirkt beliebig: " + billig.map((a) => a.n).join(", "));
+  else ok++;
+  /* Jeder Artikel braucht ein Zeichen — sonst steht dort ein leeres Feld. */
+  const ohneBild = VCLADEN.filter((a) => !SHOP_BILD[a.bild]);
+  if (ohneBild.length) zeige("Laden", "ohne Zeichen: " + ohneBild.map((a) => a.n).join(", "));
+  else ok++;
+  /* Und jeder muss irgendwo erreichbar sein. */
+  const erreichbar = new Set([...shopFuer("start"), ...shopFuer("saison")].map((a) => a.id));
+  const verwaist = VCLADEN.filter((a) => !erreichbar.has(a.id));
+  if (verwaist.length) zeige("Laden", "nirgends erreichbar: " + verwaist.map((a) => a.n).join(", "));
+  else ok++;
+  console.log("  Laden           " + VCLADEN.length + " Artikel · "
+    + Math.min(...VCLADEN.map((a) => a.preis)) + "–" + Math.max(...VCLADEN.map((a) => a.preis))
+    + " VC · alle mit Zeichen und erreichbar");
+
+  /* Der gekaufte Kartentausch. Er war in 34.18 im Laden, ohne Wirkung — ein
+     Knopf, der Geld nimmt und nichts tut. Geprüft wird die ganze Kette:
+     Zahl der Tausche, tatsächlicher Tausch, und dass er nach der ersten
+     Saison nicht mehr geht. */
+  {
+    /* `clone` steckt in der Komponente und ist nicht ausführbar — hier
+       dieselbe flache Kopie nachgebaut. */
+    const clone = (x) => ({ ...x, attrs: { ...x.attrs }, flags: { ...x.flags },
+      nt: { ...x.nt }, laden: { ...(x.laden || {}) }, meta: { ...(x.meta || {}) },
+      seasons: [...(x.seasons || [])], assets: [...(x.assets || [])] });
+    const roh = laufbahn(null);
+    const frisch = () => { const q = clone(roh); q.seasons = []; q.wcRerolls = 0; return q; };
+
+    const ohne = frisch();
+    const mitKauf = frisch(); mitKauf.laden = { reroll: 1 };
+    const mitFrei = frisch(); mitFrei.meta = { mx_reroll: true };
+    const beides = frisch(); beides.laden = { reroll: 1 }; beides.meta = { mx_reroll: true };
+    const soll = [["ohne alles", ohne, 1], ["gekauft", mitKauf, 2],
+      ["freigeschaltet", mitFrei, 2], ["beides", beides, 3]];
+    let stimmt = 0;
+    soll.forEach(([n, q, z]) => {
+      if (tauschRest(q) !== z) zeige("Kartentausch", n + ": " + tauschRest(q) + " Tausche statt " + z);
+      else { ok++; stimmt++; }
+    });
+
+    /* Der zweite Tausch muss auch WIRKLICH durchgehen. */
+    const q = frisch(); q.laden = { reroll: 1 };
+    const eins = rerollWildcard(clone(q));
+    const zwei = rerollWildcard(clone(eins));
+    if ((eins.wcRerolls || 0) !== 1) zeige("Kartentausch", "erster Tausch zählt nicht");
+    else ok++;
+    if ((zwei.wcRerolls || 0) !== 2) zeige("Kartentausch", "zweiter Tausch geht nicht durch trotz Kauf");
+    else ok++;
+    const drei = rerollWildcard(clone(zwei));
+    if ((drei.wcRerolls || 0) !== 2) zeige("Kartentausch", "dritter Tausch geht durch — Grenze wirkt nicht");
+    else ok++;
+
+    /* Nach der ersten Saison ist Schluss, auch mit Kauf. */
+    const gespielt = frisch(); gespielt.laden = { reroll: 1 };
+    gespielt.seasons = [{ y: 2026, club: "HSV", apps: 30 }];
+    const nach = rerollWildcard(clone(gespielt));
+    if ((nach.wcRerolls || 0) !== 0) zeige("Kartentausch", "Tausch geht noch nach der ersten Saison");
+    else ok++;
+    console.log("  Kartentausch    " + stimmt + " von 4 Zählungen · zweiter Tausch geht durch ✓ · "
+      + "dritter gesperrt ✓ · nach der Saison gesperrt ✓");
+  }
+
+  /* Die Ansicht muss in beiden Lagen stehen. */
+  ["start", "saison"].forEach((wo) => {
+    const r = mach("Laden · " + wo, <VCLadenAnsicht wo={wo} vc={60} laden={{}} onKauf={() => {}} />, 0);
+    if (!r) return;
+    const knoepfe = r.div.querySelectorAll("button").length;
+    if (knoepfe !== shopFuer(wo).length)
+      zeige("Laden", wo + ": " + knoepfe + " Knöpfe für " + shopFuer(wo).length + " Artikel");
+    else ok++;
+  });
+}
+
+console.log("\n=== Freischaltungen ===");
+{
+  /* Zugeklappt darf die Liste NICHT dastehen — genau das war der Mangel:
+     48 Karten untereinander. Zugeklappt nur die Zähler je Art. */
+  const zu = mach("Errungenschaften · zu", <AchievementScreen ach={{}} meta={{ mw_ikone: true, mx_events: true }}
+    ges={leereBilanz()} onBack={() => {}} />, 0);
+  if (zu) {
+    const t = zu.div.textContent || "";
+    /* Nicht am Namen prüfen: der steht auch bei der Errungenschaft als
+       Belohnung im Text. Gezählt wird stattdessen, wie viele Bänder mit
+       Artüberschrift dastehen — die gibt es nur aufgeklappt. */
+    const baender = [...zu.div.querySelectorAll(".band")]
+      .filter((b) => /Neue Wildcards|Bessere Chancen|Startvorteile|Spielregeln|Neue Ereignisse|Aussehen/.test(b.textContent || ""));
+    if (baender.length)
+      zeige("Freischaltungen", "zugeklappt stehen " + baender.length + " aufgeklappte Bündel da");
+    else ok++;
+    if (!/Neue Wildcards/.test(t)) zeige("Freischaltungen", "die Übersicht nach Art fehlt");
+    else ok++;
+    /* Der Zähler muss stimmen: zwei freigeschaltet von 48. */
+    if (!/2 von 48/.test(t)) zeige("Freischaltungen", "Zähler stimmt nicht: erwartet „2 von 48\u201C");
+    else ok++;
+    console.log("  Freischaltungen zugeklappt: Übersicht nach Art ✓ · Zähler 2 von 48 ✓");
+  }
+}
+
 console.log("\n=== Rückblick-Karten ===");
 {
   /* Der Rückblick zeigt immer nur EINE Seite, und mein Versuch, im Prüfstand
@@ -586,12 +693,33 @@ console.log("\n=== Vier gemeldete Fehler ===");
     const rollend = [...r.div.querySelectorAll("div")].filter((e) => e.style.overflowY === "auto");
     return rollend.length;
   };
+  /* Die angegebene Höhe der Rollfläche — sie muss unabhängig von der Zahl der
+     Stationen gleich sein, sonst wächst der Pass wieder mit. */
+  const hoehe = (n) => {
+    const q = laufbahn(null);
+    q.seasons = [];
+    for (let i = 0; i < n; i++)
+      q.seasons.push({ y: 2026 + i, club: "Verein " + i, apps: 30, goals: 5, assists: 3,
+        note: 3, league: "Bundesliga", ovr: 70 });
+    const r = mach("Passhöhe " + n, <Pass p={q} full />, 0);
+    if (!r) return "?";
+    const e = [...r.div.querySelectorAll("div")].find((x) => x.style.overflowY === "auto");
+    return e ? e.style.height : "(keine)";
+  };
+  /* Ab 34.16 hat die Liste IMMER eine feste Höhe — die alte Prüfung erwartete
+     bei wenigen Stationen keine Rollfläche und hat deshalb angeschlagen. Sie
+     hatte recht, gemessen am alten Stand: die Grenze ab sieben Stationen war
+     falsch, weil der Pass bis dahin weiterwuchs. Geprüft wird jetzt, dass die
+     Rollfläche IMMER da ist und immer gleich hoch. */
   const wenig = passMit(3), viel = passMit(14);
-  if (wenig !== 0) zeige("Spielerpass", "bei 3 Stationen schon " + wenig + " rollende Liste(n)");
+  if (wenig !== 1) zeige("Spielerpass", "bei 3 Stationen " + wenig + " Rollflächen statt 1");
   else ok++;
-  if (viel !== 1) zeige("Spielerpass", "bei 14 Stationen " + viel + " rollende Listen statt 1");
+  if (viel !== 1) zeige("Spielerpass", "bei 14 Stationen " + viel + " Rollflächen statt 1");
   else ok++;
-  console.log("  Spielerpass     3 Stationen: keine Rollfläche · 14 Stationen: eine ✓");
+  if (hoehe(3) !== hoehe(14))
+    zeige("Spielerpass", "Höhe unterscheidet sich: " + hoehe(3) + " bei 3, " + hoehe(14) + " bei 14 Stationen");
+  else ok++;
+  console.log("  Spielerpass     immer eine Rollfläche, immer " + hoehe(3) + " hoch ✓");
 
   /* 2 · Die Anzeigegröße wirkte nur auf zwei Stellen. Jetzt über zoom. */
   {
