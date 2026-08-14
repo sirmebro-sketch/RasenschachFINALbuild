@@ -4,7 +4,7 @@ import { act } from "react";
 import App, { MenuScreen, EndScreen, AkademieScreen, TalentZeile,
   WildcardEnthuellung, Balken, AusbauRing, akaNaechster, akaLeistbar,
   ACHIEVEMENTS, RARITY, STUFEN, WildcardCard, AchievementScreen,
-  Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass, VCLADEN, SHOP_BILD, shopFuer, VCLadenAnsicht, tauschRest, rerollWildcard, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS, weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
+  Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass, VCLADEN, SHOP_BILD, shopFuer, ladenGesperrt, VCLadenAnsicht, tauschRest, rerollWildcard, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS, weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
   AKA_MAX, leereBilanz, hsvChance, akaStufe, akaSumme, akaRestkosten,
   leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, vcPosten, akaBonus,
   ABTEILUNGEN, createPlayer, develop, simulateSeason, makeOffers, marketValue,
@@ -372,14 +372,24 @@ console.log("\n=== Vermächtnis-Laden ===");
       + "dritter gesperrt ✓ · nach der Saison gesperrt ✓");
   }
 
-  /* Die Ansicht muss in beiden Lagen stehen. */
+  /* Der Laden zeigt in BEIDEN Lagen alles. Vorher filterte er, und im
+     Hauptmenü stand ein einziger Artikel — das sah aus wie ein Fehler.
+     Nicht nutzbares ist gesperrt, nicht versteckt. */
   ["start", "saison"].forEach((wo) => {
-    const r = mach("Laden · " + wo, <VCLadenAnsicht wo={wo} vc={60} laden={{}} onKauf={() => {}} />, 0);
+    const r = mach("Laden · " + wo, <VCLadenAnsicht wo={wo} vc={999} laden={{}} onKauf={() => {}} />, 0);
     if (!r) return;
-    const knoepfe = r.div.querySelectorAll("button").length;
-    if (knoepfe !== shopFuer(wo).length)
-      zeige("Laden", wo + ": " + knoepfe + " Knöpfe für " + shopFuer(wo).length + " Artikel");
+    const knoepfe = [...r.div.querySelectorAll("button")];
+    if (knoepfe.length !== VCLADEN.length)
+      zeige("Laden", wo + ": " + knoepfe.length + " Knöpfe für " + VCLADEN.length + " Artikel");
     else ok++;
+    /* Mit genug Coins muss in der Laufbahn alles kaufbar sein, im Hauptmenü
+       nur, was dort Sinn ergibt. */
+    const gesperrt = knoepfe.filter((b) => b.disabled).length;
+    const erwartet = VCLADEN.filter((a) => ladenGesperrt(a, wo)).length;
+    if (gesperrt !== erwartet)
+      zeige("Laden", wo + ": " + gesperrt + " gesperrt, erwartet " + erwartet);
+    else ok++;
+    console.log("  Laden · " + wo.padEnd(7) + " " + knoepfe.length + " Artikel · " + gesperrt + " gesperrt");
   });
 }
 

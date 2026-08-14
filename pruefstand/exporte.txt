@@ -23,7 +23,7 @@ export {
   RESSORT, Kolumnentitel, Folio, akaAusbau, AKA_STUFEN, titelgeschichte, MONATE,
   ZURUECK, useZurueck, namensVorschlag, rollSperren, ANLEITUNG,
   weiblichForm, evText, WEIBLICH, autoTraining, TRAINING, AK,
-  VCLADEN, SHOP_BILD, shopFuer, VCLadenAnsicht, tauschRest, tauschMax, rerollWildcard,
+  VCLADEN, SHOP_BILD, shopFuer, ladenGesperrt, VCLadenAnsicht, tauschRest, tauschMax, rerollWildcard,
   rahmenFuer, rahmenOffen, RAHMEN,
   akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, AKA_MAX, bilanzErgaenzen, hsvChance,
   EVENTS, META, LEAGUES, INVEST, WILDCARDS, VERSION, VERSION_INFO,

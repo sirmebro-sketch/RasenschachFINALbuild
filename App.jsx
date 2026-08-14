@@ -7,8 +7,8 @@ import { SCHRIFTEN } from "./schriften.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "34.19";
-const VERSION_INFO = "Der gekaufte Kartentausch wirkt jetzt wirklich — ein zusätzlicher Versuch, solange noch keine Saison gespielt ist.";
+const VERSION = "34.20";
+const VERSION_INFO = "Der Laden hat ein Symbol neben dem Zahnrad und zeigt immer alle Artikel — was noch nicht geht, ist gesperrt statt unsichtbar.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -7449,12 +7449,20 @@ const VCLADEN = [
   { id: "ueber99", n: "Über das Limit", bild: "uhr", preis: 70, wann: "saison", einmal: true,
     t: "Dein bester Wert darf vier Saisons lang über 99 steigen, bis 103." },
 ];
-const shopFuer = (wo) => VCLADEN.filter((x) => x.wann === "immer" || x.wann === wo);
+/* Der Laden zeigt IMMER alles. Bis 34.19 filterte er nach Lage — im
+   Hauptmenü stand dann ein einziger Artikel, und man konnte nicht wissen,
+   dass es mehr gibt. Ein Laden mit einem Regal sieht aus wie ein Fehler.
+   Nicht nutzbare Artikel bleiben sichtbar und sind gesperrt, mit Grund. */
+const shopFuer = () => VCLADEN;
+const ladenGesperrt = (a, wo) =>
+  (a.wann === "saison" && wo !== "saison") ? "erst in der Laufbahn" : null;
 
 /* Ein Artikel im Laden. Zeichen links, Preis rechts, Wirkung darunter. */
-function LadenPosten({ a, vc, gekauft, aktiv, onKauf }) {
-  const kann = vc >= a.preis && !gekauft && !aktiv;
+function LadenPosten({ a, vc, gekauft, aktiv, sperre, onKauf }) {
+  const kann = vc >= a.preis && !gekauft && !aktiv && !sperre;
   const farbe = gekauft ? "var(--mu)" : aktiv ? "var(--ok)" : kann ? "var(--go)" : "var(--ln2)";
+  /* Gesperrtes bleibt lesbar, nur gedämpft — es soll neugierig machen, nicht
+     verschwinden. */
   return (
     <button className="btn" disabled={!kann} onClick={() => onKauf(a)}
       style={{ display: "block", width: "100%", padding: "11px 12px", textAlign: "left",
@@ -7471,6 +7479,9 @@ function LadenPosten({ a, vc, gekauft, aktiv, onKauf }) {
           </span>
           <span className="m" style={{ fontSize: 11, color: "var(--mu)", display: "block", marginTop: 3 }}>
             {a.t}</span>
+          {sperre && (
+            <span className="eb" style={{ display: "block", marginTop: 4, color: "var(--ln2)" }}>
+              {sperre}</span>)}
         </span>
       </span>
     </button>);
@@ -7505,7 +7516,7 @@ function LadenSeite({ wo, vc, laden, onKauf, onBack }) {
 }
 
 function VCLadenAnsicht({ wo, vc, laden, onKauf }) {
-  const artikel = shopFuer(wo);
+  const artikel = shopFuer();
   const L = laden || {};
   return (
     <div>
@@ -7516,6 +7527,7 @@ function VCLadenAnsicht({ wo, vc, laden, onKauf }) {
       <div className="g1" style={{ marginTop: 10 }}>
         {artikel.map((a) => (
           <LadenPosten key={a.id} a={a} vc={vc} onKauf={onKauf}
+            sperre={ladenGesperrt(a, wo)}
             gekauft={!!(a.einmal && L[a.id])}
             aktiv={!a.einmal && (L[a.id] || 0) > 0} />))}
       </div>
@@ -10485,6 +10497,16 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
             textTransform: "uppercase", padding: "4px 9px" }}>
             Ausgabe {ausgabe} · <span>KARRIERE-SIMULATION</span>
           </span>
+          {/* Laden neben dem Zahnrad, gleiche Grösse und Form. Vorher stand er
+              als Zeile „Anzeigen" im Inhaltsverzeichnis — das las sich wie ein
+              Artikel des Hefts und nicht wie ein Knopf. */}
+          <button className="zahnrad" onClick={() => { onLaden(); haptik("tipp"); }}
+            aria-label="Vermächtnis-Laden" title="Vermächtnis-Laden"
+            style={{ marginRight: 6, color: (aka && aka.vc) ? "var(--go)" : undefined }}>
+            <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+              {SHOP_BILD.stern("currentColor")}
+            </svg>
+          </button>
           <button className="zahnrad" onClick={() => { setOpt(true); haptik("tipp"); }}
             aria-label="Optionen" title="Optionen">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -10603,8 +10625,6 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
             metaN + " Belohnungen freigeschaltet", onAch)}
           {zeile("hall", "Ruhmeshalle", String(hall.length),
             hall.length ? "Bester Lauf: " + hall[0].score + " Punkte" : "noch keine Laufbahn beendet", onHall)}
-          {zeile("laden", "Anzeigen", (aka && aka.vc ? aka.vc + " VC" : "keine Coins"),
-            "Was es für Vermächtnis-Coins zu holen gibt", onLaden)}
           {zeile("akademie", "Jugendakademie", (aka && aka.gegruendet ? (aka.vc || 0) + " VC" : "geschlossen"),
             aka && aka.gegruendet
               ? aka.name + " · " + ((aka.bilanz && aka.bilanz.profis) || 0) + " Profis"

@@ -5,7 +5,7 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 34.19** · Stand 10. August 2026
+**Fassung 34.20** · Stand 14. August 2026
 *Eigene Schriften · harte Form · Sammelalbum · neue Spielerporträts · **das Heft: dunkles Zeitungspapier***
 
 > Die Abschnitte 1 bis 8 beschreiben das Spiel und die Arbeitsweise und gelten
@@ -1734,7 +1734,39 @@ gestimmt, wenn `rerollWildcard` den Tausch am Ende verweigert.
 Prüfstand: **350 Prüfungen**, 0 Fehler. Bündel **1.070,77 kB**.
 Laufbahnen bis Vollausbau: 26,3 — im Band.
 
-## Offene Punkte (Stand 34.19)
+## 34.20 · Der Laden nach dem ersten Blick aufs Gerät
+
+### Der Zugang war eine Zeile, kein Knopf
+Der Laden hing als Eintrag „ANZEIGEN" im Inhaltsverzeichnis des Titelblatts.
+Auf dem Gerät las sich das wie ein **Artikel des Hefts**, nicht wie eine
+Schaltfläche — zwischen „Ruhmeshalle" und „Jugendakademie" stand plötzlich
+etwas, das keine Seite ist.
+
+Jetzt ein Knopf **links neben dem Zahnrad**, gleiche Grösse und Form, mit dem
+Sternzeichen aus der Karriere. Er färbt sich golden, sobald Coins da sind. Der
+Verzeichniseintrag ist raus.
+
+### Der Laden zeigte im Hauptmenü genau einen Artikel
+Das war meine Filterung: Jeder Artikel hat ein `wann` — die meisten wirken erst
+in einer Laufbahn, also blendete `shopFuer(wo)` sie im Hauptmenü aus. Übrig
+blieb der Kartentausch. **Ein Laden mit einem Regal sieht aus wie ein Defekt**,
+und man kann nicht ahnen, dass es mehr gibt.
+
+Der Filter ist weg. Der Laden zeigt **immer alle sieben**; was ohne laufende
+Laufbahn nicht geht, ist gesperrt und gedämpft, mit dem Grund darunter
+(„erst in der Laufbahn"). Neu: `ladenGesperrt(a, wo)`.
+
+Gemessen: **Hauptmenü 7 Artikel, 6 gesperrt · Laufbahn 7 Artikel, 0 gesperrt.**
+Der Prüfstand zählt beides — vorher hätte er den Unterschied nicht bemerkt,
+weil er nur zählte, ob die Zahl der Knöpfe zur *gefilterten* Liste passt. Eine
+Prüfung, die die eigene Annahme nachrechnet, findet den Fehler in der Annahme nie.
+
+Es ist übrigens derselbe Laden — Hauptmenü und Karriere führen in dieselbe
+Ansicht, nur mit anderem `wo`.
+
+Prüfstand: **352 Prüfungen**, 0 Fehler. Bündel **1.071,14 kB**.
+
+## Offene Punkte (Stand 34.20)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
