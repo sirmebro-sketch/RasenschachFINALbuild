@@ -72,6 +72,33 @@ else
 fi
 cat "$PS/exporte.txt" >> "$BAU/probe.jsx"
 
+# Rueckwaerts-Anfuehrungszeichen im CSS-Block. Der Block ist eine
+# Schablonenzeichenkette (const CSS = SCHRIFTEN + `...`) — ein einzelnes ` in
+# einem Kommentar darin beendet sie vorzeitig. esbuild meldet dann irgendetwas
+# viele Zeilen weiter unten ("Expected ; but found perspective"), und die
+# eigentliche Ursache steht woanders. Deshalb hier vorab und mit Zeilennummer.
+python3 - "$QUELLE" <<'PYEOF' || FEHLER=1
+import re, sys
+quelle = open(sys.argv[1], encoding="utf-8").read()
+kopf = "const CSS = SCHRIFTEN + `"
+i = quelle.find(kopf)
+if i < 0:
+    print("HINWEIS: CSS-Block nicht gefunden — Pruefung uebersprungen")
+else:
+    a = i + len(kopf)
+    b = quelle.index("`;", a)
+    treffer = [m.start() for m in re.finditer("`", quelle[a:b])]
+    if treffer:
+        print("FEHLER: %d Rueckwaerts-Anfuehrungszeichen im CSS-Block." % len(treffer))
+        for t in treffer:
+            zeile = quelle.count("\n", 0, a + t) + 1
+            umfeld = quelle[a + t - 60:a + t + 30].replace("\n", " ")
+            print("  Zeile %d: …%s…" % (zeile, umfeld))
+        print("  Die Schablonenzeichenkette endet dort vorzeitig. In Kommentaren")
+        print("  innerhalb des CSS-Blocks keine Rueckwaerts-Anfuehrungszeichen setzen.")
+        sys.exit(1)
+PYEOF
+
 cp "$PS/ansichten.jsx" "$PS/rueckwaerts.jsx" "$PS/jsdom.cjs" "$BAU/"
 E="npx --yes esbuild@0.23.0"
 $E "$BAU/probe.jsx"      --bundle --outfile="$BAU/motor.js"  --platform=node --format=cjs --log-level=error || FEHLER=1

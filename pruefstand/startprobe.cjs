@@ -69,8 +69,17 @@ setTimeout(() => {
   console.log("  · Schriftbefund: in jsdom nicht messbar (kein getContext) — nur auf dem Geraet");
   pruef("kein NaN/undefined im Text", !/NaN|undefined/.test(t));
   pruef("Stilblock der App vorhanden", !!d.querySelector("#root style"));
-  pruef("Halbtonraster im Grundstil",
-        /radial-gradient\(circle at center,rgba\(237,242,233,\.030\)/.test((d.querySelector("#root style") || {}).textContent || ""));
+  /* Die Papierstruktur hat schon dreimal die Bauart gewechselt: Linien,
+     Punktraster, jetzt eine Rauschkachel. Deshalb NICHT auf die Bauart prüfen,
+     sondern darauf, dass der Grund überhaupt eine Struktur trägt und nicht
+     nur eine Vollfarbe. Sonst schlägt die Prüfung bei jeder Gestaltungsfrage
+     an, obwohl nichts kaputt ist. */
+  {
+    const stil = (d.querySelector("#root style") || {}).textContent || "";
+    const fl = (stil.match(/\.fl\{[\s\S]*?\}/) || [""])[0];
+    pruef("Papier trägt eine Struktur", /background:url\(data:image|gradient/.test(fl),
+          /background:url\(data:image/.test(fl) ? "Rauschkachel" : "Verlauf");
+  }
 
   console.log("=== Messwerkzeug ===");
   const griff = [...d.querySelectorAll("button")].find((b) => b.textContent === "fps");
@@ -88,7 +97,7 @@ setTimeout(() => {
     const cb = d.querySelector("#mw-raster");
     cb.checked = true; cb.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
     const auf = [...d.querySelectorAll("body > style")].map((s) => s.textContent).join("");
-    pruef("Rasterschalter setzt Aufsatzstil", auf.includes(".fl{background:radial-gradient") && auf.includes("!important"));
+    pruef("Rasterschalter setzt Aufsatzstil", auf.includes(".fl{background:var(--bg)") && auf.includes("!important"));
     cb.checked = false; cb.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
     const auf2 = [...d.querySelectorAll("body > style")].map((s) => s.textContent).join("");
     pruef("Rasterschalter raeumt wieder auf", auf2 === "");

@@ -3,7 +3,7 @@
 > Diese Datei wird aus dem Quelltext erzeugt, nicht von Hand gepflegt.
 > Jede Zahl stammt aus den Daten des laufenden Spiels.
 
-**Fassung 34.1** · erzeugt am 10. August 2026
+**Fassung 34.12** · erzeugt am 14. August 2026
 
 ## Inhalt auf einen Blick
 
@@ -1931,7 +1931,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 |---|---|---|---|---|
 | Eigener Koch und eigener Physio | 2 | nein | 3 | ja |
 | Stadt oder Land | 2 | nein | 2 | ja |
-| Der Physiotherapeut steht zur Verfügung | 2 | nein | 5 | ja |
+| Der Physio hat einen Termin frei | 2 | nein | 5 | ja |
 
 **Medien** (15)
 

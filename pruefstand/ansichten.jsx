@@ -4,7 +4,7 @@ import { act } from "react";
 import App, { MenuScreen, EndScreen, AkademieScreen, TalentZeile,
   WildcardEnthuellung, Balken, AusbauRing, akaNaechster, akaLeistbar,
   ACHIEVEMENTS, RARITY, STUFEN, WildcardCard, AchievementScreen,
-  Avatar, CreateScreen, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
+  Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS, weiblichForm, evText, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
   AKA_MAX, leereBilanz, hsvChance, akaStufe, akaSumme, akaRestkosten,
   leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, vcPosten, akaBonus,
   ABTEILUNGEN, createPlayer, develop, simulateSeason, makeOffers, marketValue,
@@ -300,6 +300,373 @@ console.log("\n=== Nächster Schritt ===");
 mach("Ausbau-Ring", <AusbauRing von={14} bis={36} farbe="var(--ac)" />);
 mach("Ausbau-Ring · leer", <AusbauRing von={0} bis={36} farbe="var(--ac)" />);
 
+/* ---------- Zwei behobene Fehler, gegen Rückfall gesichert ---------- */
+console.log("\n=== Frauenfußball ===");
+{
+  /* Die Umformung läuft über JEDEN Ereignistext, wenn eine Frau spielt.
+     Geprüft wird an Fällen, die beim Bauen nacheinander schiefgingen —
+     Artikel, Plural, Großschreibung. */
+  const faelle = [
+    ["Du bist einer von vier.", "Du bist eine von vier."],
+    ["Der Kapitän spricht dich an.", "Die Kapitänin spricht dich an."],
+    ["Dem Kapitän ist das egal.", "Der Kapitänin ist das egal."],
+    ["Ein Mitspieler lästert.", "Eine Mitspielerin lästert."],
+    ["Zwei Spieler fehlen.", "Zwei Spielerinnen fehlen."],
+    ["Die Spieler stehen im Kreis.", "Die Spielerinnen stehen im Kreis."],
+    ["Nationalspieler mit 19.", "Nationalspielerin mit 19."],
+    ["Als Erster durchs Ziel.", "Als Erste durchs Ziel."],
+    ["Du bist der Beste im Team.", "Du bist die Beste im Team."],
+    /* Der Trainer bleibt Trainer: auch eine Frauenmannschaft kann einen
+       Mann als Trainer haben. */
+    ["Der Trainer nimmt dich zur Seite.", "Der Trainer nimmt dich zur Seite."],
+  ];
+  let richtig = 0;
+  faelle.forEach(([ein, soll]) => {
+    const ist = weiblichForm(ein);
+    if (ist !== soll) zeige("Frauenfußball", "„" + ein + "\u201C → „" + ist + "\u201C statt „" + soll + "\u201C");
+    else { ok++; richtig++; }
+  });
+  console.log("  Umformung       " + richtig + " von " + faelle.length + " Fällen richtig");
+
+  /* Nach der Umformung darf KEIN männlicher Rest übrig bleiben. Über alle
+     2.700 Ereignistexte laufen lassen — die Stichprobe oben findet nur, was
+     ich mir ausgedacht habe. */
+  const REST = /\b(der|dem|ein|einem|einen|dein|kein) (Spieler|Mitspieler|Kapitän|Torjäger|Nationalspieler|Stürmer|Verteidiger)\b/;
+  const alle = [];
+  EVENTS.forEach((e) => {
+    if (typeof e.title === "function") { try { alle.push(e.title({})); } catch (x) {} }
+    (e.choices || []).forEach((c) => { if (c.label) alle.push(c.label); if (c.hint) alle.push(c.hint);
+      (c.roll || []).forEach((r) => { if (typeof r.text === "string") alle.push(r.text); }); });
+  });
+  const reste = alle.map(weiblichForm).filter((x) => REST.test(x));
+  if (reste.length) zeige("Frauenfußball", reste.length + " Texte mit männlichem Rest: "
+    + reste.slice(0, 2).map((x) => x.slice(0, 60)).join(" | "));
+  else ok++;
+  console.log("  Ereignistexte   " + alle.length + " umgeformt · " + reste.length + " männliche Reste");
+
+  /* Bei einem Mann darf sich NICHTS ändern. Sonst hätte die Umformung eine
+     Nebenwirkung auf 80 % aller Laufbahnen. */
+  const proben = alle.slice(0, 200);
+  const mann = proben.filter((t) => evText(t, { p: { g: "m" } }) !== t);
+  if (mann.length) zeige("Frauenfußball", mann.length + " Texte ändern sich auch bei einem Mann");
+  else ok++;
+  console.log("  Gegenprobe      200 Texte bei einem Mann unverändert");
+}
+
+console.log("\n=== Sprache ===");
+{
+  /* Zwei Dinge, die beim Umschreiben leicht kaputtgehen: eine Anleitungszeile
+     ohne Text, und Behördendeutsch, das sich wieder einschleicht. Der Ton
+     selbst lässt sich nicht prüfen — die Struktur schon. */
+  let leer = 0, lang = 0, zeilen = 0;
+  ANLEITUNG.forEach(([kopf, teile]) => {
+    if (!kopf) leer++;
+    teile.forEach(([t, txt]) => {
+      zeilen++;
+      if (!t || !txt) leer++;
+      if ((txt || "").length > 130) lang++;
+    });
+  });
+  if (leer) zeige("Anleitung", leer + " Zeilen ohne Kopf oder Text");
+  else ok++;
+  if (lang) zeige("Anleitung", lang + " Zeilen über 130 Zeichen — zu lang für eine Kurzanleitung");
+  else ok++;
+  /* Behördendeutsch darf sich nicht wieder einschleichen. Der Ton lässt sich
+     nicht prüfen, aber diese Wendungen sind ein verlässliches Zeichen dafür,
+     dass ein Satz nicht aus der Kabine kommt. Gemessen an 445 Titeln, 974
+     Auswahlmöglichkeiten und 1163 Ergebnistexten. */
+  const STEIF = [/\bsomit\b/i, /\bzudem\b/i, /\bhinsichtlich\b/i, /\bbezüglich\b/i,
+    /\bdiesbezüglich\b/i, /\bseitens\b/i, /\bim Rahmen\b/i, /\bgegebenenfalls\b/i,
+    /\bfolglich\b/i, /\bzur Verfügung\b/i, /\bentsprechend\b/i];
+  const alleTexte = [];
+  EVENTS.forEach((e) => {
+    if (e.title) alleTexte.push(String(e.title));
+    (e.choices || []).forEach((c) => {
+      if (c.label) alleTexte.push(c.label);
+      if (c.hint) alleTexte.push(c.hint);
+      (c.roll || []).forEach((r) => { if (r.text) alleTexte.push(r.text); });
+    });
+  });
+  const steif = alleTexte.filter((x) => STEIF.some((mu) => mu.test(x)));
+  if (steif.length) zeige("Sprache", steif.length + " Texte mit steifen Wendungen: "
+    + steif.slice(0, 3).map((x) => x.slice(0, 50)).join(" | "));
+  else ok++;
+  console.log("  Ereignistexte   " + alleTexte.length + " geprüft · " + steif.length + " steife Wendungen");
+  console.log("  Anleitung       " + ANLEITUNG.length + " Kapitel · " + zeilen + " Zeilen · längste "
+    + Math.max(...ANLEITUNG.flatMap(([, t]) => t.map(([, x]) => (x || "").length))) + " Zeichen");
+}
+
+console.log("\n=== Block A ===");
+{
+  /* A1 · Die Zurück-Taste. Der Stapel muss beim Aufbau wachsen und beim
+     Abbau wieder schrumpfen — sonst sammeln sich Empfänger an und die Taste
+     schliesst irgendwann das Falsche. */
+  const vorher = ZURUECK.length;
+  const r = mach("Ruhmeshalle für Zurück", <HallScreen hall={[]} onBack={() => {}} />, 0);
+  const waehrend = ZURUECK.length;
+  if (r && r.abbauen) r.abbauen();
+  if (waehrend !== vorher + 1)
+    zeige("Zurück-Taste", "Stapel wuchs um " + (waehrend - vorher) + " statt um 1");
+  else ok++;
+  console.log("  Zurück-Taste    Stapel " + vorher + " → " + waehrend + " beim Öffnen");
+
+  /* A3 · Die Rentenfrage darf nur einmal kommen, und nur wenn die Stärke
+     wirklich gefallen ist. Geprüft wird die Bedingung, nicht der Bildschirm. */
+  const frageKommt = (age, ovr, peak, schonGefragt) =>
+    age >= 33 && !schonGefragt && (peak - ovr) >= 4;
+  const faelle = [
+    ["32, stark gefallen", frageKommt(32, 70, 80, false), false],
+    ["35, auf dem Zenit",  frageKommt(35, 80, 80, false), false],
+    ["35, 4 unter Bestwert", frageKommt(35, 76, 80, false), true],
+    ["38, schon gefragt",  frageKommt(38, 60, 80, true),  false],
+  ];
+  let stimmt = 0;
+  faelle.forEach(([n, ist, soll]) => {
+    if (ist !== soll) zeige("Rentenfrage", n + ": " + ist + " statt " + soll);
+    else { ok++; stimmt++; }
+  });
+  console.log("  Rentenfrage     " + stimmt + " von " + faelle.length + " Fällen richtig");
+
+  /* A5 · Der Namensvorschlag muss zur Herkunft passen und bei gleicher
+     Kennung gleich bleiben — sonst wechselte er bei jedem Tastendruck. */
+  const a1 = namensVorschlag("GER", "m", 4242), a2 = namensVorschlag("GER", "m", 4242);
+  if (a1 !== a2) zeige("Namensvorschlag", "gleiche Kennung, zwei Namen: " + a1 + " / " + a2);
+  else ok++;
+  const verschieden = new Set(["GER", "ESP", "JPN", "TUR", "NGA", "BRA"]
+    .map((n) => namensVorschlag(n, "m", 4242)));
+  if (verschieden.size < 5)
+    zeige("Namensvorschlag", "nur " + verschieden.size + " verschiedene Namen für 6 Herkünfte");
+  else ok++;
+  const w = namensVorschlag("GER", "w", 4242);
+  if (w === a1) zeige("Namensvorschlag", "Frau und Mann bekommen denselben Namen");
+  else ok++;
+  /* Keine kaputten Zeichen in den Listen. */
+  const alleNamen = ["GER","ENG","ESP","ITA","FRA","NED","POR","GRE","TUR","CZE","SRB","SEN","JPN","EGY"]
+    .flatMap((n) => ["m", "w"].map((g) => namensVorschlag(n, g, 4242)));
+  const kaputt = alleNamen.filter((x) => /[\u0400-\u04FF]|undefined/.test(x));
+  if (kaputt.length) zeige("Namensvorschlag", "fehlerhafte Namen: " + kaputt.join(", "));
+  else ok++;
+  console.log("  Namensvorschlag " + verschieden.size + " Herkünfte verschieden · stabil · "
+    + alleNamen.length + " Namen ohne Fremdzeichen · Beispiel: " + a1 + " / " + w);
+}
+
+console.log("\n=== Vier gemeldete Fehler ===");
+{
+  /* 1 · Der Pass wuchs mit jeder Station, weil beide Seiten im selben
+     Rasterfeld liegen und die längere die Höhe bestimmt. Geprüft wird, dass
+     die Liste ab sieben Stationen innen rollt. */
+  const passMit = (n) => {
+    const q = laufbahn(null);
+    q.seasons = [];
+    for (let i = 0; i < n; i++)
+      q.seasons.push({ y: 2026 + i, club: "Verein " + i, apps: 30, goals: 5, assists: 3,
+        note: 3, league: "Bundesliga", ovr: 70 });
+    const r = mach("Spielerpass · " + n + " Stationen", <Pass p={q} full />, 0);
+    if (!r) return null;
+    const rollend = [...r.div.querySelectorAll("div")].filter((e) => e.style.overflowY === "auto");
+    return rollend.length;
+  };
+  const wenig = passMit(3), viel = passMit(14);
+  if (wenig !== 0) zeige("Spielerpass", "bei 3 Stationen schon " + wenig + " rollende Liste(n)");
+  else ok++;
+  if (viel !== 1) zeige("Spielerpass", "bei 14 Stationen " + viel + " rollende Listen statt 1");
+  else ok++;
+  console.log("  Spielerpass     3 Stationen: keine Rollfläche · 14 Stationen: eine ✓");
+
+  /* 2 · Die Anzeigegröße wirkte nur auf zwei Stellen. Jetzt über zoom. */
+  {
+    const r = mach("Grundstil", <HallScreen hall={[]} onBack={() => {}} />, 0);
+    const stil = r ? (r.div.querySelector("style") || {}).textContent || "" : "";
+    const flBlock = (stil.match(/\.fl\{[\s\S]*?\}/) || [""])[0];
+    if (!/zoom:var\(--skala/.test(flBlock)) zeige("Anzeigegröße", "zoom fehlt im Grundstil");
+    else ok++;
+    /* Ohne Gegenrechnung entstünde bei zoom > 1 eine Rollleiste über alles. */
+    if (!/min-height:calc\(100vh \/ var\(--skala/.test(flBlock))
+      zeige("Anzeigegröße", "min-height ist nicht gegen den zoom gerechnet");
+    else ok++;
+    console.log("  Anzeigegröße    zoom im Grundstil ✓ · min-height gegengerechnet ✓");
+  }
+
+  /* 4 · Der Rahmen war nicht wählbar — es galt immer der erste in der Liste. */
+  {
+    const beide = { mk_gold: true, mk_rahmen1: true };
+    const a = rahmenFuer(beide);
+    const b = rahmenFuer({ ...beide, rahmenWahl: "mk_rahmen1" });
+    const c = rahmenFuer({ ...beide, rahmenWahl: "keiner" });
+    const d = rahmenFuer({ ...beide, rahmenWahl: "mk_raute" });   /* nicht freigeschaltet */
+    if (!a || a.n !== "Gold") zeige("Rahmen", "ohne Wahl nicht der beste: " + (a && a.n));
+    else ok++;
+    if (!b || b.n !== "Silber") zeige("Rahmen", "Wahl wird nicht befolgt: " + (b && b.n));
+    else ok++;
+    if (c !== null) zeige("Rahmen", "„keiner\u201C liefert trotzdem einen Rahmen");
+    else ok++;
+    if (!d || d.n !== "Gold") zeige("Rahmen", "nicht freigeschaltete Wahl fällt nicht zurück");
+    else ok++;
+    if (rahmenFuer({}) !== null) zeige("Rahmen", "ohne Freischaltung trotzdem ein Rahmen");
+    else ok++;
+    console.log("  Rahmen          Vorgabe Gold · Wahl Silber · „keiner\u201C leer · unfreigeschaltet fällt zurück");
+  }
+}
+
+console.log("\n=== Seitenmöbel des Hefts ===");
+{
+  /* Jede Innenseite trägt Kolumnentitel und Folio, und beide müssen DIESELBE
+     Seitenzahl nennen wie das Ressortverzeichnis. Stünde oben 14 und unten 22,
+     wäre das Heft in dem Moment nicht mehr glaubwürdig. */
+  const seiten = [
+    ["Ruhmeshalle", "hall", <HallScreen hall={[]} onBack={() => {}} />],
+    ["Errungenschaften", "erfolge", <AchievementScreen ach={{}} meta={{}} onBack={() => {}} />],
+    ["Akademie", "akademie", <AkademieScreen aka={gegruendet} onKauf={()=>{}} onGruenden={()=>{}} onBack={()=>{}} />],
+    ["Spielererstellung", "anlegen", <CreateScreen onStart={() => {}} onBack={() => {}} meta={{}} />],
+  ];
+  let mitMoebeln = 0;
+  seiten.forEach(([name, key, el]) => {
+    const r = mach("Seite · " + name, el, 0);
+    if (!r) return;
+    const t = r.div.textContent || "";
+    const soll = RESSORT[key];
+    if (!t.includes(soll.n)) { zeige("Seite · " + name, "Kolumnentitel „" + soll.n + "\u201C fehlt"); return; }
+    /* Schlicht vergleichen statt mit regulärem Ausdruck: der Umweg über
+       RegExp und \\b hat beim ersten Versuch nicht getroffen, obwohl die
+       Zahl im Baum stand — ein Prüfmittel, das falschen Alarm schlägt, ist
+       schlimmer als keins. */
+    if (!t.includes("Seite " + soll.s)) { zeige("Seite · " + name, "Seitenzahl " + soll.s + " steht nirgends"); return; }
+    if (!t.includes("Nachtausgabe")) { zeige("Seite · " + name, "Folio ohne Ausgabenzeile"); return; }
+    ok++; mitMoebeln++;
+  });
+  console.log("  " + mitMoebeln + " von " + seiten.length + " Innenseiten mit Kolumnentitel und Folio");
+
+  /* Die Prüfung der Blätterrichtung ist mit dem Blättern selbst entfallen
+     (34.6). Sie stand hier und war grün — die Richtung stimmte. Falsch war
+     nicht die Richtung, sondern die Idee, eine mehrere tausend Punkte hohe
+     Seite zu drehen. Eine grüne Prüfung ist kein Beweis für eine gute Lösung. */
+
+  /* Das Titelblatt nennt für jedes Ressort eine Seitenzahl. Sie muss zu der
+     passen, die die Seite selbst im Kolumnentitel trägt — sonst schickt das
+     Inhaltsverzeichnis den Leser auf eine Seite, die es nicht gibt. Genau so
+     eine Abweichung fällt beim Durchklicken nie auf. */
+  {
+    /* achN und metaN sind ZAHLEN, keine Objekte. Der erste Versuch gab hier
+       ach={{}} meta={{}} — im Verzeichnis stand daraufhin „undefined / 162".
+       Die Prüfung hat also sich selbst gemeldet, nicht die App. Genau dafür
+       ist die Unsinnserkennung in `mach` da. */
+    const m = mach("Titelblatt", <MenuScreen save={null} hall={[]} aka={leereAkademie()}
+      achN={0} metaN={0} onNew={() => {}} onResume={() => {}} onAch={() => {}}
+      onHall={() => {}} onAka={() => {}} onBackup={() => {}} />, 0);
+    if (m) {
+      const t = m.div.textContent || "";
+      const fehlend = [];
+      ["erfolge", "hall", "akademie"].forEach((k) => {
+        const r = RESSORT[k];
+        /* Der Titel des Ressorts steht im Verzeichnis, die Zahl daneben. */
+        if (!t.includes(String(r.s))) fehlend.push(r.n + " (" + r.s + ")");
+      });
+      if (fehlend.length) zeige("Titelblatt", "Seitenzahlen fehlen im Verzeichnis: " + fehlend.join(", "));
+      else ok++;
+      /* Das Titelfoto muss in BEIDEN Zuständen dastehen — ohne Spielstand war
+         das Feld vorher fast leer, mit Spielstand stand das Porträt allein
+         auf einer leeren Fläche. Gezählt werden die Silhouetten: 6 stehend,
+         5 hockend, dazu Ränge, Bande und Rasenstreifen. */
+      /* NUR im Titelfoto zählen. Der erste Versuch zählte alle Gruppen mit
+         Kreis und Pfad im ganzen Baum — mit Spielstand kamen die Ohren- und
+         Augengruppen des Porträts dazu und die Zahl stimmte scheinbar nicht.
+         Die Prüfung war falsch, nicht das Bild. */
+      const figuren = (el) => {
+        const r = mach("Titelfoto", el, 0);
+        if (!r) return -1;
+        const foto = [...r.div.querySelectorAll("svg")]
+          .find((v) => (v.getAttribute("viewBox") || "") === "0 0 366 210");
+        if (!foto) return -1;
+        return [...foto.querySelectorAll("g")]
+          .filter((g) => g.querySelector("circle") && g.querySelector("path")).length;
+      };
+      const ohne = figuren(<MenuScreen save={null} hall={[]} aka={leereAkademie()}
+        achN={0} metaN={0} onNew={() => {}} onResume={() => {}} onAch={() => {}}
+        onHall={() => {}} onAka={() => {}} onBackup={() => {}} />);
+      /* Eigener Spieler für diesen Block: der aus dem Errungenschaftsteil
+         liegt in einem anderen Gültigkeitsbereich. */
+      const held = laufbahn(null);
+      const mit = figuren(<MenuScreen save={{ p: held }} hall={[]} aka={leereAkademie()}
+        achN={0} metaN={0} onNew={() => {}} onResume={() => {}} onAch={() => {}}
+        onHall={() => {}} onAka={() => {}} onBackup={() => {}} />);
+      if (ohne !== 11) zeige("Titelfoto", "ohne Spielstand " + ohne + " Silhouetten statt 11");
+      else ok++;
+      if (mit !== 11) zeige("Titelfoto", "mit Spielstand " + mit + " Silhouetten statt 11");
+      else ok++;
+      console.log("  Titelfoto       " + ohne + " Silhouetten ohne, " + mit + " mit Spielstand");
+
+      /* Kein Flutlicht mehr: der alte Kopf hatte Verläufe mit diesen Kennungen. */
+      if (m.div.querySelector("#kegel") || m.div.querySelector("#rasen"))
+        zeige("Titelblatt", "der alte Flutlicht-Kopf ist noch da");
+      else ok++;
+      /* Eine Schlagzeile muss dastehen, und zwar in jedem Spielstand. */
+      const g = titelgeschichte(null, false, [], null);
+      if (!g.dach || !g.schlag || !g.unter) zeige("Titelblatt", "Aufmacherzeilen unvollständig");
+      else ok++;
+      console.log("  Titelblatt      Verzeichnis nennt "
+        + ["erfolge", "hall", "akademie"].map((k) => RESSORT[k].s).join(" · ")
+        + " · kein Flutlicht mehr");
+    }
+    /* Alle vier Spielstände müssen eine eigene Schlagzeile haben — sonst ist
+       die Fallunterscheidung nur behauptet. */
+    const faelle = [
+      ["ohne alles", titelgeschichte(null, false, [], null)],
+      ["mit Ruhmeshalle", titelgeschichte(null, false, [{ name: "Kai Bergmann", score: 900 }], null)],
+      ["mit Akademie", titelgeschichte(null, false, [], { gegruendet: true, name: "Volkspark" })],
+      ["laufend", titelgeschichte({ p: { name: "Kai", age: 24, ovr: 78, year: 2035,
+        club: { n: "HSV", stadt: "Hamburg" } } }, true, [], null)],
+    ];
+    const schlagzeilen = new Set(faelle.map(([, g]) => g.schlag));
+    if (schlagzeilen.size !== faelle.length)
+      zeige("Titelblatt", "nur " + schlagzeilen.size + " verschiedene Schlagzeilen für " + faelle.length + " Fälle");
+    else ok++;
+    console.log("  Aufmacher       " + schlagzeilen.size + " verschiedene Schlagzeilen je nach Spielstand");
+  }
+
+  /* Die Seitenzahlen müssen eindeutig sein — zwei Ressorts auf Seite 14 wären
+     ein Heft, das es nicht geben kann. */
+  const zahlen = Object.values(RESSORT).map((r) => r.s);
+  if (new Set(zahlen).size !== zahlen.length) zeige("Ressorts", "doppelte Seitenzahlen: " + zahlen.join(", "));
+  else ok++;
+  console.log("  Seitenzahlen    " + zahlen.slice().sort((a, b) => a - b).join(" · ") + " · alle verschieden");
+}
+
+console.log("\n=== Zoom und Akademiefortschritt ===");
+{
+  /* Der Fortschritt der Akademie muss bei der Gründung bei 0 stehen. Vorher
+     zeigte der Ring 6 von 36 = 17 %, weil jede Abteilung auf Stufe 1 startet.
+     Geprüft wird der Ring selbst, nicht die Rechnung dahinter. */
+  const ringAnteil = (aka) => {
+    const r = mach("Akademie-Ring", <AkademieScreen aka={aka} onKauf={()=>{}} onGruenden={()=>{}} onBack={()=>{}} />, 0);
+    if (!r) return null;
+    const t = r.div.textContent || "";
+    const m = t.match(/Ausbaustufen (\d+) von (\d+)/);
+    return m ? { ist: +m[1], max: +m[2] } : null;
+  };
+  const frisch = ringAnteil(gegruendet);
+  if (!frisch) zeige("Akademie", "Ausbaustand nicht gefunden");
+  else {
+    if (frisch.ist !== 0) zeige("Akademie", "frisch gegründet zeigt " + frisch.ist + " Ausbaustufen statt 0");
+    else ok++;
+    if (frisch.max !== 30) zeige("Akademie", "Höchstwert " + frisch.max + " statt 30");
+    else ok++;
+    console.log("  frisch gegründet   " + frisch.ist + " von " + frisch.max + " Ausbaustufen");
+  }
+  const voll = ringAnteil(reif);
+  if (voll) console.log("  nach 25 Jahren     " + voll.ist + " von " + voll.max + " Ausbaustufen");
+
+  /* Die Errungenschaft „voller Ausbau" hängt weiter an `akaSumme` — die darf
+     durch die Umstellung NICHT verrutscht sein. */
+  /* Kennungen aus ABTEILUNGEN nehmen, nicht aus dem Gedächtnis tippen — beim
+     ersten Versuch stand hier eine erfundene Abteilung und die Prüfung schlug
+     zu Recht an. */
+  const alles = { ...reif, stufen: {} };
+  ABTEILUNGEN.forEach((x) => { alles.stufen[x.id] = AKA_MAX; });
+  if (akaSumme(alles) !== 36) zeige("Akademie", "akaSumme bei vollem Ausbau ist " + akaSumme(alles) + ", erwartet 36");
+  else ok++;
+  console.log("  akaSumme voll      " + akaSumme(alles) + " (Errungenschaft prüft weiter darauf)");
+}
+
 /* ---------- Porträt: ein Regler ändert genau ein Merkmal ----------
    Bis 33.16 änderte ein Druck auf „Schmuck" im Schnitt 8 von 13 Merkmalen
    mit, weil `(h >> bit) % n` kein abgetrenntes Feld ist. Hier wird gezählt,
@@ -492,7 +859,14 @@ function tafel(name, aka) {
     const k = leerTafel.querySelectorAll(".karton").length;
     if (k !== 0) zeige("Ehrentafel · leer", k + " Karton, erwartet 0");
     else ok++;
-    if (!(leerTafel.textContent || "").includes("Noch niemand"))
+    /* Auf „Noch" prüfen, nicht auf den ganzen Satz: der Wortlaut ändert sich
+       beim Überarbeiten der Sprache, die Aussage nicht. Beim Umschreiben in
+       34.10 hat genau dieser Satz die Prüfung fallen lassen, obwohl der
+       Hinweis dastand. */
+    /* Auf den GEHALT prüfen, nicht auf den Wortlaut: der ändert sich bei
+       jeder Sprachrunde, die Aussage nicht. Zweimal ist diese Prüfung schon
+       gefallen, obwohl der Hinweis dastand. */
+    if (!/noch keiner|niemand|nach oben geschafft/i.test(leerTafel.textContent || ""))
       zeige("Ehrentafel · leer", "Hinweis auf die leere Tafel fehlt");
     else ok++;
     console.log("  leer               " + k + " Karton · Hinweistext steht ✓");

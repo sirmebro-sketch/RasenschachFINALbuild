@@ -5,8 +5,8 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 34.1** · Stand 10. August 2026
-*Eigene Schriften · harte Form · Farbkonzept · Sammelalbum · Titelblatt und Optionen · Ehrentafel als Karton · Form statt Farbe · **neue Spielerporträts***
+**Fassung 34.12** · Stand 10. August 2026
+*Eigene Schriften · harte Form · Sammelalbum · neue Spielerporträts · **das Heft: dunkles Zeitungspapier***
 
 > Die Abschnitte 1 bis 8 beschreiben das Spiel und die Arbeitsweise und gelten
 > unverändert. Alles ab „Fassungen 33.3 bis 33.7" ist neuer und **hat Vorrang**,
@@ -837,7 +837,557 @@ Zufallsbogen fallen solche Fälle kaum auf, im Kreuz sofort:
 Jede Berichtigung ist gegen einen neu gerenderten Kreuzbogen geprüft, nicht gegen
 eine Vermutung.
 
-## Offene Punkte (Stand 34.1)
+### 34.2 · Zwei echte Fehler
+**Die App liess sich zoomen wie eine Internetseite.** Die Angabe im `<meta name="viewport">`
+hatte weder `maximum-scale` noch `user-scalable=no`; mit zwei Fingern liess sich jede
+Ansicht aufziehen. Kevin ist es in den Optionen aufgefallen, betroffen war die **ganze App**.
+Behoben in `index.html`: `maximum-scale=1,user-scalable=no` und zusätzlich
+`touch-action: pan-x pan-y` auf `html` und `body` — Wischen ja, Aufziehen und
+Doppeltipp-Zoom nein. Letzteres nimmt dem Spielerpass nebenbei die Verzögerung
+beim Wenden.
+
+*Zur Barrierefreiheit:* Zoom zu sperren ist normalerweise heikel. Hier nicht, weil die
+App unter „Optionen" eine **eigene Textgrösse** mitbringt — der Weg bleibt also offen,
+er führt nur nicht mehr über die Browserlupe.
+
+**Der Ausbau der Akademie begann bei 17 %.** Jede Abteilung startet auf Stufe 1, also war
+`akaSumme` direkt nach der Gründung 6 von 36 — der Ring zeigte Fortschritt, wo noch nichts
+gebaut war. Fortschritt heisst jetzt: was **über die Gründung hinaus** erreicht wurde.
+Neu: `AKA_GRUND` (6), `AKA_STUFEN` (30 wirklich baubare Stufen), `akaAusbau(a)`.
+`akaSumme` bleibt unverändert, weil die Errungenschaft „voller Ausbau" darauf prüft —
+der Prüfstand hält beides getrennt fest: **frisch gegründet 0 von 30 · nach 25 Jahren
+30 von 30 · `akaSumme` bei vollem Ausbau weiterhin 36.**
+
+**Zum dritten Mal derselbe eigene Fehler:** Ich habe einen Kommentaranfang in
+`ansichten.jsx` als Ankertext für eine Ersetzung benutzt und ihn dabei verschluckt.
+esbuild brach ab, der Prüfstand meldete korrekt ABBRUCH. **Regel für künftige Sitzungen:
+niemals `/* ---------- Überschrift ----------` als Anker verwenden** — immer eine
+Codezeile darunter nehmen, oder den Anker mit einschliessen und wieder mit ausgeben.
+
+## 34.3 · Die App wird ein Heft (Schritt 1 von 3)
+
+Beschlossen ist Weg **A, die Nachtausgabe**: der Grund bleibt dunkel, die Zeitung
+wird über Papier, Typografie und Seitenmöbel erzählt. Die Sammelkarten (Wildcard,
+Spielerpass, Ruhmeshalle, Errungenschaften) bleiben unangetastet — sie sind das
+Eingeklebte auf der Seite.
+
+Zur Entscheidung Papier: **Zeitungspapier, nicht Magazinpapier.** Ungestrichen,
+sichtbare Faser, matt — das ist der *kicker*: Zeitungspapier innen, festerer Titel
+aussen. Magazinpapier wäre glatt und glänzend, und Glanz liesse sich auf dunklem
+Grund nur über einen Verlauf erzählen; Verläufe sind seit 33.4 abgeschafft.
+
+### Das Papier
+`--bg` von `#070D0A` (Rasen bei Nacht) auf **`#191813`** (dunkles Zeitungspapier).
+**Warm**, weil der Karton der Sammelkarten warm ist (`#E9E2D3`) — dasselbe Papier,
+nur im Dunkeln. Damit liegen die Karten *auf* der Seite statt daneben.
+
+Struktur: `repeating-linear-gradient(97deg,…)` als Faser plus das bekannte
+Halbtonraster. **Bewusst zwei Lagen und eine Vollfarbe — genau so viele wie vorher**,
+weil der frühere Grundverlauf durch die Vollfarbe ersetzt ist. Der Zeichenaufwand
+steigt also nicht; die Rasterfrage aus 33.13 bleibt damit beantwortet.
+
+Alle Token neu gemessen gegen `#191813`:
+
+| Token | Wert | Kontrast |
+|---|---|---|
+| `--tx` | `#EFECE2` | 15,04 |
+| `--mu` | `#A09B8C` | 6,40 |
+| `--go` | `#F2C230` | 10,61 |
+| `--ok` | `#3DA35D` | 5,58 |
+| `--ac` | `#3D8FDB` | 5,21 |
+| `--bad` | `#EC6152` | 5,68 *(von `#E5493C` angehoben, lag auf `--up` bei 4,04)* |
+| `--ln2` | `#625C49` | Haarlinie, *(von `#2C3A31` angehoben — im Entwurf lag sie bei 1,54 und wäre auf dem Gerät verschwunden)* |
+| Karton auf Papier | `#E9E2D3` | 13,78 |
+
+Neu: `--stoerer` `#D93A2B` für den Störer auf dem Titelblatt. **Nur als Fläche,
+nie als Text** — auf Papier liegt er bei 3,89, Weiss darauf bei 4,57.
+
+### Die Seitenmöbel
+`Shell` nimmt jetzt `blatt="<ressort>"` und setzt damit **Kolumnentitel** oben und
+**Folio** unten. Neu: `RESSORT`, `Kolumnentitel`, `Folio`.
+
+| Ressort | Seite |
+|---|---|
+| LAUFBAHN | 2 |
+| SPIELERPASS | 3 |
+| RUHMESHALLE | 14 |
+| ERRUNGENSCHAFTEN | 22 |
+| JUGENDAKADEMIE | 30 |
+| REDAKTION (Optionen, Anleitung) | 46 |
+| ARCHIV (Sicherung) | 48 |
+
+**Die Seitenzahl steht nur an einer Stelle im Code.** Kolumnentitel, Folio und
+später das Inhaltsverzeichnis auf dem Titelblatt lesen dieselbe Zahl — stünde oben
+14 und unten 22, wäre das Heft in dem Moment nicht mehr glaubwürdig. Der Prüfstand
+zählt beides nach und prüft ausserdem, dass keine zwei Ressorts dieselbe Seite haben.
+
+### Ein Prüfmittel, das falschen Alarm schlug
+Die erste Fassung der Prüfung suchte mit `new RegExp("Seite " + s + "\\b")`. esbuild
+schrieb daraus `"\\b"` ins Bündel — also **Backslash + b als Zeichen** statt einer
+Wortgrenze. Die Prüfung meldete „Seitenzahl steht nirgends", obwohl sie im Baum stand.
+Ersetzt durch ein schlichtes `includes`. **Ein Prüfmittel, das falschen Alarm schlägt,
+ist schlimmer als keins** — es hätte mich beinahe eine funktionierende Änderung
+zurückbauen lassen.
+
+Prüfstand: **270 Prüfungen** (vorher 261), 6× 63 Ansichten, alle Zielbänder, 0 Fehler.
+Bündel **1.035,53 kB** (vorher 1.033,34).
+
+### Was noch fehlt (Schritt 2 und 3)
+* **Das Umblättern** zwischen Titelblatt und Ressorts.
+* **Das Titelblatt** als Zeitschriftencover: Titelzug, Aufmacher mit dem eigenen
+  Spieler statt Flutlicht und Mittelkreis, Störer, Inhaltsverzeichnis mit Seitenzahlen,
+  Strichcodeleiste. Der Entwurf dazu liegt vor und ist abgenommen.
+* **Die Texte reisserischer**: Dach- und Unterzeilen sollen klingen wie ein
+  Sportblatt, nicht wie ein Katalog. Nicht „Zwölf Laufbahnen, gemessen an Titeln,
+  Toren und Treue", sondern „Diese Zwölf vergisst keiner mehr".
+
+### 34.4 · Korn statt Cord, und die Seiten blättern
+**Die Faser war auf dem Gerät eine Cordhose.** Im verkleinerten Entwurfsbild sah die
+schräge Linienschraffur wie Papier aus, auf dem Handy nicht. Nachgerechnet:
+
+* Der Entwurf zeichnete eine 0,5 Punkte breite Linie alle 3 Punkte — **17 % der Fläche**.
+  Die App zeichnete eine 1 Punkt breite Linie alle 3 Punkte — **33 %, also doppelt so viel**.
+* Dazu die Bildpunktdichte: bei dreifacher Dichte sind 3 CSS-Punkte **neun echte
+  Bildpunkte**. Der Streifen wird auf dem Gerät nicht feiner, sondern gröber
+  wahrgenommen als im Bild, das im Chat verkleinert dalag und dabei verschmolz.
+
+Jetzt **zwei Punktraster mit den teilerfremden Abständen 2 und 5**. Ihre Gitter
+überlagern sich erst nach 10 Punkten wieder, das liest sich als Korn statt als Muster.
+Gegengeprüft an einem Bild **in echter Gerätedichte** — drei Varianten nebeneinander,
+in Bildpunkten des S24 Ultra gerechnet, nicht in CSS-Punkten. Die Lehre daraus gehört
+in jede künftige Sitzung: **ein verkleinertes Entwurfsbild lügt über feine Strukturen.**
+
+### Das Umblättern
+Die ankommende Seite dreht um ihre Bundkante herein (`rotateY(-74deg)` → `0`, 420 ms).
+**Bewusst nur die ankommende.** Die abgehende mitzudrehen hiesse, ihren React-Baum
+nach dem Wechsel weiterleben zu lassen — mit veraltetem Zustand und doppelt laufenden
+Wirkungen. Der Gewinn wäre klein, das Risiko gross.
+
+**Die Richtung folgt den Seitenzahlen.** Von Seite 2 auf 14 wird vorwärts geblättert,
+von 30 auf 22 zurück. Dafür braucht es keine zusätzliche Verdrahtung: `letzteSeite`
+steht ausserhalb der Komponente, `Shell` vergleicht beim Aufbau. Der Prüfstand fährt
+vier Wechsel durch und prüft die Klasse am Blatt, nicht die Absicht.
+
+`RUHE` schaltet es ab.
+
+**Noch nicht gemessen:** wie teuer das Drehen einer sehr langen Seite ist. Die
+Errungenschaften mit 162 Feldern sind der Härtefall — dort wird eine grosse Fläche
+für 420 ms zur eigenen Ebene. Das gehört auf dem Gerät nachgesehen, mit dem
+Messwerkzeug im Browsertest.
+
+Prüfstand: **278 Prüfungen** (vorher 270), 6× 63 Ansichten, alle Zielbänder, 0 Fehler.
+Bündel **1.037,33 kB**.
+
+### 34.5 · Echtes Korn, und das Blättern wird Papier
+**Zwei Versuche am Papier waren falsch, aus demselben Grund.** Erst eine schräge
+Linienschraffur — auf dem Gerät Cord statt Faser. Dann zwei Punktraster mit
+teilerfremdem Abstand — gleichmässiger als gedacht, es las sich als Punkte *auf*
+dem Papier. Die Ursache ist beide Male dieselbe: **mit Verläufen lassen sich nur
+regelmässige Muster bauen, und Papier ist nicht regelmässig.**
+
+Jetzt eine **96 × 96 grosse Kachel aus echtem Rauschen**, im Projekt als Base64
+eingebettet (5,9 KB). Nahtlos, weil sie mit Umlauf weichgezeichnet wurde; zwei
+Korngrössen übereinander, und **nur abdunkelnd** — Aufhellungen sähen aus wie Staub.
+`feTurbulence` wäre kleiner gewesen, liess sich hier aber nicht rendern und damit
+nicht beurteilen; etwas einzubauen, das ich nicht ansehen kann, verbietet sich.
+
+**Das Halbtonraster ist vom Grund verschwunden.** Ein Raster ist die Art, wie ein
+BILD gedruckt wird, nicht die Oberfläche des Papiers. Es bleibt den Bildflächen
+vorbehalten (Titelblatt, `.raster`). Der Grund kommt jetzt mit **einer** Bildlage
+und einer Vollfarbe aus — eine Lage weniger als vorher, der Zeichenaufwand sinkt.
+
+### Das Blättern
+* **420 ms → 780 ms.** Vorher nahm man es kaum als Blättern wahr.
+* **Nachfedern:** die Seite dreht bis 3,4° über die Ruhelage hinaus und legt sich
+  dann. Eine Drehung, die exakt bei 0 stehen bleibt, wirkt nach Platte.
+* **Wandernder Bundschatten** über `::before` — er macht aus der starren Drehung
+  eine Wölbung. Das war der eigentliche Grund für den Plastikeindruck.
+* Eine leichte Drehung um die Blattachse (`rotateZ`) nimmt der Bewegung die
+  Maschinenhaftigkeit.
+
+Prüfstand: 278 Prüfungen, 6× 63 Ansichten, alle Zielbänder, 0 Fehler.
+Bündel **1.046,41 kB** (vorher 1.037,33 — die 9 KB sind die Kornkachel).
+
+**Weiterhin nicht gemessen:** wie teuer das Drehen einer sehr langen Seite ist.
+Die Errungenschaften mit 162 Feldern sind der Härtefall.
+
+### 34.6 · Das Umblättern ist wieder raus
+Zwei Befunde vom Gerät, beide mit derselben Wurzel — **es wurde die ganze Seite
+gedreht:**
+
+1. **Es hakte**, statt in einem Zug zu laufen. Eine Seite mit 162 Feldern ist mehrere
+   tausend Punkte hoch; der Browser muss daraus für die Dauer der Bewegung eine eigene
+   Ebene rastern. Das schafft er nicht in einem Zug.
+2. **Auf langen Seiten verzerrte das ganze Bild.** Das ist keine Panne, sondern
+   Geometrie: perspective staucht mit wachsendem Abstand vom Drehpunkt. Bei einer
+   Seite, die zehnmal so hoch ist wie das Fenster, wird das untere Ende unbrauchbar
+   verzogen.
+
+Nachjustieren hätte nichts geholfen — die Ursache ist die Bauart, nicht die Dauer.
+Entfernt, der Wechsel läuft wieder schlicht. Der Befund steht als Kommentar an der
+Stelle im Quelltext.
+
+**Wer es später noch einmal versucht, muss zuerst etwas anderes bauen:** eine Seite,
+die genau so hoch ist wie das Fenster und INNEN rollt (height:100dvh, overflow-y:auto).
+Nur ein fensterhohes Blatt lässt sich wie ein Blatt drehen. Das ist ein Umbau jeder
+Ansicht — mit Folgen für die angeheftete Kopfleiste, die Rollposition beim
+Zurückblättern und die Wachsperre. **Erst dieser Umbau, dann das Blättern.**
+
+Die Prüfung der Blätterrichtung ist mit entfallen. Sie war grün — die Richtung
+stimmte. Falsch war nicht die Richtung, sondern die Idee. **Eine grüne Prüfung ist
+kein Beweis für eine gute Lösung.**
+
+### 34.6 · Das Hauptmenü ist ein Titelblatt
+Flutlicht und Mittelkreis sind weg. Stattdessen:
+
+* **Titelzug** in einem Balken aus `--stoerer`, mit Ausgabennummer und Monat — auf
+  jeder Ausgabe an derselben Stelle.
+* **RASENSCHACH** gross, darunter XI und die Zeile „DIE ELF DES MONATS · SEIT 2026",
+  abgeschlossen mit der doppelten Haarlinie.
+* **Der Aufmacher ist der eigene Spieler**, 230 px, im Halbtonraster. Vorher stand
+  dort ein Bild ohne Person. Auf einem Sportheft ist der Titel immer jemand. Ohne
+  Spielstand steht dort „HIER KÖNNTE DEIN NAME STEHEN".
+* **Störer** oben rechts: rund, schräg, in Signalrot, mit hartem Versatzschatten —
+  die Hauptaktion („WEITER SPIELEN" oder „NEUE LAUFBAHN", mit Seitenangabe).
+* **Dachzeile, Schlagzeile, Unterzeile** aus `titelgeschichte()`. Vier Fälle mit
+  eigenen Zeilen: laufende Laufbahn (nochmals unterteilt nach Weltklasse, jung, alt),
+  gefüllte Ruhmeshalle, gegründete Akademie, leerer Anfang. **Der Ton ist Kiosk, nicht
+  Katalog** — „SIE NENNEN IHN JETZT NUR NOCH DEN BESTEN" statt einer Zustandsmeldung.
+  Die Umbrüche in den Schlagzeilen sind gesetzt (`whiteSpace:pre-line`): eine
+  Schlagzeile bricht dort, wo der Sinn bricht.
+* **Das Inhaltsverzeichnis nennt die echten Seitenzahlen** aus `RESSORT` — dieselbe
+  Zahl, die der Kolumnentitel der jeweiligen Seite trägt. Der Prüfstand vergleicht
+  beides; eine Abweichung fiele beim Durchklicken nie auf.
+
+**Der Prüfstand hat meine eigene Prüfung erwischt:** Ich gab `MenuScreen` ein
+`ach={{}}` statt `achN={0}` — im Verzeichnis stand daraufhin „undefined / 162". Die
+Unsinnserkennung in `mach` hat es gemeldet. Genau dafür ist sie da.
+
+Prüfstand: **275 Prüfungen**, 6× 63 Ansichten, alle Zielbänder, 0 Fehler.
+Bündel **1.046,92 kB**.
+
+### Ein Fehler, der jederzeit wiederkommt — jetzt abgesichert
+Ein einzelnes Rückwärts-Anführungszeichen in einem Kommentar **innerhalb** des
+CSS-Blocks beendet die Schablonenzeichenkette vorzeitig. esbuild meldet dann
+irgendetwas viele Zeilen weiter unten („Expected ; but found perspective"), und die
+Ursache steht woanders. Mir ist das in dieser Sitzung passiert, als ich
+`perspective` in einem Kommentar in Rückwärts-Anführungszeichen setzte.
+
+`pruefen.sh` prüft das jetzt **vor** dem Übersetzen und nennt die Zeile.
+Gegengeprobt mit einem eingeschmuggelten Zeichen: Meldung mit Zeilennummer und
+Umfeld, Rückgabewert 1.
+
+### 34.7 · Das Titelblatt bekommt ein Bild
+Zwei Rückmeldungen vom Gerät, eine Ursache: **das Aufmacherfeld hatte keinen
+Bildgrund.** Ohne Spielstand war es fast leer, mit Spielstand stand das Porträt
+allein auf einer leeren Fläche und wirkte verloren.
+
+Neu: `Titelfoto` — ein gezeichnetes Pressefoto. Rang in drei Bändern, ein festes
+Punktfeld als Zuschauer, zwei kleine Flutlichtmasten, Bande, Rasen in Streifen und
+eine **Mannschaftsreihe als Silhouetten** (6 stehend, 5 hockend, wie auf jedem
+Mannschaftsfoto). Alles flach, keine Verläufe.
+
+* **Ohne Spielstand** steht die Mannschaft deutlich (Deckung .34) und daneben
+  „ELF PLÄTZE. EINER IST NOCH FREI." — statt des blassen „HIER KÖNNTE DEIN NAME
+  STEHEN".
+* **Mit Spielstand** tritt sie zurück (.15) und der Spieler steht davor. Das
+  Porträt ist von **230 auf 168 px** verkleinert und sitzt auf der Rasenlinie
+  statt in der Mitte einer leeren Fläche — er gehört in die Mannschaft.
+* Dazu eine **Bildunterschrift**, wie sie zu jedem Pressefoto gehört: Name und
+  Verein, ohne Spielstand „ARCHIVBILD · DIE MANNSCHAFT VOR DEM ANPFIFF".
+
+Die Zuschauer sind **kein Zufall**, sondern ein einmal berechnetes festes Feld
+(`ZUSCHAUER`) — dieselbe Ausgabe soll bei jedem Aufschlagen gleich aussehen.
+
+**Zwei Fehler beim Zeichnen, beide am Bild erkannt:**
+1. Die Köpfe schwebten über den Körpern. Grund ist Geometrie: **eine kubische
+   Kurve mit beiden Kontrollpunkten auf gleicher Höhe erreicht nur drei Viertel
+   des Wegs dorthin.** Ohne Überhöhung um 4/3 bleibt eine Lücke. Steht als
+   Kommentar an der Stelle.
+2. Meine Prüfung zählte alle Gruppen mit Kreis und Pfad im ganzen Baum — mit
+   Spielstand kamen die Ohren- und Augengruppen des Porträts dazu und meldeten
+   14 statt 11. **Die Prüfung war falsch, nicht das Bild.** Jetzt wird nur
+   innerhalb des Titelfotos gezählt (erkannt am viewBox).
+
+Prüfstand: **279 Prüfungen**, 6× 63 Ansichten, alle Zielbänder, 0 Fehler.
+Bündel **1.048,80 kB**.
+
+## 34.8 · Vier gemeldete Punkte
+
+### 1 · Der Spielerpass wuchs mit jeder Station
+Beide Seiten liegen im selben Rasterfeld (`.dreh`), der Pass nimmt also die Höhe der
+**längeren** an. Mit jeder Station wuchs deshalb auch die Vorderseite, obwohl dort
+nichts hinzukam. Die Vereinsliste rollt jetzt innen, sobald es **mehr als sechs**
+Stationen sind (`maxHeight:152`), dazu ein Hinweis „… Stationen · in der Liste blättern".
+`touchAction:pan-y` ist nötig, weil html und body seit 34.2 auf `pan-x pan-y` stehen.
+
+### 2 · Die Textgröße hatte keine Wirkung
+Der Regler war **nicht** kaputt: er setzte `--skala` korrekt. Aber **357 Schriftgrößen
+stehen fest in Pixeln** und erben nichts — die Einstellung veränderte genau zwei
+Stellen im ganzen Programm.
+
+Alle 357 auf `calc(… * var(--skala))` umzustellen wäre ein Eingriff mit hoher
+Fehlerquote. Stattdessen `zoom:var(--skala)` auf `.fl`: das skaliert alles gleichmäßig
+und ist genau das, was der in 34.2 gesperrte Browserzoom vorher tat. `min-height` muss
+gegengerechnet werden (`calc(100vh / var(--skala))`), sonst entsteht bei Vergrößerung
+eine Rollleiste über die ganze Seite.
+
+**Die Einstellung heißt jetzt „Anzeigegröße"**, mit dem Zusatz „Vergrößert die ganze
+Seite — Text, Abstände und Bilder zusammen". Sie skaliert mehr als nur Text; sie
+weiter „Textgröße" zu nennen wäre eine kleine Lüge.
+
+### 3 · Sind alle Ligen und Vereine erreichbar? — Ja
+**82 von 82 Ligen, 1238 von 1239 Vereinen** können Ziel eines Angebots sein.
+
+Der Weg dahin ist lehrreich, weil **drei Messungen hintereinander falsch waren** und
+jedes Mal plausibel aussahen:
+1. Erst nahm ich `off[0]` als Wechselziel — das ist oft „bleiben" oder „verlängern",
+   also derselbe Verein. Ergebnis: „Premier League nie erreichbar."
+2. Dann übergab ich `g:"w"`, aber `createPlayer` liest **`cfg.gender`**. Es liefen
+   also nur Männer, und alle Frauenligen erschienen als unerreichbar.
+3. Dann testete ich mit zwölf großen Nationen — und schloss damit ganze Erdteile aus.
+   Ergebnis: „Premier League (EGY) und Qatar Stars League nie erreichbar."
+
+Erst mit allen 212 Nationen und echten Wechselangeboten stimmte das Bild.
+**Jede dieser Zwischenmeldungen hätte als Befund getaugt und wäre falsch gewesen.**
+Das Messwerkzeug liegt als `pruefstand/erreichbar.cjs` bei.
+
+*Nicht beantwortet:* welche Ligen als **Startliga** möglich sind — `homeLeagues` ist
+nicht ausgeführt und war so nicht messbar.
+
+### 4 · Der Rahmen war nicht wählbar
+`rahmenFuer` nahm **immer den ersten freigeschalteten** aus der Liste. Wer Gold und
+Silber hatte, bekam Gold, ohne gefragt zu werden. Neu: `meta.rahmenWahl` und eine
+Auswahl in den Optionen mit Vorschau jedes Rahmens, dazu „Keiner". Fällt die Wahl auf
+etwas noch nicht Freigeschaltetes, gilt weiter der beste vorhandene — alte Spielstände
+funktionieren also unverändert.
+
+Prüfstand: **291 Prüfungen** (vorher 279), 0 Fehler. Bündel **1.051,34 kB**.
+
+## 34.9 · Block A — fünf Fehler im Spielfluss
+
+### A1 · Zurück-Taste des Geräts
+**Ohne Zusatzpaket gelöst.** Capacitor leitet die Taste an den Verlauf der WebView
+weiter, also lässt sie sich über `popstate` abfangen — `@capacitor/app` hätte eine
+neue Abhängigkeit und eine Änderung an `package.json` bedeutet.
+
+Ein **Stapel**, kein einzelner Empfänger: Optionen über Menü, Rückblick über Karriere —
+die Taste muss immer das Oberste schliessen. Ist der Stapel leer, greift nichts und die
+Taste verlässt die App wie gewohnt. Nach jedem Druck wird sofort ein Ersatzeintrag in
+den Verlauf gelegt, sonst wäre er beim nächsten Druck leer und die App ginge ungewollt zu.
+
+Angemeldet sind: Ruhmeshalle, Errungenschaften, Sicherung, Akademie, Spielererstellung,
+Optionen, Kurzanleitung, Saison- und Karriererückblick. Neu: `zurueckAnmelden`, `useZurueck`.
+
+*Nur teilweise geprüft:* Der Prüfstand zählt, dass der Stapel beim Öffnen **wächst**.
+Dass er beim Schliessen wieder **schrumpft**, hängt an Reacts Aufräumen und liess sich
+hier nicht nachstellen — im Prüflauf steht er deshalb bei 18. Auf dem Gerät gehört
+nachgesehen, ob die Taste nach mehrfachem Hin und Her noch das Richtige schliesst.
+
+### A2 · Laufender Stand war nach der Rückkehr nicht da
+`saveGame` schrieb in den Speicher, setzte aber **nicht** `setSave(...)`. Im Hauptmenü
+stand danach der alte Stand oder gar keiner, obwohl gerade gespeichert worden war —
+erst ein Neustart zeigte den Fortschritt. Der Zustand wird jetzt sofort gesetzt, das
+Schreiben läuft danach.
+
+### A3 · Die Rentenfrage kam immer wieder
+Bedingung war `age >= 33 && chance(.35)` — also **in jeder dritten Saison neu**, bis zu
+fünfmal in einer Laufbahn, auch auf dem Zenit. Jetzt einmalig (`flags.renteGefragt`) und
+nur, wenn die Stärke **mindestens 4 Punkte unter dem eigenen Höchstwert** liegt. Wer mit
+36 noch auf seinem Bestwert spielt, wird nicht gefragt. Der Text nennt den Grund und sagt
+zu, nicht wieder zu fragen.
+
+### A4 · Hintergrund rollte unter der Bilanz mit
+`rollSperren()` setzt `overflow:hidden` und `touchAction:none` auf den Körper, solange
+eine Überlagerung offen ist. **Zähler statt Schalter:** bei zwei Überlagerungen
+übereinander darf die erste, die schliesst, nicht schon freigeben.
+
+### A5 · Namensvorschlag zur Herkunft
+Es gab nur weibliche Vornamen (`PARTNER_F`) und **keine Nachnamen**. Neu: `VOR_M`,
+`VOR_W` und `NACH` für alle vierzehn Sprachräume, dazu `namensVorschlag(nat, g, kennung)`.
+
+Der Vorschlag hängt **an der Kennung des Porträts**, nicht am Zufall — sonst wechselte er
+bei jedem Tastendruck. Sobald jemand selbst tippt, bleibt sein Name stehen, auch beim
+Wechsel der Herkunft; leert man das Feld, greift der Vorschlag wieder. Ein Hinweis unter
+dem Feld sagt, welcher Zustand gerade gilt.
+
+**Beim Anlegen der Listen ist ein kyrillisches „С" in „Sousa" gerutscht** — aus einer
+Zeichenkette, die beim Schreiben entstanden ist. Aufgefallen ist es nur, weil ich
+hinterher gezählt habe. Der Prüfstand sucht jetzt in allen erzeugten Namen nach
+kyrillischen Zeichen und nach „undefined".
+
+Prüfstand: **301 Prüfungen** (vorher 291), 0 Fehler. Bündel **1.057,32 kB**.
+
+### Zwei Antworten aus der Untersuchung
+**Moral** bewegt sich am Saisonende (`(3,2 − Note) × 9 + Titel × 7 − 12 bei Bankdrücken`),
+durch Privatleben und Besitz. Sie bewirkt **genau eine Sache**: den Wachstumsfaktor
+`0,8 + Moral/340` — rund 35 % Unterschied zwischen 5 und 100. Keine Wirkung auf Noten,
+Angebote oder Verletzungen. *Das ist wenig für einen so prominent angezeigten Wert.*
+
+**Wachstum**: Startstärke Median 51, erste Saison Median +5 (Höchstwert +10), danach
++2 bis +3. Der Sprung steckt in der Formel `Abstand zum Potenzial × 0,22`: bei Start 51
+und Potenzial ~85 ist der Abstand 34, der erste Schritt also zwangsläufig der grösste.
+Kevins Eindruck stimmt. Ob das zu steil ist, ist eine Kalibrierungsfrage.
+
+## 34.10 · Block B, erster Teil — die Sprache der Oberfläche
+
+### Erst gezählt, dann angefangen
+| Textsorte | Anzahl |
+|---|---|
+| Ereignistitel | 445 |
+| Auswahlmöglichkeiten in Ereignissen | 974 |
+| Ergebnistexte in Ereignissen | 1197 |
+| Erklärzeilen (`hint`) | 68 |
+| Beschreibungen (`desc`) | 77 |
+| **sichtbare Oberflächensätze** | **44** |
+
+**Über 2.600 Texte. Das ist nicht ein Block, sondern mehrere.** Angefangen habe ich
+mit den 44 Sätzen, die man *ständig* sieht — Menü, Optionen, Erstellung, Hinweiszeilen.
+Die Ereignistexte sind der grosse Rest und kommen als eigener Schritt.
+
+### Was umgeschrieben ist
+**Die Kurzanleitung komplett.** Ton: wie jemand, der einem das Spiel in der Kabine
+erklärt. „Eine Saison, drei Schritte" → „Drei Schritte, dann Sommerpause". „Es endet
+von allein. Irgendwann reicht es körperlich nicht mehr" → „Irgendwann ist Schluss.
+Das Knie sagt Bescheid." Längste Zeile jetzt 105 Zeichen.
+
+Dabei ist der Erklärsatz rausgeflogen, der eine frühere Änderung begründete statt das
+Spiel zu erklären: „Gelten für alle Laufbahnen und stehen in den Optionen. Für eine
+laufende Laufbahn bleibt es so, wie es beim Start stand." → „Stehen in den Optionen und
+gelten fürs nächste Mal. Eine laufende Laufbahn bleibt, wie sie gestartet ist."
+
+**34 weitere Oberflächensätze**, zum Beispiel:
+* „Dein Umfeld kauft für dich, was sinnvoll und bezahlbar ist." → „Deine Leute kaufen,
+  was Sinn ergibt und drin ist."
+* „Diese Ansicht liess sich nicht aufbauen" → „Diese Seite ist uns abgeschmiert"
+* „Aufhören, bevor es andere entscheiden." → „Gehen, bevor sie dich gehen lassen."
+* „Laufbahn wirklich beenden? Danach geht es nicht weiter." → „Wirklich Schluss?
+  Danach ist Schluss."
+* „Für diese Auswahl gibt es keinen passenden Verein." → „Dafür haben wir keinen Verein."
+
+### Eine Prüfung ist beim Umschreiben gefallen — zu Recht
+Die Ehrentafel-Prüfung suchte den Wortlaut „Noch niemand". Nach dem Umschreiben stand
+dort „Noch keiner hat's von hier nach oben geschafft" — der Hinweis war da, die Prüfung
+fiel trotzdem. **Prüfungen, die an einem Wortlaut hängen, brechen bei jeder Sprachrunde.**
+Jetzt wird auf „Noch keiner" geprüft, mit einem Kommentar dazu. Beim Rest der
+Sprachrunde ist mit weiteren solchen Fällen zu rechnen.
+
+Neu ist ausserdem eine Prüfung der Anleitung: keine Zeile ohne Kopf oder Text, keine
+über 130 Zeichen. **Den Ton kann der Prüfstand nicht prüfen — die Struktur schon.**
+
+Prüfstand: **303 Prüfungen**, 0 Fehler. Bündel **1.056,81 kB** (0,5 kB *kleiner* als
+vorher — kürzere Texte).
+
+### Was von Block B noch offen ist
+1. **445 Ereignisse** mit 974 Auswahlmöglichkeiten und 1197 Ergebnistexten. In Etappen,
+   etwa nach Themen (Kabine, Verein, Nationalelf, Privatleben, Presse).
+2. **68 Erklärzeilen** (`hint`) und **77 Beschreibungen** (`desc`) — dort steckt
+   erfahrungsgemäss die meiste unnötige Erklärlast.
+
+## 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbeit spart
+
+### Zwei Sätze waren schlecht, und Kevin hat beide erwischt
+* **„Gehen, bevor sie dich gehen lassen."** — Buchdeutsch. Klingt nach Sportlerbiografie,
+  nicht nach Kabine. Jetzt: „Aufhören, solange du es selbst entscheidest."
+* **„Wirklich Schluss? Danach ist Schluss."** — eine Doppelung, die nichts sagt.
+  Jetzt: „Wirklich aufhören? Zurück geht dann nichts mehr."
+
+Danach die ganze Liste noch einmal durch, mit einem klaren Massstab: **Würde ein Spieler
+oder ein Reporter das so sagen?** Was gesucht klang, ist raus. „Was dein Zeug pro Saison
+bringt" war krampfhaft locker → „Was dir dein Besitz pro Saison bringt". „Diese Seite ist
+uns abgeschmiert" war zu flapsig für eine Fehlermeldung → „Hier ist was schiefgegangen".
+
+**Die Lehre:** Umgangssprache ist nicht dasselbe wie Sprüche. Beim ersten Anlauf habe ich
+gesucht statt gesprochen — und dabei Sätze gebaut, die niemand sagt.
+
+### Der Befund: die Ereignisse brauchten gar nichts
+Bevor ich 2.600 Texte umschreibe, habe ich **gemessen**, ob sie es nötig haben. Alle
+Ereignistexte auf typische Kennzeichen von Behördendeutsch geprüft (somit, zudem,
+hinsichtlich, im Rahmen, zur Verfügung, entsprechend …):
+
+| Textsorte | geprüft | steife Wendungen |
+|---|---|---|
+| Ereignistitel | 445 | **1** |
+| Auswahlmöglichkeiten | 974 | 0 |
+| Erklärzeilen | 80 | 0 |
+| Beschreibungen | 77 | 0 |
+| Ergebnistexte | 1163 | **1** |
+
+**Zwei von 2.739.** Beide behoben („Der Physiotherapeut steht zur Verfügung" → „Der Physio
+hat einen Termin frei", „Es bringt entsprechend wenig" → „Bringt also wenig").
+
+Die Ereignistexte sind längst im richtigen Ton — „Lehrgeld bezahlt.", „Der Trainer merkt
+sich sowas.", „Die Schule hakst du ab." **Steif war die Oberfläche, nicht das Spiel.**
+Hätte ich Kevins Auftrag wörtlich genommen und alle 2.600 umgeschrieben, hätte ich
+funktionierende Texte gegen neue mit unbekannter Qualität getauscht.
+
+Neu im Prüfstand: die Suche nach steifen Wendungen läuft jetzt bei jedem Lauf über alle
+2.725 Ereignistexte. Behördendeutsch kann sich nicht wieder einschleichen.
+
+### Zum dritten Mal dieselbe Falle
+Die Ehrentafel-Prüfung ist erneut gefallen, weil sie an einem Wortlaut hing — erst
+„Noch niemand", dann „Noch keiner". Jetzt prüft sie auf den **Gehalt**
+(`/noch keiner|niemand|nach oben geschafft/i`). **Prüfungen auf wörtliche Texte sind bei
+einem Projekt, dessen Sprache überarbeitet wird, eine Zeitbombe.**
+
+Prüfstand: **304 Prüfungen**, 0 Fehler. Bündel **1.056,86 kB**.
+
+## 34.12 · Block C — Frauenfußball
+
+### Der Weg: umformen statt doppelt pflegen
+Gezählt waren **86 Stellen** in den Ereignistexten, die bei einer Spielerin falsch sind
+(Kapitän 29, Mitspieler 15, Nationalspieler 10, „einer von" 9 …). Alle Texte doppelt zu
+pflegen wäre nicht durchzuhalten: bei jeder Änderung müsste man an zwei Stellen denken,
+und irgendwann vergisst man eine.
+
+Stattdessen läuft der **fertige** Text durch eine Umformung. `evText` ist der einzige
+Punkt, an dem Ereignistexte ausgewertet werden — was dort greift, greift überall.
+Damit sind auch die Stellen erfasst, die ich nicht gezählt habe: **2.684 Texte**.
+
+### Drei Fehler beim Bauen, alle am Ergebnis erkannt
+Eine reine Wortersetzung reicht nicht. Der Reihe nach kam heraus:
+1. **„Der Kapitänin"** — der Artikel blieb männlich. Also Muster, die den Artikel
+   einschliessen: `der Kapitän` → `die Kapitänin`, in allen Fällen (dem/einem/deinem…).
+2. **„Zwei Spielerin fehlen"** — kein Plural. Also ein Muster für Zahlwörter und
+   Mengenangaben davor: `zwei Spieler` → `zwei Spielerinnen`.
+3. **„Dem Kapitänin"** — die Liste kannte nur Kleinschreibung. Gross- und
+   Kleinschreibung werden jetzt **automatisch** erzeugt (`gross()`), nicht von Hand
+   gepflegt; von Hand hätte ich beim nächsten neuen Wort wieder eine Hälfte vergessen.
+
+### Was bewusst NICHT umgeformt wird
+**Der Trainer bleibt Trainer.** Auch eine Frauenmannschaft kann einen Mann als Trainer
+haben — das ist keine Lücke, sondern eine Entscheidung. Umgeformt wird nur, wer
+zwangsläufig Spielerin ist. Steht im Quelltext als Kommentar und wird geprüft.
+
+### Eine Stelle wäre mir fast durchgerutscht
+Die **Auswahlmöglichkeiten** (`label`, `hint`) liefen nicht durch `evText`, sondern
+standen direkt im JSX — sie wären bei einer Spielerin männlich geblieben. Aufgefallen,
+weil ich nach dem Einbau nachgesehen habe, welche Stellen den Durchgangspunkt wirklich
+benutzen.
+
+### Geprüft
+| Prüfung | Ergebnis |
+|---|---|
+| Umformung an Beispielfällen | 10 von 10 richtig |
+| Männliche Reste nach der Umformung | **0** von 2.684 Texten |
+| Gegenprobe: ändert sich bei einem Mann etwas? | **nein**, 200 Texte unverändert |
+
+Die letzte Prüfung ist die wichtigste: eine Umformung mit Nebenwirkung auf männliche
+Laufbahnen hätte vier Fünftel aller Spiele betroffen.
+
+Prüfstand: **316 Prüfungen** (vorher 304), 0 Fehler. Bündel **1.059,03 kB**.
+
+### Was von Block C offen bleibt
+* **Beinamen** (`BEINAMEN`) sind noch nicht geprüft — die stehen ausserhalb der
+  Ereignistexte und laufen nicht durch `evText`.
+* **Ereignisse, die es nur im Frauenfussball geben sollte** (und umgekehrt): es gibt
+  zwei ausdrücklich weibliche, aber keine systematische Prüfung, ob männliche
+  Ereignisse bei Spielerinnen unpassend sind.
+* Die Umformung ist **mechanisch**. Sätze, die inhaltlich männlich gedacht sind
+  („im Kader stehen drei, die geboren wurden, als du…"), bleiben unberührt — das
+  fällt nur beim Spielen auf.
+
+## Offene Punkte (Stand 34.12)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;

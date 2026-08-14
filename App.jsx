@@ -7,8 +7,8 @@ import { SCHRIFTEN } from "./schriften.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "34.1";
-const VERSION_INFO = "Die Vorschau bleibt beim Blättern oben hängen — und sechs Frisuren und Bärte sitzen jetzt sauber am Kopf.";
+const VERSION = "34.12";
+const VERSION_INFO = "Der Frauenfußball redet jetzt weiblich: alle Ereignistexte werden umgeformt, mit Artikeln und Plural.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -3149,6 +3149,69 @@ PARTNER_F.tk = ["Dilnoza","Aizhan","Gulnara","Madina","Zarina","Nargiza","Aisulu
 PARTNER_F.oc = ["Losana","Mere","Ana","Sina","Talei","Vika","Litia","Sela","Maria","Elenoa","Lupe","Kalisi"];
 const partnerName = (cc) => pick(PARTNER_F[REGION[cc] || "de"] || PARTNER_F.de);
 
+/* ---- Namensvorschlag für die Erstellung ----------------------------------
+   In der Erstellung stand das Namensfeld leer, und wer nichts eintrug, hiess
+   „Der Namenlose". Jetzt schlägt das Feld einen Namen vor, der zur Herkunft
+   passt — und wechselt mit, solange man nichts Eigenes eingetippt hat.
+   Dieselben vierzehn Sprachräume wie bei PARTNER_F.                        */
+const VOR_M = {
+  de:["Leon","Jonas","Finn","Luca","Noah","Elias","Paul","Emil","Jan","Tim","Nico","Felix"],
+  en:["Jack","Harry","Callum","Kyle","Reece","Lewis","Owen","Connor","Liam","Josh","Alfie","Ethan"],
+  es:["Álvaro","Iker","Sergio","Pablo","Hugo","Marcos","Diego","Rubén","Adrián","Javier","Mateo","Aitor"],
+  it:["Matteo","Lorenzo","Andrea","Davide","Simone","Federico","Nicolò","Riccardo","Alessio","Marco","Luca","Giulio"],
+  fr:["Théo","Hugo","Enzo","Lucas","Nathan","Maxime","Clément","Bastien","Rayan","Kylian","Yanis","Léo"],
+  nl:["Daan","Sem","Lars","Bram","Thijs","Jesse","Sven","Ruben","Stijn","Joris","Niels","Koen"],
+  pt:["Diogo","Rúben","Tiago","Gonçalo","Bruno","Rafael","Miguel","André","Vasco","Duarte","Nuno","João"],
+  gr:["Giorgos","Nikos","Dimitris","Kostas","Vasilis","Panagiotis","Stelios","Christos","Thanasis","Alexis","Manos","Petros"],
+  tr:["Emre","Burak","Kerem","Arda","Cenk","Ozan","Yusuf","Hakan","Berkay","Umut","Serkan","Volkan"],
+  sk:["Jakub","Tomáš","Marek","Filip","Ondřej","Michal","Patrik","Lukáš","Adam","Dávid","Matej","Peter"],
+  ea:["Ivan","Dmitri","Andrej","Nikola","Luka","Stefan","Marko","Vuk","Miloš","Danijel","Filip","Aleksandar"],
+  af:["Kwame","Samuel","Ibrahim","Youssef","Emeka","Sadio","Kofi","Ismaël","Cheikh","Abdou","Musa","Baba"],
+  jp:["Takumi","Sora","Haruto","Ren","Yuto","Kaito","Riku","Daiki","Hiroto","Shota","Kenta","Yuki"],
+  ar:["Omar","Karim","Yousef","Hassan","Faisal","Tarek","Rami","Nasser","Bilal","Ziad","Sami","Adel"],
+};
+const VOR_W = {
+  de:["Lena","Marie","Jana","Sophie","Nele","Antonia","Ida","Frieda","Mia","Hanna","Greta","Pia"],
+  en:["Emily","Chloe","Grace","Amy","Holly","Ruby","Ellie","Megan","Katie","Lucy","Freya","Beth"],
+  es:["Lucía","Carmen","Paula","Marta","Nerea","Alba","Irene","Sara","Elena","Rocío","Nuria","Aitana"],
+  it:["Giulia","Chiara","Sara","Martina","Elisa","Alice","Federica","Valentina","Ilaria","Beatrice","Arianna","Noemi"],
+  fr:["Camille","Manon","Léa","Chloé","Inès","Jade","Louise","Emma","Sarah","Clara","Anaïs","Zoé"],
+  nl:["Sanne","Fenna","Lotte","Julia","Eva","Anne","Iris","Maud","Femke","Roos","Lieke","Nienke"],
+  pt:["Beatriz","Inês","Matilde","Carolina","Rita","Mariana","Joana","Leonor","Catarina","Sofia","Diana","Marta"],
+  gr:["Eleni","Maria","Katerina","Sofia","Dimitra","Georgia","Anna","Ioanna","Christina","Vasiliki","Niki","Zoi"],
+  tr:["Elif","Zeynep","Ayşe","Merve","Deniz","Ece","Selin","Buse","Melis","Ceren","Nur","Sena"],
+  sk:["Tereza","Kristýna","Katarína","Petra","Lucia","Veronika","Barbora","Simona","Zuzana","Eliška","Nikola","Martina"],
+  ea:["Ana","Milica","Jelena","Ivana","Sofija","Katarina","Nina","Teodora","Marija","Anja","Dunja","Lena"],
+  af:["Amina","Fatou","Aisha","Nala","Zainab","Adaeze","Mariam","Awa","Chiamaka","Halima","Yaa","Sanaa"],
+  jp:["Yui","Sakura","Aoi","Hina","Mio","Rin","Nanami","Koharu","Akari","Riko","Emi","Miu"],
+  ar:["Layla","Nour","Salma","Rania","Yasmin","Amira","Hala","Dina","Farah","Maha","Lina","Sara"],
+};
+const NACH = {
+  de:["Bergmann","Hofmann","Vogt","Reinhardt","Kessler","Brandt","Lindner","Sauer","Kraft","Wendt","Rieger","Stein"],
+  en:["Carter","Whitfield","Bramley","Hollis","Ashcroft","Pemberton","Drake","Reeves","Shaw","Ainsley","Cole","Radley"],
+  es:["Serrano","Ibáñez","Cabrera","Peralta","Montoya","Escobar","Rivas","Bellido","Quintana","Vidal","Cortés","Lozano"],
+  it:["Bellini","Rossetti","Conti","Marchetti","Vitale","Ferrara","Bruno","Marino","Costa","Rinaldi","Greco","Sartori"],
+  fr:["Lemaire","Dupont","Marchand","Girard","Fontaine","Roussel","Bonnet","Perrin","Leroy","Charpentier","Vasseur","Colin"],
+  nl:["van Dijk","de Boer","Visser","Bakker","Jansen","Kuiper","Hendriks","Smit","Vermeer","de Wit","Groot","Kramer"],
+  pt:["Almeida","Fonseca","Teixeira","Moreira","Cardoso","Braga","Pinto","Azevedo","Sousa","Faria","Lopes","Correia"],
+  gr:["Papadopoulos","Nikolaidis","Vlachos","Karagiannis","Stefanidis","Mavridis","Antoniou","Samaras","Petridis","Lambros","Dimou","Sakellaris"],
+  tr:["Yıldırım","Demir","Kaya","Şahin","Aslan","Doğan","Çelik","Arslan","Koç","Polat","Tekin","Ergün"],
+  sk:["Novák","Horák","Svoboda","Kučera","Procházka","Doležal","Blažek","Kováč","Bartoš","Vlček","Šimek","Mareš"],
+  ea:["Petrović","Jovanović","Ilić","Marković","Novak","Kovač","Radić","Simić","Babić","Vuković","Lazić","Đurić"],
+  af:["Diallo","Traoré","Okafor","Mensah","Keita","Ndiaye","Bamba","Owusu","Cissé","Adeyemi","Camara","Zongo"],
+  jp:["Tanaka","Sato","Yamamoto","Nakamura","Kobayashi","Watanabe","Ito","Suzuki","Takahashi","Inoue","Kimura","Hayashi"],
+  ar:["Al-Rashid","Haddad","Nassar","Khalil","Mansour","Saleh","Farouk","Aziz","Jabari","Kassem","Shadid","Barakat"],
+};
+/* Der Vorschlag hängt AN DER KENNUNG, nicht am Zufall: dieselbe Kennung
+   liefert denselben Namen, sonst wechselte er bei jedem Tastendruck. */
+const namensVorschlag = (natId, g, kennung) => {
+  const r = REGION[natId] || "de";
+  const v = (g === "w" ? VOR_W : VOR_M)[r] || (g === "w" ? VOR_W : VOR_M).de;
+  const n = NACH[r] || NACH.de;
+  const h = Math.abs(kennung | 0);
+  return v[h % v.length] + " " + n[(h >> 5) % n.length];
+};
+
 const MILESTONES = [
   { id:"a50",  t:"50 Pflichtspiele",       leg:4,  ok:(p)=>p.tot.apps>=50 },
   { id:"a100", t:"100 Pflichtspiele",      leg:8,  ok:(p)=>p.tot.apps>=100 },
@@ -4014,7 +4077,7 @@ const EVENTS = [
 { id:"l_position", tag:"Land", w:2, cond:p=>p.club.c==="NED", title:T("Positionsspiel bis zum Umfallen"),
   text:T("Der Trainer lässt jede Einheit dieselbe Rondo-Form spielen. Wer den Ball verliert, geht in die Mitte."),
   choices:[{label:"Verbissen mitmachen",hint:"",roll:[{p:1,text:"Nach einem halben Jahr spielst du unter Druck sauberer als je zuvor.",fx:{pas:3,dri:1,note:.08}}]},
-    {label:"Innerlich abhaken",hint:"",roll:[{p:1,text:"Du machst mit, ohne dabei zu sein. Es bringt entsprechend wenig.",fx:{morale:-4}}]}]},
+    {label:"Innerlich abhaken",hint:"",roll:[{p:1,text:"Du machst mit, ohne dabei zu sein. Bringt also wenig.",fx:{morale:-4}}]}]},
 { id:"l_oldfirm", tag:"Land", w:2, cond:p=>p.club.c==="SCO", title:T("Die Stadt ist zweigeteilt"),
   text:T("Seit Montag wirst du in jedem Geschäft darauf angesprochen. Es gibt hier keine Neutralität."),
   choices:[{label:"Sich klar bekennen",hint:"",roll:[{p:1,text:"Die eigenen Fans lieben dich dafür, die anderen pfeifen dich zwei Jahre lang aus.",fx:{rep:10,morale:8,form:6}}]},
@@ -5082,7 +5145,7 @@ const EVENTS = [
   text:c=>`Für ${c.ls.trophies[0]} hat der Verein eine Prämie zugesagt. Sie liegt über dem, was im Vertrag stand.`,
   choices:[{label:"Annehmen",hint:"",roll:[{p:1,text:"Der Betrag ist am nächsten Werktag auf dem Konto.",fx:{money:.4,morale:10}}]},
     {label:"An die Mannschaftskasse abgeben",hint:"",roll:[{p:1,text:"Du gibst alles an Zeugwarte, Physios und Platzwarte weiter. Das spricht sich herum.",fx:{trust:18,rep:12,legacy:10,morale:8}}]}]},
-{ id:"sf_ausruestung", tag:"Lifestyle", w:5, ph:2, cond:p=>p.money>=1&&!p.assets.includes("physio"), title:T("Der Physiotherapeut steht zur Verfügung"),
+{ id:"sf_ausruestung", tag:"Lifestyle", w:5, ph:2, cond:p=>p.money>=1&&!p.assets.includes("physio"), title:T("Der Physio hat einen Termin frei"),
   text:T("Er hat zwei Weltmeister betreut und sucht einen neuen Spieler, den er ganzjährig begleitet."),
   choices:[{label:"Sofort verpflichten",hint:"Ab sofort in deinem Besitz",roll:[{p:1,text:"Ab nächster Woche kommt er dreimal wöchentlich zu dir nach Hause.",fx:{buyAsset:"physio",money:-.9,fitness:8,injuryProne:-12}}]},
     {label:"Nächstes Jahr",hint:"",roll:[{p:1,text:"Du willst erst sehen, wie die Saison läuft.",fx:{}}]}]},
@@ -6245,7 +6308,95 @@ function drawEvents(p, n) {
   out.sort((a, b) => phaseOf(a) - phaseOf(b));
   return out.map((e) => ({ ...e, _ctx: ctx }));
 }
-const evText = (v, ctx) => (typeof v === "function" ? v(ctx) : v);
+/* ---- Weibliche Formen ----------------------------------------------------
+   Die 2.700 Ereignistexte sind in männlicher Form geschrieben. Sie alle
+   doppelt zu pflegen wäre nicht durchzuhalten — bei jeder Änderung müsste
+   man an zwei Stellen denken, und irgendwann vergisst man eine.
+
+   Stattdessen läuft der fertige Text durch eine Umformung. `evText` ist der
+   EINZIGE Punkt, an dem Ereignistexte ausgewertet werden; was hier greift,
+   greift überall: Titel, Fliesstext, Auswahlmöglichkeiten, Ergebnisse.
+
+   Achtung bei der Reihenfolge: längere Wörter zuerst, sonst macht
+   „Nationalspieler" den Umweg über „Spieler" und wird zu „Nationalspielerin"
+   … was zwar stimmt, aber nur zufällig. Zusammengesetzte stehen deshalb oben.
+
+   Im Frauenfussball sind auch die ANDEREN weiblich: Mitspielerinnen, die
+   Kapitänin, die Trainerin gibt es hier nicht automatisch — der Trainer kann
+   ein Mann sein, deshalb bleibt „Trainer" stehen. Nur Personen, die
+   zwangsläufig Spielerinnen sind, werden umgeformt.                        */
+/* Die Wörter, die im Frauenfussball weiblich werden. Trainer bleibt Trainer:
+   der kann auch bei einer Frauenmannschaft ein Mann sein. */
+const W_WORT = [
+  ["Nationalspieler", "Nationalspielerin"], ["Mitspieler", "Mitspielerin"],
+  ["Torjäger", "Torjägerin"], ["Torhüter", "Torhüterin"], ["Kapitän", "Kapitänin"],
+  ["Spieler", "Spielerin"], ["Stürmer", "Stürmerin"], ["Verteidiger", "Verteidigerin"],
+  ["Verlierer", "Verliererin"], ["Sieger", "Siegerin"],
+];
+/* Begleiter, die sich mitändern. Ohne sie entsteht „Der Kapitänin" und
+   „Ein Mitspielerin" — genau das kam beim ersten Versuch heraus. */
+const W_ARTIKEL_ROH = [
+  ["der", "die"], ["ein", "eine"], ["dein", "deine"], ["kein", "keine"],
+  ["einen", "eine"], ["deinen", "deine"], ["keinen", "keine"],
+  ["dem", "der"], ["einem", "einer"], ["deinem", "deiner"],
+  ["des", "der"], ["eines", "einer"], ["unser", "unsere"],
+  ["jeder", "jede"], ["dieser", "diese"], ["unserem", "unserer"],
+];
+/* Gross- und Kleinschreibung automatisch — beim ersten Versuch stand nur die
+   Kleinschreibung in der Liste, und „Dem Kapitän" blieb unverändert stehen. */
+const gross = (w) => w.charAt(0).toUpperCase() + w.slice(1);
+const W_ARTIKEL = W_ARTIKEL_ROH.flatMap(([m, w]) => [[m, w], [gross(m), gross(w)]]);
+/* Was einen Plural ankündigt: danach heisst es Spielerinnen, nicht Spielerin. */
+const W_PLURAL_ROH = ["zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun",
+  "zehn", "elf", "zwölf", "viele", "einige", "alle", "beide", "mehrere", "die", "keine",
+  "andere", "unsere", "diese", "manche"];
+const W_PLURAL = "(?:" + W_PLURAL_ROH.concat(W_PLURAL_ROH.map(gross)).join("|") + "|\\d+)";
+
+/* Aus den Listen werden einmalig die Ersetzungen gebaut — nicht bei jedem
+   Aufruf, das liefe sonst tausendfach je Saison. Reihenfolge: erst Plural,
+   dann Artikel + Wort, zuletzt das nackte Wort. Längere Wörter zuerst, sonst
+   greift „Spieler" schon in „Nationalspieler". */
+const WEIBLICH = (() => {
+  const aus = [];
+  W_WORT.forEach(([m, w]) => {
+    /* Plural: „zwei Spieler" → „zwei Spielerinnen" */
+    aus.push([new RegExp("\\b(" + W_PLURAL + ")\\s+" + m + "\\b", "g"), "$1 " + w + "nen"]);
+    aus.push([new RegExp("\\b(" + W_PLURAL + ")\\s+" + m + "n\\b", "g"), "$1 " + w + "nen"]);
+    /* Artikel + Wort */
+    W_ARTIKEL.forEach(([am, aw]) => {
+      aus.push([new RegExp("\\b" + am + "\\s+" + m + "\\b", "g"), aw + " " + w]);
+      aus.push([new RegExp("\\b" + am + "\\s+" + m + "s\\b", "g"), aw + " " + w]);
+    });
+    /* nacktes Wort, zuletzt */
+    aus.push([new RegExp("\\b" + m + "s\\b", "g"), w]);
+    aus.push([new RegExp("\\b" + m + "\\b", "g"), w]);
+  });
+  /* Wendungen über die Person selbst */
+  [["du bist einer", "du bist eine"], ["Du bist einer", "Du bist eine"],
+   ["du warst einer", "du warst eine"], ["Du warst einer", "Du warst eine"],
+   ["einer davon", "eine davon"], ["einer von", "eine von"],
+   ["als Erster", "als Erste"], ["Als Erster", "Als Erste"],
+   ["als Bester", "als Beste"], ["Als Bester", "Als Beste"],
+   ["als Einziger", "als Einzige"], ["Als Einziger", "Als Einzige"],
+   ["als Letzter", "als Letzte"], ["Als Letzter", "Als Letzte"],
+   ["der Einzige", "die Einzige"], ["Der Einzige", "Die Einzige"],
+   ["der Beste", "die Beste"], ["Der Beste", "Die Beste"],
+   ["der Erste", "die Erste"], ["Der Erste", "Die Erste"],
+   ["ein Junge", "ein Mädchen"], ["der Junge", "das Mädchen"],
+  ].forEach(([m, w]) => aus.push([new RegExp("\\b" + m + "\\b", "g"), w]));
+  return aus;
+})();
+const weiblichForm = (t) => {
+  let x = String(t);
+  for (let i = 0; i < WEIBLICH.length; i++) x = x.replace(WEIBLICH[i][0], WEIBLICH[i][1]);
+  return x;
+};
+const evText = (v, ctx) => {
+  const t = typeof v === "function" ? v(ctx) : v;
+  if (t == null) return t;
+  const p = ctx && ctx.p;
+  return (p && p.g === "w") ? weiblichForm(t) : t;
+};
 
 function develop(p) {
   const t = TRAINING.find((x) => x.id === p.training) || TRAINING[4];
@@ -7110,6 +7261,15 @@ const leereAkademie = () => ({
 
 const akaStufe = (a, id) => clamp((a && a.stufen && a.stufen[id]) || 1, 1, AKA_MAX);
 const akaSumme = (a) => ABTEILUNGEN.reduce((s, x) => s + akaStufe(a, x.id), 0);
+/* Jede Abteilung STARTET auf Stufe 1. `akaSumme` ist deshalb direkt nach der
+   Gründung schon 6 von 36 — der Ring zeigte 17 %, obwohl noch nichts gebaut
+   ist. Fortschritt heisst hier: was ueber die Gruendung hinaus erreicht wurde.
+   `akaSumme` selbst bleibt unveraendert, weil die Errungenschaft „voller
+   Ausbau" darauf prueft. */
+const AKA_GRUND = ABTEILUNGEN.length;                  /* 6 · alles auf Stufe 1 */
+const AKA_VOLL = ABTEILUNGEN.length * AKA_MAX;         /* 36 */
+const AKA_STUFEN = AKA_VOLL - AKA_GRUND;               /* 30 wirklich baubare Stufen */
+const akaAusbau = (a) => akaSumme(a) - AKA_GRUND;
 const akaPreis = (a, id) => { const st = akaStufe(a, id);
   return st >= AKA_MAX ? null : abtById(id).kosten[st]; };
 /* Was der volle Ausbau ab dem jetzigen Stand noch kostet */
@@ -7401,6 +7561,7 @@ function TalentZeile({ t, spanne }) {
 }
 
 function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
+  useZurueck(onBack);
   const [name, setName] = useState("");
   const [reiter, setReiter] = useState("ausbau");
   const [jubel, setJubel] = useState(null);      // zuletzt ausgebaute Abteilung
@@ -7418,7 +7579,7 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
   const bt = akaBonusText(b);
 
   if (!a.gegruendet) return (
-    <Shell>
+    <Shell blatt="akademie">
       <div className="fade" style={{ maxWidth: 620, margin: "0 auto" }}>
         <div className="eb">Nebenstrang</div>
         <div className="d" style={{ fontSize: 34, marginTop: 2 }}>Jugendakademie</div>
@@ -7456,7 +7617,7 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
     ["ehrentafel", "Ehrentafel"], ["chronik", "Chronik"]];
 
   return (
-    <Shell wide>
+    <Shell wide blatt="akademie">
       {jubel && !RUHE && (
         <div aria-hidden style={{ position: "fixed", inset: 0, zIndex: 40, pointerEvents: "none" }}>
           <Konfetti farben={["#E8B84B", "var(--ok)", "#DCE3D8"]}
@@ -7481,15 +7642,15 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
         <div className="pan pad" style={{ marginTop: 14,
           borderColor: naechster && naechster.reicht ? "var(--go)" : "var(--ln2)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            <AusbauRing von={akaSumme(a)} bis={ABTEILUNGEN.length * AKA_MAX}
-              farbe={akaSumme(a) >= ABTEILUNGEN.length * AKA_MAX ? "var(--go)" : "var(--ac)"} />
+            <AusbauRing von={akaAusbau(a)} bis={AKA_STUFEN}
+              farbe={akaAusbau(a) >= AKA_STUFEN ? "var(--go)" : "var(--ac)"} />
             <div style={{ flex: "1 1 190px", minWidth: 0 }}>
               {!naechster ? (
                 <>
                   <div className="eb" style={{ color: "var(--go)" }}>Vollständig ausgebaut</div>
                   <div className="d" style={{ fontSize: 19, marginTop: 2 }}>Alles steht</div>
                   <p style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 4 }}>
-                    Sechs Abteilungen, sechs Stufen. Ab jetzt arbeitet das Haus für sich.</p>
+                    Sechs Abteilungen, alle auf Maximum. Mehr geht nicht.</p>
                 </>
               ) : naechster.reicht ? (
                 <>
@@ -7527,10 +7688,10 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
 
         {bt.length > 0 && (
           <div className="pan pad" style={{ marginTop: 12, borderColor: "var(--go)" }}>
-            <div className="eb" style={{ color: "var(--go)" }}>Was neue Laufbahnen davon haben</div>
+            <div className="eb" style={{ color: "var(--go)" }}>Was die Nächsten davon haben</div>
             <div style={{ fontSize: 13, marginTop: 4 }}>{bt.join(" · ")}</div>
             <div className="m" style={{ fontSize: 10, color: "var(--mu)", marginTop: 4 }}>
-              Wirkt ab der nächsten Karriere. Der Vorteil ist gedeckelt.
+              Gilt ab der nächsten Laufbahn. Irgendwann ist aber Schluss mit dem Bonus.
             </div>
           </div>)}
 
@@ -7544,7 +7705,7 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
         {reiter === "ausbau" && (
           <div className="g1" style={{ marginTop: 12 }}>
             <div className="m" style={{ fontSize: 10.5, color: "var(--mu)" }}>
-              Voller Ausbau: noch {rest} VC · Stufen gesamt {akaSumme(a)} von {ABTEILUNGEN.length * AKA_MAX}
+              Voller Ausbau: noch {rest} VC · Ausbaustufen {akaAusbau(a)} von {AKA_STUFEN}
             </div>
             {ABTEILUNGEN.map((x) => {
               const st = akaStufe(a, x.id);
@@ -7604,7 +7765,7 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
             </div>
             {a.absolventen.length === 0
               ? <div className="pan pad" style={{ fontSize: 13, color: "var(--mu)" }}>
-                  Noch niemand hat die Akademie als Profi verlassen.</div>
+                  Von hier hat es noch keiner nach oben geschafft.</div>
               : a.absolventen.map((x, i) => {
                   /* Eine Ehrentafel ist ein Brett mit angeschraubten Schildern:
                      helles Papier auf der dunklen Seite, Kopfband mit dem Rang,
@@ -7700,23 +7861,50 @@ function useSchriftBefund() {
 
 const CSS = SCHRIFTEN + `
 .fl{
- /* Grund: Rasen bei Nacht. Vorher ein Blauschwarz — das ist die Farbe von
-    Übersichtsseiten, nicht von Fußball. */
- --bg:#070D0A;--pan:#0C130F;--pan2:#111A15;--up:#131D17;--ln:#1A241E;--ln2:#2C3A31;
- --tx:#EDF2E9;--mu:#8A9690;
+ /* Grund: dunkles Zeitungspapier — die Nachtausgabe. Vorher Rasen bei Nacht,
+    davor ein Blauschwarz. Warm, weil der Karton der Sammelkarten (#E9E2D3)
+    warm ist: dasselbe Papier, nur im Dunkeln. Ungestrichen, also matt und
+    mit sichtbarer Faser, kein Glanz — Glanz ließe sich hier nur über einen
+    Verlauf erzählen, und die haben wir überall abgeschafft. */
+ --bg:#191813;--pan:#211E17;--pan2:#282419;--up:#262218;--ln:#3A3628;--ln2:#625C49;
+ --tx:#EFECE2;--mu:#A09B8C;
  /* Bedeutung als Ampel des Sports: Rasengrün, Gelbe Karte, Rote Karte.
     Akzent ist das Blau der Stadionhefte. */
- --ac:#3D8FDB;--go:#F2C230;--ok:#3DA35D;--bad:#E5493C;
+ --ac:#3D8FDB;--go:#F2C230;--ok:#3DA35D;--bad:#EC6152;
+ /* Signalrot des Störers auf dem Titelblatt. Nur als Fläche, nie als Text. */
+ --stoerer:#D93A2B;
  /* Zweitwerte für helle Flächen (Karton). Ohne die ist auf Papier nichts lesbar. */
  --karton:#E9E2D3;--karton2:#DBD2BF;--tinte:#14171A;--tinte2:#565C58;
  --ac-k:#15558F;--go-k:#7A5600;--ok-k:#146B33;--bad-k:#A81C13;
- /* Halbtonraster über dem Grund — die Textur des gedruckten Hefts. */
- background:
-  radial-gradient(circle at center,rgba(237,242,233,.030) 1.1px,transparent 1.5px) 0 0/5px 5px,
-  radial-gradient(1100px 620px at 50% -8%,#12231A 0%,#070D0A 62%);
- color:var(--tx);min-height:100vh;line-height:1.5;
+ /* Zeitungspapier: unregelmässiges Korn. EINE Bildlage und eine Vollfarbe —
+    weniger als vorher, der Zeichenaufwand sinkt also.
+
+    Zwei Versuche davor waren falsch. Erst eine schräge Linienschraffur: auf
+    dem Gerät Cord, nicht Faser. Dann zwei Punktraster mit teilerfremdem
+    Abstand: gleichmässiger als gedacht, es sah aus wie Punkte AUF dem Papier.
+    Beides hat dieselbe Ursache — mit Verläufen lassen sich nur regelmässige
+    Muster bauen, und Papier ist nicht regelmässig.
+
+    Jetzt eine 96x96 grosse Kachel aus echtem Rauschen, nahtlos (weichgezeichnet
+    mit Umlauf), zwei Korngrössen übereinander, nur abdunkelnd — Aufhellungen
+    sähen aus wie Staub. 5,9 KB.
+
+    Das HALBTONRASTER ist vom Grund verschwunden und bleibt den Bildflächen
+    vorbehalten. Ein Raster ist die Art, wie ein Bild gedruckt wird, nicht die
+    Oberfläche des Papiers; auf dem Grund las es sich als Punktgitter. */
+ background:url(data:image/png;base64,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) repeat 0 0/96px 96px,var(--bg);
+ color:var(--tx);line-height:1.5;
  font-family:'Rasen Text',Roboto,system-ui,-apple-system,'Segoe UI',sans-serif;
- font-size:calc(14.5px * var(--skala,1));-webkit-font-smoothing:antialiased;}
+ font-size:14.5px;-webkit-font-smoothing:antialiased;
+ /* Die Textgrösse wirkt über zoom, nicht über die Grundschriftgrösse. Grund:
+    357 Schriftgrössen stehen fest in Pixeln und erben nichts — der Regler
+    veränderte bis 34.7 genau zwei Stellen im ganzen Programm und war damit
+    praktisch wirkungslos. zoom skaliert alles gleichmässig, also auch
+    Abstände und Bilder; das ist genau, was der gesperrte Browserzoom vorher
+    tat. Deshalb heisst die Einstellung jetzt „Anzeigegrösse".
+    min-height muss gegengerechnet werden, sonst entsteht bei zoom > 1 eine
+    Rollleiste über die ganze Seite. */
+ zoom:var(--skala,1);min-height:calc(100vh / var(--skala,1));}
 .fl *{box-sizing:border-box;min-width:0;}
 .fl h1,.fl h2,.fl h3{margin:0;}
 .d{font-family:'Rasen Anzeige','Roboto Condensed','Arial Narrow',sans-serif;font-weight:400;text-transform:uppercase;line-height:.9;letter-spacing:.015em;}
@@ -7847,6 +8035,33 @@ table.led td.r,table.led th.r{text-align:right;}
    Kartenenthüllung: außen die Perspektive, innen die Drehung, darin die
    beiden Seiten. Beide Seiten liegen im selben Rasterfeld, dadurch nimmt
    der Pass immer die Höhe der längeren Seite an. */
+/* ---- Umblättern ----------------------------------------------------------
+   Die neue Seite dreht um ihre Bundkante herein, wie ein Blatt, das man
+   umschlägt. BEWUSST nur die ankommende Seite: die abgehende mitzudrehen
+   hiesse, ihren React-Baum nach dem Wechsel weiterleben zu lassen — mit
+   veraltetem Zustand und doppelt laufenden Wirkungen. Der Gewinn wäre klein,
+   das Risiko gross.
+   Die Richtung folgt den Seitenzahlen: von Seite 2 auf 14 wird vorwärts
+   geblättert, zurück andersherum. Dieselbe Technik wie beim Spielerpass
+   (preserve-3d), die am 10.8. auf dem Gerät bestätigt wurde. */
+/* ---- Umblättern: entfernt in 34.6 ---------------------------------------
+   Der Versuch stand in 34.4/34.5 und ist wieder raus. Zwei Befunde vom Gerät,
+   beide mit derselben Wurzel — es wurde die GANZE Seite gedreht:
+
+   1. Es hakte, statt in einem Zug zu laufen. Eine Seite mit 162 Feldern ist
+      mehrere tausend Punkte hoch; Chrome muss daraus für die Dauer der
+      Bewegung eine eigene Ebene rastern. Das schafft es nicht in einem Zug.
+   2. Auf langen Seiten verzerrte das ganze Bild. Das ist keine Panne, sondern
+      Geometrie: perspective staucht mit wachsendem Abstand vom Drehpunkt.
+      Bei einer Seite, die zehnmal so hoch ist wie das Fenster, wird das untere
+      Ende unbrauchbar verzogen.
+
+   WER ES SPÄTER NOCH EINMAL VERSUCHT, muss zuerst etwas anderes bauen: eine
+   Seite, die genau so hoch ist wie das Fenster und INNEN rollt
+   (height:100dvh und overflow-y:auto). Nur ein fensterhohes Blatt lässt sich
+   wie ein Blatt drehen. Das ist ein Umbau jeder Ansicht — mit Folgen für die
+   angeheftete Kopfleiste, für die Rollposition beim Zurückblättern und für die
+   Wachsperre. Erst diesen Umbau, dann das Blättern; nicht umgekehrt.       */
 .wender{perspective:1500px;}
 .dreh{display:grid;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;
   transition:transform .6s cubic-bezier(.2,.85,.25,1);will-change:transform;}
@@ -8096,7 +8311,19 @@ const RAHMEN = {
   mk_rahmen1: { n:"Silber",  c:"#9AA5B4", w:2 },
   mk_rahmen2: { n:"Bronze",  c:"#A5713C", w:2 },
 };
-const rahmenFuer = (meta) => { for (const k of Object.keys(RAHMEN)) if (meta && meta[k]) return RAHMEN[k]; return null; };
+/* Bis 34.7 nahm dies IMMER den ersten freigeschalteten Rahmen aus der Liste —
+   eine Wahl gab es nicht, obwohl mehrere freigeschaltet sein können. Jetzt
+   entscheidet `meta.rahmenWahl`; bleibt sie leer oder verweist auf etwas noch
+   nicht Freigeschaltetes, gilt weiter der beste vorhandene. */
+const rahmenOffen = (meta) => Object.keys(RAHMEN).filter((k) => meta && meta[k]);
+const rahmenFuer = (meta) => {
+  const offen = rahmenOffen(meta);
+  if (!offen.length) return null;
+  const w = meta && meta.rahmenWahl;
+  if (w === "keiner") return null;
+  if (w && offen.includes(w)) return RAHMEN[w];
+  return RAHMEN[offen[0]];
+};
 /* ---- 100 Errungenschaften. p = beendete Laufbahn, G = Gesamtbilanz ---- */
 const ACHIEVEMENTS = [
 /* ============ JUGENDAKADEMIE (12) ============ */
@@ -8344,7 +8571,7 @@ class AppGuard extends React.Component {
       fontSize: 14, fontWeight: 600, marginRight: 8, marginTop: 14, minHeight: 44, cursor: "pointer" };
     return (
       <div style={box}>
-        <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: ".01em" }}>Da ist etwas schiefgelaufen</div>
+        <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: ".01em" }}>Da hat was nicht geklappt</div>
         <p style={{ color: "#909C96", marginTop: 8 }}>
           Das Spiel konnte diese Ansicht nicht aufbauen. Unten steht die technische Meldung —
           ein Bildschirmfoto davon reicht, um den Fehler zu finden.
@@ -8371,7 +8598,7 @@ class Guard extends React.Component {
     if (!this.state.err) return this.props.children;
     return (
       <div className="pan pad" style={{ borderLeft: "3px solid var(--bad)" }}>
-        <div className="d" style={{ fontSize: 16, color: "var(--bad)" }}>Diese Ansicht ließ sich nicht aufbauen</div>
+        <div className="d" style={{ fontSize: 16, color: "var(--bad)" }}>Hier ist was schiefgegangen</div>
         <p style={{ fontSize: 12, color: "var(--mu)", marginTop: 5 }}>
           Der Rest läuft normal weiter — dein Spielstand ist nicht betroffen. Klick auf Nochmal versuchen
           oder wechsel kurz den Reiter.
@@ -8382,11 +8609,61 @@ class Guard extends React.Component {
   }
 }
 
-function Shell({ children, wide }) {
+/* Die Ressorts des Hefts. Die Seitenzahl steht NUR hier: Kolumnentitel oben,
+   Folio unten und das Inhaltsverzeichnis auf dem Titelblatt müssen dasselbe
+   sagen, sonst ist das Heft nicht mehr glaubwürdig. */
+const RESSORT = {
+  laufbahn:  { n: "LAUFBAHN",         s: 2,  f: "var(--go)" },
+  anlegen:   { n: "SPIELERPASS",      s: 3,  f: "var(--stoerer)" },
+  hall:      { n: "RUHMESHALLE",      s: 14, f: "var(--ac)" },
+  erfolge:   { n: "ERRUNGENSCHAFTEN", s: 22, f: "var(--ok)" },
+  akademie:  { n: "JUGENDAKADEMIE",   s: 30, f: "var(--mu)" },
+  optionen:  { n: "REDAKTION",        s: 46, f: "var(--mu)" },
+  archiv:    { n: "ARCHIV",           s: 48, f: "var(--mu)" },
+};
+
+/* Seitenkopf. „Jede Seite hat einen Namen, damit sich der Leser zurechtfindet" —
+   das ist der Kolumnentitel. Darunter die doppelte Haarlinie, wie im Satz üblich. */
+function Kolumnentitel({ r, zusatz }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
+        <span className="d" style={{ fontSize: 15, letterSpacing: ".09em", borderLeft: "3px solid " + r.f,
+          paddingLeft: 8 }}>{r.n}{zusatz ? " · " + zusatz : ""}</span>
+        <span className="eb" style={{ whiteSpace: "nowrap" }}>Seite {r.s}</span>
+      </div>
+      <div style={{ height: 2, background: "var(--ln2)", marginTop: 7 }} />
+      <div style={{ height: 1, background: "var(--ln2)", marginTop: 3, opacity: .6 }} />
+    </div>
+  );
+}
+
+/* Folio: Seitenzahl außen, Publikationsname innen. */
+function Folio({ r }) {
+  return (
+    <div style={{ marginTop: 26 }}>
+      <div style={{ height: 1, background: "var(--ln2)" }} />
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10, marginTop: 8 }}>
+        <span className="d" style={{ fontSize: 20 }}>{r.s}</span>
+        <span className="eb" style={{ textAlign: "right" }}>
+          Rasenschach XI · {r.n}<br />
+          <span style={{ letterSpacing: ".06em", textTransform: "none" }}>Nachtausgabe</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function Shell({ children, wide, blatt, zusatz }) {
+  const r = blatt ? RESSORT[blatt] : null;
   return (
     <div className="fl">
       <style>{CSS}</style>
-      <div style={{ margin: "0 auto", maxWidth: wide ? 1120 : 860, padding: "14px 12px 40px" }}>{children}</div>
+      <div style={{ margin: "0 auto", maxWidth: wide ? 1120 : 860, padding: "14px 12px 40px" }}>
+        {r && <Kolumnentitel r={r} zusatz={zusatz} />}
+        {children}
+        {r && <Folio r={r} />}
+      </div>
     </div>
   );
 }
@@ -8435,6 +8712,59 @@ const setTextstufe = (n) => {
   if (typeof document !== "undefined" && document.documentElement)
     document.documentElement.style.setProperty("--skala", String(TEXTSKALA[TEXTSTUFE]));
 };
+/* Rollen der Seite sperren, solange eine Überlagerung offen ist. Ohne das
+   rollt der Hintergrund unter der Saisonbilanz mit, sobald man am Rand der
+   Karte wischt — man sieht dann die Seite darunter wandern und weiss nicht
+   mehr, was gerade reagiert. Zähler statt Schalter: bei zwei Überlagerungen
+   übereinander darf die erste, die schliesst, nicht schon freigeben. */
+let ROLLSPERRE = 0;
+const rollSperren = (an) => {
+  if (typeof document === "undefined" || !document.body) return;
+  ROLLSPERRE = Math.max(0, ROLLSPERRE + (an ? 1 : -1));
+  document.body.style.overflow = ROLLSPERRE > 0 ? "hidden" : "";
+  document.body.style.touchAction = ROLLSPERRE > 0 ? "none" : "";
+};
+
+/* ---- Zurück-Taste des Geräts ---------------------------------------------
+   Ohne Zusatzpaket: Capacitor leitet die Taste an den Verlauf der WebView
+   weiter, also lässt sie sich über `popstate` abfangen. Für jede Ansicht,
+   die sich schliessen lässt, wird ein Eintrag in den Verlauf gelegt; die
+   Taste nimmt ihn wieder herunter.
+
+   Ein STAPEL, kein einzelner Empfänger: Optionen über Menü, Rückblick über
+   Karriere — die Taste muss immer das Oberste schliessen, nicht irgendetwas.
+   Ist der Stapel leer, greift nichts und die Taste verlässt die App wie
+   gewohnt. */
+const ZURUECK = [];
+let zurueckBereit = false;
+const zurueckAnmelden = (fn) => {
+  if (typeof window === "undefined") return () => {};
+  if (!zurueckBereit) {
+    zurueckBereit = true;
+    window.addEventListener("popstate", () => {
+      const oben = ZURUECK[ZURUECK.length - 1];
+      if (!oben) return;                       /* nichts offen: App darf zu */
+      /* Sofort einen Ersatzeintrag legen, sonst ist der Verlauf beim
+         nächsten Druck leer und die App schliesst ungewollt. */
+      try { window.history.pushState({ rs: 1 }, ""); } catch (e) {}
+      oben();
+    });
+  }
+  try { window.history.pushState({ rs: 1 }, ""); } catch (e) {}
+  ZURUECK.push(fn);
+  return () => {
+    const i = ZURUECK.lastIndexOf(fn);
+    if (i >= 0) ZURUECK.splice(i, 1);
+  };
+};
+/* In einer Ansicht: useZurueck(() => onBack()). Meldet beim Aufbau an und
+   beim Abbau wieder ab. */
+function useZurueck(fn) {
+  const ref = useRef(fn);
+  ref.current = fn;
+  useEffect(() => zurueckAnmelden(() => ref.current && ref.current()), []);
+}
+
 let RUHE = false;
 const setRuhe = (v) => { RUHE = !!v; if (typeof document !== "undefined")
   document.documentElement.classList.toggle("rs-still", !!v); };
@@ -8711,6 +9041,9 @@ function TitelJubel({ titel, club, land, onFertig }) {
    Saison, nur über alles. Danach folgt die gewohnte Abschlussbilanz.    */
 function KarriereRueckblick({ p, onFertig }) {
   const [i, setI] = useState(0);
+  useZurueck(onFertig);
+  /* Solange der Rückblick offen ist, rollt die Seite darunter nicht mit. */
+  useEffect(() => { rollSperren(true); return () => rollSperren(false); }, []);
   const isTW = p.pos === "TW";
   const S = p.seasons || [];
   const v = p.verdict || verdict(p);
@@ -8871,6 +9204,9 @@ function KarriereRueckblick({ p, onFertig }) {
 
 function SaisonRueckblick({ p, s, onFertig }) {
   const [i, setI] = useState(0);
+  useZurueck(onFertig);
+  /* Solange der Rückblick offen ist, rollt die Seite darunter nicht mit. */
+  useEffect(() => { rollSperren(true); return () => rollSperren(false); }, []);
   const isTW = p.pos === "TW";
   const titel = s.trophies || [];
   const seiten = [];
@@ -9184,7 +9520,7 @@ function WildcardCard({ card, big, onReroll, rerollLeft, rerollN }) {
             <button className="btn sm" onClick={onReroll}>Karte neu ziehen{rerollN > 1 ? " (" + rerollN + " übrig)" : ""}</button>
           ) : (
             <div className="m" style={{ fontSize: 10, color: "var(--mu)" }}>
-              Kein Tausch mehr übrig — diese Karte begleitet dich bis zum Karriereende.
+              Kein Tausch mehr — die Karte bleibt bis zum Schluss.
             </div>)}
         </div>)}
     </div>
@@ -9299,10 +9635,20 @@ function Pass({ p, full, wachstum }) {
       </div>
       {!stationen.length ? (
         <div style={{ fontSize: 12.5, color: "var(--tinte2)" }}>
-          Noch keine Saison gespielt. Der erste Eintrag kommt am Saisonende.
+          Noch keine Saison gespielt. Der erste Eintrag kommt im Sommer.
         </div>
       ) : (
-        <div>
+        /* Beide Seiten liegen im selben Rasterfeld, der Pass nimmt also die
+           Höhe der LÄNGEREN an. Mit jeder Station wuchs deshalb auch die
+           Vorderseite, obwohl dort nichts hinzukam. Die Liste rollt jetzt
+           innen: über sechs Stationen bleibt der Pass gleich hoch.
+           `touchAction: pan-y` ist nötig, weil html/body auf pan-x pan-y
+           stehen — ohne die Angabe schluckt die Seite das Wischen. */
+        <div style={stationen.length > 6
+          ? { maxHeight: 152, overflowY: "auto", touchAction: "pan-y",
+              borderTop: "1px solid rgba(20,23,26,.16)", borderBottom: "1px solid rgba(20,23,26,.16)",
+              overscrollBehavior: "contain" }
+          : undefined}>
           {stationen.map((st, i) => (
             <div key={i} className="passzeile" style={{ gap: 7 }}>
               <span className="m" style={{ flex: "0 0 auto", fontSize: 10, color: "var(--tinte2)" }}>
@@ -9316,6 +9662,10 @@ function Pass({ p, full, wachstum }) {
           ))}
         </div>
       )}
+
+      {stationen.length > 6 && (
+        <div className="eb" style={{ marginTop: 4, textAlign: "right" }}>
+          {stationen.length} Stationen · in der Liste blättern</div>)}
 
       <div className="m zellen" style={{ fontSize: 11, marginTop: 11 }}>
         <div><span className="eb">Stationen</span>{stationen.length}</div>
@@ -9357,31 +9707,37 @@ function Pass({ p, full, wachstum }) {
 /* ---------- Kurzanleitung ---------- */
 /* Erklärt in fünf Abschnitten, wie das Spiel funktioniert. Bewusst knapp:
    wer nachschlägt, sucht eine Antwort, keinen Aufsatz. */
+/* Die Anleitung. Ton: wie jemand, der dir das Spiel in der Kabine erklärt,
+   nicht wie eine Bedienungsanleitung. Kurz halten — wer hier lange liest,
+   spielt nicht. In 34.10 von Erklärsätzen befreit, die frühere Änderungen
+   begründeten statt das Spiel zu erklären. */
 const ANLEITUNG = [
-  ["Der Ablauf", [
-    ["Eine Saison, drei Schritte", "Trainingsschwerpunkt setzen, eine Entscheidung treffen, Saison auswerten. Danach beginnt die nächste."],
-    ["Du steuerst einen Spieler", "Nicht den Verein. Aufstellung, Taktik und Einkäufe macht der Trainer — du entscheidest, was du selbst tust."],
-    ["Es endet von allein", "Irgendwann reicht es körperlich nicht mehr. Wann, hängt von Alter, Fitness und Verletzungen ab."]]],
+  ["So läuft's", [
+    ["Drei Schritte, dann Sommerpause", "Training festlegen, eine Entscheidung treffen, Saison anschauen. Weiter geht's."],
+    ["Du bist der Spieler, nicht der Trainer", "Aufstellung und Einkäufe macht ein anderer. Du entscheidest, was du selbst tust."],
+    ["Irgendwann ist Schluss", "Das Knie sagt Bescheid. Wann, hängt von Alter, Fitness und Verletzungen ab."]]],
   ["Deine Werte", [
-    ["Stärke", "Der Durchschnitt deiner sechs Attribute. Vereine schauen zuerst darauf."],
-    ["Form und Fitness", "Form schwankt von Saison zu Saison, Fitness sinkt mit dem Alter und nach Verletzungen."],
-    ["Vertrauen", "Wie der Trainer zu dir steht. Niedriges Vertrauen kostet Einsätze, egal wie stark du bist."],
-    ["Bekanntheit", "Bestimmt, wer sich meldet — Vereine, Nationaltrainer, Sponsoren."]]],
+    ["Stärke", "Der Schnitt aus deinen sechs Werten. Da schauen Vereine zuerst hin."],
+    ["Form und Fitness", "Form schwankt von Jahr zu Jahr. Fitness geht runter, wenn du älter wirst oder dich hinlegst."],
+    ["Vertrauen", "Was der Trainer von dir hält. Traut er dir nichts zu, sitzt du draußen — egal wie stark du bist."],
+    ["Bekanntheit", "Entscheidet, wer anruft. Vereine, Nationaltrainer, Sponsoren."]]],
   ["Wildcards", [
-    ["Eine je Laufbahn", "Zu Beginn ziehst du eine Karte. Sie begleitet dich bis zum Ende und verändert, wie sich die Laufbahn anfühlt."],
-    ["Sechs Seltenheitsstufen", "Von Normal bis GOAT. Je seltener, desto stärker der Eingriff — und desto ungewöhnlicher das Material der Karte."],
-    ["Tauschen", "Am Anfang darfst du neu ziehen. Danach nicht mehr."]]],
-  ["Nach dem Ende", [
-    ["Vermächtnispunkte", "Bewerten die Laufbahn und bestimmen deinen Platz in der Ruhmeshalle."],
-    ["Vermächtnis-Coins", "Etwas anderes: damit baust du die Jugendakademie aus. Sie läuft über alle Laufbahnen hinweg weiter."],
-    ["Errungenschaften", "162 Stück. Manche schalten neue Karten oder Startvorteile frei."]]],
-  ["Gut zu wissen", [
-    ["Alles bleibt auf dem Gerät", "Kein Konto, kein Netz. Wer wechselt, nimmt die Sicherung mit — unter dem Zahnrad."],
-    ["Spielweise und Schwierigkeit", "Gelten für alle Laufbahnen und stehen in den Optionen. Für eine laufende Laufbahn bleibt es so, wie es beim Start stand."],
-    ["Ein Spielstand", "Es gibt genau einen. Eine neue Laufbahn ersetzt ihn — abgeschlossene Läufe bleiben in der Ruhmeshalle."]]],
+    ["Eine pro Laufbahn", "Am Anfang ziehst du eine. Die bleibt bis zum Schluss und dreht an irgendwas."],
+    ["Sieben Stufen", "Von Normal bis GOAT. Je seltener, desto dicker der Eingriff."],
+    ["Einmal neu ziehen", "Ganz am Anfang. Danach lebst du damit."]]],
+  ["Wenn es vorbei ist", [
+    ["Vermächtnispunkte", "Zählen, was du geschafft hast, und bestimmen deinen Platz in der Ruhmeshalle."],
+    ["Vermächtnis-Coins", "Was anderes. Damit baust du die Jugendakademie aus — die bleibt über alle Laufbahnen."],
+    ["Errungenschaften", "162 Stück. Ein paar schalten Karten oder Startvorteile frei."]]],
+  ["Noch was", [
+    ["Bleibt alles auf dem Handy", "Kein Konto, kein Netz. Neues Gerät? Sicherung mitnehmen, unterm Zahnrad."],
+    ["Spielweise und Schwierigkeit", "Stehen in den Optionen und gelten fürs nächste Mal. Eine laufende Laufbahn bleibt, wie sie gestartet ist."],
+    ["Ein Spielstand", "Genau einer. Fängst du neu an, ist der alte weg — was fertig ist, steht in der Ruhmeshalle."]]],
 ];
 
+
 function Kurzanleitung({ onZu }) {
+  useZurueck(onZu);
   return (
     <div className="fade" style={{ maxWidth: 520, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
@@ -9410,7 +9766,8 @@ function Kurzanleitung({ onZu }) {
 /* Alles, was man einmal einstellt und dann in Ruhe lässt: Darstellung,
    Rückmeldung, Sicherung, Rechtliches. Liegt hinter dem Zahnrad, damit das
    Titelblatt frei bleibt. */
-function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuft }) {
+function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuft, meta, aufRahmen }) {
+  useZurueck(onZu);
   const [vib, setVib] = useState(VIBRATION);
   const [stufe, setStufe] = useState(TEXTSTUFE);
   const [speed, setSpeed] = useState(SPEEDMODUS);
@@ -9496,7 +9853,7 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
           </button>
 
           <div style={{ borderTop: "1px solid var(--ln)", paddingTop: 11, marginTop: 4 }}>
-            <span className="eb">Textgröße</span>
+            <span className="eb">Anzeigegröße</span>
             <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
               {["Klein", "Normal", "Groß"].map((n, i) => (
                 <button key={n} className={"btn sm" + (stufe === i ? " on" : "")} style={{ flex: 1 }}
@@ -9504,7 +9861,39 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
                   <span style={{ fontSize: [11, 12.5, 14][i] }}>{n}</span>
                 </button>))}
             </div>
+            <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", display: "block", marginTop: 6 }}>
+              Macht alles größer: Text, Abstände und Bilder.</span>
           </div>
+
+          {/* Rahmen. Bis 34.7 galt immer der erste freigeschaltete — man konnte
+              sich nichts aussuchen, obwohl mehrere offen sein können. */}
+          {(() => {
+            const offen = rahmenOffen(meta);
+            if (!offen.length) return (
+              <div style={{ borderTop: "1px solid var(--ln)", paddingTop: 11, marginTop: 11 }}>
+                <span className="eb">Rahmen um das Porträt</span>
+                <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", display: "block", marginTop: 5 }}>
+                  Noch keinen freigespielt. Rahmen gibt es für Errungenschaften.</span>
+              </div>);
+            const jetzt = (meta && meta.rahmenWahl) || offen[0];
+            return (
+              <div style={{ borderTop: "1px solid var(--ln)", paddingTop: 11, marginTop: 11 }}>
+                <span className="eb">Rahmen um das Porträt</span>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 7 }}>
+                  {[["keiner", { n: "Keiner", c: "var(--ln2)", w: 1 }], ...offen.map((k) => [k, RAHMEN[k]])]
+                    .map(([k, r]) => (
+                    <button key={k} className={"btn sm" + (jetzt === k ? " on" : "")}
+                      onClick={() => { aufRahmen && aufRahmen(k); haptik("tipp"); }}
+                      style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span aria-hidden="true" style={{ width: 14, height: 14, flexShrink: 0,
+                        border: r.w + "px solid " + r.c, background: "var(--pan2)" }} />
+                      <span style={{ fontSize: 11.5 }}>{r.n}</span>
+                    </button>))}
+                </div>
+                <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", display: "block", marginTop: 6 }}>
+                  {offen.length} von {Object.keys(RAHMEN).length} freigeschaltet.</span>
+              </div>);
+          })()}
         </div>
       </div>
 
@@ -9520,7 +9909,7 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
               <span className="wert">{vib ? "an" : "aus"}</span>
             </span>
             <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", display: "block", marginTop: 2 }}>
-              Kurzes Summen bei Entscheidungen und Kartenzügen</span>
+              Kurzes Brummen bei Entscheidungen</span>
           </button>
         </div>
       </div>
@@ -9535,7 +9924,7 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
               <span className="wert">{hall.length} Laufbahnen</span>
             </span>
             <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", display: "block", marginTop: 2 }}>
-              Fortschritt als Datei sichern oder einspielen</span>
+              Spielstand sichern oder zurückholen</span>
           </button>
           <div style={{ borderTop: "1px solid var(--ln)", paddingTop: 9, marginTop: 4 }}>
             {!loeschen ? (
@@ -9578,7 +9967,7 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
               <span className="wert">{ANLEITUNG.length} Abschnitte</span>
             </span>
             <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", display: "block", marginTop: 2 }}>
-              Wie das Spiel funktioniert, kurz erklärt</span>
+              Wie das Spiel läuft, in zwei Minuten</span>
           </button>
           <button className="btn sm" style={{ marginTop: 9 }} onClick={() => setLizenz((x) => !x)}>
             {lizenz ? "Schriften ausblenden" : "Verwendete Schriften"}</button>
@@ -9600,7 +9989,111 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
 /* Das Titelblatt einer Ausgabe: Kopfleiste, Zeitschriftenkopf, Aufmacher,
    Inhaltsverzeichnis, Impressumsstreifen. Die Ausgabennummer zählt die
    abgeschlossenen Laufbahnen mit — jede beendete Karriere ist ein Heft. */
-function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka }) {
+/* Das Titelfoto. Bewusst ohne Feinheiten: Rang, Bande, Rasenstreifen und
+   eine Mannschaftsreihe als Silhouetten. Ein gezeichnetes Pressefoto, das
+   nicht mit dem Porträt davor um Aufmerksamkeit streitet.
+
+   Alles flach, keine Verläufe — dieselbe Sprache wie der Rest. Die Zuschauer
+   sind ein festes Punktfeld, kein Zufall: dieselbe Ausgabe soll bei jedem
+   Aufschlagen gleich aussehen. */
+function Titelfoto({ laeuft }) {
+  const deck = laeuft ? .15 : .34;
+  /* Eine Silhouette. Die Kurve der Schultern muss um 4/3 überhöht werden:
+     eine kubische Kurve mit beiden Kontrollpunkten auf gleicher Höhe erreicht
+     nur drei Viertel des Wegs, sonst schwebt der Kopf über dem Körper. */
+  const figur = (x, fuss, hoch, o, hocke) => {
+    const kopfR = hoch * .155;
+    const schulter = fuss - hoch * (hocke ? .52 : .66);
+    const br = hoch * (hocke ? .30 : .24);
+    const ctrl = fuss + (schulter - fuss) * (4 / 3);
+    return (
+      <g key={x + "-" + fuss} fill="var(--tx)" opacity={o}>
+        <circle cx={x} cy={schulter - kopfR * .62} r={kopfR} />
+        <path d={"M" + (x - br) + "," + fuss + " C" + (x - br) + "," + ctrl + " "
+          + (x + br) + "," + ctrl + " " + (x + br) + "," + fuss + " Z"} />
+      </g>);
+  };
+  return (
+    <svg viewBox="0 0 366 210" preserveAspectRatio="xMidYMid slice" aria-hidden="true"
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+      {/* Rang */}
+      {[[0, 34, .10], [34, 26, .15], [60, 22, .21]].map(([y, h, o], i) =>
+        <rect key={i} x="0" y={y} width="366" height={h} fill="var(--ln2)" opacity={o} />)}
+      {ZUSCHAUER.map((z, i) =>
+        <circle key={i} cx={z[0]} cy={z[1]} r={z[2]} fill="var(--mu)" opacity={z[3]} />)}
+      {[26, 340].map((x) => (
+        <g key={x}>
+          <path d={"M" + x + ",82 L" + x + ",18"} stroke="var(--ln2)" strokeWidth="2" opacity=".35" />
+          <rect x={x - 11} y="10" width="22" height="10" fill="var(--mu)" opacity=".5" />
+        </g>))}
+      {/* Bande und Rasen */}
+      <rect x="0" y="82" width="366" height="9" fill="var(--ln2)" opacity=".55" />
+      {[0, 1, 2, 3, 4, 5].map((i) =>
+        <rect key={i} x="0" y={91 + i * 11} width="366" height="11" fill="var(--ln2)"
+          opacity={i % 2 ? .07 : .12} />)}
+      {/* Mannschaft: hinten stehend, vorne hockend */}
+      {[0, 1, 2, 3, 4, 5].map((i) => figur(38 + i * 58, 168, 74, deck, false))}
+      {[0, 1, 2, 3, 4].map((i) => figur(67 + i * 58, 200, 58, deck * 1.25, true))}
+    </svg>
+  );
+}
+
+/* Festes Punktfeld für die Ränge. Einmal berechnet und hier abgelegt, damit
+   dieselbe Ausgabe bei jedem Aufschlagen gleich aussieht. */
+const ZUSCHAUER = (() => {
+  let z = 1234567;
+  const w = () => { z = (z * 1103515245 + 12345) & 0x7fffffff; return z / 0x7fffffff; };
+  const aus = [];
+  for (let i = 0; i < 260; i++)
+    aus.push([+(w() * 366).toFixed(1), +(2 + w() * 76).toFixed(1),
+      +(.8 + w() * .9).toFixed(1), +(.10 + w() * .20).toFixed(2)]);
+  return aus;
+})();
+
+const MONATE = ["Januar", "Februar", "März", "April", "Mai", "Juni",
+  "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+/* Die Aufmacherzeilen. Ein Sportblatt schreibt nicht sachlich, es ruft — also
+   klingen Dachzeile und Schlagzeile hier nach Kiosk und nicht nach Katalog.
+   Welche Geschichte oben steht, richtet sich nach dem Spielstand: wer gerade
+   spielt, ist selbst die Titelgeschichte. */
+function titelgeschichte(save, laeuft, hall, aka) {
+  if (laeuft) {
+    const p = save.p;
+    const verein = p.club ? p.club.n : "ohne Verein";
+    const stadt = p.club && p.club.stadt ? p.club.stadt : verein;
+    if (p.ovr >= 85) return {
+      dach: "WELTKLASSE · SAISON " + p.year + "/" + String(p.year + 1).slice(2),
+      schlag: "SIE NENNEN IHN\nJETZT NUR NOCH\nDEN BESTEN",
+      unter: p.name + ", " + p.age + ", spielt bei " + verein + " in einer eigenen Liga. Und der Rest? Schaut zu." };
+    if (p.age <= 19) return {
+      dach: "DER NEUE · SAISON " + p.year + "/" + String(p.year + 1).slice(2),
+      schlag: "MIT " + p.age + " SCHON\nGANZ OBEN?",
+      unter: "Bei " + verein + " reden sie über niemanden sonst. " + p.name + " soll liefern — ab sofort." };
+    if (p.age >= 33) return {
+      dach: "DIE LETZTEN JAHRE · SAISON " + p.year + "/" + String(p.year + 1).slice(2),
+      schlag: "NOCH EINMAL\nALLES ODER NICHTS",
+      unter: p.name + " ist " + p.age + ". Bei " + verein + " weiß jeder: So viele Spielzeiten kommen nicht mehr." };
+    return {
+      dach: "TITELGESCHICHTE · SAISON " + p.year + "/" + String(p.year + 1).slice(2),
+      schlag: "DER MANN,\nÜBER DEN " + (stadt || "die Stadt").toUpperCase() + "\nSPRICHT",
+      unter: p.name + ", " + p.age + ", " + verein + ". Stärke " + p.ovr + " — und die Saison hat gerade erst angefangen." };
+  }
+  if (hall && hall.length) return {
+    dach: "DAS NÄCHSTE KAPITEL",
+    schlag: "WER LÖST\n" + String(hall[0].name || "IHN").toUpperCase() + "\nAB?",
+    unter: "Die Ruhmeshalle steht voll. Jetzt fehlt nur noch einer: deiner." };
+  if (aka && aka.gegruendet) return {
+    dach: "AUS DER AKADEMIE",
+    schlag: "DIE TALENTE\nSIND DA.\nUND DU?",
+    unter: aka.name + " arbeitet längst. Zeit, dass oben jemand nachkommt." };
+  return {
+    dach: "SAISONAUFTAKT · JETZT GEHT ES LOS",
+    schlag: "MIT 16 INS\nINTERNAT —\nUND DANN?",
+    unter: "Trainingsschwerpunkte, Vertragspoker, Leihen, Angebote, die man besser ablehnt. Eine Laufbahn, eine Entscheidung nach der anderen." };
+}
+
+function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, meta, aufRahmen }) {
   const [ask, setAsk] = useState(false);
   const [opt, setOpt] = useState(false);
   const [anleitung, setAnleitung] = useState(false);
@@ -9608,26 +10101,33 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
   const ausgabe = String(hall.length + 1).padStart(2, "0");
   const laeuft = save && save.p;
 
-  if (anleitung) return <Shell><Kurzanleitung onZu={() => setAnleitung(false)} /></Shell>;
+  if (anleitung) return <Shell blatt="optionen" zusatz="ANLEITUNG"><Kurzanleitung onZu={() => setAnleitung(false)} /></Shell>;
   if (opt) return (
-    <Shell>
+    <Shell blatt="optionen">
       <Optionen ruhe={ruhe} hall={hall} aka={aka} laeuft={!!laeuft} onBackup={onBackup}
+        meta={meta} aufRahmen={aufRahmen}
         onZu={() => setOpt(false)} onAnleitung={() => setAnleitung(true)}
         aufRuhe={(n) => { setRuhe(n); setRuheState(n); }} />
     </Shell>);
 
-  const zeile = (nr, titel, wert, unter, klick) => (
-    <button className="btn" style={{ border: 0, borderBottom: "1px solid var(--ln)", padding: "11px 0" }}
-      onClick={klick}>
-      <span className="inhalt">
-        <span className="nr">{nr}</span>
-        <span className="d" style={{ fontSize: 16 }}>{titel}</span>
-        <span className="punkte" />
-        <span className="wert">{wert}</span>
-      </span>
-      {unter && <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", display: "block",
-        marginTop: 2, paddingLeft: 26 }}>{unter}</span>}
-    </button>);
+  /* Eine Zeile des Inhaltsverzeichnisses. Statt einer laufenden Nummer steht
+     rechts die SEITENZAHL des Ressorts — dieselbe, die der Kolumnentitel dort
+     zeigt. Links ein Strich in der Ressortfarbe. */
+  const zeile = (schl, titel, wert, unter, klick) => {
+    const r = RESSORT[schl] || { s: "—", f: "var(--mu)" };
+    return (
+      <button className="btn" style={{ border: 0, borderBottom: "1px solid var(--ln)",
+        padding: "11px 0 11px 10px", borderLeft: "3px solid " + r.f }} onClick={klick}>
+        <span className="inhalt">
+          <span className="d" style={{ fontSize: 16 }}>{titel}</span>
+          <span className="punkte" />
+          <span className="wert">{wert}</span>
+          <span className="d" style={{ fontSize: 16, color: r.f, minWidth: 26, textAlign: "right" }}>{r.s}</span>
+        </span>
+        {unter && <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", display: "block",
+          marginTop: 2 }}>{unter}</span>}
+      </button>);
+  };
 
   return (
     <Shell>
@@ -9649,88 +10149,100 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
           </button>
         </div>
 
-        {/* Zeitschriftenkopf mit Flutlicht und Halbtonraster */}
-        <div style={{ position: "relative", margin: "0 -4px", padding: "10px 4px 20px", overflow: "hidden" }}>
-          <svg viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true"
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: .45 }}>
-            <defs>
-              <radialGradient id="kegel" cx="50%" cy="0%" r="85%">
-                <stop offset="0%" stopColor="#F2C230" stopOpacity=".26" />
-                <stop offset="45%" stopColor="#3D8FDB" stopOpacity=".10" />
-                <stop offset="100%" stopColor="#070D0A" stopOpacity="0" />
-              </radialGradient>
-              <linearGradient id="rasen" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#12241A" stopOpacity="0" />
-                <stop offset="100%" stopColor="#3DA35D" stopOpacity=".20" />
-              </linearGradient>
-            </defs>
-            <rect x="0" y="0" width="400" height="200" fill="url(#kegel)" />
-            <rect x="0" y="108" width="400" height="92" fill="url(#rasen)" />
-            {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <path key={i} d={"M" + (-60 + i * 66) + " 200 L" + (86 + i * 34) + " 108"}
-                stroke="#3DA35D" strokeOpacity=".13" strokeWidth="1" fill="none" />))}
-            <ellipse cx="200" cy="162" rx="74" ry="21" fill="none" stroke="#DCE3D8" strokeOpacity=".15" strokeWidth="1.2" />
-            <path d="M200 141 L200 183" stroke="#DCE3D8" strokeOpacity=".15" strokeWidth="1.2" />
-          </svg>
-          {/* Halbtonraster, das nach unten ausläuft — vom Umschlag der Vereinszeitschrift */}
-          <div className="raster" aria-hidden="true" style={{ position: "absolute", left: 0, right: 0,
-            bottom: 0, height: 84, color: "var(--tx)", opacity: .13,
-            WebkitMaskImage: "linear-gradient(transparent,#000)", maskImage: "linear-gradient(transparent,#000)" }} />
-          <div style={{ position: "relative" }}>
-            <h1 className="d" style={{ fontSize: "clamp(48px,15vw,116px)", letterSpacing: ".004em",
-              lineHeight: .88, margin: 0 }}>
-              Rasenschach<span style={{ color: "var(--go)" }}> XI</span>
-            </h1>
-            {/* Aufmacherzeilen wie die Schlagzeilen auf einem Umschlag */}
-            <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", letterSpacing: ".06em",
-              marginTop: 10, lineHeight: 1.75 }}>
-              Echte Wettbewerbe <span className="raute" style={{ background: "var(--go)" }} />
-              Kader und Konkurrenz <span className="raute" style={{ background: "var(--go)" }} />
-              Geld mit Folgen
+        {/* ---- Titelzug ----
+            Name und Ausgabe stehen auf jeder Ausgabe an derselben Stelle. Der
+            Balken darüber ist die Ressortfarbe des Hefts. */}
+        <div style={{ background: "var(--stoerer)", margin: "0 -12px", padding: "6px 12px",
+          display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+          <span className="d" style={{ fontSize: 12, letterSpacing: ".22em", color: "#fff" }}>FUSSBALL-MAGAZIN</span>
+          <span className="m" style={{ fontSize: 9.5, letterSpacing: ".12em", color: "#fff", opacity: .92 }}>
+            NR. {ausgabe} · {MONATE[(new Date()).getMonth()]}</span>
+        </div>
+
+        <div style={{ marginTop: 16 }}>
+          <h1 className="d" style={{ fontSize: "clamp(40px,13.5vw,96px)", letterSpacing: "-.012em",
+            lineHeight: .84, margin: 0 }}>RASENSCHACH</h1>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 2 }}>
+            <span className="d" style={{ fontSize: 30, color: "var(--stoerer)" }}>XI</span>
+            <span className="m" style={{ fontSize: 9.5, color: "var(--mu)", letterSpacing: ".14em" }}>
+              DIE ELF DES MONATS · SEIT 2026</span>
+          </div>
+          <div style={{ height: 2, background: "var(--ln2)", marginTop: 9 }} />
+          <div style={{ height: 1, background: "var(--ln2)", marginTop: 3, opacity: .6 }} />
+        </div>
+
+        {/* ---- Aufmacher ----
+            Vorher standen hier Flutlicht und Mittelkreis — ein Bild ohne
+            Person. Jetzt ein Titelfoto: Rang, Bande, Rasen und eine
+            Mannschaftsreihe als Silhouette, davor der eigene Spieler.
+
+            Das Foto ist NICHT nur Schmuck. Ohne es stand das Porträt vor einer
+            leeren Fläche und wirkte verloren, und ohne Spielstand war das Feld
+            fast leer. Die Mannschaft gibt dem Titel einen Ort. */}
+        <div style={{ position: "relative", marginTop: 14, background: "var(--pan)",
+          border: "1px solid var(--ln2)", overflow: "hidden" }}>
+          <Titelfoto laeuft={!!laeuft} />
+          <div className="raster" aria-hidden="true" style={{ position: "absolute", inset: 0,
+            color: "var(--tx)", opacity: .10, pointerEvents: "none" }} />
+          {laeuft ? (
+            /* Kleiner als vorher (230 → 168) und auf der Rasenlinie stehend,
+               nicht schwebend: der Spieler gehört in die Mannschaft, nicht
+               in die Mitte einer leeren Fläche. */
+            <div style={{ position: "relative", display: "flex", justifyContent: "center",
+              alignItems: "flex-end", height: 210, paddingBottom: 6 }}>
+              <Avatar seed={save.p.avatar} zuege={save.p.zuege} club={save.p.club} size={168}
+                g={save.p.g} nat={save.p.nation ? save.p.nation.id : null} />
             </div>
+          ) : (
+            <div style={{ position: "relative", height: 210, display: "flex", alignItems: "center",
+              justifyContent: "flex-start", padding: "0 18px" }}>
+              <span className="d" style={{ fontSize: 25, lineHeight: 1.04, letterSpacing: ".02em",
+                textShadow: "0 2px 10px rgba(0,0,0,.8)" }}>ELF PLÄTZE.<br />EINER IST<br />NOCH FREI.</span>
+            </div>
+          )}
+          {/* Störer: schräg, laut, rund — die Hauptaktion der Seite. */}
+          <button onClick={laeuft ? onResume : onNew}
+            style={{ position: "absolute", right: 8, top: 8, width: 92, height: 92, borderRadius: "50%",
+              border: "none", background: "var(--stoerer)", color: "#fff", cursor: "pointer",
+              transform: "rotate(-11deg)", display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 1, padding: 0,
+              boxShadow: "3px 4px 0 rgba(0,0,0,.55)" }}>
+            <span className="d" style={{ fontSize: 15, lineHeight: 1 }}>{laeuft ? "WEITER" : "NEUE"}</span>
+            <span className="d" style={{ fontSize: 13, lineHeight: 1 }}>{laeuft ? "SPIELEN" : "LAUFBAHN"}</span>
+            <span className="m" style={{ fontSize: 8, opacity: .92 }}>
+              ab Seite {laeuft ? RESSORT.laufbahn.s : RESSORT.anlegen.s}</span>
+          </button>
+          {/* Bildunterschrift — gehört zu jedem Pressefoto. */}
+          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0,
+            background: "rgba(9,8,6,.72)", padding: "4px 10px" }}>
+            <span className="m" style={{ fontSize: 8.5, color: "var(--mu)", letterSpacing: ".08em" }}>
+              {laeuft
+                ? save.p.name.toUpperCase() + (save.p.club ? " · " + save.p.club.n.toUpperCase() : "")
+                : "ARCHIVBILD · KURZ VOR DEM ANPFIFF"}</span>
           </div>
         </div>
 
-        {/* Aufmacher: die laufende Laufbahn ist die Titelgeschichte */}
-        {laeuft ? (
-          <div className="pan pad klebe" style={{ borderColor: "var(--ln2)", marginTop: 4 }}>
-            <div className="band matt"><span>Titelgeschichte</span><span style={{ letterSpacing: ".08em" }}>
-              Saison {save.p.year}/{String(save.p.year + 1).slice(2)}</span></div>
-            <div style={{ display: "flex", gap: 11, alignItems: "center" }}>
-              <Avatar seed={save.p.avatar} zuege={save.p.zuege} club={save.p.club} size={52} ring="var(--ln2)"
-                g={save.p.g} nat={save.p.nation ? save.p.nation.id : null} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="d" style={{ fontSize: 20, wordBreak: "break-word" }}>{save.p.name}</div>
-                <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 2,
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {save.p.age} Jahre · {save.p.club ? save.p.club.n : ""}</div>
-              </div>
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <div className="d" style={{ fontSize: 30, color: "var(--ac)" }}>{save.p.ovr}</div>
-                <div className="eb">Gesamt</div>
-              </div>
-            </div>
-            <button className="btn pri" style={{ marginTop: 12 }} onClick={onResume}>
-              <span className="d" style={{ fontSize: 18 }}>Weiterspielen</span>
-            </button>
-          </div>
-        ) : (
-          <div style={{ marginTop: 4 }}>
-            <p style={{ maxWidth: 520, color: "var(--mu)" }}>
-              Du bist 16 und stehst im Jugendinternat. Der Rest ist eine Kette von Entscheidungen
-              zwischen den Spielen: Trainingsschwerpunkte, Vertragspoker, Leihen, Schlagzeilen,
-              Angebote, die man besser ablehnt.
-            </p>
-            <button className="btn pri" style={{ marginTop: 14 }} onClick={onNew}>
-              <span className="d" style={{ fontSize: 18 }}>Karriere starten</span>
-            </button>
-          </div>
-        )}
+        {/* ---- Dachzeile · Schlagzeile · Unterzeile ---- */}
+        {(() => {
+          const g = titelgeschichte(save, laeuft, hall, aka);
+          return (<div style={{ marginTop: 15 }}>
+            <div className="m" style={{ fontSize: 10, color: "var(--go)", letterSpacing: ".18em" }}>{g.dach}</div>
+            {/* whiteSpace pre-line: die Umbrüche in der Schlagzeile sind
+                gesetzt, nicht zufällig — eine Schlagzeile bricht dort, wo der
+                Sinn bricht. */}
+            <div className="d" style={{ fontSize: "clamp(27px,8.4vw,44px)", lineHeight: .96,
+              marginTop: 5, whiteSpace: "pre-line" }}>{g.schlag}</div>
+            <div className="m" style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 7, lineHeight: 1.5 }}>
+              {g.unter}</div>
+          </div>);
+        })()}
 
-        {/* Inhaltsverzeichnis */}
-        <div className="eb" style={{ margin: "22px 0 2px" }}>In dieser Ausgabe</div>
+        {/* Inhaltsverzeichnis. Die Seitenzahlen kommen aus RESSORT — dieselbe
+            Zahl, die der Kolumnentitel der jeweiligen Seite zeigt. */}
+        <div style={{ height: 1, background: "var(--ln2)", margin: "20px 0 0", opacity: .6 }} />
+        <div className="eb" style={{ margin: "14px 0 2px" }}>In dieser Ausgabe</div>
         <div style={{ borderTop: "2px solid var(--ln2)" }}>
-          {laeuft && !ask && zeile("01", "Neue Laufbahn", "ersetzt den Spielstand", null, () => setAsk(true))}
+          {laeuft && !ask && zeile("anlegen", "Neue Laufbahn", "ersetzt den Spielstand", null, () => setAsk(true))}
           {ask && (
             <div className="up pad" style={{ borderLeft: "3px solid var(--bad)", margin: "9px 0" }}>
               <div style={{ fontSize: 12.5 }}>
@@ -9741,11 +10253,11 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
                 <button className="btn sm" onClick={() => setAsk(false)}>Abbrechen</button>
               </div>
             </div>)}
-          {zeile("02", "Errungenschaften", achN + " / " + ACHIEVEMENTS.length,
+          {zeile("erfolge", "Errungenschaften", achN + " / " + ACHIEVEMENTS.length,
             metaN + " Belohnungen freigeschaltet", onAch)}
-          {zeile("03", "Ruhmeshalle", String(hall.length),
+          {zeile("hall", "Ruhmeshalle", String(hall.length),
             hall.length ? "Bester Lauf: " + hall[0].score + " Punkte" : "noch keine Laufbahn beendet", onHall)}
-          {zeile("04", "Jugendakademie", (aka && aka.gegruendet ? (aka.vc || 0) + " VC" : "geschlossen"),
+          {zeile("akademie", "Jugendakademie", (aka && aka.gegruendet ? (aka.vc || 0) + " VC" : "geschlossen"),
             aka && aka.gegruendet
               ? aka.name + " · " + ((aka.bilanz && aka.bilanz.profis) || 0) + " Profis"
               : ((aka && aka.vc ? aka.vc + " VC liegen bereit — " : "") + "noch nicht gegründet"), onAka)}
@@ -9794,6 +10306,7 @@ const PORTRAET_REGLER = (g) => [
 ];
 
 function CreateScreen({ onStart, onBack, meta }) {
+  useZurueck(onBack);
   const [name, setName] = useState("");
   const [nation, setNation] = useState("GER");
   const [pos, setPos] = useState("ZM");
@@ -9815,12 +10328,19 @@ function CreateScreen({ onStart, onBack, meta }) {
   const beinamen = ["mk_bei1", "mk_bei2", "mk_bei3"].filter((k) => meta && meta[k])
     .flatMap((k) => BEINAMEN[k] || []);
   const [avatar, setAvatar] = useState(() => ri(1, 999999));
+  /* Der Name ist ein VORSCHLAG, solange nichts Eigenes getippt wurde. Er
+     wechselt mit Herkunft und Geschlecht mit; sobald jemand selbst schreibt,
+     bleibt sein Name stehen — auch beim Wechsel der Herkunft. */
+  const [eigenerName, setEigenerName] = useState(false);
   /* Die Merkmale liegen einzeln vor. Jeder Regler ändert genau eines —
      das ist der Grund, warum die Feineinstellung nicht mehr würfelt. */
   const [zuege, setZuege] = useState(() => zuegeAusKennung(ri(1, 999999), "m", "GER", meta));
   /* Herkunft oder Geschlecht gewechselt: Hautton und Haarfarbe müssen in den
      Rahmen der neuen Herkunft, sonst stünde ein Wert dort, den die Regler gar
      nicht erreichen können. Alles andere bleibt, wie es eingestellt war. */
+  useEffect(() => {
+    if (!eigenerName) setName(namensVorschlag(nation, gender, avatar));
+  }, [nation, gender, avatar, eigenerName]);
   useEffect(() => {
     setZuege((z) => {
       const T = hautBereich(nation), H = haarBereich(nation);
@@ -9865,7 +10385,7 @@ function CreateScreen({ onStart, onBack, meta }) {
   }, [nation, gender, seed]);
   useEffect(() => { setClub(jugend.length ? jugend[jugend.length - 1].n : null); }, [jugend]);
   return (
-    <Shell>
+    <Shell blatt="anlegen">
       <div className="fade">
         <div className="d" style={{ fontSize: 26 }}>Spielerpass anlegen</div>
         {/* Der Vorschaublock bleibt beim Blättern oben hängen. Sonst stellt man
@@ -9918,8 +10438,8 @@ function CreateScreen({ onStart, onBack, meta }) {
               })}
             </div>
             <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 9 }}>
-              Hautton und Haarfarbe bleiben im Rahmen dessen, was zu deiner Herkunft passt.
-              Jeder Regler ändert genau ein Merkmal — alles andere bleibt stehen.
+              Hautton und Haarfarbe bleiben im Rahmen deiner Herkunft. Jeder Regler ändert
+              genau eine Sache, der Rest bleibt, wie er ist.
             </div>
           </div>)}
 
@@ -9927,7 +10447,14 @@ function CreateScreen({ onStart, onBack, meta }) {
           <div style={{ gridColumn: "span 2" }}>
             <div className="eb" style={{ marginBottom: 5 }}>Name</div>
             <input className="inp" value={name} maxLength={22} placeholder="z. B. Kevin Sarantis"
-              onChange={(e) => setName(e.target.value)} autoComplete="off" />
+              onChange={(e) => { setName(e.target.value);
+                /* Ab dem ersten eigenen Zeichen bleibt der Name stehen. Leert
+                   man das Feld wieder, greift der Vorschlag erneut. */
+                setEigenerName(e.target.value.trim().length > 0); }}
+              autoComplete="off" />
+            <span className="m" style={{ fontSize: 10, color: "var(--mu)", display: "block", marginTop: 3 }}>
+              {eigenerName ? "Bleibt deiner, auch wenn du die Herkunft wechselst."
+                : "Vorschlag zur Herkunft. Einfach überschreiben."}</span>
           </div>
           <div>
             <div className="eb" style={{ marginBottom: 5 }}>Nummer</div>
@@ -9989,12 +10516,12 @@ function CreateScreen({ onStart, onBack, meta }) {
                 </div>
               </div>
             </button>))}
-          {!jugend.length && <div style={{ fontSize: 12, color: "var(--mu)" }}>Für diese Auswahl gibt es keinen passenden Verein.</div>}
+          {!jugend.length && <div style={{ fontSize: 12, color: "var(--mu)" }}>Dazu passt gerade kein Verein.</div>}
         </div>
 
         <div className="eb" style={{ margin: "18px 0 6px" }}>Wunschverein</div>
         <div style={{ fontSize: 11.5, color: "var(--mu)", marginBottom: 7 }}>
-          Freiwillig. Dieser Verein meldet sich im Lauf der Karriere ein- bis dreimal —
+          Musst du nicht. Der Verein klopft im Lauf der Jahre ein- bis dreimal an —
           sofern du sportlich dorthin passt.
         </div>
         {traum ? (() => { const c = CLUBS.find((x) => x.n === traum); return (
@@ -10083,9 +10610,9 @@ function CompetitionView({ p }) {
   const seasons = p.seasons;
   const [idx, setIdx] = useState(seasons.length - 1);
   useEffect(() => { setIdx(seasons.length - 1); }, [seasons.length]);
-  if (!seasons.length) return <div style={{ fontSize: 12.5, color: "var(--mu)" }}>Die erste Saison ist noch nicht gespielt.</div>;
+  if (!seasons.length) return <div style={{ fontSize: 12.5, color: "var(--mu)" }}>Die erste Saison steht noch aus.</div>;
   const s = seasons[clamp(idx, 0, seasons.length - 1)];
-  if (!s.table) return <div style={{ fontSize: 12.5, color: "var(--mu)" }}>Für diese Saison liegen keine Tabellendaten vor.</div>;
+  if (!s.table) return <div style={{ fontSize: 12.5, color: "var(--mu)" }}>Für diese Saison gibt es keine Tabelle.</div>;
   return (
     <div className="g1">
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
@@ -10180,7 +10707,7 @@ function CompetitionView({ p }) {
         <div className="pan pad">
           <div className="eb" style={{ marginBottom: 7 }}>{s.europe || "Kein internationaler Wettbewerb"}</div>
           {!s.eu ? (
-            <div style={{ fontSize: 12, color: "var(--mu)" }}>In dieser Saison international nicht vertreten.</div>
+            <div style={{ fontSize: 12, color: "var(--mu)" }}>Diese Saison international nicht dabei.</div>
           ) : (
             <>
               <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginBottom: 6 }}>
@@ -10356,7 +10883,7 @@ function NoteBars({ rows }) {
         {idx.map((i) => <text key={i} x={L + step * i + step / 2} y={H - 5} textAnchor="middle"
           fontSize="9" fill={MUT} fontFamily="'Rasen Text',Roboto,sans-serif">{rows[i].lab}</text>)}
       </svg>
-      <div className="m" style={{ fontSize: 9.5, color: MUT, marginTop: 4 }}>Höherer Balken heißt bessere Note.</div>
+      <div className="m" style={{ fontSize: 9.5, color: MUT, marginTop: 4 }}>Je höher der Balken, desto besser die Note.</div>
     </div>
   );
 }
@@ -10571,7 +11098,7 @@ function MoneyView({ p, onBuy, onInvest, onSell, onDonate }) {
         <div className="up pad">
           <div className="eb" style={{ color: "var(--go)" }}>Speedmodus</div>
           <div style={{ fontSize: 12, color: "var(--mu)", marginTop: 3 }}>
-            Dein Umfeld kauft für dich, was sinnvoll und bezahlbar ist.
+            Dein Berater kauft, was sinnvoll ist und was du dir leisten kannst.
           </div>
         </div>)}
       <div className="g3">
@@ -10599,7 +11126,7 @@ function MoneyView({ p, onBuy, onInvest, onSell, onDonate }) {
         if (!rows.length) return null;
         return (
           <div className="pan pad">
-            <div className="eb" style={{ marginBottom: 6 }}>Wirkung deiner Anschaffungen (pro Saison)</div>
+            <div className="eb" style={{ marginBottom: 6 }}>Was dir dein Besitz pro Saison bringt</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {rows.map(([l, v, u]) => (
                 <span key={l} className={"chip " + ((l === "Verletzungsrisiko" ? v < 0 : v > 0) ? "a" : "r")}>
@@ -10672,7 +11199,7 @@ function MoneyView({ p, onBuy, onInvest, onSell, onDonate }) {
           {[.1, .5, 2].filter((v) => v <= p.money).map((v) => (
             <button key={v} className="btn sm" onClick={() => onDonate(v)}>{eur(v)} € spenden</button>
           ))}
-          {p.money < .1 && <span className="m" style={{ fontSize: 10.5, color: "var(--mu)" }}>Dafür reicht es gerade nicht.</span>}
+          {p.money < .1 && <span className="m" style={{ fontSize: 10.5, color: "var(--mu)" }}>Dafür reicht das Geld nicht.</span>}
         </div>
       </div>
     </div>
@@ -10742,7 +11269,7 @@ function NationalView({ p }) {
 
       {p.flags.ntRuecktritt && (
         <div className="up" style={{ padding: "9px 11px", borderLeft: "3px solid var(--go)" }}>
-          <span style={{ fontSize: 12.5 }}>Du bist aus der Nationalmannschaft zurückgetreten. Weitere Nominierungen gibt es nicht mehr.</span>
+          <span style={{ fontSize: 12.5 }}>Du bist zurückgetreten. Es kommt keine Nominierung mehr.</span>
         </div>)}
     </div>
   );
@@ -10824,7 +11351,7 @@ function SocialView({ p }) {
         <div className="eb" style={{ marginBottom: 4 }}>Reichweite</div>
         <div className="d" style={{ fontSize: 34, color: "var(--ac)" }}>{s.reichweite}</div>
         <div style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 2 }}>
-          Menschen, die dir folgen. Wächst mit Bekanntheit, Bühne, Titeln und Länderspielen.
+          Wie viele dir folgen. Wächst mit Bekanntheit, großer Bühne, Titeln und Länderspielen.
         </div>
       </div>
       <div className="pan pad">
@@ -10874,7 +11401,7 @@ function SocialView({ p }) {
 
 function TrophyView({ p }) {
   if (!p.trophies.length && !p.awards.length && !p.assets.length)
-    return <div style={{ fontSize: 12.5, color: "var(--mu)" }}>Noch nichts gewonnen und nichts aufgebaut.</div>;
+    return <div style={{ fontSize: 12.5, color: "var(--mu)" }}>Noch nichts gewonnen, noch nichts aufgebaut.</div>;
   return (
     <div className="g1">
       {p.trophies.length > 0 && <div><div className="eb" style={{ marginBottom: 6 }}>Titel ({p.trophies.length})</div>
@@ -10896,6 +11423,7 @@ function TrophyView({ p }) {
 const SICHER_KEYS = [SAVE_KEY, HALL_KEY, SEEN_KEY, ACH_KEY, META_KEY, WC_KEY, LIFE_KEY, AKA_KEY, HSV_KEY];
 
 function BackupScreen({ onBack, onImport }) {
+  useZurueck(onBack);
   const [text, setText] = useState("");
   const [eingabe, setEingabe] = useState("");
   const [info, setInfo] = useState("");
@@ -10936,14 +11464,14 @@ function BackupScreen({ onBack, onImport }) {
   };
 
   return (
-    <Shell>
+    <Shell blatt="archiv">
       <div className="fade" style={{ maxWidth: 720, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div className="d" style={{ fontSize: 26 }}>Sicherung</div>
           <button className="btn sm" onClick={onBack}>Zurück</button>
         </div>
         <p style={{ fontSize: 12, color: "var(--mu)", margin: "6px 0 14px" }}>
-          Fortschritt als Text sichern — und später oder woanders wieder einspielen.
+          Spielstand als Text mitnehmen und auf einem anderen Gerät wieder einspielen.
         </p>
 
         <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
@@ -10988,6 +11516,7 @@ function BackupScreen({ onBack, onImport }) {
 }
 
 function AchievementScreen({ ach, ges, meta, onBack }) {
+  useZurueck(onBack);
   const [filter, setFilter] = useState("alle");
   const erreicht = ACHIEVEMENTS.filter((a) => ach && ach[a.id]);
   const pkt = erreicht.reduce((a, x) => a + STUFEN[x.s].w, 0);
@@ -10995,7 +11524,7 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
   const liste = filter === "alle" ? ACHIEVEMENTS : ACHIEVEMENTS.filter((a) => a.s === filter);
   const G = ges || leereBilanz();
   return (
-    <Shell>
+    <Shell blatt="erfolge">
       <div className="fade" style={{ maxWidth: 820, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div className="d" style={{ fontSize: 28 }}>Errungenschaften</div>
@@ -11082,12 +11611,13 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
 }
 
 function HallScreen({ hall, onBack }) {
+  useZurueck(onBack);
   /* Rangliste, aber jeder Eintrag ist eine Würdigung: Rangzahl, Bildnis im
      Trikot des Vereins mit den meisten Einsätzen, Wappen, Kennzahlen als
      Kartenfelder. Einträge aus Fassungen vor 33.10 haben weder Bildnis noch
      Heimatverein — dann fällt beides weg, ohne dass etwas bricht. */
   return (
-    <Shell>
+    <Shell blatt="hall">
       <div className="fade">
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
           <div className="d" style={{ fontSize: 26 }}>Ruhmeshalle</div>
@@ -11099,7 +11629,7 @@ function HallScreen({ hall, onBack }) {
         {!hall.length ? (
           <div className="pan pad"><div className="d" style={{ fontSize: 17 }}>Noch leer</div>
             <p style={{ fontSize: 12, color: "var(--mu)", marginTop: 5 }}>
-              Spiel eine Laufbahn zu Ende — der Eintrag landet automatisch hier.</p></div>
+              Spiel eine Laufbahn zu Ende, dann steht sie hier.</p></div>
         ) : (
           <div className="g1">
             {hall.map((h, i) => {
@@ -11300,7 +11830,7 @@ function EndScreen({ p, onNew, onHall, onAka }) {
           <button className="btn pri rs-pochen" onClick={onNew} style={{ padding: "16px 18px" }}>
             <span className="d" style={{ fontSize: 21, letterSpacing: ".02em" }}>Neue Laufbahn beginnen</span>
             <span className="m" style={{ fontSize: 11, color: "#04050A", opacity: .82, display: "block", marginTop: 3 }}>
-              Zurück ins Hauptmenü — dort wartet der nächste Anlauf</span>
+              Zurück ins Hauptmenü, dann von vorn</span>
           </button>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button className="btn" style={{ flex: "1 1 150px" }} onClick={onHall}>Ruhmeshalle</button>
@@ -11419,11 +11949,16 @@ function FlutlichtApp() {
   /* Spielstand sichern, damit man die Seite verlassen kann */
   const saveGame = async (q, st) => {
     if (!hasStore() || !q || q.retired) return;
+    const stand = { v: VERSION, t: Date.now(), step: st || "training",
+      p: { ...q, verdict: undefined } };
+    /* `save` MUSS mitgezogen werden. Bis 34.8 schrieb dies nur in den
+       Speicher — im Hauptmenü stand danach weiter der alte Stand oder gar
+       keiner, obwohl gerade gespeichert worden war. Erst ein Neustart der
+       App zeigte den Fortschritt. Der Zustand wird sofort gesetzt, das
+       Schreiben darf danach in Ruhe laufen. */
+    setSave(stand);
     try {
-      await store.set(SAVE_KEY, JSON.stringify({
-        v: VERSION, t: Date.now(), step: st || "training",
-        p: { ...q, verdict: undefined },
-      }));
+      await store.set(SAVE_KEY, JSON.stringify(stand));
     } catch (e) { /* Speichern nicht verfügbar */ }
   };
   const dropSave = async () => {
@@ -11664,7 +12199,13 @@ function FlutlichtApp() {
     }
     q.age += 1; q.year += 1; q.mv = marketValue(q);
     if (q.age >= 41 || (q.age >= 34 && q.ovr < 58 && chance(.5))) { finish(q, "Es kam kein Angebot mehr, das noch Sinn ergab."); return; }
-    if (q.age >= 33 && chance(.35)) { setP(q); setStep("retire"); return; }
+    /* Die Frage kam ab 33 in jeder dritten Saison wieder — bis zu fünfmal in
+       einer Laufbahn, auch wenn man auf dem Zenit stand. Jetzt EINMAL, und
+       nur wenn die Stärke wirklich nachgelassen hat: mindestens 4 Punkte
+       unter dem eigenen Höchstwert. Wer mit 36 noch auf seinem Bestwert
+       spielt, wird nicht gefragt. */
+    if (q.age >= 33 && !q.flags.renteGefragt && (q.peakOvr - q.ovr) >= 4) {
+      q.flags.renteGefragt = true; setP(q); setStep("retire"); return; }
     setP(q); setGrowth(null); setStep("training"); setTab("verlauf"); saveGame(q, "training");
   };
   const quickSim = (n) => {
@@ -11758,6 +12299,8 @@ function FlutlichtApp() {
     metaN={Object.keys(meta || {}).filter((k) => META[k]).length}
     onBackup={() => setPhase("sicherung")}
     aka={aka} onAka={() => setPhase("akademie")}
+    meta={meta} aufRahmen={(k) => { const n = { ...(meta || {}), rahmenWahl: k };
+      setMeta(n); store.set(META_KEY, JSON.stringify(n)); }}
     ruhe={ruhe} setRuhe={setRuhe} setRuheState={setRuheState} />;
   if (phase === "akademie") return <AkademieScreen aka={aka} onKauf={akaKaufen}
     onGruenden={(n) => { const x = akaGruenden(aka, n, (aka && aka.jahr) || 2026);
@@ -11788,7 +12331,7 @@ function FlutlichtApp() {
     ["vermoegen", "Vermögen"], ["vitrine", "Vitrine"]];
 
   return (
-    <Shell wide>
+    <Shell wide blatt="laufbahn">
       <div ref={topRef} />
       <div className="tbar" style={{ margin: "-14px -12px 12px", padding: "9px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -11926,8 +12469,11 @@ function FlutlichtApp() {
                   <div className="g1" style={{ marginTop: 14 }}>
                     {e.choices.map((c, i) => (
                       <button key={i} className="btn" onClick={() => resolve(c)}>
-                        <div className="d" style={{ fontSize: 15 }}>{c.label}</div>
-                        {c.hint && <div style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 2 }}>{c.hint}</div>}
+                        {/* Auch durch evText: die Auswahlmöglichkeiten liefen
+                            zuerst daran vorbei und wären bei einer Spielerin
+                            männlich geblieben. */}
+                        <div className="d" style={{ fontSize: 15 }}>{evText(c.label, ctx)}</div>
+                        {c.hint && <div style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 2 }}>{evText(c.hint, ctx)}</div>}
                       </button>))}
                   </div>
                 ) : (
@@ -12146,15 +12692,16 @@ function FlutlichtApp() {
               <span className="chip a">Karriereende</span>
               <div className="d" style={{ fontSize: 24, marginTop: 8 }}>Wie lange noch?</div>
               <p style={{ marginTop: 8, color: "var(--mu)" }}>
-                Du bist {p.age}. Das Knie meldet sich morgens früher als der Wecker, und im Kader stehen drei Spieler,
-                die geboren wurden, als du dein Profidebüt gemacht hast.</p>
+                Du bist {p.age} und merkst es. {p.peakOvr - p.ovr} Punkte unter deinem Bestwert, das Knie ist morgens
+                vor dem Wecker wach, und im Kader stehen drei, die noch nicht auf der Welt waren, als du dein
+                erstes Profispiel gemacht hast. Wir fragen einmal. Danach machst du das mit dir aus.</p>
               <div className="g1" style={{ marginTop: 14 }}>
                 <button className="btn" onClick={() => { setGrowth(null); setStep("training"); }}>
                   <div className="d" style={{ fontSize: 15 }}>Weitermachen</div>
-                  <div style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 2 }}>Noch eine Saison. Vielleicht noch zwei.</div></button>
+                  <div style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 2 }}>Noch eine Saison. Vielleicht zwei.</div></button>
                 <button className="btn" onClick={() => finish(clone(p), "Aufgehört, solange es die eigene Entscheidung war.")}>
                   <div className="d" style={{ fontSize: 15 }}>Schluss machen</div>
-                  <div style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 2 }}>Aufhören, bevor es andere entscheiden.</div></button>
+                  <div style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 2 }}>Aufhören, solange du es selbst entscheidest.</div></button>
               </div>
             </div>)}
 
@@ -12193,7 +12740,7 @@ function FlutlichtApp() {
               </button>
             </>) : (<>
               <span className="m" style={{ fontSize: 10.5, color: "var(--mu)" }}>
-                Laufbahn wirklich beenden? Danach geht es nicht weiter.</span>
+                Wirklich aufhören? Zurück geht dann nichts mehr.</span>
               <button className="btn sm" style={{ padding: "4px 10px" }}
                 onClick={() => { setStopAsk(false); finish(clone(p), "Rücktritt aus freien Stücken"); }}>
                 <span className="m" style={{ fontSize: 10.5, color: "var(--bad)" }}>Ja, beenden</span>

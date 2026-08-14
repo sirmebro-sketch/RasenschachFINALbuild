@@ -23,7 +23,11 @@
   var aus = { raster: false, schatten: false, lage: false };
   function stileSetzen() {
     var s = "";
-    if (aus.raster) s += ".fl{background:radial-gradient(1100px 620px at 50% -8%,#12231A 0%,#070D0A 62%)!important}"
+    /* Papier ohne jede Struktur: Faser und Halbtonraster fallen weg, die
+       Papierfarbe bleibt. Vorher stand hier der alte Rasenverlauf — der hätte
+       beim A/B-Vergleich das Papier gleich mit ausgetauscht und die Messung
+       wertlos gemacht. */
+    if (aus.raster) s += ".fl{background:var(--bg)!important}"
                        + ".raster{background-image:none!important}";
     if (aus.schatten) s += ".klebe{box-shadow:none!important}";
     if (aus.lage) s += ".klebe{transform:none!important}.leerfeld{opacity:1!important}";

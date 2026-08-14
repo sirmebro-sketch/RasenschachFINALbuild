@@ -2,14 +2,23 @@
 <html lang="de">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <!-- maximum-scale und user-scalable=no: ohne die liess sich die App mit zwei
+         Fingern ziehen und zoomen wie eine Internetseite. In einer App ist das
+         ein Fehler, kein Merkmal. Die Barrierefreiheit leidet nicht darunter,
+         weil die App unter „Optionen" eine EIGENE Textgroesse mitbringt. -->
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
     <meta name="theme-color" content="#070D0A" />
     <!-- Grundfarbe: Rasen bei Nacht, gleich wie --bg in App.jsx. Weicht sie ab,
          blitzt beim Start kurz die falsche Farbe auf. -->
     <title>Rasenschach XI</title>
     <style>
       html, body, #root { margin: 0; padding: 0; background: #070D0A; min-height: 100%; }
-      body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+      /* pan-x pan-y laesst Wischen zu, aber kein Aufziehen mit zwei Fingern
+         und kein Zoomen per Doppeltipp. Letzteres nimmt dem Spielerpass auch
+         die Verzoegerung beim Wenden. */
+      html { touch-action: pan-x pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+      body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent;
+             touch-action: pan-x pan-y; }
     </style>
   </head>
   <body>
