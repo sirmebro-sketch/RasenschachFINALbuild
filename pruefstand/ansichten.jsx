@@ -2,6 +2,8 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
 import App, {
+  kopfPfad,
+  drawWildcard, LAUFBAHN_MAX,
   MenuScreen, EndScreen, AkademieScreen, TalentZeile, WildcardEnthuellung, Balken,
   AusbauRing, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, WildcardCard,
   AchievementScreen, Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass,
@@ -500,6 +502,76 @@ console.log("\n=== Freischaltungen ===");
     else ok++;
     console.log("  Freischaltungen zugeklappt: Übersicht nach Art ✓ · Zähler 2 von 48 ✓");
   }
+}
+
+/* ---- Seltenheiten der Wildcards (34.30) ---------------------------------
+   Bis 34.29 war `drawWildcard` nicht ausgeführt — die Verteilung liess sich
+   gar nicht messen. In 34.5 gab es genau hier einen stillen Fehler: ein
+   Gewicht von 0 in der HSV-Stufe liess NaN durch die Wichtung laufen, und
+   ALLE Ziehungen kamen als Normal zurück, ohne dass irgendwo etwas aufgefallen
+   wäre. Deshalb wird nicht nur „es kommt eine Karte" geprüft, sondern die
+   Verteilung selbst. */
+/* ---- Spiegelgleichheit der Kopfformen (34.33) ---------------------------
+   Kevin sah es am Porträtbogen: bei den verjüngten Kinnpartien beulte die
+   rechte Seite aus. Ursache war ein einzelner Stützpunkt, der beim Umbau in
+   34.28 rechts auf der alten Kieferbreite stehen blieb, während links schon
+   der verjüngte Wert stand.
+
+   Geprüft wird nicht das Bild, sondern der Pfad: zu jedem Punkt (x, y) muss
+   es einen Partner (100 - x, y) geben. Das ist eine reine Rechnung und
+   erwischt jede künftige einseitige Änderung sofort. */
+console.log("\n=== Kopfformen ===");
+{
+  let schief = 0;
+  KOPFFORM.forEach((k, idx) => {
+    const d = kopfPfad(k);
+    /* Alle Zahlenpaare aus dem Pfad holen. */
+    const zahlen = (d.match(/-?\d+(\.\d+)?/g) || []).map(Number);
+    const punkte = [];
+    for (let i = 0; i + 1 < zahlen.length; i += 2) punkte.push([zahlen[i], zahlen[i + 1]]);
+    const rund = (v) => Math.round(v * 1000) / 1000;
+    /* Als MENGE vergleichen, nicht Stück für Stück. Der erste Entwurf strich
+       jeden Partner nach dem Finden weg — und meldete dadurch alle zehn
+       Formen als schief, auch die unveränderten: ein geschlossener Pfad nennt
+       seinen Startpunkt zweimal (einmal bei M, einmal vor dem Z), sein
+       Spiegelbild aber nur einmal. Ein Falschalarm, im Gegenlauf gefunden. */
+    const haben = new Set(punkte.map(([x, y]) => rund(x) + "|" + rund(y)));
+    const fehlt = [];
+    punkte.forEach(([x, y]) => {
+      if (!haben.has(rund(100 - x) + "|" + rund(y))) fehlt.push(x + "," + y);
+    });
+    if (fehlt.length) {
+      schief++;
+      zeige("Kopfformen", k.n + " (" + idx + ") ist nicht spiegelgleich: " + fehlt.slice(0, 3).join(" · "));
+    }
+  });
+  if (!schief) ok++;
+  console.log("  Spiegelgleich   " + (KOPFFORM.length - schief) + " von " + KOPFFORM.length + " Formen");
+}
+
+console.log("\n=== Wildcards ===");
+{
+  const t = {};
+  let kaputt = 0;
+  for (let i = 0; i < 4000; i++) {
+    let c = null;
+    try { c = drawWildcard(pick(Object.keys(POS)), [], null, {}, {}, 0); }
+    catch (e) { if (!kaputt++) zeige("Wildcards", "Ziehen scheitert: " + e.message); continue; }
+    if (!c || !c.r) { if (!kaputt++) zeige("Wildcards", "Ziehung ohne Seltenheit"); continue; }
+    t[c.r] = (t[c.r] || 0) + 1;
+  }
+  const ges = Object.keys(t).reduce((s, k) => s + t[k], 0) || 1;
+  const nie = Object.keys(RARITY).filter((k) => !t[k]);
+  if (nie.length) zeige("Wildcards", "nie gezogen: " + nie.join(", "));
+  else ok++;
+  const normal = (t.normal || 0) / ges;
+  if (normal > .8) zeige("Wildcards", Math.round(normal * 100) + " % Normal — die Wichtung greift nicht");
+  else ok++;
+  if (Object.keys(t).length < 3) zeige("Wildcards", "nur " + Object.keys(t).length + " Stufen gezogen");
+  else ok++;
+  console.log("  Verteilung      " + ges + " Ziehungen · "
+    + Object.keys(t).sort((x, y) => t[y] - t[x])
+      .map((k) => k + " " + (100 * t[k] / ges).toFixed(1) + "%").join(" · "));
 }
 
 console.log("\n=== Rückblick-Karten ===");

@@ -5,7 +5,7 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 34.29** · Stand 15. August 2026
+**Fassung 34.33** · Stand 15. August 2026
 *Eigene Schriften · harte Form · Sammelalbum · neue Spielerporträts · **das Heft: dunkles Zeitungspapier***
 
 > Die Abschnitte 1 bis 8 beschreiben das Spiel und die Arbeitsweise und gelten
@@ -282,6 +282,10 @@ und eine allgemeine Prüfung auf `NaN`/`undefined` in jeder Ansicht.
 | jsdom | `act()`-Warnungen zeitgesteuerter Animationen und fehlendes `getContext` sind **Prüfumgebung, kein Fehler**. Der Filter in den Skripten darf nicht abgeschaltet werden — die Warnungen treffen verzögert ein. |
 | Rand bei absoluter Lage | Ein `margin-right` verschiebt ein `position:absolute`-Element **um seinen eigenen Betrag**, nicht um die Breite des Nachbarn: `left + Breite + margin-right + right = Behälterbreite`. Zwei Knöpfe mit derselben Klasse und `right:0` liegen aufeinander, egal welcher Rand danebensteht. Nebeneinander gehört in einen Flexbehälter mit `gap`, nicht in Randwerte. |
 | Prüfmuster auf Zeichenketten | `startprobe.cjs` suchte nach Farbwerten und Verläufen, die es nach einer Gestaltungsänderung nicht mehr gab, und war dadurch **dauerhaft rot** — ohne dass etwas kaputt war. Prüfungen auf die Absicht richten (`.raster` trägt *irgendeinen* Radialverlauf), nicht auf den Wortlaut. |
+| Einseitig geänderte Pfade | Wer an einer Seite von `kopfPfad` etwas ändert, muss die gespiegelte Stelle mitziehen — sonst wird das Gesicht schief, und im Zufallsbogen fällt es kaum auf. Die Symmetrie wird seit 34.33 nachgerechnet: zu jedem Punkt (x, y) muss (100 − x, y) existieren. |
+| Farbumdeutung trifft auch Fremdkörper | `.laufzettel` und `.karteikarte` setzen die Farbvariablen für hellen Grund neu. Das gilt für ALLES darin — auch für Dinge, die absichtlich dunkel bleiben sollen, wie die Wildcard. Solche Objekte müssen die Umdeutung ausdrücklich zurücknehmen; ein Verweis auf den Grundstil geht nicht, eine Variable sieht ihre eigene Fassung weiter oben nicht. |
+| Zwei Dinge im selben Rasterfeld | `grid-area: 1/1` stapelt zwei Karten übereinander — praktisch, aber die Zelle ist immer so hoch wie der höhere Inhalt. Eine Ein- und Ausblendung wirkt dadurch stockend: die Grösse springt erst, wenn das alte Element abgeräumt ist. Das ausziehende Element gehört `position:absolute`, damit es für die Höhe nicht mehr zählt. |
+| Rechenkern kennt kein Karriereende | `simulateSeason`, `develop` und `makeOffers` hören nie auf. Die Altersgrenze steht im Spielablauf (App-Bauteil). Wer eine Laufbahn im Test nachstellt und nur den Kern ruft, spielt bis in alle Ewigkeit und meldet dann einen Fehler, den es nicht gibt. |
 | Ein Maß, viele Zeichner | `kopf.j` steuert Hülle, Wangenschatten, zwei Bärte und den Kinnriemen. Wer die Kieferlinie ändert und nur die Hülle anfasst, lässt den Bart darüber hinauszeichnen. Es gibt **keinen** Beschnitt auf `kopfD` — die Teile müssen von Hand zusammenpassen. |
 | Zwei Werte für dieselbe Sache | `col` und `colK` je Stufe, von Hand gepflegt, an zwei Orten benutzt — sie liefen auseinander, und Legendär sah oben creme und unten olivbraun aus. Dasselbe Muster wie `aka.laden`/`p.laden` in 34.22. **Eine Quelle, abgeleitete Varianten rechnen.** |
 | CSS-Spezifität schlägt Klassen | `.karton .m` (0,2,0) überschrieb `.stufe` (0,1,0) und setzte dunkle Schrift auf dunkle Fläche. Farben, die von einer berechneten Fläche abhängen, gehören **inline** — inline schlägt jede Klasse. |
@@ -2391,7 +2395,190 @@ neuen Nasen und Münder erscheinen also nur bei NEU erzeugten Gesichtern.
 **Eine Ausnahme:** bestehende weibliche Porträts bekommen ab sofort Wimpern.
 Das ist gewollt.
 
-## Offene Punkte (Stand 34.29)
+## 34.30 · Aufräumen nach dem Belastungstest
+
+Ein Lauf mit 5.000 Merkmalssätzen, 4.000 Spielern und 250 vollständigen
+Laufbahnen. Vier Punkte kamen heraus — **einer davon war ein Fehler in meinem
+eigenen Testgerüst, kein Fehler im Spiel.**
+
+### Die Fehlmeldung zuerst
+Der Test meldete: „Laufbahnen enden nicht, Spieler bekommen mit 43 noch
+Angebote", 171-mal in 250 Läufen. **Falsch.** Kevin hat sofort widersprochen:
+bei 40 sei Schluss. Er hat recht. Die Altersgrenze steht im Spielablauf, nicht
+im Rechenkern — mein Gerüst rief `develop`, `simulateSeason` und `makeOffers`
+direkt und lief damit an der ganzen Prüfung vorbei.
+
+**Merksatz für künftige Belastungsläufe:** Der Rechenkern kennt kein
+Karriereende. Wer eine Laufbahn nachstellt, muss die Endbedingung des
+Spielablaufs mitnehmen, sonst misst er Unsinn. Der `grosstest.cjs` tut das
+jetzt und benutzt dafür dieselbe ausgeführte Zahl.
+
+### Die Altersgrenze stand viermal da
+Beim Nachsehen fiel auf: die harte Grenze war **viermal als nackte Zahl**
+notiert — einmal als 40 (vor dem Hochzählen des Alters) und dreimal als 41
+(danach). Wer eine davon ändert und die anderen übersieht, bekommt zwei
+verschiedene Karrierelängen, je nachdem ob man normal spielt oder vorspult.
+
+Jetzt `LAUFBAHN_MAX = 40` an einer Stelle; die vier Abfragen lesen sie.
+**Verhalten unverändert** — `>= 40` vor dem Hochzählen ist dasselbe wie
+`> 40` danach. Die weichen Bedingungen daneben (ab 33 bei schwacher Stärke,
+ab 34 mit Zufall, ab 35) bleiben absichtlich verschieden: sie beschreiben
+verschiedene Lagen, nicht dasselbe zweimal.
+
+### Kopfform „Weich" war zu selten
+Gemessene **2,7 %** gegen 6 bis 15 % bei allen anderen. Grund: sie stand in
+keiner Staturliste und kam deshalb nur bei „normal" vor. Mit b 25,5 und einem
+Kiefer von 21 gehört sie zu den kräftigen — dort eingetragen, jetzt **6,7 %**.
+
+### Wildcards waren nicht messbar
+`drawWildcard` war für den Prüfstand nicht ausgeführt. Das ist deshalb heikel,
+weil genau dort in 34.5 ein stiller Fehler sass: ein Gewicht von 0 in der
+HSV-Stufe liess NaN durch die Wichtung laufen, und **alle** Ziehungen kamen als
+Normal zurück, ohne dass irgendwo etwas auffiel.
+
+Neue Prüfung mit 4.000 Ziehungen: jede Seltenheit muss vorkommen, mindestens
+drei Stufen, und **höchstens 80 % Normal** — genau die Signatur jenes Fehlers.
+
+    normal 36,1 % · selten 24,4 % · aussen 15,6 % · unfass 10,6 %
+    welt 8,0 % · goat 5,2 % · hsv 0,1 %
+
+### Was der Belastungstest sonst ergab
+Keine Fehler, keine NaN, kein Wert ausserhalb seiner Grenzen. Startstärke
+40–68, höchste erreichte Stärke 93, Laufbahnen 18–25 Saisons, **Karriereende
+zwischen 33 und 40** — die Grenze arbeitet.
+
+`pruefstand/grosstest.cjs` ist neu und gehört ins Repository. Aufruf:
+
+    cd /tmp/ps && node grosstest.cjs
+
+Er ändert nichts, er misst nur.
+
+### Geprüft
+Prüfstand: **401 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.083,08 kB**. Rückwärtsprüfung 6 × 63 fehlerfrei.
+
+## 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpapier
+
+### Warum die Karteikarten stockten
+Kevin: „Die vorherige Karte bleibt in ihren Grundmaßen noch einen Augenblick,
+bis der Inhalt der nächsten aufploppt." Und umgekehrt bei gross nach klein:
+„erst kommt der Inhalt auf der grossen Karte, dann schrumpft sie schlagartig."
+
+Beide Karten lagen im **selben Rasterfeld** (`grid-area: 1/1`). Ein Rasterfeld
+ist immer so hoch wie sein höchster Inhalt — die Bühne blieb also die vollen
+340 ms auf dem Mass der ALTEN Karte und sprang erst beim Abräumen um. Die
+Grössenänderung kam dadurch **nach** der Bewegung statt mit ihr.
+
+Neu ist `Kartenbuehne`: die hinausziehende Karte liegt **absolut**, also
+ausserhalb des Flusses, und zählt für die Höhe nicht mehr mit. Die Bühne misst
+nur die neue Karte (`useLayoutEffect` plus `ResizeObserver`, damit auch
+nachladende Schriften erfasst werden) und fährt ihre Höhe in denselben 340 ms
+dorthin. Wachsen, Hereinziehen und Hinausziehen laufen jetzt gleichzeitig.
+Im Ruhemodus fällt der Übergang weg.
+
+### Die drei Schritte stehen auf Formularpapier
+Training, Ereignis und Verträge sind das, was man tun MUSS, damit es weitergeht
+— sie sahen aus wie alles andere. Jetzt tragen sie die Klasse `.laufzettel`:
+heller Karton, Perforationsrand links, harte Kante mit versetztem Schatten und
+ein Kopfstreifen „TRAINING · SCHRITT 1 VON 3".
+
+Farben wieder über neu gesetzte Variablen wie bei der Karteikarte — der Inhalt
+benutzt Farben für dunklen Grund und löst auf dem Zettel von selbst zur
+Kartonfassung auf. Dazu drei Regeln, die dunkle Flächen im Zettel zu blossen
+Umrandungen machen (`.laufzettel .pan`, `.btn`, `.btn.on`).
+
+**Ohne strukturellen Eingriff:** der Kopfstreifen kommt als erstes Kind in den
+bestehenden Behälter, es kam kein einziges schliessendes Element dazu. Das war
+Absicht — die drei Blöcke sind lang und tief verschachtelt.
+
+### Geprüft
+Prüfstand: **401 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.085,92 kB**. Startprobe 13 von 13, keine Seitenfehler im Browser.
+`.zettelkopf` ist im Baum der laufenden App nachweisbar.
+
+### NICHT gesehen
+**Wie der Laufzettel aussieht, konnte ich nicht prüfen.** Die
+Kartenenthüllung liess sich im Browser nicht zuverlässig wegklicken; jeder
+Versuch endete vor demselben Vorhang. Dass er gezeichnet wird, ist belegt —
+wie er wirkt, nicht. Dasselbe gilt für den neuen Kartenwechsel: die Höhe wird
+rechnerisch geführt, gesehen habe ich die Bewegung nicht.
+
+## 34.32 · Die Wildcard auf hellem Papier
+
+Kevin nach dem Spielen: die Schrift auf der Wildcard geht verloren, weil die
+Karte leicht durchscheint. **Eine Folge von 34.31** — die Wildcard steht im
+Trainingsschritt, und der liegt seither auf hellem Formularpapier.
+
+Zwei Ursachen, beide von mir:
+
+1. **Der Grund war teildurchsichtig.** Der Verlauf ging von der Seltenheits-
+   farbe bei 12 % Deckung nach `var(--pan)` bei 62 %. Der erste Bereich liess
+   den Untergrund durch. Auf dunklem Grund fiel das nie auf, auf Papier wusch
+   es die Karte aus. Jetzt liegt der Verlauf AUF einer deckenden Fläche
+   (`…, var(--pan)` als zweite Lage) statt in sie hineinzublenden.
+2. **Meine eigene Farbumdeutung traf sie.** `.laufzettel` setzt `--tx`, `--mu`
+   und die Akzente auf Kartonfassungen — die Kartenschrift wurde damit dunkel,
+   auf einer dunklen Karte. Dazu nahm die Regel für Flächen im Zettel der Karte
+   den Grund.
+
+Die Karte trägt jetzt `.wkarte` und **nimmt die Umdeutung zurück**. Die Werte
+stehen dort noch einmal ausgeschrieben; ein Verweis auf den Grundstil geht
+nicht, weil eine Variable sich nicht auf ihre eigene Fassung weiter oben
+beziehen kann — sie sähe nur die des Laufzettels. **Wer die Grundfarben ändert,
+muss sie in `.wkarte` mitziehen.** Das steht als Warnung im Kommentar.
+
+### Was dabei auffiel
+Der Prüfstand hat mich erwischt: mein Kommentar enthielt zwei Rückwärts-
+Anführungszeichen und beendete damit die Schablonenzeichenkette des CSS-Blocks
+vorzeitig. Die Prüfung dafür gibt es seit einer früheren Fassung und sie hat
+genau das getan, wofür sie da ist.
+
+### Geprüft
+Prüfstand: **401 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.086,75 kB**. Rückwärtsprüfung 6 × 63 fehlerfrei.
+
+**Nicht gesehen:** wie die Karte auf dem Papier wirkt. Rechnerisch ist sie
+deckend und trägt ihre eigenen Farben; ob das Ergebnis gut aussieht, zeigt der
+Browsertest.
+
+## 34.33 · Die Kopfformen sind wieder spiegelgleich
+
+Kevin am Porträtbogen: einige der neuen Köpfe sind rechts deutlich runder und
+ausgebeult. Er hat recht, und es ist **mein Fehler aus 34.28.**
+
+### Ein einzelner Stützpunkt
+Beim Einführen der verjüngten Kinnpartie habe ich auf der linken Seite BEIDE
+Stützpunkte auf den neuen Wert umgestellt, auf der rechten nur den Endpunkt.
+Der rechte Stützpunkt bei `kinn-8` stand weiter auf der Kieferbreite OBEN:
+
+    rechts:  C r,52   jr,(kinn-8)   kur,(kinn-6)      ← jr statt kur
+    links:   C kul,(kinn-8)   l,52   l,40
+
+Solange `kv` fehlt, sind `jr` und `kur` gleich — deshalb waren die acht alten
+Formen nie betroffen. Bei **Zart** und **Rundlich** klaffte die rechte Seite um
+die volle Verjüngung auf und beulte sichtbar aus.
+
+### Geprüft wird jetzt gerechnet, nicht geschaut
+Neue Prüfung: für jeden Punkt (x, y) des Pfades muss es einen Partner
+(100 − x, y) geben. Reine Rechnung, erwischt jede künftige einseitige Änderung
+sofort — und zwar bei allen Formen, nicht nur bei denen, die gerade auffallen.
+
+**Gegenprobe:** alten Pfad wiederhergestellt — die Prüfung meldet genau
+**Zart (8)** und **Rundlich (9)**, die anderen acht bleiben grün. Das ist der
+Beweis, dass sie am richtigen Ort greift.
+
+*Eigener Falschalarm dabei:* Der erste Entwurf strich jeden gefundenen Partner
+weg und meldete daraufhin **alle zehn** Formen als schief, auch die
+unveränderten. Grund: ein geschlossener Pfad nennt seinen Startpunkt zweimal
+(einmal bei `M`, einmal vor dem `Z`), sein Spiegelbild aber nur einmal. Jetzt
+wird als Menge verglichen. Aufgefallen ist es nur, weil die Gegenprobe ein
+Ergebnis lieferte, das zu gut zum Fehler passte.
+
+### Geprüft
+Prüfstand: **402 Prüfungen**, 0 Fehler, „Spiegelgleich 10 von 10 Formen".
+Bündel **1.086,74 kB**. Porträtbogen angesehen: die Ausbeulung ist weg.
+
+## Offene Punkte (Stand 34.33)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
@@ -2432,6 +2619,14 @@ Das ist gewollt.
    Kevins Seite: der Prüfstand rechnet 300 Laufbahnen durch, aber niemand *spielt*
    sie. Ob sich eine Laufbahn über zwanzig Saisons richtig anfühlt, sagt keine
    Kennzahl.
+
+**Seit 34.32 erledigt:** Kopfformen wieder spiegelgleich, mit Nachrechnung im Prüfstand.
+
+**Seit 34.31 erledigt:** Wildcard bleibt auf dem Laufzettel lesbar.
+
+**Seit 34.30 erledigt:** Kartenwechsel führt die Höhe weich · drei Saisonschritte auf Formularpapier.
+
+**Seit 34.29 erledigt:** Altersgrenze an einer Stelle · Kopfform Weich nicht mehr zu selten · Wildcard-Verteilung messbar · Belastungstest im Prüfstand.
 
 **Seit 34.28 erledigt:** Herkunft wirkt auf Nase, Mund und Lidspalt · Statur zieht den Kopf · weibliche Porträts mit Wimpern und Schminke · Porträtbogen kann Frauen.
 

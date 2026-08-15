@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
 import { store } from "./storage.js";
 import { SCHRIFTEN } from "./schriften.js";
 
@@ -7,8 +7,8 @@ import { SCHRIFTEN } from "./schriften.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "34.29";
-const VERSION_INFO = "Herkunft, Statur und Geschlecht wirken jetzt aufs Gesicht: breitere Nasen und vollere Lippen als Spanne, Wimpern und dezente Schminke im Frauenfußball.";
+const VERSION = "34.33";
+const VERSION_INFO = "Die Kopfformen sind wieder spiegelgleich — bei den verjüngten Kinnpartien beulte die rechte Seite aus.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -2491,7 +2491,10 @@ function augenSpanne(id) {
 const staturKopf = (st) => ({
   schlank:       [3, 4, 8, 0],          // Schmal · Herz · Zart · Oval
   hochgewachsen: [3, 0, 8, 4],
-  kraftvoll:     [1, 2, 5, 6, 9],       // Rund · Kantig · Vollmond · Breit · Rundlich
+  /* „Weich" (7) fehlte hier bis 34.29 und kam dadurch nur bei „normal" vor —
+     gemessene 2,7 % gegen 7 bis 15 % bei allen anderen. Mit b 25,5 und einem
+     Kiefer von 21 gehört sie zu den kräftigen. */
+  kraftvoll:     [1, 2, 5, 6, 7, 9],    // Rund · Kantig · Vollmond · Breit · Weich · Rundlich
 }[st] || null);
 
 /* Aus einer Spanne über Ränge den gezeichneten Index holen. */
@@ -2599,11 +2602,25 @@ const KOPFFORM = [
    darüber hinaus — genau der Fehler, der in 34.1 vier Frisuren betraf. */
 const kinnBreite = (k) => k.j * (k.kv == null ? 1 : k.kv);
 
+/* Das harte Ende der Laufbahn. Stand bis 34.29 viermal als nackte Zahl im
+   Spielablauf — einmal als 40 (vor dem Hochzählen des Alters) und dreimal als
+   41 (danach). Wer eine davon ändert und die anderen übersieht, bekommt zwei
+   verschiedene Karrierelängen, je nachdem ob man normal spielt oder vorspult.
+
+   Die WEICHEN Bedingungen daneben (ab 33 bei schwacher Stärke, ab 35, ab 34
+   mit Zufall) bleiben absichtlich verschieden: sie beschreiben verschiedene
+   Lagen, nicht dasselbe zweimal. */
+const LAUFBAHN_MAX = 40;
+
 const kopfPfad = (k) => {
-  const l = 50 - k.b, r = 50 + k.b, jl = 50 - k.j, jr = 50 + k.j;
+  const l = 50 - k.b, r = 50 + k.b;
   const ku = kinnBreite(k), kul = 50 - ku, kur = 50 + ku;
   return "M" + l + ",40 C" + l + ",21 " + (l + 9) + ",12 50,12 C" + (r - 9) + ",12 " + r + ",21 " + r + ",40"
-    + " C" + r + ",52 " + jr + "," + (k.kinn - 8) + " " + kur + "," + (k.kinn - 6)
+    /* Beide Stützpunkte auf der verjüngten Kieferlinie. In 34.28 stand hier
+       rechts noch `jr` (die Kieferbreite OBEN), links dagegen schon der
+       verjüngte Wert — die rechte Seite beulte dadurch bei jeder Form mit
+       `kv` sichtbar aus. Symmetrie wird jetzt im Prüfstand nachgerechnet. */
+    + " C" + r + ",52 " + kur + "," + (k.kinn - 8) + " " + kur + "," + (k.kinn - 6)
     + " C" + kur + "," + (k.kinn - 1) + " " + (50 + ku * .45) + "," + k.kinn + " 50," + k.kinn
     + " C" + (50 - ku * .45) + "," + k.kinn + " " + kul + "," + (k.kinn - 1) + " " + kul + "," + (k.kinn - 6)
     + " C" + kul + "," + (k.kinn - 8) + " " + l + ",52 " + l + ",40 Z";
@@ -8416,6 +8433,60 @@ table.led td.r,table.led th.r{text-align:right;}
   40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,-1px)}80%{transform:translate(1px,1px)}}
 .rs-auf{animation:rs-auf .34s cubic-bezier(.16,.84,.44,1) both;}
 .rs-pochen{animation:rs-pochen 2.1s ease-out infinite;}
+/* ---- Laufzettel: was jetzt zu tun ist ------------------------------------
+   Training, Ereignis und Verträge sind die drei Schritte, ohne die es nicht
+   weitergeht. Sie sahen aus wie alles andere im Heft. Jetzt sind sie auf
+   Formularpapier gedruckt — heller Karton mit Perforationsrand links und
+   einem Kopfstreifen, der sagt, der wievielte Schritt das ist.
+
+   Farben wie bei der Karteikarte über neu gesetzte Variablen: der Inhalt
+   benutzt Farben für dunklen Grund, die hier von selbst zur Kartonfassung
+   auflösen. Eine Stelle statt jeder einzelnen.                              */
+.laufzettel{
+  --ac:var(--ac-k); --go:var(--go-k); --ok:var(--ok-k); --bad:var(--bad-k);
+  --mu:var(--tinte2); --tx:var(--tinte);
+  --ln:rgba(20,23,26,.16); --ln2:rgba(20,23,26,.30);
+  background:var(--karton);color:var(--tinte);
+  border:1px solid var(--karton2);
+  box-shadow:4px 5px 0 rgba(0,0,0,.5);
+  position:relative;margin-bottom:14px;
+}
+.laufzettel{padding:0 13px 14px 20px;}
+.zettelkopf{margin:0 -13px 12px -20px;}
+/* Perforationsrand links — wie ein abgetrenntes Formular. */
+.laufzettel::before{content:"";position:absolute;left:8px;top:8px;bottom:8px;width:1px;
+  background:repeating-linear-gradient(to bottom,
+    rgba(20,23,26,.34) 0 3px, transparent 3px 7px);}
+.zettelkopf{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+  background:var(--tinte);color:var(--karton);
+  padding:5px 12px 5px 20px;font-weight:700;font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;}
+.zettelkopf .nr{margin-left:auto;opacity:.72;letter-spacing:.1em;}
+/* Was im Heft dunkel ist, wird auf dem Zettel zur blossen Umrandung. */
+.laufzettel .pan:not(.wkarte){background:transparent;border:1px solid var(--ln2);}
+.laufzettel .eb{color:var(--tinte2);}
+.laufzettel .m{color:var(--tinte2);}
+.laufzettel .btn{background:transparent;border-color:var(--ln2);color:var(--tinte);}
+.laufzettel .btn.on{border-color:var(--ac-k);color:var(--ac-k);}
+.laufzettel .btn:active{background:rgba(20,23,26,.07);}
+
+/* Die Wildcard ist ein dunkles Sammelobjekt und bleibt eines, egal worauf sie
+   liegt. Auf dem Laufzettel würde sonst zweierlei passieren: die Regel für
+   Flächen im Zettel nähme ihr den Grund, und die umgedeuteten Farbvariablen
+   färbten ihre Schrift dunkel — auf dunkler Karte unlesbar.
+
+   Die Werte sind dieselben wie im Grundstil. Ein Verweis dorthin geht nicht:
+   eine Variable kann sich nicht auf ihre eigene Fassung weiter oben beziehen,
+   sie sähe nur die des Laufzettels. Wer die Grundfarben oben ändert, muss sie
+   hier mitziehen. */
+.wkarte{
+  --tx:#EFECE2; --mu:#A09B8C; --ln:#3A3628; --ln2:#625C49;
+  --ac:#3D8FDB; --go:#F2C230; --ok:#3DA35D; --bad:#EC6152;
+  color:var(--tx);
+}
+.laufzettel .wkarte,.karteikarte .wkarte{background:var(--pan);}
+.laufzettel .wkarte .m,.laufzettel .wkarte .eb{color:var(--mu);}
+
 /* ---- Karteikarte des Rückblicks ------------------------------------------
    Die Seiten des Saison- und Karriererückblicks liegen jetzt auf einer
    Karteikarte: heller Karton, harte Kante, versetzter Schatten, Linierung wie
@@ -9102,6 +9173,45 @@ const noteCol = (n) => (n <= 2 ? "#3DA35D" : n <= 2.7 ? "#7FBF6A" : n <= 3.5 ? "
    gemischt — #B9C4BE und #F2C230 verschwinden auf Karton fast völlig. */
 const noteColK = (n) => (n <= 2 ? "#1B6B36" : n <= 2.7 ? "#3C6B25" : n <= 3.5 ? "#565C58" : n <= 4.2 ? "#7A5600" : "#A81C13");
 
+/* Die Bühne, auf der die Karten liegen.
+
+   Warum es die braucht: bis 34.30 lagen beide Karten im SELBEN Rasterfeld
+   (`grid-area: 1/1`). Ein Rasterfeld ist immer so hoch wie sein höchster
+   Inhalt — also blieb die Bühne die vollen 340 ms auf dem Maß der ALTEN Karte
+   und sprang erst beim Abräumen auf das neue. Von klein nach gross wirkte es,
+   als bliebe die alte Karte stehen und der neue Inhalt „ploppe“ hinein; von
+   gross nach klein erschien der neue Inhalt auf der alten Fläche und die
+   schrumpfte dann schlagartig.
+
+   Jetzt liegt die hinausziehende Karte ABSOLUT, also ausserhalb des Flusses —
+   sie zählt für die Höhe nicht mehr mit. Die Bühne misst nur die neue Karte
+   und fährt ihre Höhe weich dorthin. Damit läuft die Grössenänderung
+   GLEICHZEITIG mit dem Hinein- und Hinausziehen statt danach. */
+function Kartenbuehne({ breite, aktuell, raus }) {
+  const messRef = useRef(null);
+  const [hoehe, setHoehe] = useState(null);
+  useLayoutEffect(() => {
+    const el = messRef.current;
+    if (!el) return;
+    const messen = () => setHoehe(el.offsetHeight);
+    messen();
+    /* Nachmessen, wenn sich der Inhalt noch setzt — Schriften laden verzögert,
+       und eine Karte mit Tabelle wächst danach noch. */
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(messen);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [aktuell]);
+  return (
+    <div style={{ position: "relative", width: "100%", maxWidth: breite,
+      height: hoehe == null ? undefined : hoehe,
+      transition: RUHE ? "none" : "height .34s cubic-bezier(.2,.85,.3,1)" }}>
+      {raus && <div style={{ position: "absolute", left: 0, right: 0, top: 0 }}>{raus}</div>}
+      <div ref={messRef}>{aktuell}</div>
+    </div>
+  );
+}
+
 /* Eine Seite des Rückblicks als Karteikarte.
 
    Warum ein gemeinsames Bauteil: Saison- und Karriererückblick waren zweimal
@@ -9116,8 +9226,8 @@ function Rueckblickkarte({ se, gross, raus }) {
     <div className={"karteikarte " + (raus ? "rs-karte-raus" : "rs-karte-rein")}
       aria-hidden={raus ? "true" : undefined}
       style={{ "--reiter": se.farbe, zIndex: raus ? 2 : 3,
-        width: "100%", maxWidth: gross ? 480 : 460, textAlign: "center",
-        gridArea: "1 / 1", pointerEvents: raus ? "none" : undefined }}>
+        width: "100%", textAlign: "center",
+        pointerEvents: raus ? "none" : undefined }}>
       <div className="d" style={{ color: se.farbe, fontSize: "clamp(19px,5.6vw,28px)",
         lineHeight: 1.05, letterSpacing: ".01em" }}>{se.kopf}</div>
       <div style={{ height: 2, width: 46, background: se.farbe, margin: "8px auto 6px", opacity: .85 }} />
@@ -9933,10 +10043,9 @@ function KarriereRueckblick({ p, onFertig }) {
         {/* Beide Karten liegen im SELBEN Rasterfeld übereinander — nur so
             kann die alte nach links hinausziehen, während die neue von rechts
             hereinkommt. */}
-        <div style={{ display: "grid", width: "100%", maxWidth: 480, justifyItems: "center" }}>
-          {seRaus && <Rueckblickkarte key={"raus" + raus} se={seRaus} gross raus />}
-          <Rueckblickkarte key={i} se={se} gross />
-        </div>
+        <Kartenbuehne breite={480}
+          raus={seRaus && <Rueckblickkarte key={"raus" + raus} se={seRaus} gross raus />}
+          aktuell={<Rueckblickkarte key={i} se={se} gross />} />
         <div className="m rs-auf" style={{ position: "absolute", bottom: 22, fontSize: 11, color: "var(--mu)" }}>
           {letzte ? "Tippen für die Abschlussbilanz" : "Tippen für weiter"} · {i + 1}/{seiten.length}
         </div>
@@ -10101,10 +10210,9 @@ function SaisonRueckblick({ p, s, onFertig }) {
         {seiten.map((_, k) => <i key={k} style={{ flex: 1, height: 3, borderRadius: 0, display: "block",
           background: k <= i ? "var(--go)" : "var(--ln2)" }} />)}
       </div>
-      <div style={{ display: "grid", width: "100%", maxWidth: 460, justifyItems: "center" }}>
-        {seRaus && <Rueckblickkarte key={"raus" + raus} se={seRaus} raus />}
-        <Rueckblickkarte key={i} se={se} />
-      </div>
+      <Kartenbuehne breite={460}
+        raus={seRaus && <Rueckblickkarte key={"raus" + raus} se={seRaus} raus />}
+        aktuell={<Rueckblickkarte key={i} se={se} />} />
       <div className="m rs-auf" style={{ position: "absolute", bottom: 22, fontSize: 11, color: "var(--mu)" }}>
         {letzte ? "Tippen zum Abschließen" : "Tippen für weiter"} · {i + 1}/{seiten.length}
       </div>
@@ -10295,8 +10403,13 @@ function WildcardCard({ card, big, onReroll, rerollLeft, rerollN }) {
   const nur = card.pos && card.pos.length
     ? card.pos.map((k) => (POS[k] ? POS[k].kurz || k : k)).join(", ") : null;
   return (
-    <div className="pan pad klebe winkel" style={{ borderColor: r.col,
-      background: "linear-gradient(140deg," + r.col + "1F 0%,var(--pan) 62%)",
+    <div className="pan pad klebe winkel wkarte" style={{ borderColor: r.col,
+      /* Der Verlauf liegt AUF einer deckenden Fläche. Vorher blendete er bei
+         62 % nach var(--pan) — die erste Stufe hatte aber nur 12 % Deckung,
+         also schien der Untergrund durch. Auf dunklem Grund fiel das nie auf;
+         seit die Wildcard im Trainingsschritt auf hellem Formularpapier liegt
+         (34.31), wusch das die Karte aus. */
+      background: "linear-gradient(140deg," + r.col + "1F 0%,transparent 62%), var(--pan)",
       transform: RUHE ? "none" : "rotate(" + winkel(card.n) + ")" }}>
       {/* Ein Streifen hält die eine Karte fest, die dich die ganze Laufbahn begleitet. */}
       <span className="streifen" aria-hidden="true" />
@@ -13163,7 +13276,7 @@ function FlutlichtApp() {
     else { const vk = []; verwalterRunde(q, vk); if (vk.length) s.notes = [...(s.notes || []), ...vk]; }
     const erste = makeOffers(q);
     /* Steht das Ende ohnehin fest, wird nicht erst noch ein Markt vorgegaukelt */
-    const ausAlter = q.age >= 40 || (q.age >= 35 && q.ovr < 56) || (q.age >= 33 && q.ovr < 48);
+    const ausAlter = q.age >= LAUFBAHN_MAX || (q.age >= 35 && q.ovr < 56) || (q.age >= 33 && q.ovr < 48);
     if (!erste.length || ausAlter) {
       setSeason(s); setP(q); setRueckblick({ p: q, s, lauf: q.lauf });
       const nt0 = (s.ntMajor && s.ntMajor.res === "Titel") ? [s.ntMajor.turnier + " " + s.ntMajor.y] : [];
@@ -13210,7 +13323,7 @@ function FlutlichtApp() {
       q.europeNext = o.club.s >= 74 ? CONT(o.club, 4) : null;
     }
     q.age += 1; q.year += 1; q.mv = marketValue(q);
-    if (q.age >= 41 || (q.age >= 34 && q.ovr < 58 && chance(.5))) { finish(q, "Es kam kein Angebot mehr, das noch Sinn ergab."); return; }
+    if (q.age > LAUFBAHN_MAX || (q.age >= 34 && q.ovr < 58 && chance(.5))) { finish(q, "Es kam kein Angebot mehr, das noch Sinn ergab."); return; }
     /* Die Frage kam ab 33 in jeder dritten Saison wieder — bis zu fünfmal in
        einer Laufbahn, auch wenn man auf dem Zenit stand. Jetzt EINMAL, und
        nur wenn die Stärke wirklich nachgelassen hat: mindestens 4 Punkte
@@ -13224,7 +13337,7 @@ function FlutlichtApp() {
     let q = clone(p);
     const lines = [];
     for (let i = 0; i < n; i++) {
-      if (q.age >= 41) break;
+      if (q.age > LAUFBAHN_MAX) break;
       develop(q); q.mv = marketValue(q);
       const evs = drawEvents(q, 2);
       evs.forEach((e) => {
@@ -13252,7 +13365,7 @@ function FlutlichtApp() {
         q.europeNext = best.club.s >= 74 ? CONT(best.club, 4) : null;
       } else if (best.type === "renew") { q.contract = best.years; q.wage = best.wage; }
       q.age += 1; q.year += 1; q.mv = marketValue(q);
-      if (q.age >= 41 || (q.age >= 35 && q.ovr < 58)) { setLog(lines); finish(q); return; }
+      if (q.age > LAUFBAHN_MAX || (q.age >= 35 && q.ovr < 58)) { setLog(lines); finish(q); return; }
     }
     setLog(lines); setP(q); setGrowth(null); setStep("training"); setSeason(null); setTab("verlauf");
   };
@@ -13425,7 +13538,7 @@ function FlutlichtApp() {
 
         <div className="a-buehne g1" style={{ alignContent: "start", minWidth: 0 }}>
           {step === "training" && (
-            <div className="fade g1">
+            <div className="fade g1 laufzettel"><div className="zettelkopf"><span>Training</span><span className="nr">Schritt 1 von 3</span></div>
               {p.seasons.length === 0 && p.wc && (
                 <div>
                   <div className="eb" style={{ marginBottom: 6 }}>Deine Karte für diese Laufbahn</div>
@@ -13483,7 +13596,7 @@ function FlutlichtApp() {
           {step === "event" && queue[ei] && (() => {
             const e = queue[ei], ctx = e._ctx;
             return (
-              <div className="fade g1">
+              <div className="fade g1 laufzettel"><div className="zettelkopf"><span>Ereignis</span><span className="nr">Schritt 2 von 3</span></div>
               <div className="pan pad">
                 {!er && queue.length > 1 && (
                   <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginBottom: 7,
@@ -13683,7 +13796,7 @@ function FlutlichtApp() {
             </div>)}
 
           {step === "winter" && (
-            <div className="pan pad fade">
+            <div className="fade laufzettel"><div className="zettelkopf"><span>Verträge und Angebote</span><span className="nr">Schritt 3 von 3</span></div>
               <span className="chip g">Wintertransferfenster</span>
               <div className="d" style={{ fontSize: 22, marginTop: 8 }}>Sofort wechseln?</div>
               <p style={{ marginTop: 8, color: "var(--mu)" }}>

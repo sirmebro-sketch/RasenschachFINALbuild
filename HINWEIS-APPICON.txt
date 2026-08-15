@@ -1,2 +1,1 @@
-symbol/appicon.png FEHLT ABSICHTLICH — liegt nur im Repo, unveraendert seit 34.20.
-Beim Entpacken stehen lassen.
+symbol/appicon.png FEHLT ABSICHTLICH. Beim Entpacken stehen lassen.
