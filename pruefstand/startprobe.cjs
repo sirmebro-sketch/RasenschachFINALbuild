@@ -69,17 +69,14 @@ setTimeout(() => {
   console.log("  · Schriftbefund: in jsdom nicht messbar (kein getContext) — nur auf dem Geraet");
   pruef("kein NaN/undefined im Text", !/NaN|undefined/.test(t));
   pruef("Stilblock der App vorhanden", !!d.querySelector("#root style"));
-  /* Die Papierstruktur hat schon dreimal die Bauart gewechselt: Linien,
-     Punktraster, jetzt eine Rauschkachel. Deshalb NICHT auf die Bauart prüfen,
-     sondern darauf, dass der Grund überhaupt eine Struktur trägt und nicht
-     nur eine Vollfarbe. Sonst schlägt die Prüfung bei jeder Gestaltungsfrage
-     an, obwohl nichts kaputt ist. */
-  {
-    const stil = (d.querySelector("#root style") || {}).textContent || "";
-    const fl = (stil.match(/\.fl\{[\s\S]*?\}/) || [""])[0];
-    pruef("Papier trägt eine Struktur", /background:url\(data:image|gradient/.test(fl),
-          /background:url\(data:image/.test(fl) ? "Rauschkachel" : "Verlauf");
-  }
+  /* Geprueft wird, DASS das Raster im Grundstil steht — nicht, in welcher
+     Farbe. Bis 34.20 stand hier die Farbe rgba(237,242,233,.030) fest im
+     Muster; seit der Umstellung auf currentColor traf es nie mehr zu, und
+     die Startprobe meldete bei jedem Lauf rot, ohne dass etwas kaputt war.
+     Eine Pruefung, die immer rot ist, wird ignoriert wie eine, die immer
+     gruen ist — nur aergerlicher. */
+  pruef("Halbtonraster im Grundstil",
+        /\.raster\{[^}]*background-image:\s*radial-gradient\(/.test((d.querySelector("#root style") || {}).textContent || ""));
 
   console.log("=== Messwerkzeug ===");
   const griff = [...d.querySelectorAll("button")].find((b) => b.textContent === "fps");
@@ -97,7 +94,13 @@ setTimeout(() => {
     const cb = d.querySelector("#mw-raster");
     cb.checked = true; cb.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
     const auf = [...d.querySelectorAll("body > style")].map((s) => s.textContent).join("");
-    pruef("Rasterschalter setzt Aufsatzstil", auf.includes(".fl{background:var(--bg)") && auf.includes("!important"));
+    /* Der Schalter nimmt dem Papier seine Struktur. WIE er das tut, hat sich
+       in 34.20 geaendert (vorher der alte Rasenverlauf, jetzt die Papierfarbe)
+       — das Muster hier zeigte danach ins Leere. Geprueft wird deshalb die
+       Wirkung: ein Aufsatzstil, der Flaeche und Raster mit !important
+       ueberschreibt. */
+    pruef("Rasterschalter setzt Aufsatzstil",
+          auf.includes("!important") && /\.raster\b/.test(auf) && /\.fl\b/.test(auf));
     cb.checked = false; cb.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
     const auf2 = [...d.querySelectorAll("body > style")].map((s) => s.textContent).join("");
     pruef("Rasterschalter raeumt wieder auf", auf2 === "");

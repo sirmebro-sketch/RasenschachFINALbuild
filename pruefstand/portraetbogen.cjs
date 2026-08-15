@@ -43,12 +43,17 @@ if (art === "zufall") {
   for (let i = 0; i < anzahl; i++)
     stuecke.push({ props: { seed: 1000 + i * 7919, g: i % 9 === 4 ? "w" : "m", nat: nat[i % nat.length] },
       marke: "", spalten });
-} else if (art === "merkmal") {
+} else if (art === "merkmal" || art === "frau") {
+  /* „frau" ist derselbe Bogen mit g:"w". Ohne ihn bleiben Wimpern, Schminke
+     und die weiblichen Frisuren unsichtbar — sie haengen alle am Geschlecht,
+     und der Merkmalsbogen zeichnete bis 34.29 ausschliesslich Maenner. */
+  const weiblich = art === "frau";
   const feld = process.argv[4] || "frisur";
   const meta = { mk_haar: true, mk_acc: true };
-  const n = parseInt(process.argv[5] || String(App.ZUEGE_ANZAHL(meta, false)[feld] || 8), 10);
+  const n = parseInt(process.argv[5] || String(App.ZUEGE_ANZAHL(meta, weiblich)[feld] || 8), 10);
   for (let v = 0; v < n; v++)
-    stuecke.push({ props: { zuege: { ...grund(meta), [feld]: v }, g: "m", nat: "GER" },
+    stuecke.push({ props: { zuege: { ...grund(meta), bart: 0, [feld]: v },
+      g: weiblich ? "w" : "m", nat: "GER" },
       marke: feld + " " + v, spalten: 8 });
 } else if (art === "kreuz") {
   /* Jede Auspraegung ueber JEDER Kopfform. Frisuren und Baerte richten sich

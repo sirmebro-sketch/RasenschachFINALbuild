@@ -5,7 +5,7 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 34.20** · Stand 14. August 2026
+**Fassung 34.29** · Stand 15. August 2026
 *Eigene Schriften · harte Form · Sammelalbum · neue Spielerporträts · **das Heft: dunkles Zeitungspapier***
 
 > Die Abschnitte 1 bis 8 beschreiben das Spiel und die Arbeitsweise und gelten
@@ -234,7 +234,19 @@ Teile: `aufbau` · `kalib` · `ansicht` · `rueck` · `bau`
 | `portraetbogen.cjs` | rendert Porträts als Bildtafel — ohne das ist Grafik blind |
 | `messwerkzeug.js` | Diagnose, Bildrate und A/B-Schalter für den Browsertest |
 | `startprobe.cjs` | fährt die fertige Einzeldatei in jsdom hoch |
+| `erreichbar.cjs` | misst, welche Ligen und Vereine erreichbar sind (seit 34.8; stand bis 34.20 nicht in dieser Tabelle) |
+| `kopfleiste.cjs` | vermisst die Kopfknöpfe des Titelblatts in echtem Chromium (seit 34.21) |
+| `seitenanfang.cjs` | prüft in echtem Chromium, dass jeder Seitenwechsel oben beginnt (seit 34.23) |
 | `appicon.py` | erzeugt den Android-Symbolsatz aus einem Bild |
+
+**`kopfleiste.cjs` braucht einen echten Browser.** Es läuft **nicht** in
+`pruefen.sh`, sondern von Hand auf einer gebauten Einzeldatei:
+
+    bash pruefstand/browsertest.sh App.jsx
+    node pruefstand/kopfleiste.cjs /tmp/bt/rasenschach-browsertest.html kopf.png
+
+Gemeldet wird der waagerechte Abstand zwischen den beiden Knöpfen; ein
+negativer Wert ist eine Überlappung. Dazu ein Bild der Kopfleiste.
 
 **Warum mehrfach laufen lassen:** Manche Fehler zeigen sich nur in
 bestimmten Spielzuständen. Der `ntNote`-Fehler wurde erst im achten
@@ -268,6 +280,13 @@ und eine allgemeine Prüfung auf `NaN`/`undefined` in jeder Ansicht.
 | Zähler ins Leere | `hsvZaehler` war ein vollständig ausformulierter Mechanismus, den nie jemand angeschlossen hat. Bei jedem Wert, der aus einer Einstellung kommt, prüfen: Wird er **irgendwo geschrieben**? |
 | Schriften | Die App nutzt Gerätefonts, kein Nachladen aus dem Netz. Bei Änderungen an `CSS` nicht versehentlich einen `@import` einbauen. |
 | jsdom | `act()`-Warnungen zeitgesteuerter Animationen und fehlendes `getContext` sind **Prüfumgebung, kein Fehler**. Der Filter in den Skripten darf nicht abgeschaltet werden — die Warnungen treffen verzögert ein. |
+| Rand bei absoluter Lage | Ein `margin-right` verschiebt ein `position:absolute`-Element **um seinen eigenen Betrag**, nicht um die Breite des Nachbarn: `left + Breite + margin-right + right = Behälterbreite`. Zwei Knöpfe mit derselben Klasse und `right:0` liegen aufeinander, egal welcher Rand danebensteht. Nebeneinander gehört in einen Flexbehälter mit `gap`, nicht in Randwerte. |
+| Prüfmuster auf Zeichenketten | `startprobe.cjs` suchte nach Farbwerten und Verläufen, die es nach einer Gestaltungsänderung nicht mehr gab, und war dadurch **dauerhaft rot** — ohne dass etwas kaputt war. Prüfungen auf die Absicht richten (`.raster` trägt *irgendeinen* Radialverlauf), nicht auf den Wortlaut. |
+| Ein Maß, viele Zeichner | `kopf.j` steuert Hülle, Wangenschatten, zwei Bärte und den Kinnriemen. Wer die Kieferlinie ändert und nur die Hülle anfasst, lässt den Bart darüber hinauszeichnen. Es gibt **keinen** Beschnitt auf `kopfD` — die Teile müssen von Hand zusammenpassen. |
+| Zwei Werte für dieselbe Sache | `col` und `colK` je Stufe, von Hand gepflegt, an zwei Orten benutzt — sie liefen auseinander, und Legendär sah oben creme und unten olivbraun aus. Dasselbe Muster wie `aka.laden`/`p.laden` in 34.22. **Eine Quelle, abgeleitete Varianten rechnen.** |
+| CSS-Spezifität schlägt Klassen | `.karton .m` (0,2,0) überschrieb `.stufe` (0,1,0) und setzte dunkle Schrift auf dunkle Fläche. Farben, die von einer berechneten Fläche abhängen, gehören **inline** — inline schlägt jede Klasse. |
+| Prüfung, die nichts zu messen hatte | Ein Prüfmittel kann grün melden, weil der geprüfte Zustand gar nicht eintrat: bei 412×915 ist das Hauptmenü fensterhoch, es gab nichts zu rollen, und „vorher 0 → nachher 0“ sah aus wie ein Erfolg. **Jede Messung braucht eine Untergrenze**, unterhalb derer sie „nicht messbar“ meldet — und das muss als Fehlschlag zählen. |
+| Layout ist im Prüfstand unsichtbar | jsdom rechnet keine Geometrie. Ob zwei Dinge übereinanderliegen, sich überschneiden oder aus dem Bild laufen, kann `pruefen.sh` **strukturell nicht** beantworten. Dafür `pruefstand/kopfleiste.cjs` auf einer gebauten Einzeldatei — oder die Ursache im CSS prüfen statt die Wirkung im Baum. |
 
 ---
 
@@ -1563,6 +1582,10 @@ pushState gesperrt, und daran kann die App nichts ändern. Der Weg über Capacit
 greift erst in der echten APK. **Das heisst: A1 lässt sich nur in der APK
 abschliessend prüfen, nicht im Browsertest.**
 
+> **Erledigt am 15.8.2026.** Kevin hat die Zurück-Taste in der APK durchprobiert:
+> arbeitet wie gewollt, kein Fehler gefunden. Der Weg über Capacitor greift also.
+> Damit ist A1 abgeschlossen und Block A vollständig.
+
 ### B3 · Der Spielerpass wuchs weiter
 Die Grenze aus 34.8 griff erst **ab sieben Stationen** — bis dahin wuchs die
 Liste frei, und weil beide Seiten im selben Rasterfeld liegen, wuchs die
@@ -1766,7 +1789,609 @@ Ansicht, nur mit anderem `wo`.
 
 Prüfstand: **352 Prüfungen**, 0 Fehler. Bündel **1.071,14 kB**.
 
-## Offene Punkte (Stand 34.20)
+## 34.21 · Laden und Zahnrad lagen aufeinander
+
+Kevin hat es auf dem Gerät gesehen: die beiden Knöpfe oben rechts im
+Hauptmenü steckten ineinander, statt nebeneinander zu sitzen.
+
+### Ein Rand hilft nicht, wenn das Element absolut sitzt
+Beide Knöpfe trugen dieselbe Klasse `.zahnrad` mit `position:absolute` und
+`right:0`. Der Laden bekam zusätzlich `marginRight: 6` — und das war der
+Denkfehler. Bei absoluter Lage löst der Browser die Gleichung
+
+    left + Breite + margin-right + right = Breite des Behälters
+
+Der Rand verschiebt das Element also **um seinen eigenen Betrag**, nicht um
+die Breite des Nachbarn. 40 px Knopf gegen 6 px Versatz sind 34 px
+Überlappung. Das Zahnrad steht später im Baum und lag deshalb obenauf.
+
+In Chromium nachgemessen (412 px breit, wie auf dem S24 Ultra):
+
+| | Laden | Optionen | Ergebnis |
+|---|---|---|---|
+| vorher 34.20 | 354–394 | 360–400 | **34 px Überlappung**, 85 % verdeckt |
+| nachher 34.21 | 312–352 | 360–400 | **8 px Abstand** |
+
+### Nicht die Zahl korrigiert, sondern die Konstruktion
+`right:46px` hätte es auch getan, wäre aber eine Zahl, die stillschweigend
+von der Knopfbreite abhängt. Stattdessen:
+
+* neuer Behälter `.kopfknoepfe` — `display:flex; gap:8px`
+* `.zahnrad` verliert `position:absolute`, `top`, `right` und `z-index` und
+  ist nur noch die Form des Knopfes
+* die Kopfleiste selbst ist eine Flexzeile mit `space-between`
+
+Zwei Knöpfe können damit gar nicht mehr aufeinander liegen, und ein dritter
+ließe sich ohne neue Zahl anhängen. **Nebenwirkung mit Absicht:** vorher
+konnte die Beschriftung „AUSGABE 01" bei hochgestellter Textgröße unter die
+absolut gesetzten Knöpfe rutschen. In der Flexzeile schrumpft sie stattdessen.
+
+### Die Prüfung dazu — und warum sie im CSS nachsieht
+jsdom rechnet kein Layout. Der Baum sah vorher und nachher gleich aus; keine
+der 352 Prüfungen konnte diesen Fehler sehen. Neu sind deshalb zwei Ebenen:
+
+1. **Im Prüfstand** (`ansichten.jsx`, 7 Prüfungen): beide Knöpfe liegen in
+   **einem** Behälter, der `.kopfknoepfe` heißt und beschriftet ist; und die
+   Stilregel selbst — `.zahnrad` darf nicht absolut sein, `.kopfknoepfe` muss
+   Flex mit Abstand sein. Dafür ist `CSS` neu in `exporte.txt`.
+2. **Im echten Browser** (`kopfleiste.cjs`): misst den Abstand wirklich.
+
+**Gegengeprüft:** gegen die unveränderte 34.20 gefahren, schlagen drei der
+neuen Prüfungen an, darunter „`.zahnrad` steht wieder auf position:absolute".
+
+*Eigener Fehler dabei:* Die Zusammenfassungszeile meldete zuerst fest
+„`.zahnrad` nicht absolut" — auch dann noch, als die Prüfung zwei Zeilen
+darüber das Gegenteil festgestellt hatte. Erst in der Gegenprobe aufgefallen.
+Sie nennt jetzt den gemessenen Zustand.
+
+### Zwei Falschalarme in `startprobe.cjs` — schon in 34.20 rot
+Beim Bauen des Browsertests fiel auf, dass die Startprobe auf der
+**unveränderten** 34.20 zwei Fehlschläge meldete. Beide waren Muster, die auf
+alte Zeichenketten eingefroren waren:
+
+| Prüfung | suchte nach | steht dort seit |
+|---|---|---|
+| Halbtonraster im Grundstil | `rgba(237,242,233,.030)` | `currentColor` |
+| Rasterschalter setzt Aufsatzstil | `.fl{background:radial-gradient` | `.fl{background:var(--bg)` (34.20) |
+
+Beide prüfen jetzt die Absicht statt des Wortlauts: dass `.raster` im
+Grundstil überhaupt einen Radialverlauf trägt, und dass der Schalter einen
+Aufsatzstil mit `!important` auf `.fl` und `.raster` legt.
+
+Startprobe vorher **11 von 13**, jetzt **13 von 13**. Eine Prüfung, die immer
+rot ist, wird genauso ignoriert wie eine, die immer grün ist.
+
+### Geprüft
+Prüfstand: **359 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.071,56 kB** (vorher 1.071,14 — die 0,42 kB sind der neue Behälter).
+Rückwärtsprüfung 6 × 63 Ansichten fehlerfrei, `package.json` unverändert.
+
+**Von Kevin auf dem Gerät bestätigt (15.8.2026):** die Zurück-Taste des
+Handys arbeitet in der APK wie gewollt, kein Fehler gefunden. Damit ist der
+letzte Punkt aus Block A erledigt.
+
+## 34.22 · Der Laden rechnet ab, und zwei Texte
+
+Vier von sechs gemeldeten Punkten. Zwei davon waren derselbe Fehler.
+
+### Der Laden: zwei Kopien, nur eine wurde kleiner
+Gekauftes stand in `aka.laden` (dauerhaft, im Laden angezeigt) und in `p.laden`
+(am Spieler, wirksam). Heruntergezählt wurde am Saisonende **nur `p.laden`**.
+Drei Folgen, von denen Kevin nur die erste gesehen hat:
+
+1. Im Laden stand für immer „läuft“ — auch Laufbahnen später.
+2. **Nachkaufen war dauerhaft gesperrt**, weil der Kauf gegen einen Zähler
+   prüfte, der nie wieder 0 wurde.
+3. **`start()` schenkte den Kauf jeder weiteren Laufbahn erneut.** Einmal
+   Extraschicht bezahlt hiess: ab jetzt in jeder Laufbahn gratis dabei.
+
+Dazu ein vierter, unbemerkter: **Physio und Trainer wirken sofort**, trugen sich
+aber trotzdem als „läuft“ ein und blockierten sich damit für immer selbst.
+
+### Ein Modell statt eines Schalters
+`einmal: true` ist weg. Jeder Artikel trägt jetzt eine Art:
+
+| Art | Bedeutung | Artikel |
+|---|---|---|
+| `dauer: 0` | wirkt sofort, hinterlässt **nichts**, beliebig oft kaufbar | Physio, Trainer |
+| `dauer: n` | läuft n Saisons, zählt herunter, danach nachkaufbar | Extraschicht, Lauf der Saison, Berater (1) · Über das Limit (4) |
+| `vorrat` | stapelt sich, wird beim Tausch verbraucht | Kartentausch |
+
+Und zwei Orte mit klarer Aufgabe: **`p.laden`** ist, was in der laufenden
+Laufbahn wirkt. **`aka.laden`** ist reiner **Vorrat** — im Hauptmenü gekauft,
+beim Anpfiff übergeben und dabei **geleert**. Die Ladenansicht liest den
+Bestand, der wirklich gilt (`p ? p.laden : aka.laden`).
+
+Kaufbarkeit entscheidet **eine** Funktion, `ladenKaufbar(a, laden)`, die Anzeige
+und Kauf beide lesen — vorher stand die Regel zweimal da.
+
+Das Herunterzählen liest die Dauer jetzt **aus `VCLADEN`** statt aus einer von
+Hand gepflegten zweiten Liste `["training","form","berater","ueber99"]`. Ein
+neuer Artikel mit Dauer wäre dort schlicht vergessen worden und hätte ewig
+gegolten.
+
+Nebenbei: der Preis steht jetzt **immer** am Artikel. Vorher stand bei
+Laufendem nur „läuft“, und man konnte nicht sehen, was ein weiterer Kauf kostet.
+
+### Der Kartentausch ist ein Zähler
+`tauschMax` liest `p.laden.reroll` nicht mehr als Ja/Nein, sondern als Zahl.
+Jeder Kauf gibt einen weiteren Tausch — genau wie gewünscht, statt einer
+einmaligen Freischaltung fürs Leben.
+
+### Geprüft, und die Prüfung gegengeprüft
+15 neue Prüfungen. Der Kern ist nicht die Zählung, sondern **eine echte Saison
+durch `simulateSeason`**: `training 1→0 · ueber99 4→3 · Vorrat reroll 2→2 ·
+danach nachkaufbar: ja`.
+
+**Gegenprobe:** das Herunterzählen künstlich wieder ausgebaut — drei Prüfungen
+schlagen an, darunter „training ist nach Ablauf immer noch nicht nachkaufbar“.
+
+*Und derselbe eigene Fehler wie in 34.21:* meine Zusammenfassungszeile meldete
+fest „danach nachkaufbar ✓“, auch als die Prüfung darüber rot war. Erst in der
+Gegenprobe aufgefallen. **Zum zweiten Mal in zwei Fassungen** — Protokollzeilen
+gehören grundsätzlich an den gemessenen Wert, nicht an den erwarteten.
+
+### Der Aufmacher der Ruhmeshalle log
+Unter „WER LÖST … AB?“ stand fest: *„Die Ruhmeshalle steht voll. Jetzt fehlt nur
+noch einer: deiner.“* Der Zweig greift ab dem **ersten** Eintrag — im
+Inhaltsverzeichnis direkt darunter stand dann „Ruhmeshalle · 1“. Dazu
+widerspricht der Satz sich selbst: was voll ist, dem fehlt nichts. Jetzt nennt
+er die tatsächliche Zahl und den Punktwert, den es zu schlagen gilt.
+
+### Das Namensfeld liess sich nicht leeren
+`setEigenerName(wert.length > 0)` lief bei **jedem** Tastendruck und fiel beim
+Löschen des letzten Zeichens auf falsch zurück — der Vorschlag sprang sofort
+wieder hinein, man konnte das Feld nie leeren, um selbst zu tippen. Die
+Markierung ist jetzt **klebrig**: einmal angefasst, gehört das Feld dem Spieler.
+Zurück zum Vorschlag geht über einen Knopf daneben, der über einen eigenen
+Drehzähler jedes Mal einen anderen Namen liefert. Ein leeres Feld beim Anpfiff
+fällt auf den Vorschlag zurück, damit niemand namenlos startet.
+
+### Geprüft
+Prüfstand: **374 Prüfungen**, 0 Fehler, alle vier Zielbänder
+(Vollausbau 27,1 · Kosten 1.564 · Weltklasse 4 · Rautekarte 34).
+Bündel **1.072,54 kB**. Rückwärtsprüfung 6 × 63 Ansichten fehlerfrei.
+
+**Wichtig zur Kalibrierung:** mehr Kaufmöglichkeiten heissen mehr VC-Abfluss.
+Das Band „Laufbahnen bis Vollausbau“ hält (27,1 in 25–35), weil die Kalibrierung
+nicht einkauft. **Wie stark sich mehrfaches Nachkaufen im echten Spiel auf den
+Ausbau auswirkt, ist damit NICHT gemessen** — das zeigt erst Kevins Langzeittest.
+
+## 34.23 · Jede neue Seite beginnt oben
+
+Kevin: „Wenn ich eine neue Laufbahn starte, startet das Bild nicht
+grundsätzlich am oberen Ende der Charaktererstellung." Und die richtige
+Frage hinterher: **betrifft das auch andere Seitenwechsel?**
+
+**Ja, alle.** Es gab dafür nirgends etwas. `zumAnfang(el)` existiert seit
+längerem, springt aber an den Anfang eines *Bereichs innerhalb* einer Seite
+und wird nur an **zwei** Stellen gerufen, beide bei Reiterwechseln. Der
+Seitenwechsel selbst war ungeregelt: der Browser behält die Rollhöhe, und die
+neue Seite erscheint an derselben Stelle, an der man vorher war.
+
+### Eine Stelle statt siebzehn
+Welche Seite gezeigt wird, hängt allein an `phase` (17 Wechsel) und `step`.
+Also ein einziger Effekt darauf, statt siebzehn einzelner Aufrufe, die man beim
+achtzehnten vergisst:
+
+    useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); },
+              [phase, step]);
+
+Ohne weichen Übergang: beim Seitenwechsel ist der alte Inhalt schon weg, weiches
+Rollen sähe wie ein Fehler aus. Das Fenster rollt, kein innerer Behälter — das
+ist im CSS ausdrücklich so festgehalten und wurde vorher nachgesehen.
+
+### Gemessen in echtem Chromium
+Neues Werkzeug `pruefstand/seitenanfang.cjs`. Fenster 412 × 560, damit die
+Seiten sicher überlaufen; je Fall frisch laden, ganz nach unten rollen,
+Seitenwechsel auslösen, `window.scrollY` messen.
+
+| Wechsel | vorher 34.22 | nachher 34.23 |
+|---|---|---|
+| Hauptmenü → Erstellung | 352 px → **352 px** | 352 px → **0** |
+| Errungenschaften → Menü | 14.201 px → **352 px** | 14.201 px → **0** |
+| Menü → Errungenschaften | 352 px → **352 px** | 352 px → **0** |
+| Erstellung → Menü | 1.484 px → **352 px** | 1.484 px → **0** |
+
+### Zwei Fehler im Prüfmittel, beide vor dem Ergebnis gefunden
+1. **Ein Falschgrün.** Der erste Entwurf fuhr mit 412 × 915. Im frischen
+   Zustand ist das Hauptmenü dort **exakt fensterhoch** (915 von 915 px) — es
+   gab nichts zu rollen, `scrollY` war vorher wie nachher 0, und die Prüfung
+   meldete zufrieden „bestanden", ohne etwas gemessen zu haben. Jetzt ein
+   niedrigeres Fenster **und** die Bedingung, dass vorher wirklich mindestens
+   60 px gerollt wurde; wer nicht herunterkam, meldet „nicht messbar", und das
+   zählt als Fehlschlag.
+2. **„Neue Laufbahn" wurde nie gefunden.** Der Knopf bricht die Zeile um,
+   `innerText` liefert `NEUE\nLAUFBAHN`, und `includes("neue laufbahn")` trifft
+   das nicht. Jetzt wird der Leerraum vorher vereinheitlicht.
+
+Ruhmeshalle und Akademie werden **bewusst nicht** geprüft: im frischen Zustand
+sind beide zu kurz zum Rollen. Lieber eine Prüfung weniger als eine, die nichts
+sieht.
+
+### Geprüft
+Prüfstand: **374 Prüfungen**, 0 Fehler, alle vier Zielbänder
+(Vollausbau 27,3 · Kosten 1.564 · Weltklasse 4 · Rautekarte 33).
+Bündel **1.072,65 kB**. Startprobe 13 von 13. Seitenanfang 4 von 4.
+
+## 34.24 · Der Spielerpass: Stärke, Binden, Flaggen
+
+Erster Teil eines Blocks von elf Punkten. Dieser Abschnitt deckt drei davon —
+alle am Spielerpass, und einer davon schliesst nebenbei einen Teil des seit
+34.22 offenen Pass-Wachstums.
+
+### Die Stärke läuft hoch und feiert Marken
+Vorher stand dort eine nackte Zahl, die beim Saisonwechsel einfach eine andere
+war. Jetzt läuft sie über 900 ms hoch (`Zahl`, gab es schon), und beim
+Überschreiten von **60 · 70 · 80 · 85 · 90 · 95 · 99** gibt es einen kurzen
+Puls: die Zahl wird golden, wächst und fällt zurück, links daneben schiebt sich
+die erreichte Marke herein und nach 2,4 s wieder weg.
+
+Drei Bedingungen, damit das nicht zur Tapete wird:
+* nur bei **Anstieg**, nie beim Fallen,
+* **nicht beim ersten Aufbau** — sonst blinkt der Pass bei jedem Öffnen,
+* gar nicht, wenn „Bewegung reduzieren“ (`RUHE`) an ist.
+
+Werden mehrere Marken auf einmal genommen, zeigt er die höchste.
+
+### Die Binden hatten keinen Platz — und liessen den Pass wachsen
+Beide Kapitänsbinden hingen in **derselben Flexzeile wie der Name**, mit
+`flexWrap: "wrap"`. Bei langem Namen rutschten sie in Zeile zwei. Weil beide
+Passseiten im selben Rasterfeld liegen, wuchs damit **der ganze Pass** — das ist
+ein Teil des offenen Punkts 8, und er hatte nichts mit der Vereinsliste zu tun.
+
+Jetzt haben sie einen festen Platz rechts unter der Stärke: untereinander,
+rechtsbündig, ausserhalb jeder Zeile, die umbrechen kann.
+
+### Flaggen auf der Nationalbinde — und was das nicht ist
+Die Binde der Nationalmannschaft trägt jetzt die **Bauart** der Landesflagge
+statt zweier Farbhälften: liegende Streifen, stehende Streifen, skandinavisches
+Kreuz oder Fläche mit Scheibe. 33 Nationen sind hinterlegt, mit dritter Farbe wo
+die Flagge wirklich drei hat.
+
+**Ehrlich gesagt, was das NICHT ist: eine Flaggensammlung.** Von 212 Nationen
+haben nur 33 überhaupt Farben, und Wappen, Sterne oder Halbmonde wären auf einem
+22 Punkt hohen Band ein Fleck. Wer nicht in der Liste steht, bekommt liegende
+Streifen aus seinen zwei Farben — dieselbe Darstellung wie bisher. Die
+**Vereinsbinde bleibt in Vereinsfarben**; eine Landesflagge am Vereinskapitän
+wäre falsch.
+
+Der Kennbuchstabe C hat jetzt einen Saum, weil er sonst auf der mittleren
+Flaggenbahn verschwindet.
+
+### Geprüft
+5 neue Prüfungen. Der Kern: **kein Vorfahr einer Binde darf `flexWrap:"wrap"`
+tragen**, und keine Binde darf mehr in der Namenszeile stecken. jsdom rechnet
+kein Layout und sieht den Umbruch nicht — geprüft wird deshalb die Ursache.
+
+**Gegenprobe:** die alte Anordnung wiederhergestellt — beide Prüfungen schlagen
+an („2 Binde(n) hängen in einer umbrechenden Zeile“).
+
+Prüfstand: **379 Prüfungen**, 0 Fehler, alle vier Zielbänder
+(Vollausbau 26,2 · Kosten 1.564 · Weltklasse 4 · Rautekarte 33).
+Bündel **1.076,92 kB**. Startprobe 13 von 13. Seitenanfang 4 von 4.
+
+### Was NICHT gemessen ist — und warum es hier steht
+Ich wollte die Passhöhe mit langem Namen im Browser vorher/nachher vergleichen.
+**Der Versuch ist gescheitert:** die Kartenenthüllung liess sich nicht
+zuverlässig wegklicken und der lange Name kam nicht ins Feld, also lag der Pass
+nie frei. Gemessen wurden zweimal 280 px — beides Mal die verdeckte Ansicht,
+also **kein Beleg für gar nichts**. Es wäre die dritte Falschgrün-Falle in vier
+Fassungen gewesen; sie steht hier, damit sie niemand als Nachweis liest.
+
+**Offen bleibt daher:** ob die Vorderseite mit langem Namen jetzt wirklich
+konstant hoch ist, muss Kevin auf dem Gerät sehen. Strukturell kann sie es,
+gemessen ist sie nicht.
+
+Ebenfalls nicht visuell geprüft: **wie die Flaggenbinden aussehen.** Sie
+erscheinen erst, wenn man Kapitän ist, und dorthin kommt der Prüfstand nicht.
+
+## 34.25 · Die Ränge der Errungenschaften
+
+Zwei gemeldete Punkte, zwei verschiedene Ursachen — aber dieselbe Farbtabelle.
+Deshalb zusammen: hätte man nur die Farben geändert, wäre der Kontrast wieder
+ein anderer gewesen.
+
+### Warum die Karten anders aussahen als die Übersicht
+Jede Stufe hatte ZWEI von Hand gepflegte Farben: `col` für dunklen Grund,
+`colK` für Karton. Die Übersicht oben zeichnete einen Punkt in `col`, die Karte
+einen Block in `colK`. Legendär war oben cremefarben (`#F3E7BE`) und auf der
+Karte olivbraun (`#6B5A2A`) — dieselbe Stufe, zwei Farben.
+
+Beide Werte waren für sich genommen *richtig* gewählt: hell auf dunkel, dunkel
+auf hell. Nur ergaben sie zusammen keine Stufe mehr, die man wiedererkennt.
+
+**Jetzt eine Farbe je Stufe.** Die dunkle Variante für dünne Linien wird
+gerechnet (`stufeDunkel`, Faktor 0,46), nicht gepflegt. Und Übersicht wie Karte
+benutzen dasselbe Bauteil `Rangblock` — ein Bauteil kann nicht auseinanderlaufen.
+Damit blasse Stufen auf hellem Karton nicht verschwinden, trägt der Block einen
+Rand in der gerechneten dunklen Variante.
+
+### Warum der Rang unlesbar war — ein Spezifitätskonflikt
+`.stufe` setzt `color:var(--karton)`, also helle Schrift. Aber `.karton .m` ist
+mit (0,2,0) spezifischer als `.stufe` mit (0,1,0), und der Block trägt beide
+Klassen. Auf jeder Karton-Karte gewann also `var(--tinte2)` — **dunkle Tinte auf
+dunkler Fläche.** Ausserhalb einer Karte (Saisonbilanz) stimmte es, deshalb fiel
+es nur auf den Karten auf.
+
+Die Schriftfarbe wird jetzt aus der Leuchtdichte gerechnet und **inline**
+gesetzt. Inline schlägt jede Klasse — der Konflikt kann nicht wiederkommen.
+
+### Ein Befund, den erst die Prüfung gebracht hat
+Die neue Kontrastprüfung meldete sofort: **Bronze `#A5713C` erreicht nur 3,73**
+mit heller und 4,23 mit dunkler Schrift. Beides unter den nötigen 4,5 für eine
+9 Punkt grosse Versalzeile — die Stufe wäre auch nach der Umstellung grenzwertig
+geblieben. Bronze ist jetzt `#8A5A29` und trägt helle Schrift mit **5,24**.
+
+| Stufe | Farbe | Schrift | Kontrast |
+|---|---|---|---|
+| Bronze | `#8A5A29` | hell | 5,24 |
+| Silber | `#9AA5B4` | dunkel | 7,08 |
+| Gold | `#E8B84B` | dunkel | 9,58 |
+| Platin | `#5E9BD8` | dunkel | 6,02 |
+| Legendär | `#F3E7BE` | dunkel | 14,28 |
+
+### Geprüft
+Die Prüfung vergleicht **nicht die Tabelle, sondern das Gezeichnete**: alle
+`.stufe`-Blöcke der Ansicht werden nach Stufennamen gruppiert, und jede Gruppe
+muss genau EINEN Hintergrund haben. Die Tabelle war ja gerade das Problem — eine
+Prüfung, die sie mit sich selbst vergleicht, hätte nichts gefunden.
+
+**Gegenprobe:** alter Zustand wiederhergestellt — fünf Prüfungen schlagen an,
+darunter „verschiedene Farben für dieselbe Stufe" und „14 Stufenblöcke ohne
+eigene Schriftfarbe".
+
+Zwei bestehende Prüfungen mussten mitziehen: sie zählten `.stufe.punkt` und
+erwarteten fünf Filterpunkte. Die gibt es nicht mehr, die Übersicht zeigt
+denselben Block wie die Karte. Jetzt wird auf 9 + 5 = 14 Blöcke und **null**
+Punkte geprüft.
+
+Prüfstand: **383 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.077,14 kB**. Startprobe 13 von 13.
+
+## 34.26 · Der Rückblick liegt auf Karteikarten
+
+Die Seiten des Saison- und Karriererückblicks standen frei im dunklen Schleier
+und blendeten beim Weitertippen nur ein. Jetzt liegen sie auf einer
+Karteikarte, die von rechts hereingezogen wird, während die alte nach links
+verschwindet.
+
+### Die Gestaltung
+Heller Karton, harte Kante, versetzter Schatten (`4px 5px 0`), eine
+zurückhaltende Linierung wie auf einer Karte aus dem Kasten, der rote Randstrich
+links, und oben ein Reiter von 5 px in der Farbe der jeweiligen Seite. Damit
+sitzt der Rückblick in derselben Sprache wie Errungenschaften, Spielerpass und
+Ruhmeshalle: **helles Papier auf dunklem Grund.**
+
+### Der Kniff mit den Farben
+Die Seiten benutzen an **78 Stellen** Farben für dunklen Grund — `var(--ac)`,
+`var(--go)`, `var(--mu)`. Auf hellem Karton wären die unlesbar; das ist genau
+der Fehler, der in 34.25 bei den Rängen steckte.
+
+Statt 78 Stellen von Hand umzuschreiben, werden die Variablen **auf der Karte
+neu gesetzt**:
+
+    .karteikarte{ --ac:var(--ac-k); --go:var(--go-k); --mu:var(--tinte2); … }
+
+Variablen vererben sich nach innen, also löst jedes `var(--ac)` im Inhalt von
+selbst zur Kartonfassung auf. **Eine Stelle statt achtundsiebzig**, und es kann
+keine vergessen werden.
+
+Zwei Farben konnten das nicht: `noteCol` liefert rohe Hexwerte, und
+`#B9C4BE`/`#F2C230` verschwinden auf Karton fast völlig — dafür gibt es jetzt
+`noteColK`. Und die Hervorhebung der eigenen Tabellenzeile war ein Gelb bei
+12 %, auf Karton unsichtbar; sie ist jetzt eine dunklere Tönung bei 15 %.
+
+### Die Ziehbewegung braucht zwei Karten
+Vorher wurde die Seite über `key={i}` neu aufgebaut — die alte Karte war im
+selben Augenblick nicht mehr gezeichnet, ein Hinausziehen war also unmöglich.
+`useBlaettern` merkt sich jetzt die hinausziehende Seite für 360 ms. Beide
+Karten liegen im **selben Rasterfeld** übereinander; die alte nimmt keine
+Tipper an und verschwindet danach. Im Ruhemodus fällt beides weg.
+
+### Ein Bauteil statt zwei Kopien
+Saison- und Karriererückblick waren zweimal dasselbe Gerüst mit leicht
+verschiedener Überschrift. Beide benutzen jetzt `Rueckblickkarte` und
+`useBlaettern` — zwei Kopien derselben Gestaltung laufen auseinander, sobald man
+eine davon anfasst. Dasselbe Muster wie bei den Rangfarben in 34.25 und bei
+`aka.laden`/`p.laden` in 34.22.
+
+### Geprüft
+Prüfstand: **388 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.080,19 kB**. Startprobe 13 von 13.
+Fünf neue Prüfungen, darunter: die Karte wird gezeichnet und trägt eine
+Reiterfarbe, die Farbumdeutung steht vollständig im Stilblock, und beide
+Bewegungen sind da.
+
+### Was NICHT geprüft ist
+**Wie die Karteikarte im laufenden Spiel aussieht, habe ich nicht gesehen.**
+Der Rückblick liegt hinter einer ganzen gespielten Saison, und mein Skript kam
+im Browser nicht dorthin. Der Prüfstand bestätigt, dass die Karte gebaut wird
+und die Farbumdeutung steht — **wie sie wirkt, muss Kevin im Browsertest
+ansehen.** Besonders: ob die Linierung zu stark oder zu schwach ist und ob die
+Ziehbewegung bei 360 ms zu schnell oder zu träge wirkt.
+
+### Korrektur einer eigenen Notiz
+In 34.24 stand hier der Verdacht, `.zellen` lasse den Spielerpass wachsen
+(`flex-wrap:wrap` mit `flex:1 0 auto`). **Das hält der Nachrechnung nicht
+stand:** die vier Felder sind label-breit, zusammen rund 324 px, und damit
+passen sie bei 412 px Fensterbreite in eine Zeile. Die bestätigte Ursache war
+die Kapitänsbinde in der umbrechenden Namenszeile, und die ist behoben. Ob
+überhaupt noch etwas wächst, ist offen — und **gemessen ist es nicht.**
+
+## 34.27 · Drei wirklich runde Kopfformen
+
+Erster von vier Porträt-Punkten. Die anderen drei stehen weiter offen — dazu
+unten.
+
+### Warum „Rund“ nicht rund war
+Der Porträtbogen zeigt es sofort: „Rund“ (b 27, j 19) unterschied sich von
+„Oval“ (b 25, j 15) fast nur in der Breite. Ein Kopf wirkt aber nicht durch
+Breite rund, sondern durch einen **breiten Kiefer** (`j`) und ein **kurzes
+Gesicht** (`kinn`). Genau daran fehlte es.
+
+Angehängt, mit Betonung auf ANGEHÄNGT:
+
+| Form | b | j | kinn | Wirkung |
+|---|---|---|---|---|
+| Vollmond | 28 | 24 | 66 | breit, sehr breiter Kiefer, kurzes Gesicht |
+| Breit | 29 | 22 | 69 | ausladend, kräftige Wangen |
+| Weich | 25,5 | 21 | 67 | schmaler, aber ohne Kanten |
+
+**Bestehende Gesichter ändern sich nicht.** Die Indizes 0–4 behalten ihre
+Bedeutung, und gespeicherte Laufbahnen tragen das Merkmalsobjekt, nicht die
+Kennung. Neu erzeugte Gesichter greifen auf acht statt fünf Formen zu.
+
+### Der Porträtbogen läuft wieder
+Er war unbenutzbar: `portraetbogen.cjs` verlangt ein gebündeltes `motor.js`,
+das `pruefen.sh` nicht erzeugt, `cairosvg` fehlte, und `@capacitor/preferences`
+liess sich für Node nicht auflösen. So geht es:
+
+    cp App.jsx storage.js schriften.js /tmp/ps/ && cd /tmp/ps
+    cat App.jsx pruefstand/exporte.txt > probe.jsx        # sinngemäss
+    npx esbuild probe.jsx --bundle --outfile=motor.js --platform=node \
+        --format=cjs --external:react --external:react-dom \
+        --external:@capacitor/preferences
+    cp pruefstand/portraetbogen.cjs . && node portraetbogen.cjs kreuz bogen.svg kopf
+    python3 -c "import cairosvg;cairosvg.svg2png(url='bogen.svg',write_to='bogen.png',output_width=1200)"
+
+Zwei Fallen: `portraetbogen.cjs` muss **im selben Verzeichnis wie `motor.js`**
+liegen, weil `require("./motor.js")` relativ zum Skript auflöst — und es darf
+nicht unter `/home/claude` laufen, weil dessen `package.json` `"type":"module"`
+setzt und das CJS-Bündel dort nicht lädt. Für `@capacitor/preferences` genügt
+ein Platzhalter in `node_modules`.
+
+Ohne dieses Werkzeug ist Porträtarbeit Blindflug. Es gehört vor jede weitere
+Änderung am Gesicht gefahren.
+
+### Geprüft
+Prüfstand: **391 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+„60 gezeichnete Auswahlmöglichkeiten in 8 Merkmalen · 7 Augenfarben ·
+**8 Kopfformen**“. Bündel **1.080,27 kB**. Rückwärtsprüfung 6 × 63 fehlerfrei —
+alte Spielstände bleiben also lesbar.
+
+### Was von diesem Block NICHT gemacht ist
+Drei der vier Porträt-Punkte stehen offen, und zwar bewusst:
+
+* **Nationalitätstypische Merkmale.** Haut und Haar werden über
+  `hautBereich`/`haarBereich` bereits nach Herkunft eingegrenzt — das ist die
+  richtige Bauweise und der Weg für Nase, Mund und Augen: **Bereiche, keine
+  festen Zuordnungen**, damit jede Nation eine Spanne von Gesichtern hervorbringt
+  statt eines Typs. Dafür müssen Nase (5), Mund (5) und Augen (5) erst nach
+  Merkmal geordnet erweitert werden — schmal bis breit, flach bis voll. Das ist
+  Arbeit im 347 Zeilen langen Zeichner.
+* **Statur wirkt aufs Gesicht.** Braucht dieselbe Erweiterung als Grundlage.
+* **Weibliche Porträts.** Ebenso — plus ein neues Merkmal `schminke`, das
+  hinten an `ZUEGE_ORDNUNG` angehängt werden muss.
+
+Alle drei greifen in dieselben Merkmale. Einzeln nacheinander hiesse, dieselben
+Gesichter dreimal neu auszubalancieren. Sie gehören in **eine** Sitzung, mit dem
+Porträtbogen offen.
+
+## 34.28 · Zwei Kopfformen ohne markantes Kinn
+
+Kevins Befund am Porträtbogen: bei **allen** Formen steht das Kinn unten
+seitlich heraus. Er hat recht, und die Ursache steckt in `kopfPfad`: die
+Kieferlinie läuft senkrecht von `kinn-8` bis `kinn-1` und knickt dann scharf zum
+Kinn ab. Das erzeugt zwei sichtbare Ecken.
+
+### Eine Kinnbreite, die überall gilt
+Neu ist `kinnBreite(k) = k.j * (k.kv ?? 1)` — die Kieferbreite **am Kinn**.
+Ohne `kv` ist sie gleich der Kieferbreite oben, also sind alle zehn bisherigen
+Formen bitgleich. Nur Formen mit `kv` laufen nach unten schmaler zu.
+
+**Der Fallstrick:** `kopf.j` steuert nicht nur die Hülle. Auch die Schattenseite
+der Wange, zwei Bartformen und der Kinnriemen rechnen damit. Hätte ich nur die
+Hülle verjüngt, hätte der Bart über das Kinn hinausgezeichnet — genau der
+Fehler, der in 34.1 vier Frisuren betraf. `kinnBreite` gilt deshalb an **allen
+sechs Stellen** im Kinnbereich.
+
+Es gibt keinen Beschnitt auf die Kopfhülle: Bart und Schatten werden frei
+gezeichnet. Wer künftig an der Kieferlinie etwas ändert, muss diese Stellen
+mitziehen — oder erst einen `clipPath` auf `kopfD` einführen.
+
+| Form | b | j | kinn | kv |
+|---|---|---|---|---|
+| Zart | 24 | 15 | 70 | 0,58 |
+| Rundlich | 27,5 | 21 | 68 | 0,58 |
+
+### Geprüft, und zwar angesehen
+Porträtbogen zweimal gefahren: `kreuz kopf` zeigt die zehn Formen, `kreuz bart`
+alle zehn Bärte über alle zehn Formen. **Die Bärte folgen der neuen Kieferlinie
+und bleiben überall innerhalb der Hülle.**
+
+Prüfstand: **393 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+„62 gezeichnete Auswahlmöglichkeiten · **10 Kopfformen**“.
+Bündel **1.080,37 kB**. Rückwärtsprüfung 6 × 63 fehlerfrei.
+
+## 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht
+
+Die letzten drei Punkte des Blocks. Sie greifen alle in dieselben Merkmale und
+sind deshalb zusammen gemacht.
+
+### Spannen, keine Typen
+**Nirgends steht „Nation X hat Nase Y".** Hinterlegt ist je Region eine SPANNE
+von Rängen; die Spannen überlappen sich stark. Jede Herkunft bringt damit eine
+Bandbreite von Gesichtern hervor, und jedes Gesicht bleibt möglich — nur die
+Häufigkeit verschiebt sich. Das ist dieselbe Bauweise, die `hautBereich` und
+`haarBereich` seit jeher benutzen, jetzt auch für Nase, Mund und Lidspalt.
+
+### Warum es Ränge braucht
+Die gezeichneten Formen sind nicht nach Größe sortiert — Nasenbreiten stehen als
+`[2.5, 3.2, 2, 2.9, 2.7, …]` in der Reihenfolge, in der sie entstanden sind. Man
+darf sie **nicht** sortieren: der Index steckt in jedem gespeicherten Gesicht.
+`NASE_RANG`, `MUND_RANG` und `AUGEN_RANG` ordnen sie, ohne sie zu bewegen. Eine
+Spanne bezieht sich auf Ränge, `ausSpanne` übersetzt zurück in den Index.
+
+### Neu gezeichnet, hinten angehängt
+* **Nasen:** drei breitere (3,7 · 4,3 · 2,2) — jetzt acht.
+* **Münder:** zwei vollere — jetzt sieben.
+* **Augen:** keine neuen Formen. Die fünf vorhandenen decken den Lidspalt von
+  2,6 bis 4,2 ab; sie werden nur nach Rang angesteuert. Lieber keine neue Form
+  als eine schlecht gezeichnete.
+
+### Statur
+`schlank` und `hochgewachsen` ziehen den Kopf schmal, `kraftvoll` breit,
+`normal` lässt alle zehn Formen zu. Verdrahtet über einen Effekt in der
+Erstellung — **und genau der stand im ersten Entwurf vor der Zustandserklärung
+von `statur`.** Der Prüfstand meldete „Cannot access 'statur' before
+initialization", die ganze Erstellungsseite war tot. Dieselbe Falle wie
+„Prüfskript vor Definition" in Abschnitt 6, diesmal im Anwendungscode.
+
+### Frauenfußball
+Der Mangel war nicht die Frisur, sondern das Gesicht darunter: **es gab kein
+einziges Merkmal, das ein Porträt weiblich lesen liess.** Neu:
+
+* **Wimpern** an allen weiblichen Porträts, auch ohne Schminke.
+* **`schminke`** als neues Merkmal, hinten an `ZUEGE_ORDNUNG` angehängt:
+  0 keine · 1 Lidschatten · 2 Lippenstift · 3 beides · 4 dezent betont.
+  Männer bekommen immer 0.
+* **Vollere Lippen und feinere Brauen** im Mittel — die Spanne wird verschoben,
+  nicht festgesetzt.
+
+Der Lippenstift ersetzt den Hautton nicht, er mischt sich hinein
+(`mischFarbe`) — eine feste Farbe säße auf hellen und dunklen Tönen nie
+zugleich richtig, und das Heft kennt keine Neontöne.
+
+### Der Porträtbogen kann jetzt Frauen
+Er zeichnete im Merkmalsmodus ausschliesslich Männer — Wimpern, Schminke und
+die weiblichen Frisuren waren damit **unsichtbar prüfbar**. Neuer Modus:
+
+    node portraetbogen.cjs frau bogen.svg schminke 5
+
+### Geprüft, und angesehen
+Prüfstand: **398 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+„67 gezeichnete Auswahlmöglichkeiten · 10 Kopfformen“.
+Bündel **1.083,07 kB**. Rückwärtsprüfung 6 × 63 fehlerfrei.
+Bögen gefahren: `merkmal nase`, `frau schminke`, `frau frisur`.
+
+### Was das für alte Spielstände heisst
+Gespeicherte Gesichter tragen ihre Merkmale als Objekt, nicht als Kennung — die
+neuen Nasen und Münder erscheinen also nur bei NEU erzeugten Gesichtern.
+**Eine Ausnahme:** bestehende weibliche Porträts bekommen ab sofort Wimpern.
+Das ist gewollt.
+
+## Offene Punkte (Stand 34.29)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
@@ -1790,6 +2415,43 @@ Prüfstand: **352 Prüfungen**, 0 Fehler. Bündel **1.071,14 kB**.
    greift nur bei neuen Laufbahnen. So gewollt, sollte aber im Blick bleiben.
 7. **Aus Abschnitt 7 weiterhin offen:** Akademie im Karriere-Rückblick erwähnen,
    Jugendturniere mit Namen und Gegner sichtbar machen.
+8. **Spielerpass wächst weiter (gemeldet 15.8.).** Nicht die Vereinsliste — die
+   steht seit 34.16 fest auf 150 px. Verdächtig ist `.zellen` (`flex-wrap:wrap`
+   mit `flex:1 0 auto`): die vier Felder *Stationen · Spiele · Tore · Vorlagen*
+   können nicht schrumpfen und brechen um, sobald die Zahlen breiter werden.
+   Dazu ab sechs Stationen einmalig die Zeile „N Stationen“. **Vor der Änderung
+   messen** — `.zellen` steckt auch in der Karriere-Kopfleiste.
+9. **„Moral“ umbenennen?** Als sichtbare Beschriftung nur zwei Stellen (Meter im
+   Zustand, Wirkungstabelle); das Feld `morale` mit 910 Vorkommen bleibt
+   unangetastet, sonst brechen alte Spielstände. Empfehlung: „Moral“ ist im
+   Fußball das etablierte Wort, „Motivation“ trifft es nicht — der Wert ist
+   Stimmung, nicht Antrieb. Der eigentliche Mangel: **in der Kurzanleitung fehlt
+   Moral komplett**, obwohl Form, Fitness, Vertrauen und Bekanntheit dort stehen.
+10. **Langzeittest der Fassungen ab 34.15 steht aus** — Wachstumskurve, Ereignisse,
+   Auto-Training, Sprache, Frauenfußball über mehrere Laufbahnen am Stück. Das ist
+   Kevins Seite: der Prüfstand rechnet 300 Laufbahnen durch, aber niemand *spielt*
+   sie. Ob sich eine Laufbahn über zwanzig Saisons richtig anfühlt, sagt keine
+   Kennzahl.
+
+**Seit 34.28 erledigt:** Herkunft wirkt auf Nase, Mund und Lidspalt · Statur zieht den Kopf · weibliche Porträts mit Wimpern und Schminke · Porträtbogen kann Frauen.
+
+**Seit 34.27 erledigt:** zwei Kopfformen mit weich auslaufendem Kinn (Zart, Rundlich).
+
+**Seit 34.26 erledigt:** drei runde Kopfformen (Vollmond, Breit, Weich) · Porträtbogen wieder benutzbar.
+
+**Seit 34.25 erledigt:** Rückblick auf Karteikarten mit Ziehbewegung.
+
+**Seit 34.24 erledigt:** Rangfarben stimmen zwischen Übersicht und Karte · Rangschrift lesbar (Bronze zusätzlich korrigiert).
+
+**Seit 34.23 erledigt:** Stärke läuft hoch mit Markenpuls · Kapitänsbinden fest platziert · Flaggenbauart auf der Nationalbinde.
+
+**Seit 34.22 erledigt:** jeder Seitenwechsel beginnt wieder oben.
+
+**Seit 34.21 erledigt:** Laden rechnet ab (Nachkaufen, Ablauf, kein Geschenk an neue Laufbahnen) · Aufmacher der Ruhmeshalle · Namensfeld leerbar.
+
+**Seit 34.20 erledigt:** Zurück-Taste des Geräts (in der APK bestätigt, 15.8.2026)
+· Überlappung von Laden und Zahnrad im Hauptmenü · zwei Falschalarme in
+`startprobe.cjs` · `erreichbar.cjs` in der Werkzeugtabelle nachgetragen.
 
 ## Zusätzliche Stolperfallen
 

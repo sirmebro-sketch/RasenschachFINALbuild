@@ -7,8 +7,8 @@ import { SCHRIFTEN } from "./schriften.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "34.20";
-const VERSION_INFO = "Der Laden hat ein Symbol neben dem Zahnrad und zeigt immer alle Artikel — was noch nicht geht, ist gesperrt statt unsichtbar.";
+const VERSION = "34.29";
+const VERSION_INFO = "Herkunft, Statur und Geschlecht wirken jetzt aufs Gesicht: breitere Nasen und vollere Lippen als Spanne, Wimpern und dezente Schminke im Frauenfußball.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -39,6 +39,19 @@ const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h
 /* Poisson-verteilte Torzahl für die Spielsimulation */
 const poisson = (l) => { const L = Math.exp(-Math.max(.02, l)); let k = 0, p = 1, g = 0;
   do { k++; p *= Math.random(); } while (p > L && g++ < 60); return k - 1; };
+/* Zwei Farben mischen. Für den Lippenstift: der Grundton bleibt erkennbar,
+   der Farbstich legt sich darüber. Eine feste Farbe säße auf hellen und
+   dunklen Hauttönen nie zugleich richtig. */
+const mischFarbe = (a, b, anteil) => {
+  try {
+    const A = parseInt(String(a).slice(1), 16), B = parseInt(String(b).slice(1), 16);
+    const m = (v, w) => Math.round(v + (w - v) * anteil);
+    const h = (v) => v.toString(16).padStart(2, "0");
+    return "#" + h(m(A >> 16 & 255, B >> 16 & 255)) + h(m(A >> 8 & 255, B >> 8 & 255))
+      + h(m(A & 255, B & 255));
+  } catch (e) { return a; }
+};
+
 const shade = (hex, amt) => {
   const n = parseInt(hex.slice(1), 16);
   const f = (v) => clamp(Math.round(v + amt), 0, 255);
@@ -2433,6 +2446,61 @@ const HAUT_LAND = {
   IND:[2,4], PAK:[2,4], BAN:[2,4], SRI:[2,4], NEP:[1,3], MDV:[2,4],
   AUS:[0,3], NZL:[0,3], PNG:[4,5], SOL:[4,5], FIJ:[3,5], VAN:[4,5], TAH:[2,4],
 };
+/* ==========================================================================
+   Herkunft, Statur und Geschlecht wirken auf das Gesicht — über SPANNEN
+   -------------------------------------------------------------------------
+   Wichtig für das Vorgehen: nirgends steht „Nation X hat Nase Y". Hinterlegt
+   ist je Region eine SPANNE von Rängen. Jede Herkunft bringt damit eine
+   Bandbreite von Gesichtern hervor, die sich überlappen — keine Typen.
+
+   Die Ränge sind nötig, weil die gezeichneten Formen nicht nach Größe sortiert
+   sind und auch nicht sortiert werden dürfen: ihr Index steckt in jedem
+   gespeicherten Gesicht. Die Rangtabelle ordnet sie, ohne sie zu bewegen.   */
+
+/* Nasenbreiten: [2.5, 3.2, 2, 2.9, 2.7, 3.7, 4.3, 2.2] — schmal nach breit. */
+const NASE_RANG  = [2, 7, 0, 4, 3, 1, 5, 6];
+/* Lippenfülle von schmal nach voll. */
+const MUND_RANG  = [0, 1, 3, 2, 4, 5, 6];
+/* Lidspalt: eng (2.6) über normal (3.4) bis weit (4.2). */
+const AUGEN_RANG = [1, 0, 2, 3, 4];
+
+function naseSpanne(id) {
+  const conf = NAT_CONF[id], reg = REGION[id];
+  if (conf === "CAF" || conf === "OFC") return [3, 7];
+  if (conf === "AFC") return ["jp", "cn", "se", "ea"].includes(reg) ? [0, 4] : [1, 5];
+  if (conf === "CONMEBOL" || conf === "CONCACAF") return [1, 6];
+  if (["ar", "tr", "fa"].includes(reg)) return [2, 6];
+  return [0, 5];
+}
+function mundSpanne(id) {
+  const conf = NAT_CONF[id], reg = REGION[id];
+  if (conf === "CAF" || conf === "OFC") return [2, 6];
+  if (conf === "AFC") return ["jp", "cn", "se", "ea"].includes(reg) ? [0, 4] : [1, 5];
+  if (conf === "CONMEBOL" || conf === "CONCACAF") return [1, 6];
+  return [0, 5];
+}
+function augenSpanne(id) {
+  const conf = NAT_CONF[id], reg = REGION[id];
+  if (conf === "AFC" && ["jp", "cn", "se", "ea"].includes(reg)) return [0, 2];
+  if (conf === "AFC") return [0, 3];
+  return [0, 4];
+}
+
+/* Die Statur schlägt sich im Kopf nieder — schlank und hochgewachsen ziehen
+   ihn schmal, kraftvoll breit. `null` heißt: alle Formen erlaubt. */
+const staturKopf = (st) => ({
+  schlank:       [3, 4, 8, 0],          // Schmal · Herz · Zart · Oval
+  hochgewachsen: [3, 0, 8, 4],
+  kraftvoll:     [1, 2, 5, 6, 9],       // Rund · Kantig · Vollmond · Breit · Rundlich
+}[st] || null);
+
+/* Aus einer Spanne über Ränge den gezeichneten Index holen. */
+const ausSpanne = (rangTabelle, spanne, wert) => {
+  const von = spanne[0], bis = Math.min(spanne[1], rangTabelle.length - 1);
+  const n = Math.max(1, bis - von + 1);
+  return rangTabelle[von + (wert % n)];
+};
+
 function hautBereich(id) {
   if (HAUT_LAND[id]) return HAUT_LAND[id];
   const conf = NAT_CONF[id], reg = REGION[id];
@@ -2505,14 +2573,40 @@ const KOPFFORM = [
   { n: "Kantig", b: 26, j: 21, kinn: 70 },
   { n: "Schmal", b: 23, j: 12, kinn: 73 },
   { n: "Herz",   b: 26, j: 11, kinn: 72 },
+  /* Ab hier ANGEHÄNGT (34.27) — die Reihenfolge oben darf nie wechseln, ihr
+     Index steckt in jedem gespeicherten Gesicht.
+
+     Warum überhaupt: „Rund“ war mit j:19 kaum runder als „Oval“ mit j:15 —
+     der Unterschied lag fast nur in der Breite, nicht in der Kieferpartie.
+     Rund wird ein Kopf über einen BREITEN KIEFER (j) und ein KURZES Gesicht
+     (kinn), nicht über mehr Breite allein. */
+  { n: "Vollmond", b: 28,   j: 24, kinn: 66 },   // breit, sehr breiter Kiefer, kurz
+  { n: "Breit",    b: 29,   j: 22, kinn: 69 },   // ausladend, kräftige Wangen
+  { n: "Weich",    b: 25.5, j: 21, kinn: 67 },   // schmaler, aber ohne Kanten
+  /* Zwei Formen OHNE markantes Kinn (34.28). Bei allen bisherigen läuft der
+     Kiefer senkrecht bis kurz vors Kinn und knickt dann ab — unten stehen
+     dadurch sichtbare Ecken seitlich heraus. `kv` zieht die Kieferlinie zum
+     Kinn hin ein, sie läuft weich aus statt eckig. Eine schmale, eine breite. */
+  { n: "Zart",     b: 24,   j: 15, kinn: 70, kv: .58 },
+  { n: "Rundlich", b: 27.5, j: 21, kinn: 68, kv: .58 },
 ];
+/* Kieferbreite AM KINN. Ohne `kv` ist sie gleich der Kieferbreite oben — damit
+   bleiben alle acht bestehenden Formen bitgleich. Nur Formen MIT `kv` laufen
+   nach unten schmaler zu.
+
+   Sie muss überall gelten, wo im Kinnbereich gezeichnet wird: Hülle,
+   Schattenseite und Bärte. Verjüngt man nur die Hülle, zeichnet der Bart
+   darüber hinaus — genau der Fehler, der in 34.1 vier Frisuren betraf. */
+const kinnBreite = (k) => k.j * (k.kv == null ? 1 : k.kv);
+
 const kopfPfad = (k) => {
   const l = 50 - k.b, r = 50 + k.b, jl = 50 - k.j, jr = 50 + k.j;
+  const ku = kinnBreite(k), kul = 50 - ku, kur = 50 + ku;
   return "M" + l + ",40 C" + l + ",21 " + (l + 9) + ",12 50,12 C" + (r - 9) + ",12 " + r + ",21 " + r + ",40"
-    + " C" + r + ",52 " + jr + "," + (k.kinn - 8) + " " + jr + "," + (k.kinn - 6)
-    + " C" + jr + "," + (k.kinn - 1) + " " + (50 + k.j * .45) + "," + k.kinn + " 50," + k.kinn
-    + " C" + (50 - k.j * .45) + "," + k.kinn + " " + jl + "," + (k.kinn - 1) + " " + jl + "," + (k.kinn - 6)
-    + " C" + jl + "," + (k.kinn - 8) + " " + l + ",52 " + l + ",40 Z";
+    + " C" + r + ",52 " + jr + "," + (k.kinn - 8) + " " + kur + "," + (k.kinn - 6)
+    + " C" + kur + "," + (k.kinn - 1) + " " + (50 + ku * .45) + "," + k.kinn + " 50," + k.kinn
+    + " C" + (50 - ku * .45) + "," + k.kinn + " " + kul + "," + (k.kinn - 1) + " " + kul + "," + (k.kinn - 6)
+    + " C" + kul + "," + (k.kinn - 8) + " " + l + ",52 " + l + ",40 Z";
 };
 
 /* Zahl der Auswahlmöglichkeiten je Merkmal. `mk_haar` und `mk_acc` schalten
@@ -2526,21 +2620,28 @@ const ZUEGE_ANZAHL = (meta, w) => ({
   brauen: 5,
   augen: 5,
   augenfarbe: AUGENFARBE.length,
-  nase: 5,
-  mund: 5,
+  nase: 8,
+  mund: 7,
   ohren: 3,
   wangen: 3,
   schmuck: meta && meta.mk_acc ? 6 : 2,
+  /* 0 keine · 1 Lidschatten · 2 Lippenstift · 3 beides · 4 dezent betont.
+     Nur im Frauenfußball; Männer bekommen immer 0. */
+  schminke: w ? 5 : 1,
 });
 
 /* Reihenfolge ist die Nummer im Mischstrom — NIE umsortieren, sonst ändert
    sich jedes bestehende Gesicht. Neues immer hinten anhängen. */
 const ZUEGE_ORDNUNG = ["haut", "haar", "frisur", "bart", "brauen", "augen", "augenfarbe",
-  "nase", "mund", "ohren", "wangen", "schmuck", "kopf"];
+  "nase", "mund", "ohren", "wangen", "schmuck", "kopf",
+  /* ANGEHÄNGT in 34.29. Die Reihenfolge davor ist unantastbar — jeder Index
+     ist eine Stelle im Mischstrom. Neues kommt hinten dran, sonst ändert sich
+     jedes bestehende Gesicht. */
+  "schminke"];
 
 /* Merkmale aus einer alten Kennung ableiten. Hautton und Haarfarbe bleiben
    im Rahmen der Herkunft — das war vorher so und bleibt so. */
-function zuegeAusKennung(kennung, g, nat, meta) {
+function zuegeAusKennung(kennung, g, nat, meta, statur) {
   const h = Math.abs(kennung | 0), w = g === "w";
   const A = ZUEGE_ANZAHL(meta, w);
   const z = {};
@@ -2548,7 +2649,29 @@ function zuegeAusKennung(kennung, g, nat, meta) {
   const TONE = hautBereich(nat), HAAR = haarBereich(nat);
   z.haut = TONE[0] + (z.haut % (TONE[1] - TONE[0] + 1));
   z.haar = HAAR[0] + (z.haar % (HAAR[1] - HAAR[0] + 1));
-  if (w) z.bart = 0;
+
+  /* Herkunft wirkt jetzt auch auf Nase, Mund und Lidspalt — als Spanne, nicht
+     als feste Zuordnung. Der gezogene Wert bleibt derselbe, er wird nur in
+     eine andere Auswahl übersetzt. */
+  z.nase  = ausSpanne(NASE_RANG,  naseSpanne(nat),  z.nase);
+  z.mund  = ausSpanne(MUND_RANG,  mundSpanne(nat),  z.mund);
+  z.augen = ausSpanne(AUGEN_RANG, augenSpanne(nat), z.augen);
+
+  /* Frauen: vollere Lippen und feinere Brauen im Mittel. Die Spanne wird nach
+     oben verschoben, nicht festgesetzt — es soll weiter Bandbreite geben. */
+  if (w) {
+    const ms = mundSpanne(nat);
+    z.mund = ausSpanne(MUND_RANG, [Math.min(ms[0] + 2, MUND_RANG.length - 1), MUND_RANG.length - 1],
+      mische(h, 8));
+    z.brauen = mische(h, 4) % 3;              // die drei feineren der fünf
+    z.bart = 0;
+  } else {
+    z.schminke = 0;
+  }
+
+  /* Die Statur zieht den Kopf schmal oder breit. */
+  const SK = staturKopf(statur);
+  if (SK) z.kopf = SK[mische(h, 12) % SK.length];
   return z;
 }
 
@@ -2588,6 +2711,10 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
   const augenY = 46 + (z.augen === 3 ? 1.5 : 0);
   const lidH = z.augen === 1 ? 2.6 : z.augen === 4 ? 4.2 : 3.4;   /* Lidspalt */
   const kinnY = kopf.kinn;
+  const kj = kinnBreite(kopf);   /* Kieferbreite am Kinn — siehe kinnBreite */
+  /* Lidschatten nimmt einen Ton aus der Haut auf, statt eine feste Farbe zu
+     setzen — sonst passt er auf hellen und dunklen Tönen nie zugleich. */
+  const lidfarbe = shade(haut, -34);
   const kopfD = kopfPfad(kopf);
 
   /* Haaransatz folgt der Kopfbreite, damit keine Frisur neben dem Kopf sitzt. */
@@ -2638,9 +2765,9 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
             Riss und war der groesste Makel des ersten Wurfs. */}
         <path d={"M" + (50 + kopf.b - 10) + ",16 C" + (50 + kopf.b - 2) + ",20 " + (50 + kopf.b) + ",28 "
           + (50 + kopf.b) + ",40 C" + (50 + kopf.b) + ",52 " + (50 + kopf.j) + "," + (kinnY - 8) + " "
-          + (50 + kopf.j) + "," + (kinnY - 6) + " C" + (50 + kopf.j) + "," + (kinnY - 3) + " "
-          + (50 + kopf.j * .7) + "," + (kinnY - 1) + " " + (50 + kopf.j * .5) + "," + (kinnY - 1)
-          + " C" + (50 + kopf.j * .8) + "," + (kinnY - 9) + " " + (50 + kopf.b - 7) + ",30 "
+          + (50 + kj) + "," + (kinnY - 6) + " C" + (50 + kj) + "," + (kinnY - 3) + " "
+          + (50 + kj * .7) + "," + (kinnY - 1) + " " + (50 + kj * .5) + "," + (kinnY - 1)
+          + " C" + (50 + kj * .8) + "," + (kinnY - 9) + " " + (50 + kopf.b - 7) + ",30 "
           + (50 + kopf.b - 10) + ",16 Z"} fill={schatten} opacity=".2" />
 
         {/* Wangenknochen / Kinngrübchen */}
@@ -2779,12 +2906,33 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
               stroke={shade(haut, -62)} strokeWidth={z.augen === 2 ? 1.5 : 1} strokeLinecap="round" />
             {z.augen === 4 && <path d={"M" + (cx - 6.4) + "," + (augenY + 1.6) + " q6,2.4 12.8,0"} fill="none"
               stroke={shade(haut, -30)} strokeWidth=".9" opacity=".7" />}
+
+            {/* ---- Weiblich: Lidschatten und Wimpern (34.29) ----
+                Der eigentliche Mangel war nicht die Frisur, sondern das
+                Gesicht darunter: es gab kein einziges Merkmal, das ein
+                Porträt weiblich lesen liess. Beides ist zurückhaltend
+                gehalten — es soll feminin wirken können, nicht geschminkt
+                aussehen müssen. `schminke` 0 lässt alles weg. */}
+            {w && (z.schminke === 1 || z.schminke === 3 || z.schminke === 4) && (
+              <path d={"M" + (cx - 6.2) + "," + (augenY - .4) + " q6.2," + (-lidH - 3.4) + " 12.4,0"}
+                fill="none" stroke={lidfarbe} strokeWidth={z.schminke === 4 ? 1.4 : 2.2}
+                strokeLinecap="round" opacity={z.schminke === 4 ? .38 : .55} />)}
+            {w && (
+              <g stroke={shade(haut, -78)} strokeWidth=".85" strokeLinecap="round" fill="none"
+                opacity={z.schminke === 0 ? .55 : .85}>
+                <path d={"M" + (cx - 6.3) + "," + (augenY - .6) + " l-1.6,-1.5"} />
+                <path d={"M" + (cx - 3) + "," + (augenY - lidH - 1) + " l-.9,-1.7"} />
+                <path d={"M" + (cx + 3) + "," + (augenY - lidH - 1) + " l.9,-1.7"} />
+                <path d={"M" + (cx + 6.3) + "," + (augenY - .6) + " l1.6,-1.5"} />
+              </g>)}
           </g>))}
 
         {/* ---- Nase ---- */}
         {(() => {
           const y0 = 49, y1 = 56 + (z.nase === 3 ? 1.5 : 0);
-          const br = [2.5, 3.2, 2, 2.9, 2.7][z.nase] || 2.5;
+          /* Ab Index 5 angehaengt (34.29) — nie umsortieren, der Index steckt
+             in jedem gespeicherten Gesicht. */
+          const br = [2.5, 3.2, 2, 2.9, 2.7, 3.7, 4.3, 2.2][z.nase] || 2.5;
           return (<g>
             <path d={"M50," + y0 + " C" + (50 - br * .5) + "," + (y0 + 6) + " " + (50 - br) + "," + (y1 - 3)
               + " " + (50 - br) + "," + y1 + " q" + br + ",2 " + (br * 2) + ",0 C" + (50 + br) + "," + (y1 - 3)
@@ -2796,7 +2944,13 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
         {/* ---- Mund ---- */}
         {(() => {
           const y = kinnY - 8;
-          const lippe = w ? shade(haut, -48) : shade(haut, -58);
+          /* Lippenstift verschiebt den Lippenton ins Warme, statt ihn durch
+             eine Signalfarbe zu ersetzen — das Heft kennt keine Neontöne. */
+          const lippe = w
+            ? (z.schminke === 2 || z.schminke === 3 ? mischFarbe(shade(haut, -52), "#9C3242", .55)
+              : z.schminke === 4 ? mischFarbe(shade(haut, -50), "#9C3242", .28)
+              : shade(haut, -48))
+            : shade(haut, -58);
           if (z.mund === 0) return <path d={"M43," + y + " Q50," + (y + 4) + " 57," + y}
             fill="none" stroke={lippe} strokeWidth="2" strokeLinecap="round" />;
           if (z.mund === 1) return <rect x="43" y={y - 1} width="14" height="2.4" rx="1.2" fill={lippe} />;
@@ -2804,6 +2958,14 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
             + " Q50," + (y + 2) + " 42.5," + (y + 1) + " Z"} fill={lippe} />;
           if (z.mund === 3) return <><path d={"M43.5," + y + " q6.5,3.4 13,0 q-6.5,2.4 -13,0 Z"} fill={shade(haut, -70)} />
             <path d={"M43.5," + y + " q6.5,-1 13,0"} fill="none" stroke={lippe} strokeWidth="1.5" strokeLinecap="round" /></>;
+          if (z.mund === 5) return <><path d={"M42," + (y - 1) + " Q50," + (y - 4.2) + " 58," + (y - 1)
+            + " Q50," + (y + 4.4) + " 42," + (y - 1) + " Z"} fill={lippe} />
+            <path d={"M42," + (y - 1) + " q8,1.5 16,0"} fill="none" stroke={tief} strokeWidth=".8" opacity=".55" /></>;
+          if (z.mund === 6) return <><path d={"M41.2," + (y - 1.2) + " Q50," + (y - 5) + " 58.8," + (y - 1.2)
+            + " Q50," + (y + 5.2) + " 41.2," + (y - 1.2) + " Z"} fill={lippe} />
+            <path d={"M41.2," + (y - 1.2) + " q8.8,1.7 17.6,0"} fill="none" stroke={tief} strokeWidth=".9" opacity=".55" />
+            <path d={"M46," + (y - 2.6) + " q4,-1.4 8,0"} fill="none" stroke={shade(haut, -20)}
+              strokeWidth=".7" opacity=".5" /></>;
           return <><path d={"M43," + (y - .6) + " Q50," + (y - 3) + " 57," + (y - .6) + " Q50," + (y + 3.4)
             + " 43," + (y - .6) + " Z"} fill={lippe} />
             <path d={"M43," + (y - .6) + " q7,1.2 14,0"} fill="none" stroke={tief} strokeWidth=".7" opacity=".6" /></>;
@@ -2814,7 +2976,7 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
             5 Ziegenbart · 6 Vollbart kurz · 7 Vollbart lang · 8 Kinnriemen
             9 Backenbart */}
         {!w && z.bart > 0 && (() => {
-          const y = kinnY, jl = 50 - kopf.j - 2, jr = 50 + kopf.j + 2;
+          const y = kinnY, jl = 50 - kj - 2, jr = 50 + kj + 2;
           const rahmen = "M" + (50 - kopf.b + 1) + ",44 C" + (50 - kopf.b + 2) + "," + (y - 8) + " " + jl + ","
             + (y + 2) + " 50," + (y + 2) + " C" + jr + "," + (y + 2) + " " + (50 + kopf.b - 2) + ","
             + (y - 8) + " " + (50 + kopf.b - 1) + ",44 C" + (50 + kopf.b - 5) + "," + (y - 10) + " "
@@ -2829,16 +2991,16 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
               <path d={"M45," + (kinnY - 3.5) + " q5,-1.4 10,0 q-1,5.5 -5,5.5 q-4,0 -5,-5.5 Z"} /></>}
             {z.bart === 6 && <path d={rahmen} />}
             {z.bart === 7 && <><path d={rahmen} />
-              <path d={"M" + (50 - kopf.j) + "," + (y - 3) + " q" + kopf.j + ",14 " + (kopf.j * 2) + ",0 q-"
-                + kopf.j + ",5 -" + (kopf.j * 2) + ",0 Z"} /></>}
+              <path d={"M" + (50 - kj) + "," + (y - 3) + " q" + kj + ",14 " + (kj * 2) + ",0 q-"
+                + kj + ",5 -" + (kj * 2) + ",0 Z"} /></>}
             {/* Kinnriemen: schmales Band der Kieferlinie entlang. Die frühere
                 Fassung war ein Pfad mit fast deckungsgleicher Innen- und
                 Außenkante — im Musterbogen war schlicht nichts zu sehen. */}
             {z.bart === 8 && <path d={"M" + (50 - kopf.b + 1) + ",44 C" + (50 - kopf.b + 2) + "," + (y - 8)
               + " " + jl + "," + (y + 2) + " 50," + (y + 2) + " C" + jr + "," + (y + 2) + " "
               + (50 + kopf.b - 2) + "," + (y - 8) + " " + (50 + kopf.b - 1) + ",44 L" + (50 + kopf.b - 6) + ",44 C"
-              + (50 + kopf.b - 7) + "," + (y - 9) + " " + (50 + kopf.j * .8) + "," + (y - 3) + " 50," + (y - 3) + " C"
-              + (50 - kopf.j * .8) + "," + (y - 3) + " " + (50 - kopf.b + 7) + "," + (y - 9) + " "
+              + (50 + kopf.b - 7) + "," + (y - 9) + " " + (50 + kj * .8) + "," + (y - 3) + " 50," + (y - 3) + " C"
+              + (50 - kj * .8) + "," + (y - 3) + " " + (50 - kopf.b + 7) + "," + (y - 9) + " "
               + (50 - kopf.b + 6) + ",44 Z"} />}
             {/* Koteletten: zwei senkrechte Streifen vor den Ohren. */}
             {/* Koteletten laufen nach unten schmal aus und setzen am Haaransatz
@@ -6059,9 +6221,12 @@ function hsvHalten(p) {
    Die Zahl steht NUR hier — `rerollWildcard` und `tauschRest` lesen dieselbe
    Funktion. Stünde sie an zwei Stellen, könnte der Knopf sichtbar sein, ohne
    dass der Tausch durchgeht. */
+/* `reroll` ist seit 34.22 ein ZAEHLER, kein Schalter: jeder Kauf gibt einen
+   weiteren Tausch. Vorher war er einmalig und blieb fuer immer stehen — man
+   konnte ihn nie ein zweites Mal kaufen. */
 const tauschMax = (p) => 1
   + ((p && p.meta && p.meta.mx_reroll) ? 1 : 0)
-  + ((p && p.laden && p.laden.reroll) ? 1 : 0);
+  + ((p && p.laden && p.laden.reroll) || 0);
 
 function rerollWildcard(p) {
   const b = p.wcBase;
@@ -6810,12 +6975,16 @@ function simulateSeason(p) {
   if (loy) { p.morale = clamp(p.morale + loy.mo, 5, 100); p.trust = Math.max(p.trust, 40 + loy.y); }
   p.fitness = clamp(p.fitness - apps * .22 + 8 - (injury ? 8 : 0), 20, 100);
   p.ban = 0;
-  /* Gekauftes läuft ab. Einmaliges (reroll) bleibt stehen, damit man es nicht
-     zweimal kaufen kann. */
+  /* Gekauftes laeuft ab. Welche Artikel laufen, steht in VCLADEN (`dauer`) —
+     EINE Quelle. Vorher stand hier eine zweite, von Hand gepflegte Liste; ein
+     neuer Artikel mit Dauer waere dort schlicht vergessen worden und haette
+     ewig gegolten. Der Vorrat (`vorrat`) zaehlt nicht herunter: er wird beim
+     Tausch verbraucht, nicht von der Zeit. */
   if (p.laden) {
     const L = { ...p.laden };
-    ["training", "form", "berater", "ueber99"].forEach((k) => {
-      if (L[k] > 0) L[k] = L[k] - 1;
+    VCLADEN.forEach((a) => {
+      if (a.vorrat || !a.dauer) return;
+      if (L[a.id] > 0) L[a.id] = L[a.id] - 1;
     });
     p.laden = L;
   }
@@ -7430,25 +7599,47 @@ const SHOP_BILD = {
 /* Heisst VCLADEN, nicht SHOP: `SHOP` gibt es schon für die Anschaffungen
    aus dem Gehalt (Wohnung, Auto, Berater). Zwei Dinge mit demselben Namen
    sind eine Falle für die nächste Sitzung. */
+/* Jeder Artikel trägt jetzt eine `dauer` statt eines `einmal`-Schalters:
+
+     dauer 0   Sofortwirkung. Hinterlässt KEINEN Eintrag und ist deshalb
+               beliebig oft kaufbar (Physio, Trainer).
+     dauer n   Läuft n Saisons und zählt am Saisonende herunter. Nachkaufen
+               geht, sobald der Eintrag bei 0 ist.
+     vorrat    Zählt hoch statt zu laufen. Jeder Kauf gibt einen weiteren
+               Tausch; verbraucht wird über `wcRerolls`.
+
+   Bis 34.21 gab es `einmal: true`, und der Eintrag blieb für immer stehen.
+   Weil er in `aka.laden` lag und nur `p.laden` heruntergezählt wurde, hiess
+   das: im Laden stand ewig „läuft“, Nachkaufen war für immer gesperrt, und
+   jede neue Laufbahn bekam den Kauf schenkungsweise noch einmal. */
 const VCLADEN = [
-  /* „immer", nicht „start": man kauft ihn oft erst, wenn man die gezogene
+  /* „immer“, nicht „start“: man kauft ihn oft erst, wenn man die gezogene
      Karte gesehen hat — und die sieht man in der Laufbahn. Nutzbar bleibt er
      nur, solange keine Saison gespielt ist; das prüft `rerollWildcard`. */
-  { id: "reroll", n: "Noch eine Karte ziehen", bild: "wuerfel", preis: 45, wann: "immer", einmal: true,
+  { id: "reroll", n: "Noch eine Karte ziehen", bild: "wuerfel", preis: 45, wann: "immer", vorrat: true,
     t: "Ein zusätzlicher Tausch der Wildcard. Geht nur, solange keine Saison gespielt ist." },
-  { id: "training", n: "Extraschicht", bild: "pfeil", preis: 22, wann: "saison",
+  { id: "training", n: "Extraschicht", bild: "pfeil", preis: 22, wann: "saison", dauer: 1,
     t: "Eine Saison lang deutlich mehr Fortschritt im Training." },
-  { id: "form", n: "Lauf der Saison", bild: "stern", preis: 28, wann: "saison",
+  { id: "form", n: "Lauf der Saison", bild: "stern", preis: 28, wann: "saison", dauer: 1,
     t: "Eine Saison in Bestform: bessere Noten, mehr Tore, mehr Vorlagen." },
-  { id: "physio", n: "Der beste Physio", bild: "kreuz", preis: 18, wann: "saison",
+  { id: "physio", n: "Der beste Physio", bild: "kreuz", preis: 18, wann: "saison", dauer: 0,
     t: "Eine laufende Verletzung ist sofort auskuriert." },
-  { id: "berater", n: "Ein Berater, der zieht", bild: "vertrag", preis: 26, wann: "saison",
+  { id: "berater", n: "Ein Berater, der zieht", bild: "vertrag", preis: 26, wann: "saison", dauer: 1,
     t: "Die nächsten Angebote kommen von stärkeren Vereinen." },
-  { id: "trainer", n: "Der Trainer hört zu", bild: "pfeife", preis: 20, wann: "saison",
+  { id: "trainer", n: "Der Trainer hört zu", bild: "pfeife", preis: 20, wann: "saison", dauer: 0,
     t: "Vertrauen sofort auf 85. Du spielst wieder." },
-  { id: "ueber99", n: "Über das Limit", bild: "uhr", preis: 70, wann: "saison", einmal: true,
+  { id: "ueber99", n: "Über das Limit", bild: "uhr", preis: 70, wann: "saison", dauer: 4,
     t: "Dein bester Wert darf vier Saisons lang über 99 steigen, bis 103." },
 ];
+
+/* Darf dieser Artikel gerade gekauft werden? EINE Stelle, an der das
+   entschieden wird — Anzeige und Kauf lesen beide hier. */
+const ladenKaufbar = (a, laden) => {
+  const L = laden || {};
+  if (a.vorrat) return true;            // stapelt sich
+  if (!a.dauer) return true;            // wirkt sofort, hinterlässt nichts
+  return (L[a.id] || 0) <= 0;           // läuft gerade nicht
+};
 /* Der Laden zeigt IMMER alles. Bis 34.19 filterte er nach Lage — im
    Hauptmenü stand dann ein einziger Artikel, und man konnte nicht wissen,
    dass es mehr gibt. Ein Laden mit einem Regal sieht aus wie ein Fehler.
@@ -7457,16 +7648,26 @@ const shopFuer = () => VCLADEN;
 const ladenGesperrt = (a, wo) =>
   (a.wann === "saison" && wo !== "saison") ? "erst in der Laufbahn" : null;
 
-/* Ein Artikel im Laden. Zeichen links, Preis rechts, Wirkung darunter. */
-function LadenPosten({ a, vc, gekauft, aktiv, sperre, onKauf }) {
-  const kann = vc >= a.preis && !gekauft && !aktiv && !sperre;
-  const farbe = gekauft ? "var(--mu)" : aktiv ? "var(--ok)" : kann ? "var(--go)" : "var(--ln2)";
+/* Ein Artikel im Laden. Zeichen links, Preis rechts, Wirkung darunter.
+   `rest` ist der Bestand: bei laufenden Artikeln die verbleibenden Saisons,
+   beim Vorrat die Zahl der gekauften Tausche. */
+function LadenPosten({ a, vc, rest, kaufbar, sperre, onKauf }) {
+  const laeuft = !a.vorrat && a.dauer > 0 && rest > 0;
+  const kann = vc >= a.preis && kaufbar && !sperre;
+  const farbe = laeuft ? "var(--ok)" : kann ? "var(--go)" : "var(--ln2)";
+  /* Der Preis bleibt IMMER stehen. Vorher stand bei Laufendem nur „läuft“ —
+     man konnte nicht sehen, was ein weiterer Kauf kostet. */
+  const marke = laeuft
+    ? "läuft · noch " + rest + (rest === 1 ? " Saison" : " Saisons")
+    : a.vorrat && rest > 0
+      ? rest + " im Vorrat · " + a.preis + " VC"
+      : a.preis + " VC";
   /* Gesperrtes bleibt lesbar, nur gedämpft — es soll neugierig machen, nicht
      verschwinden. */
   return (
     <button className="btn" disabled={!kann} onClick={() => onKauf(a)}
       style={{ display: "block", width: "100%", padding: "11px 12px", textAlign: "left",
-        borderColor: aktiv ? "var(--ok)" : "var(--ln2)", opacity: gekauft ? .55 : 1 }}>
+        borderColor: laeuft ? "var(--ok)" : "var(--ln2)", opacity: (sperre || !kaufbar) ? .55 : 1 }}>
       <span style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
         <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0, marginTop: 1 }}>
           {(SHOP_BILD[a.bild] || SHOP_BILD.stern)(farbe)}
@@ -7475,13 +7676,13 @@ function LadenPosten({ a, vc, gekauft, aktiv, sperre, onKauf }) {
           <span style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
             <span className="d" style={{ fontSize: 14.5 }}>{a.n}</span>
             <span className="d" style={{ fontSize: 14.5, color: farbe, marginLeft: "auto", whiteSpace: "nowrap" }}>
-              {gekauft ? "gekauft" : aktiv ? "läuft" : a.preis + " VC"}</span>
+              {marke}</span>
           </span>
           <span className="m" style={{ fontSize: 11, color: "var(--mu)", display: "block", marginTop: 3 }}>
             {a.t}</span>
-          {sperre && (
+          {(sperre || laeuft) && (
             <span className="eb" style={{ display: "block", marginTop: 4, color: "var(--ln2)" }}>
-              {sperre}</span>)}
+              {sperre || "läuft schon — nachkaufen geht danach"}</span>)}
         </span>
       </span>
     </button>);
@@ -7528,8 +7729,8 @@ function VCLadenAnsicht({ wo, vc, laden, onKauf }) {
         {artikel.map((a) => (
           <LadenPosten key={a.id} a={a} vc={vc} onKauf={onKauf}
             sperre={ladenGesperrt(a, wo)}
-            gekauft={!!(a.einmal && L[a.id])}
-            aktiv={!a.einmal && (L[a.id] || 0) > 0} />))}
+            rest={(L[a.id] || 0)}
+            kaufbar={ladenKaufbar(a, L)} />))}
       </div>
       <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 10 }}>
         Dieselben Coins bauen die Jugendakademie aus. Was du hier ausgibst, fehlt dort.
@@ -8215,6 +8416,48 @@ table.led td.r,table.led th.r{text-align:right;}
   40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,-1px)}80%{transform:translate(1px,1px)}}
 .rs-auf{animation:rs-auf .34s cubic-bezier(.16,.84,.44,1) both;}
 .rs-pochen{animation:rs-pochen 2.1s ease-out infinite;}
+/* ---- Karteikarte des Rückblicks ------------------------------------------
+   Die Seiten des Saison- und Karriererückblicks liegen jetzt auf einer
+   Karteikarte: heller Karton, harte Kante, versetzter Schatten, Linierung wie
+   auf einer Karte aus dem Kasten, oben ein Reiter in der Seitenfarbe.
+
+   DER TRICK MIT DEN FARBEN: die Seiten benutzen an 78 Stellen Farben für
+   dunklen Grund (var(--ac), var(--go), var(--mu) …). Auf hellem Karton wären
+   die unlesbar — genau der Fehler, der in 34.25 bei den Rängen steckte. Statt
+   78 Stellen von Hand umzuschreiben, werden die Variablen HIER neu gesetzt.
+   Sie vererben sich nach innen, also löst jedes var(--ac) im Inhalt von selbst
+   zur Kartonfassung auf. Eine Stelle statt achtundsiebzig, und nichts kann
+   vergessen werden.                                                         */
+.karteikarte{
+  --ac:var(--ac-k); --go:var(--go-k); --ok:var(--ok-k); --bad:var(--bad-k);
+  --mu:var(--tinte2); --tx:var(--tinte);
+  --ln:rgba(20,23,26,.16); --ln2:rgba(20,23,26,.30);
+  background:var(--karton);color:var(--tinte);border:1px solid var(--karton2);
+  box-shadow:4px 5px 0 rgba(0,0,0,.55);
+  padding:18px 16px 20px;position:relative;overflow:hidden;
+  /* Linierung: waagerechte Linien wie auf einer Karteikarte, sehr zurückhaltend. */
+  background-image:repeating-linear-gradient(to bottom,
+    transparent 0 25px, rgba(20,23,26,.055) 25px 26px);
+}
+.karteikarte .eb{color:var(--tinte2);}
+.karteikarte .m{color:var(--tinte2);}
+/* Der Reiter oben — die Seitenfarbe wird als eigene Variable gesetzt. */
+.karteikarte::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;
+  background:var(--reiter,var(--ln2));}
+/* Der rote Rand links, den jede Karteikarte hat. */
+.karteikarte::after{content:"";position:absolute;left:14px;top:0;bottom:0;width:1px;
+  background:rgba(168,28,19,.22);}
+
+/* Hinein von rechts, hinaus nach links — wie eine Karte, die aus dem Kasten
+   gezogen wird. Die hinausziehende Karte bleibt kurz stehen, sonst gäbe es
+   nichts zu sehen. */
+@keyframes rs-karte-rein{from{opacity:0;transform:translateX(46%) rotate(1.2deg)}
+  to{opacity:1;transform:none}}
+@keyframes rs-karte-raus{from{opacity:1;transform:none}
+  to{opacity:0;transform:translateX(-46%) rotate(-1.2deg)}}
+.rs-karte-rein{animation:rs-karte-rein .34s cubic-bezier(.2,.85,.3,1) both;}
+.rs-karte-raus{animation:rs-karte-raus .34s cubic-bezier(.4,0,.75,.4) both;}
+.rs-still .rs-karte-rein,.rs-still .rs-karte-raus{animation:none!important;}
 .rs-rein{animation:rs-rein .3s cubic-bezier(.16,.84,.44,1) both;}
 /* ---- Sammelalbum. Nur für die Bereiche, in denen wirklich gesammelt
    wird: Errungenschaften, gezogene Karte, Enthüllung, Ruhmeshalle. ---- */
@@ -8229,6 +8472,16 @@ table.led td.r,table.led th.r{text-align:right;}
 .perf::before{left:-6px;} .perf::after{right:-6px;}
 /* Kartenfelder nach dem Vorbild von Block/Reihe/Platz: umrandetes Raster
    mit Trennlinien, Beschriftung über dem Wert. */
+/* Markenpuls der Stärke. Kein Leuchten und kein Rundes — das Heft kennt harte
+   Formen. Die Zahl wird kurz größer und fällt zurück, die Marke daneben
+   schiebt sich einmal herein und wieder weg. */
+@keyframes rs-puls{0%{transform:scale(1)}18%{transform:scale(1.22)}
+  38%{transform:scale(.98)}55%{transform:scale(1.06)}100%{transform:scale(1)}}
+.rs-puls{animation:rs-puls 900ms cubic-bezier(.2,.9,.25,1) both;transform-origin:100% 50%;}
+@keyframes rs-marke{0%{opacity:0;transform:translateX(10px)}
+  14%{opacity:1;transform:translateX(0)}72%{opacity:1;transform:translateX(0)}
+  100%{opacity:0;transform:translateX(-6px)}}
+.rs-marke{animation:rs-marke 2400ms ease-out both;}
 .zellen{display:flex;flex-wrap:wrap;border:1px solid var(--ln2);}
 .zellen>div{padding:3px 9px;border-right:1px solid var(--ln2);border-bottom:1px solid var(--ln2);flex:1 0 auto;}
 .zellen>div:last-child{border-right:0;}
@@ -8313,10 +8566,15 @@ table.led td.r,table.led th.r{text-align:right;}
 .inhalt .punkte{flex:1 1 auto;min-width:14px;border-bottom:1px dotted var(--ln2);
   transform:translateY(-4px);}
 .inhalt .wert{flex:0 0 auto;font-variant-numeric:tabular-nums;color:var(--mu);font-size:11.5px;}
-/* Zahnrad — unauffällig oben rechts, außerhalb des Leseflusses. */
-.zahnrad{position:absolute;top:0;right:0;width:40px;height:40px;padding:0;min-height:0;
+/* Kopfknöpfe des Titelblatts — unauffällig oben rechts, außerhalb des
+   Leseflusses. Der Abstand steht im Behälter, nicht am einzelnen Knopf:
+   zwei Knöpfe mit position:absolute und right:0 liegen zwangsläufig
+   aufeinander, und ein Rand verschiebt sie nur um seinen eigenen Betrag.
+   In 34.20 waren das 6px Rand gegen 40px Knopfbreite — 34px Überlappung. */
+.kopfknoepfe{display:flex;gap:8px;flex:0 0 auto;}
+.zahnrad{width:40px;height:40px;padding:0;min-height:0;flex:0 0 auto;
   display:flex;align-items:center;justify-content:center;background:transparent;
-  border:1px solid var(--ln2);color:var(--mu);z-index:4;}
+  border:1px solid var(--ln2);color:var(--mu);}
 .zahnrad:active{background:var(--up);}
 /* Impressumsstreifen am Fuß, wie die Zeile mit Strichcode und Preis auf einem Heft. */
 .impressum{display:flex;align-items:center;gap:10px;border-top:2px solid var(--ln2);
@@ -8475,15 +8733,55 @@ function bilanzErgaenzen(G, p) {
   return g;
 }
 
-/* Zwei Werte je Stufe: „col" für dunklen Grund, „colK" für Karton. Ohne den
-   zweiten ist auf Papier nichts lesbar — Legendär erreicht dort Kontrast 1,04. */
+/* EINE Farbe je Stufe. Bis 34.24 standen hier zwei — „col" für dunklen Grund,
+   „colK" für Karton — und sie liefen auseinander: Legendär war in der Übersicht
+   cremefarben (#F3E7BE) und auf der Karte olivbraun (#6B5A2A). Zwei Werte für
+   dieselbe Sache, von Hand gepflegt, an zwei Orten benutzt. Die dunkle Variante
+   wird jetzt gerechnet. */
 const STUFEN = {
-  bronze:  { n:"Bronze",     col:"#A5713C", colK:"#7A4E1F", w:1 },
-  silber:  { n:"Silber",     col:"#9AA5B4", colK:"#4E5866", w:2 },
-  gold:    { n:"Gold",       col:"#E8B84B", colK:"#7A5600", w:4 },
-  platin:  { n:"Platin",     col:"#5E9BD8", colK:"#1B4F87", w:7 },
-  legende: { n:"Legendär",   col:"#F3E7BE", colK:"#6B5A2A", w:12 },
+  /* #A5713C war zu hell: mit heller Schrift nur Kontrast 3,73, mit dunkler
+     4,23 — beides unter den nötigen 4,5 für eine 9 Punkt große Versalzeile.
+     #8A5A29 trägt helle Schrift mit 5,24 und bleibt als Bronze erkennbar. */
+  bronze:  { n:"Bronze",     col:"#8A5A29", w:1 },
+  silber:  { n:"Silber",     col:"#9AA5B4", w:2 },
+  gold:    { n:"Gold",       col:"#E8B84B", w:4 },
+  platin:  { n:"Platin",     col:"#5E9BD8", w:7 },
+  legende: { n:"Legendär",   col:"#F3E7BE", w:12 },
 };
+
+/* Dunkle Variante für dünne Linien und Ränder auf hellem Karton. Gerechnet,
+   nicht gepflegt — eine zweite Tabelle läuft irgendwann auseinander. */
+const stufeDunkel = (hex) => {
+  try {
+    const n = parseInt(hex.slice(1), 16);
+    const d = (v) => Math.round(v * .46).toString(16).padStart(2, "0");
+    return "#" + d(n >> 16 & 255) + d(n >> 8 & 255) + d(n & 255);
+  } catch (e) { return "#3A3F3C"; }
+};
+
+/* Welche Schrift auf dieser Fläche lesbar ist.
+
+   Das muss INLINE gesetzt werden, nicht über eine Klasse: `.stufe` setzt zwar
+   eine helle Schrift, aber `.karton .m` ist spezifischer (0,2,0 gegen 0,1,0)
+   und hat sie auf jeder Karton-Karte wieder überschrieben. Der Rang stand dort
+   in dunkler Tinte auf dunkler Fläche — lesbar war er nicht. */
+const stufeSchrift = (hex) => {
+  try {
+    const n = parseInt(hex.slice(1), 16);
+    const l = (n >> 16 & 255) * .299 + (n >> 8 & 255) * .587 + (n & 255) * .114;
+    return l < 140 ? "#F5F2E8" : "#141A16";
+  } catch (e) { return "#F5F2E8"; }
+};
+
+/* Der Rangblock. EIN Bauteil für Übersicht und Karte — vorher waren es zwei
+   Stellen mit verschiedenen Farben, und genau das ist auseinandergelaufen. */
+function Rangblock({ s }) {
+  const st = STUFEN[s];
+  if (!st) return null;
+  return (
+    <span className="m stufe" style={{ background: st.col, color: stufeSchrift(st.col),
+      border: "1px solid " + stufeDunkel(st.col) }}>{st.n}</span>);
+}
 
 /* ---- Belohnungen, die sich freischalten lassen ---- */
 const META = {
@@ -8799,6 +9097,57 @@ const SPEICHERSCHLUESSEL = [SAVE_KEY, SEEN_KEY, ACH_KEY, LIFE_KEY, META_KEY, HAL
 /* Schulnoten laufen von 1 bis 6 — die Farbe soll das auch tun. Vorher:
    Gold, Grün, Grau, Braun, Rot ohne erkennbare Ordnung. */
 const noteCol = (n) => (n <= 2 ? "#3DA35D" : n <= 2.7 ? "#7FBF6A" : n <= 3.5 ? "#B9C4BE" : n <= 4.2 ? "#F2C230" : "#E5493C");
+
+/* Dieselbe Ampel für hellen Karton. Die Farben oben sind für dunklen Grund
+   gemischt — #B9C4BE und #F2C230 verschwinden auf Karton fast völlig. */
+const noteColK = (n) => (n <= 2 ? "#1B6B36" : n <= 2.7 ? "#3C6B25" : n <= 3.5 ? "#565C58" : n <= 4.2 ? "#7A5600" : "#A81C13");
+
+/* Eine Seite des Rückblicks als Karteikarte.
+
+   Warum ein gemeinsames Bauteil: Saison- und Karriererückblick waren zweimal
+   dasselbe Gerüst mit leicht verschiedener Überschrift. Zwei Kopien derselben
+   Gestaltung laufen auseinander, sobald man eine davon anfasst — dasselbe
+   Muster wie bei den Rangfarben in 34.25.
+
+   `raus` zeichnet die hinausziehende Karte. Sie liegt darüber, nimmt keine
+   Tipper an und verschwindet nach der Bewegung. */
+function Rueckblickkarte({ se, gross, raus }) {
+  return (
+    <div className={"karteikarte " + (raus ? "rs-karte-raus" : "rs-karte-rein")}
+      aria-hidden={raus ? "true" : undefined}
+      style={{ "--reiter": se.farbe, zIndex: raus ? 2 : 3,
+        width: "100%", maxWidth: gross ? 480 : 460, textAlign: "center",
+        gridArea: "1 / 1", pointerEvents: raus ? "none" : undefined }}>
+      <div className="d" style={{ color: se.farbe, fontSize: "clamp(19px,5.6vw,28px)",
+        lineHeight: 1.05, letterSpacing: ".01em" }}>{se.kopf}</div>
+      <div style={{ height: 2, width: 46, background: se.farbe, margin: "8px auto 6px", opacity: .85 }} />
+      <div className="m" style={{ fontSize: 12.5, margin: "0 0 20px" }}>{se.unter}</div>
+      {se.inhalt}
+    </div>
+  );
+}
+
+/* Blätterwerk für beide Rückblicke: merkt sich die hinausziehende Seite, damit
+   die alte Karte nach links weggezogen werden kann, während die neue von
+   rechts hereinkommt. Ohne das wäre nur ein Einblenden möglich — die alte
+   Karte wäre im selben Augenblick schon nicht mehr gezeichnet. */
+function useBlaettern(anzahl, onFertig) {
+  const [i, setI] = useState(0);
+  const [raus, setRaus] = useState(null);
+  const letzte = i >= anzahl - 1;
+  useEffect(() => {
+    if (raus === null) return;
+    const t = setTimeout(() => setRaus(null), 360);
+    return () => clearTimeout(t);
+  }, [raus]);
+  const weiter = () => {
+    haptik(letzte ? "gut" : "tipp");
+    if (letzte) { onFertig(); return; }
+    if (!RUHE) setRaus(i);
+    setI(i + 1);
+  };
+  return { i, raus, letzte, weiter };
+}
 const sgn = (v) => (v > 0 ? "+" : "");
 
 /* Schutzhülle um die gesamte App. Ohne sie hängt React bei einem Fehler den
@@ -9133,6 +9482,45 @@ function Zahl({ v, dez = 0, dauer = 1500, suffix = "", style, className }) {
   return <span className={className} style={style}>{z.toFixed(dez)}{suffix}</span>;
 }
 
+/* Die Stärke auf dem Pass. Sie läuft hoch statt zu springen, und beim
+   Überschreiten einer Marke gibt es einen kurzen Puls mit der Zahl daneben.
+
+   Die Marken sind die, an denen im Fußball wirklich etwas kippt: 60 Stammplatz,
+   70 gute Liga, 80 Spitzenverein, 85 Nationalmannschaft, 90/95/99 Weltklasse.
+
+   Warum eine eigene Marke statt nur `Zahl`: `Zahl` läuft bei JEDER Änderung.
+   Der Puls darf nur kommen, wenn eine Schwelle wirklich überschritten wurde —
+   sonst ist er nach der dritten Saison Tapete. Und er darf beim ersten Aufbau
+   nicht kommen, sonst blinkt der Pass jedes Mal beim Öffnen. */
+const STAERKE_MARKEN = [60, 70, 80, 85, 90, 95, 99];
+
+function StaerkeZahl({ v }) {
+  const vorher = useRef(null);
+  const [marke, setMarke] = useState(0);
+  useEffect(() => {
+    const alt = vorher.current;
+    vorher.current = v;
+    if (alt == null || v <= alt) return;            // erster Aufbau oder kein Anstieg
+    const genommen = STAERKE_MARKEN.filter((m) => alt < m && v >= m);
+    if (!genommen.length || RUHE) return;
+    setMarke(genommen[genommen.length - 1]);        // die höchste erreichte
+    const id = setTimeout(() => setMarke(0), 2400);
+    return () => clearTimeout(id);
+  }, [v]);
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      {marke > 0 && (
+        <span className="eb rs-marke" style={{ position: "absolute", right: "100%", top: 6,
+          marginRight: 6, whiteSpace: "nowrap", color: "var(--go-k)" }}>{marke} ✦</span>)}
+      <div className={"d" + (marke > 0 ? " rs-puls" : "")}
+        style={{ fontSize: 34, color: marke > 0 ? "var(--go-k)" : "var(--ac-k)",
+          transition: RUHE ? "none" : "color .5s ease" }}>
+        <Zahl v={v} dauer={900} />
+      </div>
+    </div>
+  );
+}
+
 /* Grüner Pfeil hoch, roter Pfeil runter — mit der Veränderung daneben. */
 function Delta({ v, dez = 0, klein }) {
   if (!v || Math.abs(v) < (dez ? .05 : .5)) return null;
@@ -9209,6 +9597,63 @@ const LANDFARBE = {
   DEN:["#C60C30","#FFFFFF"], SWE:["#006AA7","#FECC00"], NOR:["#BA0C2F","#FFFFFF"],
   TUR:["#E30A17","#FFFFFF"], GRE:["#0D5EAF","#FFFFFF"], SCO:["#0065BF","#FFFFFF"],
 };
+/* Wie die Flagge dieses Landes gebaut ist — nur so genau, wie es auf einem
+   22 Punkt hohen Band überhaupt erkennbar ist.
+
+   Ehrlich gesagt, was das NICHT ist: eine Flaggensammlung. Von 212 Nationen
+   haben 33 hinterlegte Farben, und Wappen, Sterne oder Halbmonde wären bei
+   dieser Größe ohnehin ein Fleck. Hinterlegt ist deshalb nur die Bauart —
+   liegende Streifen, stehende Streifen, ein Kreuz oder eine Fläche — plus
+   eine dritte Farbe, wo die Flagge wirklich drei hat. Wer nicht in dieser
+   Liste steht, bekommt liegende Streifen aus seinen zwei Farben; das ist
+   dieselbe Darstellung wie bisher.
+
+   art: "quer" liegende Streifen · "laengs" stehende Streifen
+        "kreuz" skandinavisches Kreuz · "flaeche" eine Farbe mit Saum      */
+const FLAGGENART = {
+  GER: { art: "quer",    f: ["#000000", "#DD0000", "#FFCE00"] },
+  FRA: { art: "laengs",  f: ["#002395", "#FFFFFF", "#ED2939"] },
+  ITA: { art: "laengs",  f: ["#008C45", "#FFFFFF", "#CD212A"] },
+  BEL: { art: "laengs",  f: ["#000000", "#FDDA24", "#EF3340"] },
+  NED: { art: "quer",    f: ["#AE1C28", "#FFFFFF", "#21468B"] },
+  MEX: { art: "laengs",  f: ["#006847", "#FFFFFF", "#CE1126"] },
+  COL: { art: "quer",    f: ["#FCD116", "#003893", "#CE1126"] },
+  ESP: { art: "quer",    f: ["#AA151B", "#F1BF00", "#AA151B"] },
+  AUT: { art: "quer",    f: ["#ED2939", "#FFFFFF", "#ED2939"] },
+  POL: { art: "quer",    f: ["#FFFFFF", "#DC143C"] },
+  ARG: { art: "quer",    f: ["#75AADB", "#FFFFFF", "#75AADB"] },
+  URU: { art: "quer",    f: ["#FFFFFF", "#7BAFD4"] },
+  NGA: { art: "laengs",  f: ["#008751", "#FFFFFF", "#008751"] },
+  SEN: { art: "laengs",  f: ["#00853F", "#FDEF42", "#E31B23"] },
+  CMR: { art: "laengs",  f: ["#007A5E", "#CE1126", "#FCD116"] },
+  IRL: { art: "laengs",  f: ["#169B62", "#FFFFFF", "#FF883E"] },
+  ROU: { art: "laengs",  f: ["#002B7F", "#FCD116", "#CE1126"] },
+  DEN: { art: "kreuz",   f: ["#C60C30", "#FFFFFF"] },
+  SWE: { art: "kreuz",   f: ["#006AA7", "#FECC00"] },
+  NOR: { art: "kreuz",   f: ["#BA0C2F", "#FFFFFF"] },
+  FIN: { art: "kreuz",   f: ["#FFFFFF", "#003580"] },
+  ISL: { art: "kreuz",   f: ["#02529C", "#FFFFFF"] },
+  JPN: { art: "flaeche", f: ["#FFFFFF", "#BC002D"] },
+  MAR: { art: "flaeche", f: ["#C1272D", "#006233"] },
+  TUR: { art: "flaeche", f: ["#E30A17", "#FFFFFF"] },
+  SUI: { art: "flaeche", f: ["#D52B1E", "#FFFFFF"] },
+  POR: { art: "laengs",  f: ["#006600", "#FF0000"] },
+  EGY: { art: "quer",    f: ["#CE1126", "#FFFFFF", "#000000"] },
+  RUS: { art: "quer",    f: ["#FFFFFF", "#0039A6", "#D52B1E"] },
+  CRO: { art: "quer",    f: ["#FF0000", "#FFFFFF", "#171796"] },
+  SRB: { art: "quer",    f: ["#C6363C", "#0C4076", "#FFFFFF"] },
+  GRE: { art: "quer",    f: ["#0D5EAF", "#FFFFFF", "#0D5EAF"] },
+  GHA: { art: "quer",    f: ["#CE1126", "#FCD116", "#006B3F"] },
+};
+
+/* Was die Binde eines Landes zeigt. Fällt auf die zwei Grundfarben zurück. */
+function flaggenBild(nat) {
+  const b = nat && FLAGGENART[nat.id];
+  if (b) return b;
+  const { p, s } = landesFarben(nat || {});
+  return { art: "quer", f: [p, s] };
+}
+
 function landesFarben(nat) {
   const f = LANDFARBE[nat.id];
   if (f) {
@@ -9337,7 +9782,6 @@ function TitelJubel({ titel, club, land, onFertig }) {
 /* Der Rückblick auf die ganze Laufbahn — dieselbe Machart wie nach einer
    Saison, nur über alles. Danach folgt die gewohnte Abschlussbilanz.    */
 function KarriereRueckblick({ p, onFertig }) {
-  const [i, setI] = useState(0);
   useZurueck(onFertig);
   /* Solange der Rückblick offen ist, rollt die Seite darunter nicht mit. */
   useEffect(() => { rollSperren(true); return () => rollSperren(false); }, []);
@@ -9473,9 +9917,9 @@ function KarriereRueckblick({ p, onFertig }) {
       <p style={{ fontSize: 13, color: "var(--mu)", marginTop: 6 }}>{v.text}</p>
     </div>), "var(--go)");
 
-  const letzte = i >= seiten.length - 1;
+  const { i, raus, letzte, weiter } = useBlaettern(seiten.length, onFertig);
   const se = seiten[Math.min(i, seiten.length - 1)];
-  const weiter = () => { haptik(letzte ? "gut" : "tipp"); if (letzte) onFertig(); else setI(i + 1); };
+  const seRaus = raus === null ? null : seiten[Math.min(raus, seiten.length - 1)];
   /* Diese Ansicht steht für sich und muss ihr Stylesheet selbst mitbringen —
      sie wird nicht innerhalb der Spielansicht ausgegeben.                  */
   return (
@@ -9486,10 +9930,12 @@ function KarriereRueckblick({ p, onFertig }) {
           {seiten.map((_, k) => <i key={k} style={{ flex: 1, height: 3, borderRadius: 0, display: "block",
             background: k <= i ? "var(--go)" : "var(--ln2)" }} />)}
         </div>
-        <div key={i} className="rs-rein" style={{ zIndex: 3, width: "100%", maxWidth: 480, textAlign: "center" }}>
-          <div className="eb" style={{ color: se.farbe, letterSpacing: ".18em" }}>{se.kopf.toUpperCase()}</div>
-          <div className="m" style={{ fontSize: 12, color: "var(--mu)", margin: "3px 0 20px" }}>{se.unter}</div>
-          {se.inhalt}
+        {/* Beide Karten liegen im SELBEN Rasterfeld übereinander — nur so
+            kann die alte nach links hinausziehen, während die neue von rechts
+            hereinkommt. */}
+        <div style={{ display: "grid", width: "100%", maxWidth: 480, justifyItems: "center" }}>
+          {seRaus && <Rueckblickkarte key={"raus" + raus} se={seRaus} gross raus />}
+          <Rueckblickkarte key={i} se={se} gross />
         </div>
         <div className="m rs-auf" style={{ position: "absolute", bottom: 22, fontSize: 11, color: "var(--mu)" }}>
           {letzte ? "Tippen für die Abschlussbilanz" : "Tippen für weiter"} · {i + 1}/{seiten.length}
@@ -9500,7 +9946,6 @@ function KarriereRueckblick({ p, onFertig }) {
 }
 
 function SaisonRueckblick({ p, s, onFertig }) {
-  const [i, setI] = useState(0);
   useZurueck(onFertig);
   /* Solange der Rückblick offen ist, rollt die Seite darunter nicht mit. */
   useEffect(() => { rollSperren(true); return () => rollSperren(false); }, []);
@@ -9548,7 +9993,7 @@ function SaisonRueckblick({ p, s, onFertig }) {
   S("Bewertung", s.note <= 2.5 ? "Eine starke Saison" : s.note <= 3.4 ? "Solide Arbeit" : "Da geht mehr", (
     <div style={{ textAlign: "center" }}>
       <Zahl v={s.note} dez={1} dauer={1400} className="d"
-        style={{ fontSize: "clamp(52px,17vw,104px)", lineHeight: 1, color: noteCol(s.note) }} />
+        style={{ fontSize: "clamp(52px,17vw,104px)", lineHeight: 1, color: noteColK(s.note) }} />
       <div className="eb" style={{ marginTop: 4 }}>Saisonnote</div>
       {/* Ein Ausschnitt aus der Tabelle statt einer nackten Zahl: zwei Plätze
           darüber, zwei darunter, die eigene Zeile hervorgehoben. Man sieht auf
@@ -9565,7 +10010,9 @@ function SaisonRueckblick({ p, s, onFertig }) {
             return (
               <div key={r} style={{ display: "flex", alignItems: "baseline", gap: 9,
                 padding: "3px 7px", borderLeft: "3px solid " + (ich ? "var(--go)" : "transparent"),
-                background: ich ? "rgba(242,194,48,.12)" : "transparent" }}>
+                /* Auf Karton braucht die eigene Zeile eine dunklere Tönung —
+                     das alte Gelb bei 12 % war dort praktisch unsichtbar. */
+                background: ich ? "rgba(122,86,0,.15)" : "transparent" }}>
                 <span className="d" style={{ fontSize: ich ? 19 : 14, minWidth: 26,
                   color: ich ? "var(--go)" : "var(--mu)" }}>{r}</span>
                 <span className="m" style={{ fontSize: ich ? 13.5 : 11.5,
@@ -9585,7 +10032,7 @@ function SaisonRueckblick({ p, s, onFertig }) {
         <div className="m" style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 14 }}>
           {s.dstat.duelle} Zweikämpfe · {Math.round(s.dstat.quote * 100)} % gewonnen · {s.dstat.eroberungen} Balleroberungen
         </div>)}
-    </div>), noteCol(s.note));
+    </div>), noteColK(s.note));
 
   /* Verpasste Spiele. Die Karte fehlte ganz — dabei ist eine Saison mit
      18 Ausfällen etwas völlig anderes als eine durchgespielte, und genau
@@ -9644,9 +10091,9 @@ function SaisonRueckblick({ p, s, onFertig }) {
         </Reihe>))}
     </div>), "var(--go)");
 
-  const letzte = i >= seiten.length - 1;
+  const { i, raus, letzte, weiter } = useBlaettern(seiten.length, onFertig);
   const se = seiten[Math.min(i, seiten.length - 1)];
-  const weiter = () => { haptik("tipp"); if (letzte) onFertig(); else setI(i + 1); };
+  const seRaus = raus === null ? null : seiten[Math.min(raus, seiten.length - 1)];
   return (
     <div className="rs-schleier" onClick={weiter} style={{ cursor: "pointer", padding: "0 16px" }}>
       {/* Fortschritt oben, wie bei einer Bildergeschichte */}
@@ -9654,16 +10101,9 @@ function SaisonRueckblick({ p, s, onFertig }) {
         {seiten.map((_, k) => <i key={k} style={{ flex: 1, height: 3, borderRadius: 0, display: "block",
           background: k <= i ? "var(--go)" : "var(--ln2)" }} />)}
       </div>
-      <div key={i} className="rs-rein" style={{ zIndex: 3, width: "100%", maxWidth: 460, textAlign: "center" }}>
-        {/* Die Überschrift war eine Kleinschrift-Zeile wie jede andere — man
-            wusste bei manchen Karten nicht, worum es geht. Jetzt in der
-            Anzeigeschrift und deutlich grösser, mit einem Strich in der
-            Kartenfarbe darunter. */}
-        <div className="d" style={{ color: se.farbe, fontSize: "clamp(19px,5.6vw,28px)",
-          lineHeight: 1.05, letterSpacing: ".01em" }}>{se.kopf}</div>
-        <div style={{ height: 2, width: 46, background: se.farbe, margin: "8px 0 6px", opacity: .8 }} />
-        <div className="m" style={{ fontSize: 12.5, color: "var(--mu)", margin: "0 0 20px" }}>{se.unter}</div>
-        {se.inhalt}
+      <div style={{ display: "grid", width: "100%", maxWidth: 460, justifyItems: "center" }}>
+        {seRaus && <Rueckblickkarte key={"raus" + raus} se={seRaus} raus />}
+        <Rueckblickkarte key={i} se={se} />
       </div>
       <div className="m rs-auf" style={{ position: "absolute", bottom: 22, fontSize: 11, color: "var(--mu)" }}>
         {letzte ? "Tippen zum Abschließen" : "Tippen für weiter"} · {i + 1}/{seiten.length}
@@ -9932,14 +10372,14 @@ function Pass({ p, full, wachstum }) {
           <Avatar seed={p.avatar} zuege={p.zuege} club={p.club} size={62} g={p.g} nat={p.nation.id} meta={p.meta} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="d" style={{ fontSize: 19, wordBreak: "break-word", display: "flex",
-            alignItems: "center", gap: 7, flexWrap: "wrap", color: "var(--tinte)" }}>
-            <span>{p.nation.flag} {p.name}</span>
-            {p.flags.kapitaen && (
-              <Binde farben={clubColors(p.club)} size={19} titel={"Kapitän von " + p.club.n} />)}
-            {p.nt.kapitaen && (
-              <Binde farben={landesFarben(p.nation)} size={19}
-                titel={"Kapitän der Nationalmannschaft " + p.nation.name} />)}
+          {/* Die Binden standen bis 34.23 HIER, in derselben Flexzeile wie der
+              Name, mit flexWrap:wrap. Bei langem Namen rutschten sie in Zeile
+              zwei — und weil beide Passseiten im selben Rasterfeld liegen,
+              wuchs damit der ganze Pass. Jetzt haben sie einen festen Platz
+              rechts unter der Stärke, wo nichts umbrechen kann. */}
+          <div className="d" style={{ fontSize: 19, wordBreak: "break-word",
+            color: "var(--tinte)" }}>
+            {p.nation.flag} {p.name}
           </div>
           {p.bei && <div className="m" style={{ fontSize: 10.5, color: "var(--go-k)", marginTop: -1 }}>{p.bei}</div>}
           <div className="passzeile" style={{ marginTop: 6 }}>
@@ -9959,8 +10399,19 @@ function Pass({ p, full, wachstum }) {
           </div>
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
-          <div className="d" style={{ fontSize: 34, color: "var(--ac-k)" }}>{p.ovr}</div>
+          <StaerkeZahl v={p.ovr} />
           <div className="eb">Gesamt</div>
+          {/* Fester Platz für die Binden. Untereinander, rechtsbündig, außerhalb
+              jeder Zeile, die umbrechen könnte. */}
+          {(p.flags.kapitaen || p.nt.kapitaen) && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end",
+              gap: 4, marginTop: 7 }}>
+              {p.flags.kapitaen && (
+                <Binde farben={clubColors(p.club)} size={17} titel={"Kapitän von " + p.club.n} />)}
+              {p.nt.kapitaen && (
+                <Binde farben={landesFarben(p.nation)} flagge={flaggenBild(p.nation)} size={17}
+                  titel={"Kapitän der Nationalmannschaft " + p.nation.name} />)}
+            </div>)}
         </div>
       </div>
       {full && (
@@ -10437,10 +10888,25 @@ function titelgeschichte(save, laeuft, hall, aka) {
       schlag: "DER MANN,\nÜBER DEN " + (stadt || "die Stadt").toUpperCase() + "\nSPRICHT",
       unter: p.name + ", " + p.age + ", " + verein + ". Stärke " + p.ovr + " — und die Saison hat gerade erst angefangen." };
   }
-  if (hall && hall.length) return {
-    dach: "DAS NÄCHSTE KAPITEL",
-    schlag: "WER LÖST\n" + String(hall[0].name || "IHN").toUpperCase() + "\nAB?",
-    unter: "Die Ruhmeshalle steht voll. Jetzt fehlt nur noch einer: deiner." };
+  if (hall && hall.length) {
+    /* Vorher stand hier fest „Die Ruhmeshalle steht voll. Jetzt fehlt nur noch
+       einer: deiner." Zwei Fehler auf einmal: der Zweig greift ab dem ERSTEN
+       Eintrag, „voll" war also meist schlicht falsch — im Inhaltsverzeichnis
+       direkt darunter stand dann „Ruhmeshalle · 1". Und der Satz widerspricht
+       sich selbst: was voll ist, dem fehlt nichts. Jetzt nennt der Text die
+       Zahl, die daneben steht, und den Wert, den es zu schlagen gilt. */
+    const erster = hall[0] || {};
+    const wer = erster.name || "der Erste";
+    const punkte = erster.score || 0;
+    return {
+      dach: "DAS NÄCHSTE KAPITEL",
+      schlag: "WER LÖST\n" + String(erster.name || "IHN").toUpperCase() + "\nAB?",
+      unter: hall.length === 1
+        ? "Ein Name steht bisher drin: " + wer + ", " + punkte + " Punkte. Daran musst du vorbei."
+        : hall.length + " Namen stehen drin, ganz oben " + wer + " mit " + punkte
+          + " Punkten. Platz eins ist belegt, nicht vergeben.",
+    };
+  }
   if (aka && aka.gegruendet) return {
     dach: "AUS DER AKADEMIE",
     schlag: "DIE TALENTE\nSIND DA.\nUND DU?",
@@ -10490,19 +10956,24 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
   return (
     <Shell>
       <div className="fade">
-        {/* Kopfleiste: Ausgabennummer links, Zahnrad rechts */}
-        <div style={{ position: "relative", minHeight: 40, marginBottom: 2 }}>
+        {/* Kopfleiste: Ausgabennummer links, Laden und Zahnrad rechts.
+            Als Flexzeile, nicht mit absolut gesetzten Knöpfen — so können die
+            beiden weder aufeinander liegen noch kann die Beschriftung links
+            unter sie rutschen, wenn die Textgröße hochgestellt ist. */}
+        <div style={{ display: "flex", alignItems: "flex-start",
+          justifyContent: "space-between", gap: 10, minHeight: 40, marginBottom: 2 }}>
           <span className="lab-kasten" style={{ display: "inline-block", background: "var(--tx)",
             color: "var(--bg)", fontWeight: 700, fontSize: 9.5, letterSpacing: ".16em",
             textTransform: "uppercase", padding: "4px 9px" }}>
             Ausgabe {ausgabe} · <span>KARRIERE-SIMULATION</span>
           </span>
+          <div className="kopfknoepfe">
           {/* Laden neben dem Zahnrad, gleiche Grösse und Form. Vorher stand er
               als Zeile „Anzeigen" im Inhaltsverzeichnis — das las sich wie ein
               Artikel des Hefts und nicht wie ein Knopf. */}
           <button className="zahnrad" onClick={() => { onLaden(); haptik("tipp"); }}
             aria-label="Vermächtnis-Laden" title="Vermächtnis-Laden"
-            style={{ marginRight: 6, color: (aka && aka.vc) ? "var(--go)" : undefined }}>
+            style={{ color: (aka && aka.vc) ? "var(--go)" : undefined }}>
             <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
               {SHOP_BILD.stern("currentColor")}
             </svg>
@@ -10515,6 +10986,7 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
           </button>
+          </div>
         </div>
 
         {/* ---- Titelzug ----
@@ -10700,6 +11172,10 @@ function CreateScreen({ onStart, onBack, meta }) {
      wechselt mit Herkunft und Geschlecht mit; sobald jemand selbst schreibt,
      bleibt sein Name stehen — auch beim Wechsel der Herkunft. */
   const [eigenerName, setEigenerName] = useState(false);
+  /* Eigener Zähler für den Vorschlag-Knopf. Ohne ihn läge der Vorschlag fest
+     an Herkunft, Geschlecht und Bildkern — ein Knopf, der immer denselben
+     Namen liefert, ist keiner. */
+  const [namensDreh, setNamensDreh] = useState(0);
   /* Die Merkmale liegen einzeln vor. Jeder Regler ändert genau eines —
      das ist der Grund, warum die Feineinstellung nicht mehr würfelt. */
   const [zuege, setZuege] = useState(() => zuegeAusKennung(ri(1, 999999), "m", "GER", meta));
@@ -10707,8 +11183,8 @@ function CreateScreen({ onStart, onBack, meta }) {
      Rahmen der neuen Herkunft, sonst stünde ein Wert dort, den die Regler gar
      nicht erreichen können. Alles andere bleibt, wie es eingestellt war. */
   useEffect(() => {
-    if (!eigenerName) setName(namensVorschlag(nation, gender, avatar));
-  }, [nation, gender, avatar, eigenerName]);
+    if (!eigenerName) setName(namensVorschlag(nation, gender, avatar + namensDreh * 7919));
+  }, [nation, gender, avatar, eigenerName, namensDreh]);
   useEffect(() => {
     setZuege((z) => {
       const T = hautBereich(nation), H = haarBereich(nation);
@@ -10721,6 +11197,20 @@ function CreateScreen({ onStart, onBack, meta }) {
   }, [nation, gender]);
   const [fein, setFein] = useState(false);
   const [statur, setStatur] = useState("normal");
+  /* Die Statur zieht den Kopf schmal oder breit. OHNE diesen Effekt wäre sie
+     im Gesicht wirkungslos — genau die Sorte Merkmal, die in diesem Projekt
+     schon mehrfach codiert, aber nie verdrahtet war. Nur die Kopfform wird
+     angefasst, alles andere bleibt so eingestellt, wie es ist. */
+  useEffect(() => {
+    const SK = staturKopf(statur);
+    if (!SK) return;
+    setZuege((z) => (SK.includes(z.kopf) ? z : { ...z, kopf: SK[0] }));
+  }, [statur]);
+  /* Steht ABSICHTLICH hier unten, direkt nach `statur`. Im ersten Entwurf
+     stand der Effekt oben bei den Namensfeldern — vor der Erklärung des
+     Zustands. Der Prüfstand meldete „Cannot access 'statur' before
+     initialization", die ganze Erstellungsseite war tot. Prüfskript vor
+     Definition, dieselbe Falle wie in Abschnitt 6. */
   const [club, setClub] = useState(null);
   const nat = NATIONS.find((n) => n.id === nation) || NATIONS[0];
   /* Nach einem Positionswechsel muss der Spielertyp dazu passen */
@@ -10773,7 +11263,7 @@ function CreateScreen({ onStart, onBack, meta }) {
             {club && <div className="m" style={{ fontSize: 10.5, color: "var(--go)", marginTop: 3 }}>{club}</div>}
             <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "wrap" }}>
               <button className="btn sm" onClick={() => { const k = ri(1, 999999); setAvatar(k);
-                setZuege(zuegeAusKennung(k, gender, nation, meta)); }}>Neu würfeln</button>
+                setZuege(zuegeAusKennung(k, gender, nation, meta, statur)); }}>Neu würfeln</button>
               <button className="btn sm" onClick={() => setFein(!fein)}>
                 <span className="m" style={{ fontSize: 11 }}>{fein ? "Feinheiten zu" : "Feinheiten"}</span></button>
             </div>
@@ -10814,12 +11304,24 @@ function CreateScreen({ onStart, onBack, meta }) {
         <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", marginTop: 12 }}>
           <div style={{ gridColumn: "span 2" }}>
             <div className="eb" style={{ marginBottom: 5 }}>Name</div>
-            <input className="inp" value={name} maxLength={22} placeholder="z. B. Kevin Sarantis"
-              onChange={(e) => { setName(e.target.value);
-                /* Ab dem ersten eigenen Zeichen bleibt der Name stehen. Leert
-                   man das Feld wieder, greift der Vorschlag erneut. */
-                setEigenerName(e.target.value.trim().length > 0); }}
-              autoComplete="off" />
+            <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+              <input className="inp" value={name} maxLength={22} placeholder="z. B. Kevin Sarantis"
+                style={{ flex: "1 1 auto", minWidth: 0 }}
+                onChange={(e) => { setName(e.target.value);
+                  /* KLEBRIG. Vorher stand hier `länge > 0`, die Markierung fiel
+                     also beim Löschen des letzten Zeichens auf falsch zurück —
+                     und der Vorschlag sprang sofort wieder ins leere Feld. Man
+                     konnte es nicht leeren, um selbst zu tippen. Wer das Feld
+                     einmal angefasst hat, dem gehört es; zurück zum Vorschlag
+                     geht über den Knopf daneben. */
+                  setEigenerName(true); }}
+                autoComplete="off" />
+              <button className="btn sm" type="button" style={{ flex: "0 0 auto", padding: "0 11px" }}
+                aria-label="Neuen Namensvorschlag holen" title="Neuen Namensvorschlag holen"
+                onClick={() => { setEigenerName(false); setNamensDreh((d) => d + 1); haptik("tipp"); }}>
+                Vorschlag
+              </button>
+            </div>
             <span className="m" style={{ fontSize: 10, color: "var(--mu)", display: "block", marginTop: 3 }}>
               {eigenerName ? "Bleibt deiner, auch wenn du die Herkunft wechselst."
                 : "Vorschlag zur Herkunft. Einfach überschreiben."}</span>
@@ -10962,7 +11464,12 @@ function CreateScreen({ onStart, onBack, meta }) {
 
         <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
           <button className="btn pri" style={{ maxWidth: 200 }}
-            onClick={() => onStart({ name, nation, pos, foot, zuege, number: clamp(parseInt(number || "1", 10) || 1, 1, 99),
+            onClick={() => onStart({
+              /* Das Feld darf jetzt leer bleiben — vorher hat der Vorschlag es
+                 sofort wieder gefüllt. Ohne diesen Rückfall startete die
+                 Laufbahn mit einem namenlosen Spieler. */
+              name: name.trim() || namensVorschlag(nation, gender, avatar + namensDreh * 7919),
+              nation, pos, foot, zuege, number: clamp(parseInt(number || "1", 10) || 1, 1, 99),
               type, mode, avatar, gender, club, bei, speed, traum, statur })}>
             <span className="d" style={{ fontSize: 17 }}>Los geht's</span>
           </button>
@@ -11986,9 +12493,12 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
             const e = erreicht.filter((a) => a.s === k).length;
             return (
               <button key={k} className={"btn sm" + (filter === k ? " on" : "")} onClick={() => setFilter(k)}>
-                <span className="stufe punkt" aria-hidden="true" style={{ background: STUFEN[k].col }} />
-                <span>{STUFEN[k].n}</span>
-                <span className="m" style={{ color: "var(--mu)", marginLeft: 5, fontSize: 10 }}>{e}/{n}</span>
+                {/* DERSELBE Block wie auf der Karte. Vorher stand hier ein
+                    Punkt in „col“ und auf der Karte ein Block in „colK“ —
+                    zwei Darstellungen derselben Stufe, die verschieden
+                    aussahen. Ein Bauteil kann nicht auseinanderlaufen. */}
+                <Rangblock s={k} />
+                <span className="m" style={{ color: "var(--mu)", marginLeft: 6, fontSize: 10 }}>{e}/{n}</span>
               </button>);
           })}
         </div>
@@ -12003,7 +12513,7 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
             const nr = String(ACHIEVEMENTS.indexOf(a) + 1).padStart(3, "0");
             return (
               <div key={a.id} className={hat ? "pad klebe karton" : "pad leerfeld"}
-                style={hat ? { borderTop: "4px solid " + st.colK,
+                style={hat ? { borderTop: "4px solid " + stufeDunkel(st.col),
                                transform: RUHE ? "none" : "rotate(" + winkel(a.id) + ")" }
                            : { opacity: .62 }}>
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 6 }}>
@@ -12011,7 +12521,7 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
                   {/* Erspielt: gefüllter Block in der Stufenfarbe. Nicht erspielt:
                       nur die Nummer, damit das Leerfeld leer bleibt. */}
                   {hat
-                    ? <span className="m stufe" style={{ background: st.colK }}>{st.n}</span>
+                    ? <Rangblock s={a.s} />
                     : <span className="m" style={{ fontSize: 9, color: "var(--ln2)", opacity: .9 }}>{nr}</span>}
                 </div>
                 <div style={{ fontSize: 11.5, color: hat ? "var(--tinte2)" : "var(--mu)", marginTop: 3 }}>{a.t}</div>
@@ -12267,6 +12777,24 @@ function FlutlichtApp() {
   const [phase, setPhase] = useState("menu");
   const [p, setP] = useState(null);
   const [step, setStep] = useState("training");
+  /* JEDE neue Seite beginnt oben. Der Browser behält die Rollhöhe der vorigen
+     Seite bei — wer aus einem langen Inhaltsverzeichnis heraus eine neue
+     Laufbahn startet, landet mitten in der Charaktererstellung, und beim
+     Schrittwechsel in der Laufbahn genauso.
+
+     `zumAnfang` löst das NICHT: die Funktion springt an den Anfang eines
+     Bereichs innerhalb einer Seite und wird nur bei Reiterwechseln gerufen.
+     Hier geht es um den Seitenwechsel selbst, und der hängt allein an `phase`
+     und `step` — deshalb genau eine Stelle statt 17 einzelner Aufrufe.
+
+     Ohne Übergang: bei einem Seitenwechsel sieht weiches Rollen wie ein
+     Fehler aus, weil der alte Inhalt schon weg ist. */
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined" || !window.scrollTo) return;
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    } catch (e) { /* ohne Fenster nichts zu tun */ }
+  }, [phase, step]);
   const [queue, setQueue] = useState([]);
   const [ei, setEi] = useState(0);
   const [er, setEr] = useState(null);
@@ -12457,32 +12985,48 @@ function FlutlichtApp() {
 
   /* Im Laden kaufen. Die Coins liegen in derselben Kasse wie die der Akademie
      (`aka.vc`) — das ist Absicht: es soll wehtun, hier auszugeben.
-     Was gekauft wurde, steht in `aka.laden`; einmalige Artikel bleiben dort
-     stehen, laufende zählen die verbleibenden Saisons herunter. */
+
+     EINE Wahrheit, zwei Orte mit klarer Aufgabe:
+       `p.laden`   was in der LAUFENDEN Laufbahn wirkt. Zählt am Saisonende
+                   herunter (`simulateSeason`).
+       `aka.laden` reiner VORRAT: im Hauptmenü gekauft, ohne dass eine Laufbahn
+                   läuft. `start()` übergibt ihn und leert ihn dabei.
+
+     Bis 34.21 war `aka.laden` beides gleichzeitig. Heruntergezählt wurde aber
+     nur `p.laden` — also stand im Laden ewig „läuft“, Nachkaufen war für immer
+     gesperrt, und `start()` schenkte den Kauf jeder weiteren Laufbahn erneut. */
   const ladenKauf = (a) => {
     const kasse = aka.vc || 0;
     if (kasse < a.preis) return;
-    const L = { ...(aka.laden || {}) };
-    if (a.einmal && L[a.id]) return;
-    if (!a.einmal && (L[a.id] || 0) > 0) return;      /* läuft schon */
-    L[a.id] = a.einmal ? 1 : (a.id === "ueber99" ? 4 : 1);
+    /* Gegen den Bestand prüfen, der wirklich gilt: läuft eine Laufbahn, ist
+       das der des Spielers. */
+    const bestand = p ? (p.laden || {}) : (aka.laden || {});
+    if (!ladenKaufbar(a, bestand)) return;
     haptik("wahl");
-    const n = { ...aka, vc: kasse - a.preis, ausgegeben: (aka.ausgegeben || 0) + a.preis, laden: L };
-    setAka(n); speichereAka(n);
-    /* Der Spieler muss die Käufe kennen: `develop`, `simulateSeason` und
-       `makeOffers` lesen `p.laden`. Ohne diese Brücke wäre der Kauf gebucht
-       und wirkungslos — genau die Sorte Fehler, die in diesem Projekt schon
-       mehrfach vorkam (Pity-Zähler, Augenfarbe). */
+
+    const buchen = (L) => {
+      const n = { ...L };
+      if (a.vorrat) n[a.id] = (n[a.id] || 0) + 1;
+      else if (a.dauer) n[a.id] = a.dauer;
+      /* dauer 0 hinterlässt bewusst nichts — sonst blockiert sich der Artikel
+         selbst, obwohl er längst gewirkt hat. */
+      return n;
+    };
+
     if (p) {
-      const q = { ...p, laden: L };
-      setP(q); saveGame(q, step);
-    }
-    /* Sofortwirkungen, die keine Saison brauchen. */
-    if (p && (a.id === "physio" || a.id === "trainer")) {
-      const q = { ...p, laden: L };
+      /* Läuft eine Laufbahn, wirkt der Kauf sofort dort. Der Vorrat der
+         Akademie bleibt unberührt. */
+      const q = { ...p, laden: buchen(p.laden || {}) };
       if (a.id === "physio") { q.injury = null; q.fitness = clamp((p.fitness || 70) + 18, 0, 100); }
       if (a.id === "trainer") q.trust = Math.max(p.trust || 0, 85);
       setP(q); saveGame(q, step);
+      const n = { ...aka, vc: kasse - a.preis, ausgegeben: (aka.ausgegeben || 0) + a.preis };
+      setAka(n); speichereAka(n);
+    } else {
+      /* Ohne Laufbahn in den Vorrat. `start()` holt ihn ab. */
+      const n = { ...aka, vc: kasse - a.preis, ausgegeben: (aka.ausgegeben || 0) + a.preis,
+        laden: buchen(aka.laden || {}) };
+      setAka(n); speichereAka(n);
     }
   };
 
@@ -12528,10 +13072,16 @@ function FlutlichtApp() {
 
   const start = (cfg) => {
     const q = createPlayer({ ...cfg, seen, meta, wcSeen, aka, hsvZaehler: hsvZ });
-    /* Gekauftes an den neuen Spieler weiterreichen. Ohne das wäre ein im
-       Hauptmenü gekaufter Kartentausch beim Anpfiff verschwunden — bezahlt
-       und weg. */
-    q.laden = { ...(aka.laden || {}) };
+    /* Den Vorrat ÜBERGEBEN, nicht kopieren. Bis 34.21 blieb er in `aka.laden`
+       stehen — jede weitere Laufbahn bekam denselben Kauf noch einmal
+       geschenkt, ohne zu zahlen. Jetzt wandert er an den Spieler und ist in
+       der Akademie weg. */
+    const vorrat = { ...(aka.laden || {}) };
+    q.laden = vorrat;
+    if (Object.keys(vorrat).length) {
+      const ohne = { ...aka, laden: {} };
+      setAka(ohne); speichereAka(ohne);
+    }
     /* Kommt die Raute, beginnt der Zähler sofort wieder von vorn — auch dann,
        wenn die Laufbahn später abgebrochen statt beendet wird. */
     if (q.flags.nurderhsv) { q.hsvZaehler = 0; speichereHsv(0); }
@@ -12775,7 +13325,7 @@ function FlutlichtApp() {
      in jedem Sportheft steht. */
   if (phase === "laden") return (
     <Shell blatt="laden">
-      <LadenSeite wo={p ? "saison" : "start"} vc={aka.vc || 0} laden={aka.laden}
+      <LadenSeite wo={p ? "saison" : "start"} vc={aka.vc || 0} laden={p ? p.laden : aka.laden}
         onKauf={ladenKauf} onBack={() => setPhase("menu")} />
     </Shell>);
   if (phase === "create") return <CreateScreen onStart={start} onBack={() => setPhase("menu")} meta={meta} />;
@@ -13240,7 +13790,7 @@ function FlutlichtApp() {
 
       {ladenAuf && (
         <Ueberlagerung onZu={() => setLadenAuf(false)}>
-          <VCLadenAnsicht wo="saison" vc={aka.vc || 0} laden={aka.laden} onKauf={ladenKauf} />
+          <VCLadenAnsicht wo="saison" vc={aka.vc || 0} laden={p ? p.laden : aka.laden} onKauf={ladenKauf} />
         </Ueberlagerung>)}
       {schluss && schluss.lauf === p.lauf && !rueckblick && (!jubel || !jubel.length) && !simLauf && (
         <div className="rs-schleier" style={{ padding: "0 18px" }}>
@@ -13266,15 +13816,44 @@ function FlutlichtApp() {
 
 /* Die Kapitänsbinde neben dem Namen — in den Farben dessen, den man anführt.
    Gezeichnet als schräg liegendes Band mit zweifarbigem Verlauf und einem C. */
-function Binde({ farben, size = 19, titel }) {
+function Binde({ farben, flagge, size = 19, titel }) {
   const { p: c1, s: c2 } = farbPaar(farben);
-  const id = "bd" + Math.abs(hash(c1 + c2 + (titel || "")));
+  const bau = flagge || null;
+  const id = "bd" + Math.abs(hash(c1 + c2 + (titel || "") + (bau ? bau.art + bau.f.join("") : "")));
   const dunkel = (hex) => {
     try { const n = parseInt(hex.slice(1), 16);
       return ((n >> 16 & 255) * .299 + (n >> 8 & 255) * .587 + (n & 255) * .114) < 128; }
     catch (e) { return true; }
   };
-  const schrift = dunkel(c1) ? "#F2F5FA" : "#0B120E";
+  /* Der Buchstabe muss auf dem lesbar sein, was hinter IHM liegt — bei einer
+     Flagge ist das die mittlere Bahn, nicht die erste Farbe. */
+  const grund = bau ? (bau.art === "flaeche" ? bau.f[1] : bau.f[Math.floor(bau.f.length / 2)]) : c1;
+  const schrift = dunkel(grund) ? "#F2F5FA" : "#0B120E";
+
+  /* Die Flaggenbahnen. Sie werden auf das Band beschnitten, damit die runden
+     Ecken erhalten bleiben. */
+  const bahnen = () => {
+    if (!bau) return <rect x="2" y="5.5" width="26" height="11" fill={"url(#" + id + ")"} />;
+    const F = bau.f;
+    if (bau.art === "flaeche") return (<g>
+      <rect x="2" y="5.5" width="26" height="11" fill={F[0]} />
+      <circle cx="15" cy="11" r="3.1" fill={F[1]} />
+    </g>);
+    if (bau.art === "kreuz") return (<g>
+      <rect x="2" y="5.5" width="26" height="11" fill={F[0]} />
+      <rect x="2" y="9.6" width="26" height="2.8" fill={F[1]} />
+      <rect x="9.4" y="5.5" width="2.8" height="11" fill={F[1]} />
+    </g>);
+    if (bau.art === "laengs") return (<g>
+      {F.map((c, i) => (
+        <rect key={i} x={2 + (26 / F.length) * i} y="5.5" width={26 / F.length} height="11" fill={c} />))}
+    </g>);
+    return (<g>
+      {F.map((c, i) => (
+        <rect key={i} x="2" y={5.5 + (11 / F.length) * i} width="26" height={11 / F.length} fill={c} />))}
+    </g>);
+  };
+
   return (
     <svg viewBox="0 0 30 22" width={size * 1.28} height={size} role="img" aria-label={titel}
       style={{ display: "inline-block", verticalAlign: "-0.14em", flexShrink: 0 }}>
@@ -13284,16 +13863,21 @@ function Binde({ farben, size = 19, titel }) {
           <stop offset="0%" stopColor={c1} /><stop offset="49%" stopColor={c1} />
           <stop offset="51%" stopColor={c2} /><stop offset="100%" stopColor={c2} />
         </linearGradient>
+        <clipPath id={id + "c"}><rect x="2" y="5.5" width="26" height="11" rx="3.2" /></clipPath>
       </defs>
       <g transform="rotate(-11 15 11)">
         {/* das Band selbst */}
-        <rect x="2" y="5.5" width="26" height="11" rx="3.2" fill={"url(#" + id + ")"}
+        <g clipPath={"url(#" + id + "c)"}>{bahnen()}</g>
+        <rect x="2" y="5.5" width="26" height="11" rx="3.2" fill="none"
           stroke="rgba(0,0,0,.55)" strokeWidth="1" />
         {/* Naht oben, damit es plastisch wirkt */}
-        <rect x="3.4" y="6.8" width="23.2" height="1.5" rx=".75" fill="#FFFFFF" opacity=".22" />
-        {/* Kennbuchstabe */}
+        <rect x="3.4" y="6.8" width="23.2" height="1.5" rx=".75" fill="#FFFFFF" opacity=".22"
+          clipPath={"url(#" + id + "c)"} />
+        {/* Kennbuchstabe — mit Saum, damit er auf jeder Bahn steht */}
         <text x="15" y="14.6" textAnchor="middle" fontSize="8.6" fontWeight="700"
-          fontFamily="'Rasen Anzeige','Roboto Condensed',sans-serif" fill={schrift}>C</text>
+          fontFamily="'Rasen Anzeige','Roboto Condensed',sans-serif"
+          stroke={schrift === "#F2F5FA" ? "rgba(0,0,0,.55)" : "rgba(255,255,255,.6)"}
+          strokeWidth=".9" paintOrder="stroke" fill={schrift}>C</text>
       </g>
     </svg>
   );

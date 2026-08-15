@@ -1,14 +1,19 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
-import App, { MenuScreen, EndScreen, AkademieScreen, TalentZeile,
-  WildcardEnthuellung, Balken, AusbauRing, akaNaechster, akaLeistbar,
-  ACHIEVEMENTS, RARITY, STUFEN, WildcardCard, AchievementScreen,
-  Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass, VCLADEN, SHOP_BILD, shopFuer, ladenGesperrt, VCLadenAnsicht, tauschRest, rerollWildcard, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS, weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen, ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich,
-  AKA_MAX, leereBilanz, hsvChance, akaStufe, akaSumme, akaRestkosten,
-  leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, vcPosten, akaBonus,
-  ABTEILUNGEN, createPlayer, develop, simulateSeason, makeOffers, marketValue,
-  verdict, NATIONS, TYPES, MODES, POS, pick } from "./probe.jsx";
+import App, {
+  MenuScreen, EndScreen, AkademieScreen, TalentZeile, WildcardEnthuellung, Balken,
+  AusbauRing, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, WildcardCard,
+  AchievementScreen, Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass,
+  VCLADEN, SHOP_BILD, shopFuer, ladenGesperrt, ladenKaufbar, VCLadenAnsicht, tauschRest,
+  rerollWildcard, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS,
+  weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen,
+  ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich, AKA_MAX, leereBilanz,
+  hsvChance, akaStufe, akaSumme, akaRestkosten, leereAkademie, akaGruenden, akaJahr,
+  akaVerbuchen, vcFuer, vcPosten, akaBonus, ABTEILUNGEN, createPlayer, develop,
+  simulateSeason, makeOffers, marketValue, verdict, NATIONS, TYPES, MODES, POS, pick, CSS,
+  tauschMax, SaisonRueckblick, FLAGGENART, stufeSchrift
+} from "./probe.jsx";
 
 let fehler = 0, ok = 0;
 const echteFehler = [];
@@ -391,6 +396,85 @@ console.log("\n=== Vermächtnis-Laden ===");
     else ok++;
     console.log("  Laden · " + wo.padEnd(7) + " " + knoepfe.length + " Artikel · " + gesperrt + " gesperrt");
   });
+
+  /* ---- Das Kaufmodell (34.22) -----------------------------------------
+     Bis 34.21 stand der Kauf in `aka.laden`, heruntergezählt wurde aber nur
+     `p.laden`. Folge: im Laden stand ewig „läuft“, Nachkaufen war für immer
+     gesperrt, und jede neue Laufbahn bekam den Kauf geschenkt. Geprüft wird
+     jetzt jede der drei Arten einzeln — und vor allem, dass ein abgelaufener
+     Artikel WIEDER kaufbar ist. */
+  {
+    const art = (id) => VCLADEN.find((a) => a.id === id);
+    const faelle = [
+      /* Artikel, Bestand, kaufbar?, warum */
+      ["läuft gerade",        art("training"), { training: 1 }, false],
+      ["abgelaufen",          art("training"), { training: 0 }, true],
+      ["nie gekauft",         art("training"), {},              true],
+      ["Sofortwirkung",       art("physio"),   { physio: 1 },   true],
+      ["Sofortwirkung zwei",  art("trainer"),  {},              true],
+      ["Vorrat stapelt",      art("reroll"),   { reroll: 3 },   true],
+      ["lange Dauer läuft",   art("ueber99"),  { ueber99: 2 },  false],
+      ["lange Dauer vorbei",  art("ueber99"),  { ueber99: 0 },  true],
+    ];
+    let stimmt = 0;
+    faelle.forEach(([n, a, L, soll]) => {
+      if (!a) { zeige("Kaufmodell", n + ": Artikel fehlt"); return; }
+      if (ladenKaufbar(a, L) !== soll)
+        zeige("Kaufmodell", n + ": kaufbar=" + ladenKaufbar(a, L) + ", erwartet " + soll);
+      else { ok++; stimmt++; }
+    });
+    console.log("  Kaufmodell      " + stimmt + " von " + faelle.length + " Lagen richtig");
+
+    /* Sofortwirkungen dürfen NICHTS hinterlassen — sonst blockieren sie sich
+       selbst, obwohl sie längst gewirkt haben. */
+    const sofort = VCLADEN.filter((a) => !a.vorrat && !a.dauer).map((a) => a.id);
+    if (!sofort.length) zeige("Kaufmodell", "kein Artikel wirkt sofort — physio und trainer fehlen");
+    else ok++;
+
+    /* Jeder Artikel muss genau EINE Art haben. Ein Artikel ohne Dauer und
+       ohne Vorrat, der trotzdem einen Eintrag hinterlassen soll, gäbe es
+       nicht — und einer mit beidem wäre widersprüchlich. */
+    const doppelt = VCLADEN.filter((a) => a.vorrat && a.dauer);
+    if (doppelt.length) zeige("Kaufmodell", "Vorrat UND Dauer: " + doppelt.map((a) => a.id).join(", "));
+    else ok++;
+
+    /* Der Ablauf über eine echte Saison. Das ist der Kern des Fehlers: läuft
+       der Zähler nicht auf 0, bleibt der Artikel für immer gesperrt. */
+    const q = laufbahn(null);
+    q.laden = { training: 1, ueber99: 4, reroll: 2 };
+    const vorher = { ...q.laden };
+    simulateSeason(q);
+    const L = q.laden || {};
+    if ((L.training || 0) !== 0)
+      zeige("Kaufmodell", "training nach einer Saison " + L.training + " statt 0");
+    else ok++;
+    if ((L.ueber99 || 0) !== 3)
+      zeige("Kaufmodell", "ueber99 nach einer Saison " + L.ueber99 + " statt 3");
+    else ok++;
+    if ((L.reroll || 0) !== 2)
+      zeige("Kaufmodell", "der Vorrat wurde heruntergezählt: reroll " + L.reroll + " statt 2");
+    else ok++;
+    /* Und jetzt die Frage, um die es geht. */
+    if (!ladenKaufbar(art("training"), L))
+      zeige("Kaufmodell", "training ist nach Ablauf immer noch nicht nachkaufbar");
+    else ok++;
+    /* Den GEMESSENEN Zustand nennen, nicht den erwünschten. Beim ersten
+       Entwurf stand hier fest „danach nachkaufbar ✓“ — und das behauptete die
+       Zeile auch in der Gegenprobe noch, als die Prüfung darüber schon rot
+       gemeldet hatte. Derselbe Fehler wie in 34.21 bei der Kopfleiste. */
+    console.log("  Ablauf          training " + vorher.training + "→" + (L.training || 0)
+      + " · ueber99 " + vorher.ueber99 + "→" + (L.ueber99 || 0)
+      + " · Vorrat reroll " + vorher.reroll + "→" + (L.reroll || 0)
+      + " · danach nachkaufbar: " + (ladenKaufbar(art("training"), L) ? "ja" : "NEIN"));
+
+    /* Der Vorrat muss sich auch WIRKLICH in Tausche übersetzen, nicht nur
+       zählbar sein. Zwei gekaufte Tausche = drei insgesamt. */
+    const t = laufbahn(null); t.seasons = []; t.wcRerolls = 0; t.meta = {};
+    t.laden = { reroll: 2 };
+    if (tauschMax(t) !== 3) zeige("Kaufmodell", "zwei gekaufte Tausche ergeben " + tauschMax(t) + " statt 3");
+    else ok++;
+    console.log("  Vorrat          reroll 2 → " + tauschMax(t) + " Tausche insgesamt");
+  }
 }
 
 console.log("\n=== Freischaltungen ===");
@@ -731,6 +815,142 @@ console.log("\n=== Vier gemeldete Fehler ===");
   else ok++;
   console.log("  Spielerpass     immer eine Rollfläche, immer " + hoehe(3) + " hoch ✓");
 
+  /* ---- Die Kapitänsbinden (34.24) --------------------------------------
+     Bis 34.23 hingen sie in derselben Flexzeile wie der Name, mit
+     flexWrap:"wrap". Bei langem Namen rutschten sie in die zweite Zeile — und
+     weil beide Passseiten im selben Rasterfeld liegen, wuchs damit der ganze
+     Pass. jsdom rechnet kein Layout und sieht den Umbruch nicht. Geprüft wird
+     deshalb die Ursache: keine Binde darf in einer Zeile hängen, die umbrechen
+     kann. */
+  {
+    const q = laufbahn(null);
+    q.name = "Maximilian Schwarzenbach";     // lang genug für den alten Umbruch
+    q.flags = { ...(q.flags || {}), kapitaen: true };
+    q.nt = { ...(q.nt || {}), kapitaen: true, caps: 30 };
+    const r = mach("Binden", <Pass p={q} full />, 0);
+    if (r) {
+      const binden = [...r.div.querySelectorAll("svg")]
+        .filter((s) => (s.getAttribute("aria-label") || "").startsWith("Kapitän"));
+      if (binden.length !== 2) zeige("Binden", binden.length + " Binden statt 2");
+      else ok++;
+      /* Der Kern: kein Vorfahr darf umbrechen. */
+      let inUmbruch = 0, tiefe = 0;
+      binden.forEach((b) => {
+        let e = b.parentElement;
+        while (e && e !== r.div) {
+          if (e.style && e.style.flexWrap === "wrap") inUmbruch++;
+          e = e.parentElement; tiefe++;
+        }
+      });
+      if (inUmbruch) zeige("Binden", inUmbruch + " Binde(n) hängen in einer umbrechenden Zeile");
+      else ok++;
+      /* Und sie dürfen nicht mehr im selben Element wie der Name stehen. */
+      const beiName = binden.filter((b) => {
+        let e = b.parentElement;
+        while (e && e !== r.div) {
+          if ((e.textContent || "").includes(q.name) && e.tagName === "DIV"
+              && e.style && e.style.fontSize === "19px") return true;
+          e = e.parentElement;
+        }
+        return false;
+      }).length;
+      if (beiName) zeige("Binden", beiName + " Binde(n) stecken noch in der Namenszeile");
+      else ok++;
+      /* Beide Angaben aus den GEMESSENEN Werten. Zum dritten Mal in vier
+         Fassungen stand hier zuerst ein fester Text („keine in umbrechender
+         Zeile“), der in der Gegenprobe weiter grün redete, während die
+         Prüfung darüber rot meldete. Feste Zusagen gehören nicht in eine
+         Protokollzeile. */
+      console.log("  Binden          " + binden.length + " · "
+        + (inUmbruch ? inUmbruch + " IN UMBRECHENDER ZEILE" : "keine in umbrechender Zeile") + " · "
+        + (beiName ? beiName + " NOCH IN DER NAMENSZEILE" : "getrennt vom Namen"));
+    }
+    /* Die Flaggenbauart: jeder Eintrag braucht eine bekannte Art und genug
+       Farben, sonst zeichnet die Binde ins Leere. */
+    const arten = ["quer", "laengs", "kreuz", "flaeche"];
+    const schlecht = Object.keys(FLAGGENART).filter((k) => {
+      const b = FLAGGENART[k];
+      return !b || arten.indexOf(b.art) < 0 || !Array.isArray(b.f) || b.f.length < 2
+        || b.f.some((c) => !/^#[0-9A-Fa-f]{6}$/.test(c));
+    });
+    if (schlecht.length) zeige("Flaggen", "fehlerhaft: " + schlecht.join(", "));
+    else ok++;
+    console.log("  Flaggen         " + Object.keys(FLAGGENART).length + " Bauarten · alle gültig");
+  }
+
+  /* ---- Errungenschaften: Farbe und Lesbarkeit (34.25) ------------------
+     Zwei gemeldete Fehler mit zwei verschiedenen Ursachen:
+     (a) Die Übersicht zeigte einen Punkt in `col`, die Karte einen Block in
+         `colK` — zwei von Hand gepflegte Werte für dieselbe Stufe, die
+         auseinandergelaufen waren (Legendär creme gegen olivbraun).
+     (b) Der Rang auf der Karte war unlesbar, weil `.karton .m` (0,2,0)
+         spezifischer ist als `.stufe` (0,1,0) und die helle Schrift wieder
+         auf dunkle Tinte zurücksetzte — dunkel auf dunkel. */
+  {
+    /* (b) Kontrast. Jede Stufe muss ihre Schrift tragen können. */
+    const leuchte = (hex) => { const n = parseInt(hex.slice(1), 16);
+      const f = (v) => { const c = v / 255;
+        return c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4); };
+      return .2126 * f(n >> 16 & 255) + .7152 * f(n >> 8 & 255) + .0722 * f(n & 255); };
+    const verhaeltnis = (a1, b1) => { const x = leuchte(a1), y = leuchte(b1);
+      return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+    let schlecht = 0, kleinster = 99;
+    Object.keys(STUFEN).forEach((k) => {
+      const c = STUFEN[k].col, v = verhaeltnis(c, stufeSchrift(c));
+      kleinster = Math.min(kleinster, v);
+      if (v < 4.5) { schlecht++; zeige("Ränge", k + ": Kontrast nur " + v.toFixed(2) + " (nötig 4,5)"); }
+    });
+    if (!schlecht) ok++;
+    console.log("  Ränge lesbar    kleinster Kontrast " + kleinster.toFixed(2) + " (nötig 4,5)");
+
+    /* Keine zweite Farbtabelle mehr — sonst beginnt das Auseinanderlaufen neu. */
+    const zweit = Object.keys(STUFEN).filter((k) => STUFEN[k].colK !== undefined);
+    if (zweit.length) zeige("Ränge", "zweite Farbe colK ist zurück: " + zweit.join(", "));
+    else ok++;
+  }
+
+  /* ---- Rückblick als Karteikarte (34.26) -------------------------------
+     Die Seiten benutzen an vielen Stellen Farben für dunklen Grund. Auf
+     hellem Karton wären sie unlesbar — genau der Fehler, der in 34.25 bei
+     den Rängen steckte. Gelöst über neu gesetzte Farbvariablen auf der
+     Karte; geprüft wird, dass diese Umdeutung wirklich dort steht und dass
+     die Karte gezeichnet wird. */
+  {
+    const q = laufbahn(null);
+    const sa = (q.seasons || [])[0];
+    if (!sa) zeige("Rückblick", "die Testlaufbahn hat keine Saison");
+    else {
+      const r = mach("Saisonrückblick", <SaisonRueckblick p={q} s={sa} onFertig={() => {}} />, 0);
+      if (r) {
+        const karten = r.div.querySelectorAll(".karteikarte");
+        if (karten.length !== 1)
+          zeige("Rückblick", karten.length + " Karteikarten gezeichnet, erwartet 1 (die hinausziehende erst beim Blättern)");
+        else ok++;
+        /* Der Reiter oben trägt die Seitenfarbe. */
+        const reiter = karten[0] && karten[0].style.getPropertyValue("--reiter");
+        if (!reiter) zeige("Rückblick", "die Karte trägt keine Reiterfarbe");
+        else ok++;
+        console.log("  Rückblick       " + karten.length + " Karteikarte · Reiter " + (reiter || "—"));
+      }
+    }
+    /* Die Farbumdeutung MUSS im Stilblock stehen — ohne sie stünde jede
+       Zahl in einer Farbe für dunklen Grund auf hellem Karton. */
+    const i = CSS.indexOf(".karteikarte{");
+    const regel = i < 0 ? "" : CSS.slice(i, CSS.indexOf("}", i));
+    const noetig = ["--ac:var(--ac-k)", "--go:var(--go-k)", "--mu:var(--tinte2)"];
+    const fehlt = noetig.filter((n) => regel.indexOf(n) < 0);
+    if (!regel) zeige("Rückblick", "Stilregel .karteikarte fehlt");
+    else if (fehlt.length) zeige("Rückblick", "Farbumdeutung unvollständig, es fehlt: " + fehlt.join(", "));
+    else ok++;
+    /* Und die Ziehbewegung in beide Richtungen. */
+    const beide = ["rs-karte-rein", "rs-karte-raus"].filter((n) => CSS.indexOf("@keyframes " + n) < 0);
+    if (beide.length) zeige("Rückblick", "Bewegung fehlt: " + beide.join(", "));
+    else ok++;
+    console.log("  Karteikarte     Farbumdeutung "
+      + (fehlt.length ? "UNVOLLSTÄNDIG" : "vollständig") + " · Bewegung "
+      + (beide.length ? "FEHLT" : "rein und raus"));
+  }
+
   /* 2 · Die Anzeigegröße wirkte nur auf zwei Stellen. Jetzt über zoom. */
   {
     const r = mach("Grundstil", <HallScreen hall={[]} onBack={() => {}} />, 0);
@@ -887,6 +1107,65 @@ console.log("\n=== Seitenmöbel des Hefts ===");
   if (new Set(zahlen).size !== zahlen.length) zeige("Ressorts", "doppelte Seitenzahlen: " + zahlen.join(", "));
   else ok++;
   console.log("  Seitenzahlen    " + zahlen.slice().sort((a, b) => a - b).join(" · ") + " · alle verschieden");
+
+  /* ---- Kopfknöpfe: Laden und Zahnrad ----------------------------------
+     In 34.20 trugen beide dieselbe Klasse `.zahnrad` mit position:absolute
+     und right:0 — also lagen sie exakt aufeinander. Der Laden bekam einen
+     Rand von 6px, aber bei absoluter Lage verschiebt ein Rand nur um seinen
+     eigenen Betrag: 40px Knopf gegen 6px Versatz sind 34px Überlappung.
+     In Chromium gemessen: 34px, 85 % des Knopfes verdeckt.
+
+     Warum das hier steht und nicht im Bild: jsdom rechnet kein Layout. Der
+     Baum sah in beiden Fassungen gleich aus. Geprüft wird deshalb die
+     Ursache statt der Wirkung — ein Behälter, der den Abstand setzt, und
+     ein Knopf, der nicht absolut sitzt. Die Wirkung selbst misst
+     `pruefstand/kopfleiste.cjs` in einem echten Browser. */
+  {
+    const m = mach("Kopfleiste", <MenuScreen {...menuProps} aka={leereAkademie()} onLaden={() => {}} />, 0);
+    if (m) {
+      const knoepfe = [...m.div.querySelectorAll("button.zahnrad")];
+      if (knoepfe.length !== 2) zeige("Kopfleiste", knoepfe.length + " Kopfknöpfe statt 2");
+      else ok++;
+      if (knoepfe.length === 2) {
+        const eltern = new Set(knoepfe.map((b) => b.parentElement));
+        if (eltern.size !== 1)
+          zeige("Kopfleiste", "die Knöpfe liegen in " + eltern.size + " Behältern statt in einem");
+        else ok++;
+        const behaelter = knoepfe[0].parentElement;
+        if (!behaelter || !behaelter.classList.contains("kopfknoepfe"))
+          zeige("Kopfleiste", "der Behälter trägt nicht .kopfknoepfe");
+        else ok++;
+        /* Beide müssen unterscheidbar bleiben — ein Knopf ohne Beschriftung
+           ist für die Vorlesehilfe ein leeres Feld. */
+        const namen = knoepfe.map((b) => b.getAttribute("aria-label") || "").sort();
+        if (namen.join("|") !== "Optionen|Vermächtnis-Laden")
+          zeige("Kopfleiste", "Beschriftungen sind „" + namen.join("“ und „") + "“");
+        else ok++;
+        console.log("  Kopfknöpfe      " + knoepfe.length + " in einem Behälter · " + namen.join(" · "));
+      }
+    }
+    /* Die Stilregeln dazu. */
+    const regel = (n) => { const i = CSS.indexOf("." + n + "{");
+      return i < 0 ? null : CSS.slice(i, CSS.indexOf("}", i)); };
+    const rZahn = regel("zahnrad"), rKopf = regel("kopfknoepfe");
+    if (!rZahn) zeige("Kopfleiste", "Stilregel .zahnrad nicht gefunden");
+    else if (/position\s*:\s*absolute/.test(rZahn))
+      zeige("Kopfleiste", ".zahnrad steht wieder auf position:absolute — zwei davon liegen aufeinander");
+    else ok++;
+    const abstand = rKopf && (rKopf.match(/gap\s*:\s*([^;]+)/) || [])[1];
+    if (!rKopf) zeige("Kopfleiste", "Stilregel .kopfknoepfe fehlt");
+    else if (!/display\s*:\s*flex/.test(rKopf)) zeige("Kopfleiste", ".kopfknoepfe ist kein Flexbehälter");
+    else if (!abstand || !/[1-9]/.test(abstand)) zeige("Kopfleiste", ".kopfknoepfe ohne Abstand");
+    else ok++;
+    /* Diese Zeile muss den gemessenen Zustand nennen, nicht den erwünschten.
+       Im ersten Entwurf stand hier fest „nicht absolut“ — und das behauptete
+       sie auch dann noch, als die Prüfung zwei Zeilen darüber das Gegenteil
+       gemeldet hatte. Ein Protokoll, das grün redet, während der Prüfstand
+       rot meldet, ist schlimmer als gar keins. */
+    console.log("  Stil            .zahnrad "
+      + (!rZahn ? "Regel fehlt" : /position\s*:\s*absolute/.test(rZahn) ? "ABSOLUT — Knöpfe liegen aufeinander" : "nicht absolut")
+      + " · Behälter " + (!rKopf ? "fehlt" : "Abstand " + (abstand || "keiner")));
+  }
 }
 
 console.log("\n=== Zoom und Akademiefortschritt ===");
@@ -1081,21 +1360,49 @@ console.log("\n=== Form statt Farbe ===");
   const ach = {}; ACHIEVEMENTS.slice(0, 9).forEach((a) => { ach[a.id] = true; });
   const gitter = mach("Errungenschaften", <AchievementScreen ach={ach} meta={{}} onBack={() => {}} />);
   if (gitter) {
-    const marken = [...gitter.div.querySelectorAll(".stufe")].filter((e) => !e.classList.contains("punkt"));
+    /* Seit 34.25 zeichnet die ÜBERSICHT denselben Block wie die Karte —
+       vorher war es dort ein Punkt in einer anderen Farbe, und genau das war
+       der gemeldete Fehler. Also: 9 Karten + 5 Stufen in der Übersicht = 14
+       Blöcke, und keine Punkte mehr. */
+    const bloecke = [...gitter.div.querySelectorAll(".stufe")];
     const punkte = gitter.div.querySelectorAll(".stufe.punkt").length;
-    const ohne = marken.filter((e) => !e.style.background).length;
+    const ohne = bloecke.filter((e) => !e.style.background).length;
     const baender = gitter.div.querySelectorAll(".band").length;
-    if (marken.length !== 9) zeige("Errungenschaften", marken.length + " Stufenmarken für 9 erreichte");
+    const soll = 9 + Object.keys(STUFEN).length;
+    if (bloecke.length !== soll)
+      zeige("Errungenschaften", bloecke.length + " Stufenblöcke, erwartet " + soll);
     else ok++;
-    if (ohne) zeige("Errungenschaften", ohne + " Stufenmarken ohne Füllung");
+    if (ohne) zeige("Errungenschaften", ohne + " Stufenblöcke ohne Füllung");
     else ok++;
-    if (punkte !== Object.keys(STUFEN).length)
-      zeige("Errungenschaften", punkte + " Filterpunkte, erwartet " + Object.keys(STUFEN).length);
+    if (punkte) zeige("Errungenschaften", punkte + " alte Filterpunkte — die Übersicht soll denselben Block zeigen");
     else ok++;
     if (baender) zeige("Errungenschaften", baender + " Bänder über die volle Breite — die gehören der Seltenheit");
     else ok++;
-    console.log("  Errungenschaften " + marken.length + " gefüllte Marken · " + punkte
-      + " Filterpunkte · " + baender + " Bänder");
+
+    /* Der Kern des gemeldeten Fehlers: zeigt die Übersicht WIRKLICH dieselbe
+       Farbe wie die Karte? Nicht die Tabelle vergleichen, sondern das
+       Gezeichnete — die Tabelle war ja gerade das Problem. */
+    const proStufe = {};
+    bloecke.forEach((b) => {
+      const n = (b.textContent || "").trim();
+      (proStufe[n] = proStufe[n] || new Set()).add(b.style.background || b.style.backgroundColor);
+    });
+    const uneinig = Object.keys(proStufe).filter((n) => proStufe[n].size > 1);
+    if (uneinig.length)
+      zeige("Errungenschaften", "verschiedene Farben für dieselbe Stufe: "
+        + uneinig.map((n) => n + " (" + [...proStufe[n]].join(" / ") + ")").join(", "));
+    else ok++;
+
+    /* Und jeder Block braucht eine EIGENE Schriftfarbe. Ohne sie greift wieder
+       `.karton .m` (0,2,0) über `.stufe` (0,1,0) und setzt dunkle Tinte auf
+       dunkle Fläche — so war der Rang auf der Karte unlesbar. */
+    const ohneSchrift = bloecke.filter((b) => !b.style.color).length;
+    if (ohneSchrift) zeige("Errungenschaften", ohneSchrift + " Stufenblöcke ohne eigene Schriftfarbe");
+    else ok++;
+
+    console.log("  Errungenschaften " + bloecke.length + " Blöcke · " + punkte + " Punkte · "
+      + (uneinig.length ? uneinig.length + " STUFEN UNEINIG" : "je Stufe eine Farbe") + " · "
+      + (ohneSchrift ? ohneSchrift + " OHNE SCHRIFT" : "alle mit eigener Schrift"));
   }
 }
 
