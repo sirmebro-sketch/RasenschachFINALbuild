@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
 import App, {
+  CLUBS,
   kopfPfad,
   drawWildcard, LAUFBAHN_MAX,
   MenuScreen, EndScreen, AkademieScreen, TalentZeile, WildcardEnthuellung, Balken,
@@ -520,6 +521,42 @@ console.log("\n=== Freischaltungen ===");
    Geprüft wird nicht das Bild, sondern der Pfad: zu jedem Punkt (x, y) muss
    es einen Partner (100 - x, y) geben. Das ist eine reine Rechnung und
    erwischt jede künftige einseitige Änderung sofort. */
+/* ---- Namentlich versprochene Rückkehr (34.34) ---------------------------
+   Kevin: „Union Berlin will dich zurück" — zugesagt, und dann standen vier
+   andere Vereine im Fenster. Der Titel nennt den Verein, die Wirkung war aber
+   nur ein allgemeiner Wechselwunsch; der genannte Verein wurde nirgends
+   festgehalten. Geprüft wird jetzt genau das: Versprechen rein, Angebot raus. */
+console.log("\n=== Versprochene Rückkehr ===");
+{
+  let drin = 0, geprueft = 0, weg = 0;
+  for (let i = 0; i < 40; i++) {
+    const q = laufbahn(null);
+    /* Die Rautekarte sticht jedes Versprechen — wer sie gezogen hat, bleibt
+       beim HSV. Solche Läufe gehören nicht in diese Zählung. Dass sie hier
+       auftauchen können, hat der Prüfstand selbst gezeigt: der Lauf war
+       zunächst 40 von 40 grün und fiel erst später um, weil `laufbahn` würfelt. */
+    if (q.flags && q.flags.nurderhsv) continue;
+    /* Einen echten anderen Verein als Versprechen setzen. */
+    const ziel = CLUBS.find((c) => c.n !== q.club.n && c.l === q.club.l);
+    if (!ziel) continue;
+    q.prevClub = ziel.n;
+    q.flags = { ...(q.flags || {}), rueckkehrZu: ziel.n };
+    q.contract = 0;
+    let of = [];
+    try { of = makeOffers(q) || []; } catch (e) { zeige("Rückkehr", e.message); break; }
+    geprueft++;
+    if (of.some((o) => o.club && o.club.n === ziel.n)) drin++;
+    else zeige("Rückkehr", "versprochener Verein " + ziel.n + " fehlt im Fenster");
+    /* Das Versprechen darf danach verbraucht sein. */
+    if (!q.flags.rueckkehrZu) weg++;
+  }
+  if (geprueft && drin === geprueft) ok++;
+  if (geprueft && weg === geprueft) ok++;
+  else if (geprueft) zeige("Rückkehr", "das Versprechen bleibt stehen und wiederholt sich jede Saison");
+  console.log("  Rückkehr        " + drin + " von " + geprueft + " Versprechen eingelöst · "
+    + weg + " danach verbraucht");
+}
+
 console.log("\n=== Kopfformen ===");
 {
   let schief = 0;
@@ -939,7 +976,10 @@ console.log("\n=== Vier gemeldete Fehler ===");
     }
     /* Die Flaggenbauart: jeder Eintrag braucht eine bekannte Art und genug
        Farben, sonst zeichnet die Binde ins Leere. */
-    const arten = ["quer", "laengs", "kreuz", "flaeche"];
+    /* Seit 34.38 gibt es sieben Bauarten und alle 212 Nationen sind belegt.
+       Eine unbekannte Art zeichnet stillschweigend liegende Streifen — der
+       Fehler fiele also nie auf. Deshalb hier die vollstaendige Liste. */
+    const arten = ["quer", "laengs", "kreuz", "flaeche", "keil", "diag", "goesch"];
     const schlecht = Object.keys(FLAGGENART).filter((k) => {
       const b = FLAGGENART[k];
       return !b || arten.indexOf(b.art) < 0 || !Array.isArray(b.f) || b.f.length < 2
@@ -947,7 +987,28 @@ console.log("\n=== Vier gemeldete Fehler ===");
     });
     if (schlecht.length) zeige("Flaggen", "fehlerhaft: " + schlecht.join(", "));
     else ok++;
-    console.log("  Flaggen         " + Object.keys(FLAGGENART).length + " Bauarten · alle gültig");
+    /* JEDE Nation muss eine haben — sonst bekommt sie aus der Kennung
+       errechnete Farben, die mit ihrer Flagge nichts zu tun haben. */
+    const ohne = NATIONS.filter((n) => !FLAGGENART[n.id]);
+    if (ohne.length) zeige("Flaggen", ohne.length + " Nationen ohne Flagge: "
+      + ohne.slice(0, 6).map((n) => n.id).join(" "));
+    else ok++;
+    /* Und keine Karteileiche: eine Flagge ohne Nation zeigt einen Tippfehler an. */
+    const waise = Object.keys(FLAGGENART).filter((k) => !NATIONS.some((n) => n.id === k));
+    if (waise.length) zeige("Flaggen", "Flaggen ohne Nation: " + waise.join(" "));
+    else ok++;
+    /* Keil und Obereck brauchen die Zusatzfarbe zwingend. Das Schrägband darf
+       sie auch als dritte Farbe mitbringen — beides kommt in den Daten vor. */
+    const fehltZ = Object.keys(FLAGGENART).filter((k) => {
+      const b = FLAGGENART[k];
+      if (b.art === "keil" || b.art === "goesch") return !b.z;
+      if (b.art === "diag") return !b.z && !b.f[2];
+      return false;
+    });
+    if (fehltZ.length) zeige("Flaggen", "Bauart braucht z-Farbe: " + fehltZ.join(" "));
+    else ok++;
+    console.log("  Flaggen         " + Object.keys(FLAGGENART).length + " von " + NATIONS.length
+      + " Nationen · " + [...new Set(Object.values(FLAGGENART).map((b) => b.art))].length + " Bauarten");
   }
 
   /* ---- Errungenschaften: Farbe und Lesbarkeit (34.25) ------------------

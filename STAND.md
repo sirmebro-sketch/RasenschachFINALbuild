@@ -5,7 +5,7 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 34.33** · Stand 15. August 2026
+**Fassung 35.0** · Stand 15. August 2026
 *Eigene Schriften · harte Form · Sammelalbum · neue Spielerporträts · **das Heft: dunkles Zeitungspapier***
 
 > Die Abschnitte 1 bis 8 beschreiben das Spiel und die Arbeitsweise und gelten
@@ -282,6 +282,8 @@ und eine allgemeine Prüfung auf `NaN`/`undefined` in jeder Ansicht.
 | jsdom | `act()`-Warnungen zeitgesteuerter Animationen und fehlendes `getContext` sind **Prüfumgebung, kein Fehler**. Der Filter in den Skripten darf nicht abgeschaltet werden — die Warnungen treffen verzögert ein. |
 | Rand bei absoluter Lage | Ein `margin-right` verschiebt ein `position:absolute`-Element **um seinen eigenen Betrag**, nicht um die Breite des Nachbarn: `left + Breite + margin-right + right = Behälterbreite`. Zwei Knöpfe mit derselben Klasse und `right:0` liegen aufeinander, egal welcher Rand danebensteht. Nebeneinander gehört in einen Flexbehälter mit `gap`, nicht in Randwerte. |
 | Prüfmuster auf Zeichenketten | `startprobe.cjs` suchte nach Farbwerten und Verläufen, die es nach einer Gestaltungsänderung nicht mehr gab, und war dadurch **dauerhaft rot** — ohne dass etwas kaputt war. Prüfungen auf die Absicht richten (`.raster` trägt *irgendeinen* Radialverlauf), nicht auf den Wortlaut. |
+| Einmal grün ist nicht bewiesen | Prüfungen auf gewürfelten Zuständen (`laufbahn()`) können zufällig grün sein. Die Rückkehr-Prüfung war 40 von 40 grün und fiel erst zwei Fassungen später um, weil die HSV-Rautekarte nur manchmal auftaucht. Bei gewürfelten Zuständen zählt erst die Wiederholung. |
+| Ereignis verspricht, Mechanik liefert nicht | Ein Ereignistext, der einen Verein oder eine Person BEIM NAMEN nennt, braucht eine Wirkung, die genau das herstellt. `winterMove` allein ist ein allgemeiner Wechselwunsch — der genannte Verein taucht dann nur zufällig auf. Bei jedem neuen Ereignis mit Namen prüfen, ob die Wirkung den Text wirklich einlöst. |
 | Einseitig geänderte Pfade | Wer an einer Seite von `kopfPfad` etwas ändert, muss die gespiegelte Stelle mitziehen — sonst wird das Gesicht schief, und im Zufallsbogen fällt es kaum auf. Die Symmetrie wird seit 34.33 nachgerechnet: zu jedem Punkt (x, y) muss (100 − x, y) existieren. |
 | Farbumdeutung trifft auch Fremdkörper | `.laufzettel` und `.karteikarte` setzen die Farbvariablen für hellen Grund neu. Das gilt für ALLES darin — auch für Dinge, die absichtlich dunkel bleiben sollen, wie die Wildcard. Solche Objekte müssen die Umdeutung ausdrücklich zurücknehmen; ein Verweis auf den Grundstil geht nicht, eine Variable sieht ihre eigene Fassung weiter oben nicht. |
 | Zwei Dinge im selben Rasterfeld | `grid-area: 1/1` stapelt zwei Karten übereinander — praktisch, aber die Zelle ist immer so hoch wie der höhere Inhalt. Eine Ein- und Ausblendung wirkt dadurch stockend: die Grösse springt erst, wenn das alte Element abgeräumt ist. Das ausziehende Element gehört `position:absolute`, damit es für die Höhe nicht mehr zählt. |
@@ -2578,7 +2580,266 @@ Ergebnis lieferte, das zu gut zum Fehler passte.
 Prüfstand: **402 Prüfungen**, 0 Fehler, „Spiegelgleich 10 von 10 Formen".
 Bündel **1.086,74 kB**. Porträtbogen angesehen: die Ausbeulung ist weg.
 
-## Offene Punkte (Stand 34.33)
+## 34.34 · Drei Meldungen aus dem Spiel
+
+### Tinte auf dunklem Grund
+Zwei Stellen, beide Folgeschäden der Laufzettel-Umstellung aus 34.31:
+
+* **Das Ergebnisfeld nach einer Ereignisentscheidung.** Es trägt `.up`, und
+  diese Farbe wird NICHT umgedeutet — die Fläche blieb also dunkel, während
+  die Schrift darin zu Tinte wurde. Auf Formularpapier ist daraus jetzt eine
+  helle Fläche geworden.
+* **Der Knopf „Karte neu ziehen" auf der Wildcard.** Die allgemeine Knopfregel
+  des Laufzettels färbt die Schrift zu Tinte — auf der dunklen Karte
+  unlesbar. `.laufzettel .wkarte .btn` nimmt das zurück.
+
+**Muster, das sich wiederholt:** die Farbumdeutung des Laufzettels trifft
+alles darin. Wo eine Fläche absichtlich dunkel bleibt, muss die Schrift
+ausdrücklich mitgezogen werden. Das ist jetzt der dritte Fall nach der
+Wildcard selbst in 34.32.
+
+### Das Papier verzog sich am Rand
+Android dehnt seit Version 12 den Inhalt gummiartig, wenn man über den Rand
+hinauszieht. Im Heft sieht das aus, als verzöge sich das Papier.
+`html,body{overscroll-behavior:none}` stellt das ab. Es betrifft nur diese
+Anzeigespielerei des Systems; das Zurückwischen bleibt unberührt, weil das
+eine Geste des Systems ist und keine Rollbewegung der Seite.
+
+### Ein versprochener Verein muss auch kommen
+Kevin: „Union Berlin will dich zurück" — zugesagt, und dann standen vier
+andere Vereine im Fenster.
+
+Das Ereignis `sf_rueckkauf` nennt den Verein im Titel (`${c.prev}`), seine
+Wirkung war aber nur `winterMove` — ein **allgemeiner** Wechselwunsch. Der
+genannte Verein wurde nirgends festgehalten, `makeOffers` würfelte wie immer.
+
+Neu ist `zurueckZuPrev`: der Name wandert nach `p.flags.rueckkehrZu`, und
+`makeOffers` legt das Angebot dieses Vereins **ganz nach vorn** — das muss vor
+dem Kürzen geschehen, weil im Schnellspiel nur drei fremde Angebote gezeigt
+werden. Danach wird das Versprechen gelöscht, sonst käme der Verein bis ans
+Karriereende jedes Jahr wieder.
+
+Findet sich der Name nicht mehr, bleibt alles wie bisher — lieber ein Angebot
+weniger als ein Absturz.
+
+**Geprüft:** 40 Versprechen, 40 eingelöst, 40 danach verbraucht.
+**Gegenprobe:** Angebot wieder ausgebaut — die Prüfung meldet die fehlenden
+Vereine namentlich.
+
+**Noch offen dabei:** `wm_trainerruf` („Dein alter Trainer will dich zurück")
+nennt keinen Verein — der neue Klub des Trainers existiert nirgends als Datum.
+Dort sind beliebige Angebote nicht falsch, wirken aber beliebig. Wer das
+schärfen will, müsste dem Ereignis einen echten Zielverein geben.
+
+### Geprüft
+Prüfstand: **404 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.088,31 kB**. Rückwärtsprüfung 6 × 63 fehlerfrei.
+
+## 34.35 · Bärte bleiben in der Kopfform
+
+Kevin hat es im Testprotokoll angekreuzt: „Bärte sitzen sauber — **Nein. Muss
+gecheckt werden.**" Er hatte recht, und ich hatte es in 34.28 zu klein
+angesehen. Erst der Bogen mit 2.600 px Breite zeigt es.
+
+### Was los war
+Die Koteletten (Bart 9) waren zwei gerade senkrechte Streifen bei festem
+Abstand vom Kopfrand. Der Kopf läuft aber nach unten ein — unten standen sie
+seitlich über, bei den schmalen Formen am deutlichsten. Und selbst wo sie
+knapp innen blieben, lasen sie sich als **angeklemmte Balken**, weil eine
+gerade Kante neben einer runden steht.
+
+### Zwei Schritte
+**Erstens ein Beschnitt auf die Kopfhülle.** Die ganze Bartgruppe hängt jetzt
+in einem `clipPath` auf `kopfD`. Damit kann kein Bart mehr über den Kopf
+hinauszeichnen — auch keiner, der später dazukommt, und auf keiner Kopfform,
+die später dazukommt. Das war seit 34.1 der wiederkehrende Fehlertyp; jeden
+Bart einzeln nachzuziehen hiesse zehn Bärte mal zehn Formen von Hand
+abzugleichen und beim elften wieder von vorn.
+
+**Zweitens die Koteletten umgezeichnet.** Sie werden jetzt bewusst ÜBER den
+Kopfrand hinaus gezeichnet und vom Beschnitt an der Kante getrimmt. Dadurch
+folgt ihre Aussenseite exakt der Rundung, statt als Gerade danebenzustehen.
+
+**Nebenwirkung mit Absicht:** bestehende bärtige Gesichter verlieren einen
+schmalen Überstand. Das ist die Korrektur, nicht ein Verlust.
+
+### Geprüft
+Prüfstand: **404 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.088,73 kB**. Bartbogen bei 2.600 px angesehen, alle hundert
+Kombinationen.
+
+## Kevins Testprotokoll zu 34.33 — Ergebnis
+
+Vier Seiten durchgearbeitet. Grün: Navigation vollständig, Spielerpass
+vollständig, Errungenschaften, Rückblick vollständig, Charaktererstellung bis
+auf einen Punkt, und aus dem Langzeitteil Wachstumskurve, Auto-Training,
+Sprache, Frauenfußball, Akademieausbau, Nachkaufen, alte Spielstände.
+**„Karriereende kommt von selbst"** — damit ist meine Fehlmeldung aus 34.30
+endgültig erledigt.
+
+**Entscheidungen:** „Moral" bleibt · 8 px Abstand passt · Flaggenbinde nur bei
+der Nationalmannschaft · Schminke, Linierung und Tempo der Ziehbewegung passen.
+
+**Der Vermächtnis-Laden wurde nicht geprüft** und gilt auf Kevins Wunsch als
+**unter Vorbehalt abgeschlossen**. Fehler dort sammelt er und meldet sie später.
+
+**Fünf Befunde, davon einer erledigt:**
+
+| Befund | Stand |
+|---|---|
+| Bärte stehen über | **erledigt in 34.35** |
+| Markenpuls wirkt bronze statt gold | **erledigt in 34.36** |
+| Flaggenbinde zeigt meistens Vereinsfarben | **erledigt in 34.38** — alle 212 belegt |
+| Errungenschaften: „der obere Rand nicht" | offen — die Kopflinie der Karte nutzt die dunkle Variante statt der Stufenfarbe |
+| Ereignisse wiederholen sich auffällig oft | **gemessen in 35.0** — innerhalb einer Laufbahn unauffällig (0,6), zwischen Laufbahnen real. Gewicht ist nicht der Hebel; es braucht breitere Bedingungen. |
+
+## 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers
+
+Drei weitere Befunde aus dem Testprotokoll.
+
+### Der Markenpuls wirkte bronze
+Weil er es war. Ich hatte `--go-k` genommen — die Kartonfassung des Goldtons,
+`#7A5600`, ein dunkles Olivbraun. Sie ist auf **kleine** Schrift gerechnet
+(Kontrast 5,2 gegen Karton) und wird dafür stark abgedunkelt.
+
+Die Stärke ist aber 34 px gross, und dort genügen 3,0. Neu ist `--gold-k`
+mit `#9A7200` — Kontrast **3,41**, deutlich goldener. Dazu sitzt die Marke
+daneben jetzt auf einem **dunklen Schild** und darf dort das helle `--go`
+tragen; auf Karton direkt wäre das nicht lesbar.
+
+### „Der obere Rand nicht“
+Die 4 px starke Kopflinie der Errungenschaftskarte nutzte `stufeDunkel(st.col)`,
+der Rangblock daneben aber `st.col`. Zwei Töne für eine Stufe — genau das, was
+34.25 eigentlich abgeschafft hatte, an einer Stelle übersehen. Jetzt trägt die
+Linie die Stufenfarbe; blasse Stufen bleiben erkennbar, weil die Karte einen
+eigenen Rahmen hat.
+
+### Der Trainer hat jetzt einen Verein
+`wm_trainerruf` sagt nur, der Trainer habe „einen neuen Verein übernommen“ —
+welchen, stand nirgends. „Sofort zu ihm“ war ein Versprechen ohne Adressaten.
+
+Neu ist die Wirkung `zielTrainer`: sie legt den Verein beim Anwenden **einmal**
+fest — vergleichbare Spielklasse (± 5), nicht der eigene, aus dem Namen des
+Spielers abgeleitet und damit gleichbleibend. Von da an greift derselbe Weg wie
+bei der versprochenen Rückkehr aus 34.34.
+
+### Was der Prüfstand dabei gefunden hat
+Die Rückkehr-Prüfung fiel plötzlich um: „versprochener Verein VfL Wolfsburg
+fehlt im Fenster“. Ursache war ein Sonderfall aus 34.34: bei der
+**HSV-Rautekarte** kehrt `makeOffers` vorzeitig zurück, und der Rückkehr-Block
+liegt dahinter. Das Versprechen konnte dort nie eingelöst werden und blieb bis
+ans Karriereende stehen.
+
+Die Rautekarte sticht jedes Versprechen — das ist richtig. Sie **räumt es jetzt
+aber ab**, statt es liegen zu lassen. Die Prüfung überspringt solche Läufe.
+
+*Bemerkenswert:* der Lauf war zunächst 40 von 40 grün und fiel erst zwei
+Fassungen später um, weil `laufbahn()` würfelt und die Rautekarte nur manchmal
+auftaucht. **Eine Prüfung, die einmal grün war, ist nicht bewiesen.**
+
+### Geprüft
+Prüfstand: **404 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.088,70 kB**.
+
+## 34.38 · Alle 212 Nationen haben eine echte Flagge
+
+Kevin im Testprotokoll: „Flaggenbinde — meistens Vereinsfarben." Nachgemessen
+waren es **33 von 212** Nationen mit hinterlegter Bauart. Die übrigen 179
+bekamen aus der Länderkennung ERRECHNETE Farben (`hslHex` auf einen Hashwert)
+— zwei erfundene Töne, die mit der Flagge nichts zu tun hatten. Kein Wunder,
+dass es nach beliebigen Vereinsfarben aussah.
+
+Jetzt sind **alle 212** belegt.
+
+### Vier neue Bauarten
+Drei Arten reichten nicht. Dazugekommen sind:
+
+| Art | Aufbau | Beispiele |
+|---|---|---|
+| `keil` | Streifen mit Keil am Mast, `z` = Keilfarbe | Tschechien, Kuba, Südafrika, Golfstaaten |
+| `diag` | zwei Felder mit Schrägband | Kongo, Tansania, Namibia, Trinidad |
+| `goesch` | Streifen mit Obereck, `z` = Obereckfarbe | USA, Australien, Chile, Togo |
+
+### Was das ist und was nicht
+Hinterlegt sind **Bauart und Farben, nicht das Wappen**. Auf einem 22 Punkt
+hohen Band wären Sterne, Halbmonde, Adler oder das Union Jack ein Fleck. Wo
+eine Flagge ihr Wesen aus einem Zeichen bezieht, steht hier die tragende
+Fläche plus das kennzeichnende Element als Scheibe, Keil, Schrägband oder
+Obereck. **Erkennbar, nicht heraldisch.**
+
+### Was die neue Prüfung sofort gefunden hat
+Vier Bedingungen: jede Art muss bekannt sein, **jede Nation** muss eine Flagge
+haben, keine Flagge darf ohne Nation dastehen, und Bauarten mit Zusatzfarbe
+müssen sie mitbringen.
+
+Die letzte schlug an: **18 Diagonalflaggen** trugen die Bandfarbe als dritte
+Farbe statt in `z` — sie wären alle weiß gezeichnet worden. ASA, BDI, BHU,
+BIH, BRU, CGO, COD, ERI, GRN, JAM, MHL, NAM, PNG, SEY, SKN, SOL, TAN, TRI.
+Der Zeichner nimmt jetzt beides, die Prüfung lässt beides gelten.
+
+Eine unbekannte Bauart zeichnet stillschweigend liegende Streifen — der Fehler
+wäre also nie aufgefallen. Genau dafür ist die Liste in der Prüfung da.
+
+### Angesehen
+Neues Werkzeug `bindenbogen.cjs`: alle 212 Binden als Tafel. Ohne das sieht man
+die Flaggen nie, weil sie im Spiel erst als Kapitän erscheinen.
+
+### Geprüft
+Prüfstand: **407 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.098,53 kB** (+9,8 kB für die Flaggendaten).
+
+## 35.0 · Ereigniswiederholung: gemessen statt vermutet
+
+Der letzte Befund aus dem Testprotokoll — und der einzige, bei dem am Ende
+**nichts geändert** wurde. Das ist das Ergebnis, nicht ein Versagen.
+
+### Was die Messung sagt
+Neues Werkzeug `pruefstand/ereignisse.cjs`: 30 Laufbahnen mit demselben
+Gedächtnis, das auch das Spiel führt.
+
+| | Wert |
+|---|---|
+| Ereignisse insgesamt | 471 |
+| Verschiedene je Laufbahn | 46,7 bei 23,6 Saisons |
+| Doppelt INNERHALB einer Laufbahn | **0,60** |
+| Verwendet über 30 Laufbahnen | 313 von 471 (66 %) |
+| Häufigstes Ereignis | 14 von 30 Läufen |
+
+**Innerhalb einer Laufbahn ist Wiederholung praktisch kein Thema** — 0,6
+Doppelte bei 46,7 verschiedenen. Die Sperre über `evLog` und die
+Themen-Abkühlung über `tagLog` arbeiten. Auffällig ist die Wiederkehr
+**zwischen** den Laufbahnen.
+
+### Ein Versuch, der nichts gebracht hat
+Naheliegende Ursache wäre die schwache Dämpfung im Gewicht gewesen. Probiert:
+Faktor von 1,15 auf 1,6, Obergrenze von vier auf sechs, Verblassen des
+Gedächtnisses von 0,72 auf 0,86 — also rund zehn statt vier Laufbahnen.
+
+**Ergebnis: keine messbare Änderung.** Spitzenwert weiterhin 14 von 30,
+weiterhin 313 von 471 verwendet. Es verschob sich nur, WELCHES Ereignis oben
+steht. Die Änderung wurde deshalb **zurückgenommen** — eine Anpassung
+auszuliefern, deren Kommentar eine Wirkung behauptet, die die Messung nicht
+zeigt, wäre schlimmer als keine.
+
+### Wo der Hebel wirklich liegt
+Von 471 Ereignissen hängen **465 an einer Bedingung**, aber nur **12** an einer
+Freischaltung. Die 158 nie gezogenen sind also grösstenteils Inhalt für seltene
+Lagen — kein Fehler, sondern Absicht. Wer die Wiederkehr wirklich senken will,
+muss die BREITE der Bedingungen angehen: in einer beliebigen Saison ist der
+Kreis der zulässigen Ereignisse klein, und dann hilft kein Gewicht.
+
+Das ist eine Inhaltsaufgabe, keine Stellschraube. Sie steht als offener Punkt.
+
+### Damit ist der grosse Test abgearbeitet
+Alle fünf Befunde aus Kevins Protokoll sind bearbeitet:
+Bärte (34.35) · Goldton und Kopflinie (34.36) · Zielverein (34.37) ·
+alle 212 Flaggen (34.38) · Ereigniswiederholung gemessen (35.0).
+
+### Geprüft
+Prüfstand: **407 Prüfungen**, 0 Fehler, alle vier Zielbänder.
+Bündel **1.098,53 kB**.
+
+## Offene Punkte (Stand 35.0)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
@@ -2619,6 +2880,16 @@ Bündel **1.086,74 kB**. Porträtbogen angesehen: die Ausbeulung ist weg.
    Kevins Seite: der Prüfstand rechnet 300 Laufbahnen durch, aber niemand *spielt*
    sie. Ob sich eine Laufbahn über zwanzig Saisons richtig anfühlt, sagt keine
    Kennzahl.
+
+**Seit 34.38 erledigt:** Ereigniswiederholung gemessen und eingeordnet — damit sind alle Befunde des grossen Tests bearbeitet.
+
+**Seit 34.37 erledigt:** alle 212 Nationalflaggen auf der Kapitänsbinde.
+
+**Seit 34.35 erledigt:** goldener Markenpuls · Kopflinie in der Stufenfarbe · Zielverein für den Trainerruf · Rautekarte räumt offene Versprechen ab.
+
+**Seit 34.34 erledigt:** Bärte bleiben innerhalb der Kopfform (Beschnitt auf kopfD).
+
+**Seit 34.33 erledigt:** Lesbarkeit auf dem Laufzettel · kein Gummiziehen am Rand · versprochene Rückkehr wird eingelöst.
 
 **Seit 34.32 erledigt:** Kopfformen wieder spiegelgleich, mit Nachrechnung im Prüfstand.
 

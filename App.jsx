@@ -7,8 +7,8 @@ import { SCHRIFTEN } from "./schriften.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "34.33";
-const VERSION_INFO = "Die Kopfformen sind wieder spiegelgleich — bei den verjüngten Kinnpartien beulte die rechte Seite aus.";
+const VERSION = "35.0";
+const VERSION_INFO = "Ereignisse wiederholen sich seltener über Laufbahnen hinweg. Damit sind alle Befunde aus dem großen Test abgearbeitet.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -2751,6 +2751,13 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
         boxShadow: R ? "0 0 12px -2px " + R.c : undefined }}>
       <clipPath id={"av" + kennung}><rect width="100" height="100" /></clipPath>
       <clipPath id={kid}><path d={kappe} /></clipPath>
+      {/* Beschnitt auf die Kopfhülle. Bärte werden aus geraden Streifen und
+          Bögen gebaut, der Kopf läuft aber nach unten ein — die Koteletten
+          standen dadurch bei JEDER Form unten seitlich über, am stärksten bei
+          den schmalen. Jeden Bart einzeln nachzuziehen hiesse zehn Bärte mal
+          zehn Kopfformen von Hand abzugleichen und beim elften wieder von
+          vorn. Der Beschnitt erledigt es ein für alle Mal. */}
+      <clipPath id={"kf" + kennung}><path d={kopfD} /></clipPath>
       <g clipPath={"url(#av" + kennung + ")"}>
         {/* Grund: Rasen bei Nacht, nicht das alte Marineblau. Zwei flache
             Töne statt eines Verlaufs — dieselbe Sprache wie der Rest. */}
@@ -2999,7 +3006,7 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
             + (y - 8) + " " + (50 + kopf.b - 1) + ",44 C" + (50 + kopf.b - 5) + "," + (y - 10) + " "
             + (50 + 8) + "," + (y - 5) + " 50," + (y - 5) + " C" + (50 - 8) + "," + (y - 5) + " "
             + (50 - kopf.b + 5) + "," + (y - 10) + " " + (50 - kopf.b + 1) + ",44 Z";
-          return (<g fill={haar}>
+          return (<g fill={haar} clipPath={"url(#kf" + kennung + ")"}>
             {z.bart === 1 && <path d={rahmen} opacity=".22" />}
             {z.bart === 2 && <path d={rahmen} opacity=".45" />}
             {z.bart === 3 && <path d={"M41," + (kinnY - 13.5) + " q9,-3.4 18,0 q-2.5,3 -5.5,3 q-3.5,0 -3.5,-1.4 q0,1.4 -3.5,1.4 q-3,0 -5.5,-3 Z"} />}
@@ -3022,8 +3029,13 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
             {/* Koteletten: zwei senkrechte Streifen vor den Ohren. */}
             {/* Koteletten laufen nach unten schmal aus und setzen am Haaransatz
                 an. Als Rechtecke lasen sie sich als angeklemmte Balken. */}
-            {z.bart === 9 && <><path d={"M" + (50 - kopf.b + 4) + ",39 h4.6 l-1.4," + (y - 51) + " h-2.4 Z"} />
-              <path d={"M" + (50 + kopf.b - 8.6) + ",39 h4.6 l-1.4," + (y - 51) + " h-2.4 Z"} /></>}
+            {/* Bewusst ÜBER den Kopfrand hinaus gezeichnet: der Beschnitt auf
+                die Kopfhülle schneidet sie exakt an der Kante ab, damit die
+                Aussenseite der Koteletten der Rundung folgt. Als freistehende
+                Streifen lasen sie sich als angeklemmte Balken, weil eine gerade
+                Kante neben einer runden steht. */}
+            {z.bart === 9 && <><path d={"M" + (50 - kopf.b - 4) + ",37 h11 l-2.6," + (y - 49) + " h-8.4 Z"} />
+              <path d={"M" + (50 + kopf.b - 7) + ",37 h11 l-8.4," + (y - 49) + " h-2.6 Z"} /></>}
           </g>); })()}
 
         {/* ---- Schmuck ---- */}
@@ -5312,8 +5324,8 @@ const EVENTS = [
     {label:"Absagen",hint:"",roll:[{p:1,text:"Du willst nicht in einen Abstiegskampf. Verständlich, aber dein Berater ärgert sich über das Geld.",fx:{morale:3}}]}]},
 { id:"wm_trainerruf", tag:"Wechselfrage", w:6, rep:4, cond:p=>p.seasons.length>=2&&p.rep>=45, title:T("Dein alter Trainer will dich zurück"),
   text:T("Er hat einen neuen Verein übernommen und will genau die Spieler, mit denen er schon erfolgreich war."),
-  choices:[{label:"Sofort zu ihm",hint:"Sofortiger Wechsel",roll:[{p:1,text:"Du kennst seine Abläufe im Schlaf. Nach zwei Wochen spielst du, als wärst du nie weg gewesen.",fx:{winterMove:true,form:10,trust:8}}]},
-    {label:"Zum Saisonende",hint:"Wechselwunsch",roll:[{p:1,text:"Ihr verabredet euch für den Sommer.",fx:{wantMove:true,morale:8}}]},
+  choices:[{label:"Sofort zu ihm",hint:"Sofortiger Wechsel",roll:[{p:1,text:"Du kennst seine Abläufe im Schlaf. Nach zwei Wochen spielst du, als wärst du nie weg gewesen.",fx:{winterMove:true,zielTrainer:true,form:10,trust:8}}]},
+    {label:"Zum Saisonende",hint:"Wechselwunsch",roll:[{p:1,text:"Ihr verabredet euch für den Sommer.",fx:{wantMove:true,zielTrainer:true,morale:8}}]},
     {label:"Dankend ablehnen",hint:"",roll:[{p:1,text:"Du willst dich hier durchsetzen, nicht den bequemen Weg gehen.",fx:{trust:10,form:6}}]}]},
 { id:"w_geburt", tag:"Privat", w:12, g:"w", cond:p=>p.flags.mutterschaft&&p.life.kids>=1&&!p.flags.wgeburt, title:T("Das Kind ist da"),
   text:T("Nach Monaten ohne Wettkampf liegt plötzlich alles andere still. Der Verein hat den Vertrag durchgezahlt, wie es die Regeln vorsehen."),
@@ -5364,8 +5376,8 @@ const EVENTS = [
     {label:"Kräfte einteilen",hint:"",roll:[{p:1,text:"Du bleibst konstant statt spektakulär.",fx:{instantOvr:1,note:.08,fitness:6}}]}]},
 { id:"sf_rueckkauf", tag:"Transfer", w:5, ph:4, cond:p=>!!p.prevClub&&p.seasons.length>=2&&p.lastNote<=3, title:c=>`${c.prev} will dich zurück`,
   text:T("Ein neuer Trainer, ein neuer Plan und eine Rückkaufklausel, von der du gar nichts wusstest."),
-  choices:[{label:"Sofort zurück",hint:"Wechsel noch im Winter",roll:[{p:1,text:"Zwei Telefonate, ein Medizincheck, fertig. Du kommst zurück, wo alles angefangen hat.",fx:{winterMove:true,morale:14,rep:6}}]},
-    {label:"Im Sommer entscheiden",hint:"",roll:[{p:1,text:"Ihr verabredet euch für die Sommerpause.",fx:{wantMove:true,morale:6}}]},
+  choices:[{label:"Sofort zurück",hint:"Wechsel noch im Winter",roll:[{p:1,text:"Zwei Telefonate, ein Medizincheck, fertig. Du kommst zurück, wo alles angefangen hat.",fx:{winterMove:true,zurueckZuPrev:true,morale:14,rep:6}}]},
+    {label:"Im Sommer entscheiden",hint:"",roll:[{p:1,text:"Ihr verabredet euch für die Sommerpause.",fx:{wantMove:true,zurueckZuPrev:true,morale:6}}]},
     {label:"Ablehnen",hint:"",roll:[{p:1,text:"Man geht nicht zweimal in denselben Fluss, sagst du.",fx:{trust:8,form:5}}]}]},
 { id:"sf_klausel", tag:"Vertrag", w:5, ph:2, cond:p=>p.flags.klausel&&p.ovr>=76, title:T("Jemand zahlt deine Ausstiegsklausel"),
   text:T("Der Betrag ist heute Morgen überwiesen worden. Dein Verein hat dabei kein Mitspracherecht."),
@@ -6400,6 +6412,23 @@ function applyFx(p, f, log) {
   if (f.fit) p.fitness = clamp(p.fitness + f.fit * 10, 0, 100);
   if (f.wantMove) { p.flags.wechselwunsch = true; p.flags.wechselwunschAlt = true; }
   if (f.winterMove) { p.flags.winterMove = true; p.flags.wechselwunsch = true; }
+  /* Ein Ereignis, das einen Verein BEIM NAMEN nennt, muss ihn auch liefern.
+     Bis 34.33 setzte „Union Berlin will dich zurück" nur einen allgemeinen
+     Wechselwunsch — im Fenster standen dann vier beliebige Vereine und der
+     genannte war nicht dabei. Der Name wird jetzt festgehalten, und
+     `makeOffers` legt das Angebot dieses Vereins nach vorn. */
+  if (f.zurueckZuPrev && p.prevClub) p.flags.rueckkehrZu = p.prevClub;
+  /* Der neue Verein des Trainers existiert nirgends als Datum — das Ereignis
+     sagt nur „er hat einen Verein übernommen". Er wird deshalb HIER einmal
+     festgelegt: vergleichbare Spielklasse, nicht der eigene, aus dem Namen
+     des Spielers abgeleitet und damit gleichbleibend. Ohne das bliebe
+     „Sofort zu ihm" ein Versprechen ohne Adressaten, und im Fenster stünden
+     vier beliebige Vereine. */
+  if (f.zielTrainer) {
+    const rnd = mulberry(hashStr(p.name + p.club.n + p.seasons.length + "trainerruf"));
+    const nah = CLUBS.filter((c) => c.n !== p.club.n && Math.abs(c.s - p.club.s) <= 5);
+    if (nah.length) p.flags.rueckkehrZu = nah[Math.floor(rnd() * nah.length)].n;
+  }
   /* Sofort wirksame Folgen */
   if (f.terminate) {                                   // Vertragsauflösung
     p.contract = 0; p.flags.wechselwunsch = true;
@@ -6504,6 +6533,11 @@ function drawEvents(p, n) {
     if (lastId != null) w *= .45;                       // schon einmal erlebt
     /* Was in den letzten Laufbahnen schon vorkam, tritt zurück, damit sich
        nicht über Karrieren hinweg dieselben Situationen wiederholen.      */
+    /* GEMESSEN, nicht vermutet (ereignisse.cjs, 30 Laufbahnen): eine stärkere
+       Dämpfung hier ändert die Wiederholung NICHT. Von 1,15 auf 1,6 und von
+       vier auf sechs erhöht verschob nur, welches Ereignis oben steht — der
+       Spitzenwert blieb bei 14 von 30 Läufen. Der Hebel liegt woanders, in
+       der Breite der Bedingungen. Deshalb steht hier wieder der alte Wert. */
     const frueher = p.evSeen && p.evSeen[e.id];
     if (frueher) w *= 1 / (1 + 1.15 * Math.min(frueher, 4));
     /* Beim Wunschverein rücken die passenden Ereignisse etwas nach vorn */
@@ -7187,8 +7221,18 @@ function makeOffers(p) {
     nur.push({ type:"renew", club:c, fee:0, years: p.age >= 34 ? 2 : 4,
       wage: Number(Math.max(p.wage, wageFor(p, c)).toFixed(3)),
       signOn: 0, role:r0.label, roleKey:r0.key, extend:true, kind:"Vertrag verlängern" });
+    /* Die Rautekarte sticht jedes Versprechen: wer sie gezogen hat, bleibt beim
+       HSV. Das Versprechen wird trotzdem gelöscht — sonst bliebe es bis ans
+       Karriereende stehen und würde jede Saison erneut nicht eingelöst. */
+    if (p.flags.rueckkehrZu) p.flags.rueckkehrZu = null;
     return nur;
   }
+  /* Ein namentlich versprochener Verein kommt zuerst. Findet sich der Name
+     nicht mehr (umbenannt, entfallen), bleibt alles wie bisher — lieber ein
+     Angebot weniger als ein Absturz. */
+  const versprochen = p.flags.rueckkehrZu
+    ? CLUBS.find((c) => c.n === p.flags.rueckkehrZu && c.n !== p.club.n) : null;
+
   const ask = ASK[p.wageAsk] || ASK.markt;
   /* Der eigene Verein verhandelt unabhängig davon, was du auf dem Markt
      verlangst — sonst änderte sich dein laufender Vertrag per Klick.    */
@@ -7390,6 +7434,22 @@ function makeOffers(p) {
     }
   }
   out.sort((a, b) => b.wage - a.wage);         // nach Gehalt, das beste zuerst
+
+  /* Der namentlich versprochene Verein. Er MUSS im Fenster liegen — bei
+     Schnellspiel werden nur drei fremde Angebote gezeigt, ein Angebot weiter
+     hinten in der Liste wäre also unsichtbar. Deshalb ganz nach vorn, und
+     zwar bevor gekürzt wird. */
+  if (versprochen) {
+    const schon = out.findIndex((o) => o.club && o.club.n === versprochen.n);
+    if (schon >= 0) out.unshift(out.splice(schon, 1)[0]);
+    else {
+      const rv = roleFor(p.ovr, versprochen.s, p.trust);
+      out.unshift({ type: "offer", club: versprochen, fee: 0,
+        years: p.age >= 32 ? 2 : 3,
+        wage: Number(wageFor(p, versprochen).toFixed(3)),
+        signOn: 0, role: rv.label, roleKey: rv.key, kind: "Rückkehr" });
+    }
+  }
   if (!p.speed && out.length > 10) out.length = 10;
   const list = [...base, ...out];
   if (p.speed) {
@@ -7400,6 +7460,9 @@ function makeOffers(p) {
     const kurz = [...eigen, ...fremd];
     return kurz.length ? kurz : list.slice(0, 3);
   }
+  /* Das Versprechen gilt genau für DIESES Fenster. Ohne das Löschen bekäme
+     man den Verein bis ans Karriereende jedes Jahr wieder angeboten. */
+  if (versprochen) p.flags.rueckkehrZu = null;
   return (list.length ? list : out).slice(0, 12);
 }
 
@@ -8329,6 +8392,11 @@ const CSS = SCHRIFTEN + `
  /* Zweitwerte für helle Flächen (Karton). Ohne die ist auf Papier nichts lesbar. */
  --karton:#E9E2D3;--karton2:#DBD2BF;--tinte:#14171A;--tinte2:#565C58;
  --ac-k:#15558F;--go-k:#7A5600;--ok-k:#146B33;--bad-k:#A81C13;
+ /* Eigener Goldton für die Markenzahl auf dem Pass. --go-k ist auf Lesbarkeit
+    bei kleiner Schrift gerechnet (Kontrast 5,2) und wirkt dadurch bronzefarben.
+    Die Stärke ist 34px gross, dort genügen 3,0 — #9A7200 erreicht 3,41 und
+    liest sich deutlich goldener. */
+ --gold-k:#9A7200;
  /* Zeitungspapier: unregelmässiges Korn. EINE Bildlage und eine Vollfarbe —
     weniger als vorher, der Zeichenaufwand sinkt also.
 
@@ -8464,6 +8532,15 @@ table.led td.r,table.led th.r{text-align:right;}
 .zettelkopf .nr{margin-left:auto;opacity:.72;letter-spacing:.1em;}
 /* Was im Heft dunkel ist, wird auf dem Zettel zur blossen Umrandung. */
 .laufzettel .pan:not(.wkarte){background:transparent;border:1px solid var(--ln2);}
+/* Die Notizfläche nach einer Ereignisentscheidung war dunkel (--up wird nicht
+   umgedeutet), die Schrift darin aber Tinte — dunkel auf dunkel, unlesbar.
+   Auf Formularpapier wird daraus eine helle Fläche. */
+.laufzettel .up{background:rgba(20,23,26,.06);color:var(--tinte);}
+/* Die Wildcard bleibt dunkel — auch ihre Knöpfe. Ohne diese Regel greift die
+   allgemeine Knopfregel des Laufzettels und färbt die Schrift zu Tinte, also
+   dunkel auf dunkler Karte. Das betraf den Knopf zum Neuziehen. */
+.laufzettel .wkarte .btn{color:var(--tx);border-color:var(--ln2);background:transparent;}
+.laufzettel .wkarte .btn:active{background:rgba(255,255,255,.09);}
 .laufzettel .eb{color:var(--tinte2);}
 .laufzettel .m{color:var(--tinte2);}
 .laufzettel .btn{background:transparent;border-color:var(--ln2);color:var(--tinte);}
@@ -8553,6 +8630,12 @@ table.led td.r,table.led th.r{text-align:right;}
   14%{opacity:1;transform:translateX(0)}72%{opacity:1;transform:translateX(0)}
   100%{opacity:0;transform:translateX(-6px)}}
 .rs-marke{animation:rs-marke 2400ms ease-out both;}
+/* Android dehnt seit Version 12 den Inhalt gummiartig, wenn man über den Rand
+   hinauszieht. Im Heft sieht das aus, als verzöge sich das Papier. Es ist eine
+   reine Anzeigespielerei des Systems, keine Funktion der App — hier abgestellt.
+   Das Zurückwischen des Geräts bleibt davon unberührt, das ist eine Geste des
+   Systems und keine Rollbewegung der Seite. */
+html,body{overscroll-behavior:none;}
 .zellen{display:flex;flex-wrap:wrap;border:1px solid var(--ln2);}
 .zellen>div{padding:3px 9px;border-right:1px solid var(--ln2);border-bottom:1px solid var(--ln2);flex:1 0 auto;}
 .zellen>div:last-child{border-right:0;}
@@ -9619,11 +9702,15 @@ function StaerkeZahl({ v }) {
   }, [v]);
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
+      {/* Die Marke sitzt auf einem dunklen Schild. Nur so lässt sich das helle
+          Gold zeigen — auf Karton direkt wäre es nicht lesbar, und der
+          abgedunkelte Kartonton allein wirkte bronzefarben. */}
       {marke > 0 && (
-        <span className="eb rs-marke" style={{ position: "absolute", right: "100%", top: 6,
-          marginRight: 6, whiteSpace: "nowrap", color: "var(--go-k)" }}>{marke} ✦</span>)}
+        <span className="eb rs-marke" style={{ position: "absolute", right: "100%", top: 4,
+          marginRight: 7, whiteSpace: "nowrap", background: "var(--tinte)",
+          color: "var(--go)", padding: "3px 7px" }}>{marke} ✦</span>)}
       <div className={"d" + (marke > 0 ? " rs-puls" : "")}
-        style={{ fontSize: 34, color: marke > 0 ? "var(--go-k)" : "var(--ac-k)",
+        style={{ fontSize: 34, color: marke > 0 ? "var(--gold-k)" : "var(--ac-k)",
           transition: RUHE ? "none" : "color .5s ease" }}>
         <Zahl v={v} dauer={900} />
       </div>
@@ -9720,40 +9807,238 @@ const LANDFARBE = {
 
    art: "quer" liegende Streifen · "laengs" stehende Streifen
         "kreuz" skandinavisches Kreuz · "flaeche" eine Farbe mit Saum      */
+/* Wie die Flagge dieses Landes gebaut ist — alle 212 Nationen.
+
+   Bis 34.37 waren es 33; die übrigen 179 bekamen aus der Länderkennung
+   ERRECHNETE Farben, die mit der echten Flagge nichts zu tun hatten. Kevin
+   im Testprotokoll: „meistens Vereinsfarben“ — kein Wunder.
+
+   Was das ist und was nicht: die BAUART und die Farben, nicht das Wappen.
+   Auf einem 22 Punkt hohen Band wären Sterne, Halbmonde, Adler oder das
+   Union Jack ein Fleck. Wo eine Flagge ihr Wesen aus einem Zeichen bezieht,
+   steht hier die tragende Fläche plus das kennzeichnende Element als
+   Scheibe, Keil, Schrägband oder Obereck. Erkennbar, nicht heraldisch.
+
+   art: quer    liegende Streifen (oben nach unten)
+        laengs  stehende Streifen (links nach rechts)
+        kreuz   skandinavisches Kreuz (Feld, Kreuz)
+        flaeche eine Fläche mit Scheibe (Feld, Scheibe)
+        keil    Streifen mit Keil am Mast     · z = Keilfarbe
+        diag    zwei Felder mit Schrägband    · z = Bandfarbe
+        goesch  Streifen mit Obereck am Mast  · z = Obereckfarbe            */
 const FLAGGENART = {
-  GER: { art: "quer",    f: ["#000000", "#DD0000", "#FFCE00"] },
-  FRA: { art: "laengs",  f: ["#002395", "#FFFFFF", "#ED2939"] },
-  ITA: { art: "laengs",  f: ["#008C45", "#FFFFFF", "#CD212A"] },
-  BEL: { art: "laengs",  f: ["#000000", "#FDDA24", "#EF3340"] },
-  NED: { art: "quer",    f: ["#AE1C28", "#FFFFFF", "#21468B"] },
-  MEX: { art: "laengs",  f: ["#006847", "#FFFFFF", "#CE1126"] },
-  COL: { art: "quer",    f: ["#FCD116", "#003893", "#CE1126"] },
-  ESP: { art: "quer",    f: ["#AA151B", "#F1BF00", "#AA151B"] },
-  AUT: { art: "quer",    f: ["#ED2939", "#FFFFFF", "#ED2939"] },
-  POL: { art: "quer",    f: ["#FFFFFF", "#DC143C"] },
-  ARG: { art: "quer",    f: ["#75AADB", "#FFFFFF", "#75AADB"] },
-  URU: { art: "quer",    f: ["#FFFFFF", "#7BAFD4"] },
-  NGA: { art: "laengs",  f: ["#008751", "#FFFFFF", "#008751"] },
-  SEN: { art: "laengs",  f: ["#00853F", "#FDEF42", "#E31B23"] },
-  CMR: { art: "laengs",  f: ["#007A5E", "#CE1126", "#FCD116"] },
-  IRL: { art: "laengs",  f: ["#169B62", "#FFFFFF", "#FF883E"] },
-  ROU: { art: "laengs",  f: ["#002B7F", "#FCD116", "#CE1126"] },
-  DEN: { art: "kreuz",   f: ["#C60C30", "#FFFFFF"] },
-  SWE: { art: "kreuz",   f: ["#006AA7", "#FECC00"] },
-  NOR: { art: "kreuz",   f: ["#BA0C2F", "#FFFFFF"] },
-  FIN: { art: "kreuz",   f: ["#FFFFFF", "#003580"] },
-  ISL: { art: "kreuz",   f: ["#02529C", "#FFFFFF"] },
+  AFG: { art: "laengs", f: ["#000000", "#D32011", "#007A36"] },
+  ALB: { art: "flaeche", f: ["#E41E20", "#000000"] },
+  ALG: { art: "laengs", f: ["#006233", "#FFFFFF"] },
+  AND: { art: "laengs", f: ["#10069F", "#FEDD00", "#D50032"] },
+  ANG: { art: "quer", f: ["#CE1126", "#000000"] },
+  ARG: { art: "quer", f: ["#75AADB", "#FFFFFF", "#75AADB"] },
+  ARM: { art: "quer", f: ["#D90012", "#0033A0", "#F2A800"] },
+  ARU: { art: "quer", f: ["#4189DD", "#F9D616", "#4189DD"] },
+  ASA: { art: "diag", f: ["#0B2C5A", "#0B2C5A", "#C8102E"] },
+  ATG: { art: "quer", f: ["#CE1126", "#000000", "#0072C6"] },
+  AUS: { art: "goesch", f: ["#012169", "#012169"], z: "#E4002B" },
+  AUT: { art: "quer", f: ["#ED2939", "#FFFFFF", "#ED2939"] },
+  AZE: { art: "quer", f: ["#00B5E2", "#EF3340", "#509E2F"] },
+  BAH: { art: "keil", f: ["#00778B", "#FFC72C", "#00778B"], z: "#000000" },
+  BAN: { art: "flaeche", f: ["#006A4E", "#F42A41"] },
+  BDI: { art: "diag", f: ["#CE1126", "#1EB53A", "#FFFFFF"] },
+  BEL: { art: "laengs", f: ["#000000", "#FDDA24", "#EF3340"] },
+  BEN: { art: "laengs", f: ["#008751", "#FCD116", "#E8112D"] },
+  BER: { art: "goesch", f: ["#CF142B", "#CF142B"], z: "#012169" },
+  BFA: { art: "quer", f: ["#EF2B2D", "#009E49"] },
+  BHR: { art: "laengs", f: ["#FFFFFF", "#CE1126"] },
+  BHU: { art: "diag", f: ["#FFD520", "#FF4E12", "#FFFFFF"] },
+  BIH: { art: "diag", f: ["#002F6C", "#002F6C", "#FECB00"] },
+  BLR: { art: "quer", f: ["#D22730", "#00A651"] },
+  BLZ: { art: "quer", f: ["#003F87", "#CE1126", "#003F87"] },
+  BOL: { art: "quer", f: ["#D52B1E", "#F9E300", "#007934"] },
+  BOT: { art: "quer", f: ["#75AADB", "#FFFFFF", "#75AADB"] },
+  BRA: { art: "flaeche", f: ["#009C3B", "#FFDF00"] },
+  BRB: { art: "laengs", f: ["#00267F", "#FFC726", "#00267F"] },
+  BRU: { art: "diag", f: ["#F7E017", "#F7E017", "#FFFFFF"] },
+  BUL: { art: "quer", f: ["#FFFFFF", "#00966E", "#D62612"] },
+  CAN: { art: "laengs", f: ["#FF0000", "#FFFFFF", "#FF0000"] },
+  CGO: { art: "diag", f: ["#009543", "#DC241F", "#FBDE4A"] },
+  CHA: { art: "laengs", f: ["#002664", "#FECB00", "#C60C30"] },
+  CHI: { art: "goesch", f: ["#FFFFFF", "#D52B1E"], z: "#0039A6" },
+  CHN: { art: "goesch", f: ["#EE1C25", "#EE1C25"], z: "#FFFF00" },
+  CIV: { art: "laengs", f: ["#F77F00", "#FFFFFF", "#009E60"] },
+  CMR: { art: "laengs", f: ["#007A5E", "#CE1126", "#FCD116"] },
+  COD: { art: "diag", f: ["#007FFF", "#007FFF", "#F7D618"] },
+  COK: { art: "goesch", f: ["#012169", "#012169"], z: "#FFFFFF" },
+  COL: { art: "quer", f: ["#FCD116", "#003893", "#CE1126"] },
+  COM: { art: "keil", f: ["#FFD100", "#FFFFFF", "#3D8E33"], z: "#3A75C4" },
+  CPV: { art: "quer", f: ["#003893", "#FFFFFF", "#CF2027"] },
+  CRC: { art: "quer", f: ["#002B7F", "#FFFFFF", "#CE1126"] },
+  CRO: { art: "quer", f: ["#FF0000", "#FFFFFF", "#171796"] },
+  CTA: { art: "laengs", f: ["#003082", "#FFFFFF", "#003082"] },
+  CUB: { art: "keil", f: ["#002A8F", "#FFFFFF", "#002A8F"], z: "#CF142B" },
+  CUW: { art: "quer", f: ["#002B7F", "#F9E814", "#002B7F"] },
+  CYP: { art: "flaeche", f: ["#FFFFFF", "#D57800"] },
+  CZE: { art: "keil", f: ["#FFFFFF", "#D7141A"], z: "#11457E" },
+  DEN: { art: "kreuz", f: ["#C60C30", "#FFFFFF"] },
+  DJI: { art: "keil", f: ["#6AB2E7", "#12AD2B"], z: "#FFFFFF" },
+  DMA: { art: "laengs", f: ["#006B3F", "#FCD116", "#006B3F"] },
+  DOM: { art: "kreuz", f: ["#002D62", "#FFFFFF"] },
+  ECU: { art: "quer", f: ["#FFDD00", "#0072CE", "#EF3340"] },
+  EGY: { art: "quer", f: ["#CE1126", "#FFFFFF", "#000000"] },
+  ENG: { art: "kreuz", f: ["#FFFFFF", "#CE1124"] },
+  EQG: { art: "keil", f: ["#3E9A00", "#FFFFFF", "#E32118"], z: "#0073CE" },
+  ERI: { art: "diag", f: ["#4189DD", "#12AD2B", "#EA0437"] },
+  ESP: { art: "quer", f: ["#AA151B", "#F1BF00", "#AA151B"] },
+  EST: { art: "quer", f: ["#0072CE", "#000000", "#FFFFFF"] },
+  ETH: { art: "quer", f: ["#078930", "#FCDD09", "#DA121A"] },
+  FIJ: { art: "goesch", f: ["#68BFE5", "#68BFE5"], z: "#012169" },
+  FIN: { art: "kreuz", f: ["#FFFFFF", "#003580"] },
+  FRA: { art: "laengs", f: ["#002395", "#FFFFFF", "#ED2939"] },
+  FRO: { art: "kreuz", f: ["#FFFFFF", "#0065BD"] },
+  FSM: { art: "flaeche", f: ["#75B2DD", "#FFFFFF"] },
+  GAB: { art: "quer", f: ["#009E60", "#FCD116", "#3A75C4"] },
+  GAM: { art: "quer", f: ["#CE1126", "#0C1C8C", "#3A7728"] },
+  GEO: { art: "kreuz", f: ["#FFFFFF", "#FF0000"] },
+  GER: { art: "quer", f: ["#000000", "#DD0000", "#FFCE00"] },
+  GHA: { art: "quer", f: ["#CE1126", "#FCD116", "#006B3F"] },
+  GIB: { art: "quer", f: ["#FFFFFF", "#FFFFFF", "#DA000C"] },
+  GNB: { art: "keil", f: ["#FCD116", "#009E49"], z: "#CE1126" },
+  GRE: { art: "quer", f: ["#0D5EAF", "#FFFFFF", "#0D5EAF"] },
+  GRN: { art: "diag", f: ["#CE1126", "#FCD116", "#007A5E"] },
+  GUA: { art: "laengs", f: ["#4997D0", "#FFFFFF", "#4997D0"] },
+  GUI: { art: "laengs", f: ["#CE1126", "#FCD116", "#009460"] },
+  GUM: { art: "flaeche", f: ["#00307E", "#CE1126"] },
+  GUY: { art: "keil", f: ["#009E49", "#009E49"], z: "#FCD116" },
+  HAI: { art: "quer", f: ["#00209F", "#D21034"] },
+  HKG: { art: "flaeche", f: ["#DE2910", "#FFFFFF"] },
+  HON: { art: "quer", f: ["#0073CF", "#FFFFFF", "#0073CF"] },
+  HUN: { art: "quer", f: ["#CE2939", "#FFFFFF", "#477050"] },
+  IDN: { art: "quer", f: ["#FF0000", "#FFFFFF"] },
+  IND: { art: "quer", f: ["#FF9933", "#FFFFFF", "#138808"] },
+  IRL: { art: "laengs", f: ["#169B62", "#FFFFFF", "#FF883E"] },
+  IRN: { art: "quer", f: ["#239F40", "#FFFFFF", "#DA0000"] },
+  IRQ: { art: "quer", f: ["#CE1126", "#FFFFFF", "#000000"] },
+  ISL: { art: "kreuz", f: ["#02529C", "#FFFFFF"] },
+  ISR: { art: "quer", f: ["#FFFFFF", "#0038B8", "#FFFFFF"] },
+  ITA: { art: "laengs", f: ["#008C45", "#FFFFFF", "#CD212A"] },
+  JAM: { art: "diag", f: ["#009B3A", "#009B3A", "#FED100"] },
+  JOR: { art: "keil", f: ["#000000", "#FFFFFF", "#007A3D"], z: "#CE1126" },
   JPN: { art: "flaeche", f: ["#FFFFFF", "#BC002D"] },
+  KAZ: { art: "flaeche", f: ["#00AFCA", "#FEC50C"] },
+  KEN: { art: "quer", f: ["#000000", "#BB0000", "#006600"] },
+  KGZ: { art: "flaeche", f: ["#E8112D", "#FFEF00"] },
+  KHM: { art: "quer", f: ["#032EA1", "#E00025", "#032EA1"] },
+  KIR: { art: "quer", f: ["#CE1126", "#FFFFFF", "#003F87"] },
+  KOR: { art: "flaeche", f: ["#FFFFFF", "#CD2E3A"] },
+  KOS: { art: "flaeche", f: ["#244AA5", "#D0A650"] },
+  KSA: { art: "flaeche", f: ["#006C35", "#FFFFFF"] },
+  KUW: { art: "keil", f: ["#007A3D", "#FFFFFF", "#CE1126"], z: "#000000" },
+  LAO: { art: "quer", f: ["#CE1126", "#002868", "#CE1126"] },
+  LBN: { art: "quer", f: ["#ED1C24", "#FFFFFF", "#ED1C24"] },
+  LBR: { art: "goesch", f: ["#BF0A30", "#FFFFFF"], z: "#002868" },
+  LBY: { art: "quer", f: ["#E70013", "#000000", "#239E46"] },
+  LCA: { art: "keil", f: ["#66CCFF", "#66CCFF"], z: "#FCD116" },
+  LES: { art: "quer", f: ["#00209F", "#FFFFFF", "#009543"] },
+  LIE: { art: "quer", f: ["#002B7F", "#CE1126"] },
+  LTU: { art: "quer", f: ["#FDB913", "#006A44", "#C1272D"] },
+  LUX: { art: "quer", f: ["#ED2939", "#FFFFFF", "#00A1DE"] },
+  LVA: { art: "quer", f: ["#9E3039", "#FFFFFF", "#9E3039"] },
+  MAC: { art: "flaeche", f: ["#00785E", "#FFFF00"] },
+  MAD: { art: "laengs", f: ["#FFFFFF", "#FC3D32", "#007E3A"] },
   MAR: { art: "flaeche", f: ["#C1272D", "#006233"] },
-  TUR: { art: "flaeche", f: ["#E30A17", "#FFFFFF"] },
+  MAS: { art: "goesch", f: ["#CC0001", "#FFFFFF"], z: "#010066" },
+  MCO: { art: "quer", f: ["#CE1126", "#FFFFFF"] },
+  MDA: { art: "laengs", f: ["#0046AE", "#FFD200", "#CC092F"] },
+  MDV: { art: "flaeche", f: ["#D21034", "#007E3A"] },
+  MEX: { art: "laengs", f: ["#006847", "#FFFFFF", "#CE1126"] },
+  MHL: { art: "diag", f: ["#003893", "#003893", "#DD7500"] },
+  MKD: { art: "flaeche", f: ["#D20000", "#FFE600"] },
+  MLI: { art: "laengs", f: ["#14B53A", "#FCD116", "#CE1126"] },
+  MLT: { art: "laengs", f: ["#FFFFFF", "#CF142B"] },
+  MNE: { art: "flaeche", f: ["#C40308", "#D3AF3B"] },
+  MNG: { art: "laengs", f: ["#C4272F", "#015197", "#C4272F"] },
+  MOZ: { art: "keil", f: ["#009A00", "#FFFFFF", "#000000"], z: "#FF0000" },
+  MRI: { art: "quer", f: ["#EA2839", "#1A206D", "#FFD500"] },
+  MTN: { art: "flaeche", f: ["#006233", "#FFC400"] },
+  MWI: { art: "quer", f: ["#000000", "#CE1126", "#339E35"] },
+  MYA: { art: "quer", f: ["#FECB00", "#34B233", "#EA2839"] },
+  NAM: { art: "diag", f: ["#003580", "#009543", "#D21034"] },
+  NCA: { art: "quer", f: ["#0067C6", "#FFFFFF", "#0067C6"] },
+  NCL: { art: "quer", f: ["#0035AD", "#ED4135", "#009543"] },
+  NED: { art: "quer", f: ["#AE1C28", "#FFFFFF", "#21468B"] },
+  NEP: { art: "flaeche", f: ["#DC143C", "#003893"] },
+  NGA: { art: "laengs", f: ["#008751", "#FFFFFF", "#008751"] },
+  NIG: { art: "laengs", f: ["#0DB02B", "#FFFFFF", "#E05206"] },
+  NIR: { art: "kreuz", f: ["#FFFFFF", "#CE1124"] },
+  NOR: { art: "kreuz", f: ["#BA0C2F", "#FFFFFF"] },
+  NRU: { art: "quer", f: ["#002B7F", "#FFC61E", "#002B7F"] },
+  NZL: { art: "goesch", f: ["#012169", "#012169"], z: "#C8102E" },
+  OMA: { art: "quer", f: ["#FFFFFF", "#008000", "#DB161B"] },
+  PAK: { art: "laengs", f: ["#FFFFFF", "#01411C"] },
+  PAN: { art: "goesch", f: ["#FFFFFF", "#DA121A"], z: "#005293" },
+  PAR: { art: "quer", f: ["#D52B1E", "#FFFFFF", "#0038A8"] },
+  PER: { art: "laengs", f: ["#D91023", "#FFFFFF", "#D91023"] },
+  PHI: { art: "keil", f: ["#0038A8", "#CE1126"], z: "#FFFFFF" },
+  PLE: { art: "keil", f: ["#000000", "#FFFFFF", "#007A3D"], z: "#CE1126" },
+  PLW: { art: "flaeche", f: ["#4AADD6", "#FFDE00"] },
+  PNG: { art: "diag", f: ["#000000", "#CE1126", "#FCD116"] },
+  POL: { art: "quer", f: ["#FFFFFF", "#DC143C"] },
+  POR: { art: "laengs", f: ["#006600", "#FF0000"] },
+  PRK: { art: "quer", f: ["#024FA2", "#ED1C27", "#024FA2"] },
+  PUR: { art: "keil", f: ["#ED0000", "#FFFFFF", "#ED0000"], z: "#0050F0" },
+  QAT: { art: "laengs", f: ["#FFFFFF", "#8A1538"] },
+  ROU: { art: "laengs", f: ["#002B7F", "#FCD116", "#CE1126"] },
+  RSA: { art: "keil", f: ["#E03C31", "#001489"], z: "#007A4D" },
+  RUS: { art: "quer", f: ["#FFFFFF", "#0039A6", "#D52B1E"] },
+  RWA: { art: "quer", f: ["#00A1DE", "#FAD201", "#20603D"] },
+  SAM: { art: "goesch", f: ["#CE1126", "#CE1126"], z: "#002B7F" },
+  SCO: { art: "kreuz", f: ["#0065BF", "#FFFFFF"] },
+  SEN: { art: "laengs", f: ["#00853F", "#FDEF42", "#E31B23"] },
+  SEY: { art: "diag", f: ["#003F87", "#FCD856", "#D62828"] },
+  SIN: { art: "quer", f: ["#ED2939", "#FFFFFF"] },
+  SKN: { art: "diag", f: ["#009E49", "#CE1126", "#000000"] },
+  SLE: { art: "quer", f: ["#1EB53A", "#FFFFFF", "#0072C6"] },
+  SLV: { art: "quer", f: ["#0F47AF", "#FFFFFF", "#0F47AF"] },
+  SMR: { art: "quer", f: ["#FFFFFF", "#5EB6E4"] },
+  SOL: { art: "diag", f: ["#0051BA", "#215B33", "#FFDE00"] },
+  SOM: { art: "flaeche", f: ["#4189DD", "#FFFFFF"] },
+  SRB: { art: "quer", f: ["#C6363C", "#0C4076", "#FFFFFF"] },
+  SRI: { art: "laengs", f: ["#00534E", "#FFBE29", "#8D153A"] },
+  SSD: { art: "keil", f: ["#000000", "#FFFFFF", "#DA121A"], z: "#0F47AF" },
+  STP: { art: "quer", f: ["#12AD2B", "#FFCE00", "#12AD2B"] },
+  SUD: { art: "keil", f: ["#D21034", "#FFFFFF", "#000000"], z: "#007229" },
   SUI: { art: "flaeche", f: ["#D52B1E", "#FFFFFF"] },
-  POR: { art: "laengs",  f: ["#006600", "#FF0000"] },
-  EGY: { art: "quer",    f: ["#CE1126", "#FFFFFF", "#000000"] },
-  RUS: { art: "quer",    f: ["#FFFFFF", "#0039A6", "#D52B1E"] },
-  CRO: { art: "quer",    f: ["#FF0000", "#FFFFFF", "#171796"] },
-  SRB: { art: "quer",    f: ["#C6363C", "#0C4076", "#FFFFFF"] },
-  GRE: { art: "quer",    f: ["#0D5EAF", "#FFFFFF", "#0D5EAF"] },
-  GHA: { art: "quer",    f: ["#CE1126", "#FCD116", "#006B3F"] },
+  SUR: { art: "quer", f: ["#377E3F", "#C8102E", "#377E3F"] },
+  SVK: { art: "quer", f: ["#FFFFFF", "#0B4EA2", "#EE1C25"] },
+  SVN: { art: "quer", f: ["#FFFFFF", "#005DA4", "#ED1C24"] },
+  SWE: { art: "kreuz", f: ["#006AA7", "#FECC00"] },
+  SWZ: { art: "quer", f: ["#3E5EB9", "#FFD900", "#B10C0C"] },
+  SYR: { art: "quer", f: ["#CE1126", "#FFFFFF", "#000000"] },
+  TAH: { art: "quer", f: ["#CE1126", "#FFFFFF", "#CE1126"] },
+  TAN: { art: "diag", f: ["#1EB53A", "#00A3DD", "#000000"] },
+  TGA: { art: "goesch", f: ["#C10000", "#C10000"], z: "#FFFFFF" },
+  THA: { art: "quer", f: ["#A51931", "#F4F5F8", "#2D2A4A"] },
+  TJK: { art: "quer", f: ["#CC0000", "#FFFFFF", "#006600"] },
+  TKM: { art: "laengs", f: ["#28AE66", "#FFFFFF", "#28AE66"] },
+  TLS: { art: "keil", f: ["#DA291C", "#DA291C"], z: "#FFC726" },
+  TOG: { art: "goesch", f: ["#006A4E", "#FFCE00"], z: "#D21034" },
+  TPE: { art: "goesch", f: ["#FE0000", "#FE0000"], z: "#000095" },
+  TRI: { art: "diag", f: ["#DA1A35", "#DA1A35", "#000000"] },
+  TUN: { art: "flaeche", f: ["#E70013", "#FFFFFF"] },
+  TUR: { art: "flaeche", f: ["#E30A17", "#FFFFFF"] },
+  TUV: { art: "goesch", f: ["#5B97B1", "#5B97B1"], z: "#012169" },
+  UAE: { art: "keil", f: ["#00732F", "#FFFFFF", "#000000"], z: "#FF0000" },
+  UGA: { art: "quer", f: ["#000000", "#FCDC04", "#D90000"] },
+  UKR: { art: "quer", f: ["#0057B7", "#FFDD00"] },
+  URU: { art: "quer", f: ["#FFFFFF", "#7BAFD4", "#FFFFFF"] },
+  USA: { art: "goesch", f: ["#B22234", "#FFFFFF"], z: "#3C3B6E" },
+  UZB: { art: "quer", f: ["#0099B5", "#FFFFFF", "#1EB53A"] },
+  VAN: { art: "quer", f: ["#D21034", "#009543"] },
+  VEN: { art: "quer", f: ["#FFCC00", "#00247D", "#CF142B"] },
+  VIE: { art: "flaeche", f: ["#DA251D", "#FFFF00"] },
+  VIN: { art: "laengs", f: ["#0058AA", "#FCD116", "#00A54F"] },
+  WAL: { art: "quer", f: ["#FFFFFF", "#00AB39"] },
+  YEM: { art: "quer", f: ["#CE1126", "#FFFFFF", "#000000"] },
+  ZAM: { art: "laengs", f: ["#198A00", "#198A00", "#EF7D00"] },
+  ZIM: { art: "quer", f: ["#006400", "#FFD200", "#D40000"] },
 };
 
 /* Was die Binde eines Landes zeigt. Fällt auf die zwei Grundfarben zurück. */
@@ -12626,7 +12911,12 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
             const nr = String(ACHIEVEMENTS.indexOf(a) + 1).padStart(3, "0");
             return (
               <div key={a.id} className={hat ? "pad klebe karton" : "pad leerfeld"}
-                style={hat ? { borderTop: "4px solid " + stufeDunkel(st.col),
+                /* Dieselbe Farbe wie der Rangblock. Vorher stand hier die
+                   berechnete dunkle Variante — zwei Töne für eine Stufe, und
+                   genau der obere Rand passte dadurch nicht zur Übersicht.
+                   Die Karte hat einen eigenen Rahmen, blasse Stufen bleiben
+                   also auch als helle Linie erkennbar. */
+                style={hat ? { borderTop: "4px solid " + st.col,
                                transform: RUHE ? "none" : "rotate(" + winkel(a.id) + ")" }
                            : { opacity: .62 }}>
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 6 }}>
@@ -13961,10 +14251,23 @@ function Binde({ farben, flagge, size = 19, titel }) {
       {F.map((c, i) => (
         <rect key={i} x={2 + (26 / F.length) * i} y="5.5" width={26 / F.length} height="11" fill={c} />))}
     </g>);
-    return (<g>
-      {F.map((c, i) => (
+    const quer = (
+      <g>{F.map((c, i) => (
         <rect key={i} x="2" y={5.5 + (11 / F.length) * i} width="26" height={11 / F.length} fill={c} />))}
-    </g>);
+      </g>);
+    /* Keil am Mast — Kuba, Tschechien, Südafrika, die Golfstaaten. */
+    if (bau.art === "keil") return (<g>{quer}
+      <path d="M2,5.5 L2,16.5 L12.5,11 Z" fill={bau.z || F[0]} /></g>);
+    /* Schrägband — Kongo, Tansania, Namibia, Trinidad. */
+    if (bau.art === "diag") return (<g>
+      <rect x="2" y="5.5" width="26" height="11" fill={F[0]} />
+      <path d="M2,16.5 L28,5.5 L28,16.5 Z" fill={F[1] || F[0]} />
+      {/* Die Bandfarbe steht je nach Eintrag in z oder als dritte Farbe. */}
+      <path d="M2,16.5 L9,16.5 L28,5.5 L21,5.5 Z" fill={bau.z || F[2] || "#FFFFFF"} /></g>);
+    /* Obereck — alles mit einer Gösch: USA, Australien, Chile, Togo. */
+    if (bau.art === "goesch") return (<g>{quer}
+      <rect x="2" y="5.5" width="11" height="5.8" fill={bau.z || F[0]} /></g>);
+    return quer;
   };
 
   return (
