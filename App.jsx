@@ -7,8 +7,8 @@ import { SCHRIFTEN } from "./schriften.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "35.0";
-const VERSION_INFO = "Ereignisse wiederholen sich seltener über Laufbahnen hinweg. Damit sind alle Befunde aus dem großen Test abgearbeitet.";
+const VERSION = "35.3";
+const VERSION_INFO = "Der Prüfstand merkt jetzt selbst, wenn das Verzeichnis in STAND.md veraltet ist — statt sich darauf zu verlassen, dass jemand daran denkt.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */

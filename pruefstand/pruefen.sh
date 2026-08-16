@@ -70,7 +70,61 @@ if [ -f "$SCHRIFTQUELLE" ]; then
 else
   echo "FEHLER: schriften.js nicht gefunden neben $QUELLE"; FEHLER=$((FEHLER+1))
 fi
+# Doppelte Namen in der Ausfuhrliste. Das hat den Aufbau schon zweimal
+# abgebrochen, und esbuild meldet es als "was originally exported here" mit
+# Zeilennummern aus dem zusammengesetzten Buendel — also weit weg von der
+# Datei, in der der Fehler steht. Hier faellt es sofort und mit Namen auf.
+DOPPELT=$(sed 's|/\*[^*]*\*/||g' "$PS/exporte.txt" \
+  | tr ',{}' '\n\n\n' | sed 's/[^A-Za-z0-9_$]//g' | grep -v '^$' \
+  | sort | uniq -d | tr '\n' ' ')
+if [ -n "$DOPPELT" ]; then
+  echo "FEHLER: exporte.txt nennt diese Namen mehrfach: $DOPPELT"
+  echo "        esbuild bricht damit ab. Jeden Namen genau einmal auffuehren."
+  FEHLER=$((FEHLER+1))
+fi
 cat "$PS/exporte.txt" >> "$BAU/probe.jsx"
+
+# ---- Hygiene ---------------------------------------------------------------
+# Muster, die in diesem Projekt wiederholt Fehler erzeugt haben. Sie stehen
+# in STAND.md Abschnitt 6 als Stolperfallen — hier werden sie nachgerechnet,
+# weil eine Regel, an die man sich erinnern muss, keine Regel ist.
+
+# VERWORFEN: eine Pruefung auf doppelt ausgeschriebene Farbwerte. Sie meldete
+# 49 Werte, fast alle legitim — Vereinsfarben und die 212 Flaggen nennen
+# dieselben Rot- und Blautoene naturgemaess mehrfach. Ein Hinweisgeber, der bei
+# jedem Lauf 49 Zeilen ausspuckt, wird nach dem zweiten Mal ueberlesen. Der eine
+# echte Fall (.wkarte wiederholt den Grundstil) traegt eine Warnung im Kommentar.
+
+# 2) Ist das Verzeichnis in STAND.md noch aktuell? Es nennt Zeilennummern,
+#    und die verschieben sich bei jeder Aenderung. Ein Verzeichnis, das
+#    danebenzeigt, ist schlimmer als keins — man glaubt ihm.
+#    Diese Pruefung gibt es, weil die Alternative war, es sich zu merken.
+if [ -f "$QUELLDIR/STAND.md" ] && [ -f "$PS/verzeichnis.cjs" ]; then
+  if ! node "$PS/verzeichnis.cjs" "$QUELLDIR/STAND.md" --pruefen >/dev/null 2>&1; then
+    echo "  WARNUNG: das Verzeichnis in STAND.md ist veraltet."
+    echo "           node pruefstand/verzeichnis.cjs STAND.md"
+    FEHLER=$((FEHLER+1))
+  fi
+fi
+
+# 3) Feste Zusagen in Protokollzeilen des Pruefskripts. Dreimal in vier
+#    Fassungen stand dort ein Text, der weiter gruen redete, waehrend die
+#    Pruefung darueber rot meldete. Eine Protokollzeile darf keine Zusage
+#    enthalten, die nicht aus einem gemessenen Wert stammt.
+# Zeilen mit einem Fragezeichen rechnen den Text aus einem Wert aus — die
+# sind in Ordnung. Gesucht sind die ohne.
+#
+# ACHTUNG, hier stand schon ein toter Filter: `grep -n` stellt jeder Zeile
+# eine Nummer mit Doppelpunkt voran, und ein `grep -v ':'` warf daraufhin
+# ALLES weg. Die Pruefung konnte nie anschlagen. Gefunden nur, weil die
+# Gegenprobe schwieg, als sie haette melden muessen.
+LUEGT=$(grep -nE 'console\.log\(.*(nicht absolut|keine in umbrechender|alle mit eigener|danach nachkaufbar|getrennt vom Namen)' \
+  "$PS/ansichten.jsx" | grep -v '?' | head -3)
+if [ -n "$LUEGT" ]; then
+  echo "  WARNUNG: Protokollzeile mit fester Zusage statt gemessenem Wert:"
+  echo "$LUEGT" | sed 's/^/    /'
+  FEHLER=$((FEHLER+1))
+fi
 
 # Rueckwaerts-Anfuehrungszeichen im CSS-Block. Der Block ist eine
 # Schablonenzeichenkette (const CSS = SCHRIFTEN + `...`) — ein einzelnes ` in

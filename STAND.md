@@ -5,7 +5,68 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 35.0** · Stand 15. August 2026
+**Fassung 35.3** · Stand 15. August 2026
+
+<!-- VERZEICHNIS -->
+
+## Verzeichnis
+
+*Erzeugt von `pruefstand/verzeichnis.cjs` — nicht von Hand pflegen.*
+
+| Zeile | Abschnitt |
+|---:|---|
+| 78 | 1. Was das Projekt ist |
+| 116 | 2. Zusammenarbeit |
+| 132 | 3. Was drin ist (Grobüberblick) |
+| 245 | 4. Kalibrierung — worauf eingestellt wurde |
+| 271 | 5. Prüfstand |
+| 324 | 6. Stolperfallen — teuer gelernt |
+| 361 | 7. Was offen ist |
+| 379 | 8. Wie ein neuer Chat anfangen sollte |
+| 406 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
+| 730 | Auf dem Gerät geprüft — 10.8.2026 |
+| 837 | 34.0 · Die Spielerporträts |
+| 954 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
+| 1202 | 34.8 · Vier gemeldete Punkte |
+| 1254 | 34.9 · Block A — fünf Fehler im Spielfluss |
+| 1319 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
+| 1374 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
+| 1422 | 34.12 · Block C — Frauenfußball |
+| 1477 | 34.13 · Block D, erster Teil |
+| 1526 | 34.14 · Die Wachstumskurve |
+| 1580 | 34.15 · Die Rückblick-Karten |
+| 1619 | 34.16 · Zwei Fehler aus Kevins Test |
+| 1679 | 34.17 · Die Freischaltungen |
+| 1714 | 34.18 · Der Vermächtnis-Laden |
+| 1782 | 34.19 · Der gekaufte Kartentausch wirkt |
+| 1828 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
+| 1860 | 34.21 · Laden und Zahnrad lagen aufeinander |
+| 1941 | 34.22 · Der Laden rechnet ab, und zwei Texte |
+| 2028 | 34.23 · Jede neue Seite beginnt oben |
+| 2085 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
+| 2157 | 34.25 · Die Ränge der Errungenschaften |
+| 2220 | 34.26 · Der Rückblick liegt auf Karteikarten |
+| 2290 | 34.27 · Drei wirklich runde Kopfformen |
+| 2359 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
+| 2395 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
+| 2462 | 34.30 · Aufräumen nach dem Belastungstest |
+| 2524 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
+| 2570 | 34.32 · Die Wildcard auf hellem Papier |
+| 2608 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
+| 2645 | 34.34 · Drei Meldungen aus dem Spiel |
+| 2700 | 34.35 · Bärte bleiben in der Kopfform |
+| 2733 | Kevins Testprotokoll zu 34.33 — Ergebnis |
+| 2758 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
+| 2806 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
+| 2853 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
+| 2904 | 35.1 · Werkzeugpflege |
+| 2959 | 35.2 · STAND.md hat ein Verzeichnis |
+| 2987 | 35.3 · Eine Regel weniger zum Merken |
+| 3015 | Offene Punkte (Stand 35.3) |
+| 3106 | Zusätzliche Stolperfallen |
+
+<!-- ENDE VERZEICHNIS -->
+
 *Eigene Schriften · harte Form · Sammelalbum · neue Spielerporträts · **das Heft: dunkles Zeitungspapier***
 
 > Die Abschnitte 1 bis 8 beschreiben das Spiel und die Arbeitsweise und gelten
@@ -282,6 +343,7 @@ und eine allgemeine Prüfung auf `NaN`/`undefined` in jeder Ansicht.
 | jsdom | `act()`-Warnungen zeitgesteuerter Animationen und fehlendes `getContext` sind **Prüfumgebung, kein Fehler**. Der Filter in den Skripten darf nicht abgeschaltet werden — die Warnungen treffen verzögert ein. |
 | Rand bei absoluter Lage | Ein `margin-right` verschiebt ein `position:absolute`-Element **um seinen eigenen Betrag**, nicht um die Breite des Nachbarn: `left + Breite + margin-right + right = Behälterbreite`. Zwei Knöpfe mit derselben Klasse und `right:0` liegen aufeinander, egal welcher Rand danebensteht. Nebeneinander gehört in einen Flexbehälter mit `gap`, nicht in Randwerte. |
 | Prüfmuster auf Zeichenketten | `startprobe.cjs` suchte nach Farbwerten und Verläufen, die es nach einer Gestaltungsänderung nicht mehr gab, und war dadurch **dauerhaft rot** — ohne dass etwas kaputt war. Prüfungen auf die Absicht richten (`.raster` trägt *irgendeinen* Radialverlauf), nicht auf den Wortlaut. |
+| „Daran denken“ ist keine Regel | Wenn eine Anweisung mit „nach jeder Änderung bitte X“ beginnt, ist sie noch nicht fertig. Entweder lässt sie sich prüfen, dann gehört sie in `pruefen.sh` — oder nicht, dann gehört hierher, warum nicht. Zuletzt passiert in 35.2 mit dem Verzeichnis. |
 | Einmal grün ist nicht bewiesen | Prüfungen auf gewürfelten Zuständen (`laufbahn()`) können zufällig grün sein. Die Rückkehr-Prüfung war 40 von 40 grün und fiel erst zwei Fassungen später um, weil die HSV-Rautekarte nur manchmal auftaucht. Bei gewürfelten Zuständen zählt erst die Wiederholung. |
 | Ereignis verspricht, Mechanik liefert nicht | Ein Ereignistext, der einen Verein oder eine Person BEIM NAMEN nennt, braucht eine Wirkung, die genau das herstellt. `winterMove` allein ist ein allgemeiner Wechselwunsch — der genannte Verein taucht dann nur zufällig auf. Bei jedem neuen Ereignis mit Namen prüfen, ob die Wirkung den Text wirklich einlöst. |
 | Einseitig geänderte Pfade | Wer an einer Seite von `kopfPfad` etwas ändert, muss die gespiegelte Stelle mitziehen — sonst wird das Gesicht schief, und im Zufallsbogen fällt es kaum auf. Die Symmetrie wird seit 34.33 nachgerechnet: zu jedem Punkt (x, y) muss (100 − x, y) existieren. |
@@ -2839,7 +2901,118 @@ alle 212 Flaggen (34.38) · Ereigniswiederholung gemessen (35.0).
 Prüfstand: **407 Prüfungen**, 0 Fehler, alle vier Zielbänder.
 Bündel **1.098,53 kB**.
 
-## Offene Punkte (Stand 35.0)
+## 35.1 · Werkzeugpflege
+
+Nichts am Spiel. Drei Fehlerarten, die bisher nur als Merksatz in Abschnitt 6
+standen, werden jetzt nachgerechnet — **eine Regel, an die man sich erinnern
+muss, ist keine Regel.**
+
+### 1 · Doppelte Namen in exporte.txt
+Hat den Aufbau an einem Tag **zweimal** abgebrochen. esbuild meldet das als
+„was originally exported here“ mit Zeilennummern aus dem zusammengesetzten
+Bündel — also weit weg von der Datei, in der der Fehler steht. `pruefen.sh`
+nennt die Namen jetzt direkt beim Namen.
+
+### 2 · sicht.sh: alles, was jsdom nicht sehen kann
+Zehn von achtzehn Werkzeugen liefen nur von Hand — und wurden deshalb
+vergessen. Der Porträtbogen war monatelang unbenutzbar, die Startprobe meldete
+über mehrere Fassungen zwei Falschalarme, ohne dass es auffiel.
+
+    bash pruefstand/sicht.sh App.jsx
+
+Baut einmal und fährt danach Startprobe, Kopfleiste und Seitenanfang. Fehlt
+playwright, meldet das Werkzeug das **und beendet mit Code 3** — ein
+unvollständiger Lauf ist kein bestandener Lauf.
+
+### 3 · Protokollzeilen, die grün reden
+Dreimal in vier Fassungen stand in `ansichten.jsx` ein fester Text, der weiter
+„alles in Ordnung“ meldete, während die Prüfung darüber rot war. Gefunden
+wurde es jedes Mal nur zufällig in der Gegenprobe. Jetzt sucht `pruefen.sh`
+nach solchen Zeilen: eine Protokollzeile ohne Fragezeichen, die eine Zusage
+ausspricht, ist verdächtig.
+
+*Dabei ein eigener Fehler:* der erste Filter war **tot**. `grep -n` stellt jeder
+Zeile eine Nummer mit Doppelpunkt voran, und mein `grep -v ':'` warf daraufhin
+alles weg — die Prüfung konnte nie anschlagen. Aufgefallen nur, weil die
+Gegenprobe schwieg, als sie hätte melden müssen. **Eine Prüfung, die schweigt,
+muss man zum Reden bringen, bevor man ihr glaubt.**
+
+### Verworfen: Prüfung auf doppelte Farbwerte
+Sie meldete 49 Werte, fast alle legitim — Vereinsfarben und die 212 Flaggen
+nennen dieselben Rot- und Blautöne naturgemäss mehrfach. Ein Hinweisgeber, der
+bei jedem Lauf 49 Zeilen ausspuckt, wird nach dem zweiten Mal überlesen. Die
+Begründung steht im Skript, damit es niemand noch einmal versucht.
+
+### 4 · Der Signaturschlüssel wird bewacht
+`apk.yml` hält den SHA-1 jetzt in `signing/fingerabdruck.txt` fest und
+vergleicht ihn bei jedem Bau. Ändert er sich, **bricht der Bau ab** mit dem
+Hinweis, dass sich die APK nicht mehr über die installierte legen lässt und
+der Spielstand vorher gesichert werden muss. Bis 35.0 stand der Wert nur im
+Protokoll und niemand verglich ihn — genau deshalb war Kevins Update-Frage
+tagelang nicht zu beantworten.
+
+### Geprüft
+Prüfstand: **407 Prüfungen**, 0 Fehler. `sicht.sh`: Startprobe 13/13,
+Kopfleiste 8 px, Seitenanfang 4/4. Alle drei neuen Prüfungen gegengeprüft —
+sie schlagen beim künstlich eingebauten Fehler an und schweigen sonst.
+
+## 35.2 · STAND.md hat ein Verzeichnis
+
+Punkt 6 der Werkzeugliste. Die Datei hat **47 Hauptabschnitte** auf über
+3.000 Zeilen — jede Sitzung begann mit Suchen.
+
+### Erzeugt, nicht gepflegt
+`pruefstand/verzeichnis.cjs` schreibt das Verzeichnis zwischen zwei Marken neu.
+Ein von Hand gepflegtes wäre nach drei Fassungen falsch, und **ein falsches
+Verzeichnis ist schlimmer als keins** — man glaubt ihm und findet an der
+genannten Zeile nichts.
+
+    node pruefstand/verzeichnis.cjs STAND.md
+
+Zwei Dinge, die dabei wichtig waren:
+
+**Zweimal rechnen.** Das Verzeichnis verschiebt alles unter sich. Die Nummern
+müssen sich auf die Datei NACH dem Einsetzen beziehen, also wird der Block
+erst gebaut, seine Länge gemessen und dann mit dem Versatz noch einmal gebaut.
+
+**Festnagelbar.** Der erste Entwurf erzeugte bei jedem Lauf eine andere Datei
+— eine Leerzeile kam dazu oder fiel weg. Das hätte jeden Vergleich im
+Repository verrauscht. Der Leerraum an der Nahtstelle wird jetzt
+vereinheitlicht; drei Läufe hintereinander ergeben dieselbe Datei.
+
+**Gegengeprüft.** Das Werkzeug prüft nach dem Schreiben selbst nach, ob unter
+jeder genannten Zeile wirklich die genannte Überschrift steht, und bricht sonst
+ab. 47 von 47 stimmig.
+
+## 35.3 · Eine Regel weniger zum Merken
+
+In 35.1 steht der Satz: *eine Regel, an die man sich erinnern muss, ist keine
+Regel.* In 35.2 endete die Lieferung dann mit genau so einer — „nach jeder
+Änderung an STAND.md einmal `verzeichnis.cjs` laufen lassen“. Kevin hat
+nachgefragt, und die Frage war berechtigt: **er ändert diese Datei gar nicht.**
+Der Satz war eine Notiz an Claude, formuliert als Auftrag an ihn.
+
+Beides ist jetzt behoben.
+
+### Der Prüfstand merkt es selbst
+`verzeichnis.cjs --pruefen` schreibt nicht, sondern meldet nur, ob das
+Verzeichnis noch stimmt, und endet mit Code 1, wenn nicht. `pruefen.sh` ruft
+das in der Hygienestufe auf. Ein veraltetes Verzeichnis fällt damit beim
+nächsten Lauf auf, ohne dass jemand daran denken muss.
+
+**Gegengeprüft** in beide Richtungen: mit einem eingeschobenen Abschnitt meldet
+es sich, bei der sauberen Datei schweigt es.
+
+### Warum das über den Einzelfall hinausgeht
+Das Muster hat sich in dieser Sitzung mehrfach gezeigt und gehört notiert:
+**Wenn eine Anweisung mit „daran denken“ beginnt, ist sie noch nicht fertig.**
+Entweder lässt sie sich prüfen — dann gehört sie in den Prüfstand — oder sie
+lässt sich nicht prüfen, dann gehört in STAND.md, warum nicht.
+
+Und: Anweisungen richten sich an den, der sie ausführen kann. Was Claude tut,
+gehört nicht in eine Nachricht an Kevin.
+
+## Offene Punkte (Stand 35.3)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
@@ -2875,11 +3048,22 @@ Bündel **1.098,53 kB**.
    Fußball das etablierte Wort, „Motivation“ trifft es nicht — der Wert ist
    Stimmung, nicht Antrieb. Der eigentliche Mangel: **in der Kurzanleitung fehlt
    Moral komplett**, obwohl Form, Fitness, Vertrauen und Bekanntheit dort stehen.
-10. **Langzeittest der Fassungen ab 34.15 steht aus** — Wachstumskurve, Ereignisse,
+10. **`App.jsx` hat 14.304 Zeilen in einer Datei.** Das ist KEINE Anforderung
+   der APK — `schriften.js` und `storage.js` sind bereits eigene Dateien, Vite
+   bündelt Importe problemlos. Eine Aufteilung in acht bis zwölf Bausteine würde
+   jede Sitzung schneller machen, berührt aber `exporte.txt`, den
+   Prüfstandaufbau und jede Stelle, an der mit Zeilennummern gearbeitet wird.
+   **Auf Kevins Wunsch vertagt.** Nur mit Ruhe, in kleinen Schritten, und
+   niemals kurz vor einem Test.
+12. **Langzeittest der Fassungen ab 34.15 steht aus** — Wachstumskurve, Ereignisse,
    Auto-Training, Sprache, Frauenfußball über mehrere Laufbahnen am Stück. Das ist
    Kevins Seite: der Prüfstand rechnet 300 Laufbahnen durch, aber niemand *spielt*
    sie. Ob sich eine Laufbahn über zwanzig Saisons richtig anfühlt, sagt keine
    Kennzahl.
+
+**Seit 35.2 erledigt:** der Prüfstand prüft das Verzeichnis mit.
+
+**Seit 35.1 erledigt:** STAND.md hat ein selbsterzeugtes Verzeichnis.
 
 **Seit 34.38 erledigt:** Ereigniswiederholung gemessen und eingeordnet — damit sind alle Befunde des grossen Tests bearbeitet.
 
