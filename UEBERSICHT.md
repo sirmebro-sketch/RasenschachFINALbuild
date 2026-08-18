@@ -3,7 +3,7 @@
 > Diese Datei wird aus dem Quelltext erzeugt, nicht von Hand gepflegt.
 > Jede Zahl stammt aus den Daten des laufenden Spiels.
 
-**Fassung 35.3** · erzeugt am 16. August 2026
+**Fassung 35.15** · erzeugt am 17. August 2026
 
 ## Inhalt auf einen Blick
 
@@ -17,11 +17,11 @@
 | Spielweisen | 3 |
 | Wildcards | 128 |
 | Seltenheitsstufen | 7 |
-| Ereignisse | 471 |
+| Ereignisse | 518 |
 | Errungenschaften | 162 |
 | Freischaltungen | 48 |
 | Anlageformen | 5 |
-| Abteilungen der Akademie | 6 (je 6 Stufen) |
+| Abteilungen der Akademie | 9 (je 6 Stufen) |
 
 ## Vereine
 
@@ -1588,11 +1588,11 @@ der nach jeder abgeschlossenen Laufbahn ohne sie steigt.
 Je Saison werden zwei bis drei Ereignisse gezogen. Bereits Erlebtes wird
 seltener nachgezogen, damit sich nichts wiederholt.
 
-- Ereignisse insgesamt: **471**
-- davon mit echter Wahl: **471**
-- davon mit ungewissem Ausgang: **236**
+- Ereignisse insgesamt: **518**
+- davon mit echter Wahl: **518**
+- davon mit ungewissem Ausgang: **267**
 
-- an eine Bedingung geknüpft (Alter, Lage, Verein): **465**
+- an eine Bedingung geknüpft (Alter, Lage, Verein): **512**
 - jederzeit möglich: **6**
 
 | Ziehungsgewicht | Ereignisse |
@@ -1604,12 +1604,12 @@ seltener nachgezogen, damit sich nichts wiederholt.
 | 10 | 5 |
 | 9 | 18 |
 | 8 | 20 |
-| 7 | 35 |
+| 7 | 39 |
 | 6 | 91 |
-| 5 | 98 |
-| 4 | 65 |
-| 3 | 51 |
-| 2 | 74 |
+| 5 | 97 |
+| 4 | 73 |
+| 3 | 84 |
+| 2 | 77 |
 
 Ein höheres Gewicht heißt: kommt öfter. Bereits Erlebtes wird zusätzlich
 heruntergewichtet, damit sich nichts wiederholt.
@@ -1617,41 +1617,41 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Bereich | Ereignisse |
 |---|---|
 | Zwielichtig | 31 |
-| Position | 29 |
-| Privat | 26 |
+| Privat | 30 |
+| Position | 27 |
+| Verein | 26 |
 | Nachwirkung | 26 |
-| Verein | 20 |
-| Kabine | 18 |
-| Sportlich | 18 |
-| Nationalteam | 16 |
+| Medien | 23 |
+| Umfeld | 21 |
+| Kabine | 19 |
+| Herkunft | 17 |
+| Sportlich | 17 |
+| Vertrag | 16 |
 | Geschäft | 16 |
-| Medien | 15 |
-| Vertrag | 15 |
-| Herkunft | 15 |
+| Nationalteam | 15 |
 | Frauenfußball | 15 |
-| Transfer | 14 |
-| Umfeld | 14 |
-| Führung | 13 |
+| Führung | 14 |
+| Körper | 13 |
+| Transfer | 13 |
+| Kurios | 12 |
+| Nachwuchs | 12 |
 | Wunschverein | 12 |
-| Nachwuchs | 11 |
-| Kurios | 11 |
-| Zukunft | 10 |
+| Alltag | 11 |
+| Familie | 10 |
+| Zukunft | 9 |
 | Land | 9 |
+| Fans | 8 |
+| Konkurrenz | 7 |
 | Verletzung | 7 |
 | Besitz | 7 |
 | Alter | 7 |
 | Taktik | 6 |
-| Körper | 6 |
-| Familie | 6 |
-| Fans | 6 |
 | Südamerika | 6 |
 | Asien | 6 |
 | Leihe | 6 |
 | Treue | 6 |
-| Alltag | 6 |
 | Nordamerika | 5 |
 | Unterhaus | 5 |
-| Konkurrenz | 4 |
 | Vorbereitung | 4 |
 | Wechselfrage | 4 |
 | Risiko | 3 |
@@ -1674,15 +1674,20 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Der Afrika-Cup liegt mitten in der Saison | 2 | nein | 8 | ja |
 | Auswärtsfahrt über Land | 2 | nein | 5 | ja |
 
-**Alltag** (6)
+**Alltag** (11)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
-| Neue Schuhe, neues Gefühl | 2 | ja | 5 | ja |
-| Schulung zu Nahrungsergänzung | 2 | ja | 4 | ja |
+| Vierzig Fahrstunden neben dem Training | 2 | ja | 4 | ja |
+| Zwei Zimmer, dritter Stock, kein Aufzug | 2 | ja | 3 | ja |
+| Ein brauner Umschlag vom Finanzamt | 3 | ja | 3 | ja |
+| Der erste eigene Kontoauszug | 3 | ja | 4 | ja |
+| Zweimal Pommes, jeden Tag | 2 | nein | 3 | ja |
+| Neue Schuhe, neues Gefühl | 3 | ja | 5 | ja |
+| Schulung zu Nahrungsergänzung | 3 | ja | 4 | ja |
 | Der Verein zahlt einen Sprachkurs | 2 | nein | 5 | ja |
 | Die erste Steuererklärung | 2 | ja | 6 | ja |
-| Mieten oder kaufen | 2 | nein | 5 | ja |
+| Mieten oder kaufen | 3 | nein | 5 | ja |
 | Der Wagen auf dem Spielerparkplatz | 2 | nein | 5 | ja |
 
 **Alter** (7)
@@ -1718,7 +1723,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
-| Die ersten Monate im Ausland | 2 | nein | 3 | ja |
+| Die ersten Monate im Ausland | 3 | nein | 3 | ja |
 
 **Besitz** (7)
 
@@ -1740,10 +1745,14 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Auswärts in einem sehr lauten Stadion | 2 | ja | 4 | ja |
 | Ausgeschieden nach Elfmeterschießen | 2 | nein | 4 | ja |
 
-**Familie** (6)
+**Familie** (10)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Zu Hause wird gerechnet | 3 | ja | 3 | ja |
+| Er nimmt jedes Spiel auf | 3 | nein | 3 | ja |
+| Vierzig Kilometer, viermal die Woche | 2 | nein | 4 | ja |
+| Dein Bruder hört auf | 2 | ja | 3 | ja |
 | Ihr bekommt ein Kind | 2 | nein | 3 | ja |
 | Die Familie will nicht schon wieder umziehen | 2 | nein | 2 | ja |
 | Deine Eltern arbeiten immer noch | 2 | nein | 2 | ja |
@@ -1751,13 +1760,15 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Zwischen Kabine und Kinderzimmer | 2 | nein | 6 | ja |
 | Betreuung an Spieltagen | 2 | ja | 6 | ja |
 
-**Fans** (6)
+**Fans** (8)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Dein Name hängt im Fanshop | 2 | nein | 3 | ja |
+| Ein Kind wartet am Zaun | 2 | nein | 3 | ja |
 | Die Kurve wartet am Zaun | 2 | nein | 3 | ja |
 | Platzsturm nach dem Aufstieg | 2 | ja | 9 | ja |
-| Die Kurve schweigt | 2 | nein | 5 | ja |
+| Die Kurve schweigt | 4 | ja | 5 | ja |
 | Ein Fan schenkt dir etwas Selbstgemachtes | 2 | nein | 4 | ja |
 | Ein Sack voller Post | 2 | nein | 4 | ja |
 | Pfiffe bei deiner Auswechslung | 2 | ja | 5 | ja |
@@ -1782,15 +1793,16 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Umzug ohne Umzugshilfe | 2 | nein | 5 | ja |
 | Die Zuschauerzahlen verdoppeln sich | 2 | nein | 5 | ja |
 
-**Führung** (13)
+**Führung** (14)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Binde in der A-Jugend | 2 | nein | 3 | ja |
 | Die Binde | 2 | nein | 3 | ja |
 | Ein Jüngerer bittet dich um Rat | 2 | nein | 4 | ja |
 | Der Trainer baut die Mannschaft um dich | 2 | nein | 7 | ja |
 | Zweiter Kapitän | 2 | nein | 5 | ja |
-| Der Verein will dich als Mentor | 2 | ja | 7 | ja |
+| Der Verein will dich als Mentor | 4 | ja | 7 | ja |
 | Der Kapitän hört auf | 2 | nein | 6 | ja |
 | Wahl des Mannschaftsrats | 2 | ja | 5 | ja |
 | Deine Ansprache vor dem entscheidenden Spiel | 2 | ja | 8 | ja |
@@ -1821,10 +1833,12 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Ein Netzwerk, das es vorher nicht gab | 2 | nein | 7 | ja |
 | Eine Beteiligung unter Ehemaligen | 2 | ja | 6 | ja |
 
-**Herkunft** (15)
+**Herkunft** (17)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| In der Kabine machen sie deinen Akzent nach | 3 | ja | 3 | ja |
+| Die dritte Woche ist die schlimmste | 3 | ja | 4 | ja |
 | Fastenmonat mitten in der Saison | 2 | ja | 5 | ja |
 | Die Familie zu Hause zählt auf dich | 3 | nein | 5 | ja |
 | Zweifel am Geburtsdatum | 2 | nein | 4 | ja |
@@ -1841,10 +1855,11 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Dein Vater hat auch gespielt | 2 | nein | 5 | ja |
 | Ein Name mit Geschichte | 2 | ja | 7 | ja |
 
-**Kabine** (18)
+**Kabine** (19)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Die Nummer 34 hängt am Haken | 2 | ja | 4 | ja |
 | Mannschaftsabend nach dem Auswärtssieg | 2 | ja | 3 | ja |
 | mentor | 2 | nein | 3 | ja |
 | streit | 2 | ja | 3 | ja |
@@ -1854,8 +1869,8 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Die Mannschaft will die Sondereinheit boykottieren | 2 | nein | 2 | ja |
 | Strafenkatalog | 2 | nein | 4 | ja |
 | Das Einstandslied | 2 | nein | 7 | ja |
-| ein Mitspieler liegt lange | 2 | nein | 6 | ja |
-| Die freie Rückennummer | 2 | ja | 5 | ja |
+| ein Mitspieler liegt lange | 4 | nein | 6 | ja |
+| Die freie Rückennummer | 3 | ja | 5 | ja |
 | Ein früherer Mitspieler wird dein Trainer | 2 | ja | 5 | ja |
 | Zimmeraufteilung im Trainingslager | 2 | nein | 4 | ja |
 | Ein Spruch geht zu weit | 2 | ja | 5 | ja |
@@ -1864,19 +1879,23 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Deine Trikots verschwinden | 2 | ja | 4 | — |
 | Abschlussfeier der Mannschaft | 2 | nein | 5 | ja |
 
-**Konkurrenz** (4)
+**Konkurrenz** (7)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
-| ein Rivale steht dir im Weg | 3 | ja | 5 | ja |
+| Der Neue spricht deine Sprache nicht | 3 | ja | 3 | ja |
+| Der Sohn des Trainers spielt auch | 2 | ja | 2 | ja |
+| Der andere aus deinem Jahrgang | 2 | ja | 4 | ja |
+| ein Rivale steht dir im Weg | 5 | ja | 5 | ja |
 | Torwartfrage: du oder ein Rivale | 2 | ja | 5 | ja |
 | Ein Siebzehnjähriger trainiert hoch | 2 | nein | 6 | ja |
 | Der neue Trainer mag dich nicht | 2 | ja | 5 | ja |
 
-**Kurios** (11)
+**Kurios** (12)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Die linke Socke zuerst | 2 | nein | 2 | ja |
 | Das Ritual | 2 | ja | 2 | — |
 | Ein Fan will sich deinen Namen tätowieren lassen | 2 | nein | 2 | ja |
 | Trikottausch mit deinem Kindheitsidol | 2 | nein | 2 | ja |
@@ -1889,15 +1908,22 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Kontrolle um sechs Uhr morgens | 2 | ja | 5 | ja |
 | Neunzig Minuten Dauerregen | 2 | nein | 4 | ja |
 
-**Körper** (6)
+**Körper** (13)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Es ist nichts, sagt das Bild | 3 | nein | 7 | ja |
+| Der Aufbau hat funktioniert | 2 | nein | 3 | ja |
+| Jetzt ist es ein Befund | 2 | ja | 3 | ja |
+| Du warst zu vorsichtig, sagen sie | 2 | ja | 3 | ja |
+| Ein Junger fragt dich nach seinem Knie | 2 | nein | 3 | ja |
+| Beim Sehtest fällt etwas auf | 2 | ja | 3 | ja |
+| Neun Zentimeter in einem Jahr | 2 | ja | 4 | ja |
 | Der Verein stellt einen Schlafcoach ein | 2 | nein | 2 | ja |
 | Saisonstart bei 34 Grad | 2 | ja | 2 | ja |
 | Der Körper wächst schneller als der Rest | 2 | ja | 6 | ja |
 | Der Schlaftracker sagt fünf Stunden | 2 | nein | 6 | ja |
-| Die Körperfettmessung | 2 | ja | 6 | ja |
+| Die Körperfettmessung | 4 | ja | 6 | ja |
 | Eistonne nach jedem Spiel | 2 | nein | 5 | ja |
 
 **Land** (9)
@@ -1933,10 +1959,18 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Stadt oder Land | 2 | nein | 2 | ja |
 | Der Physio hat einen Termin frei | 2 | nein | 5 | ja |
 
-**Medien** (15)
+**Medien** (23)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Jemand will ein Buch über dich schreiben | 3 | nein | 7 | ja |
+| Er hat mit deinem ersten Trainer gesprochen | 2 | ja | 3 | ja |
+| Das Manuskript liegt vor dir | 2 | nein | 3 | ja |
+| Er schreibt es trotzdem | 2 | ja | 3 | ja |
+| Das Buch erscheint | 2 | nein | 3 | ja |
+| Zwei Studenten machen einen Podcast | 2 | ja | 3 | ja |
+| Das Kreisblatt will ein Foto | 2 | nein | 3 | ja |
+| Dreitausend Folgende über Nacht | 3 | ja | 3 | ja |
 | Eine Zeitung will ein Exklusivinterview | 2 | ja | 3 | ja |
 | Ein Experte zerlegt dich im Fernsehen | 2 | nein | 3 | ja |
 | Ein Streamingdienst will eine Doku über dich drehen | 2 | ja | 2 | ja |
@@ -1984,10 +2018,11 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Der Sommer nach einer mittelmäßigen Saison | 2 | nein | 8 | ja |
 | Dein Marktwert steht in jeder Meldung | 2 | nein | 7 | ja |
 
-**Nachwuchs** (11)
+**Nachwuchs** (12)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Der Klassenlehrer bittet um ein Gespräch | 2 | ja | 3 | ja |
 | Du darfst mit ins Trainingslager | 2 | ja | 4 | ja |
 | Prüfungen oder Trainingslager | 2 | nein | 3 | ja |
 | Das erste Jahr im Internat | 2 | nein | 3 | ja |
@@ -2000,7 +2035,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Runter zur zweiten Mannschaft | 2 | ja | 7 | ja |
 | Die Fahrprüfung | 2 | ja | 5 | ja |
 
-**Nationalteam** (16)
+**Nationalteam** (15)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
@@ -2008,8 +2043,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Länderspielreise trotz Überlastung | 2 | nein | 5 | ja |
 | Streit um deine Rolle im Nationalteam | 2 | ja | 2 | ja |
 | Vorläufiger Turnierkader | 2 | ja | 3 | ja |
-| Debatte um die Hymne | 2 | nein | 2 | ja |
-| Ein zweiter Verband fragt an | 2 | nein | 2 | ja |
+| Wer mitsingt, wird gezählt | 2 | nein | 2 | ja |
 | Entscheidungsspiel in der Qualifikation | 2 | ja | 3 | ja |
 | Verletzt aus dem Länderspiel zurück | 2 | nein | 2 | ja |
 | Die Binde im Nationalteam | 2 | nein | 2 | ja |
@@ -2052,14 +2086,12 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Erste Pokalrunde beim Viertligisten | 2 | ja | 4 | ja |
 | Pokalfinale | 2 | ja | 4 | ja |
 
-**Position** (29)
+**Position** (27)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
 | Der Fehler in der 89. Minute | 2 | nein | 4 | ja |
-| Elfmeterschießen im Pokal | 2 | ja | 3 | ja |
 | Der Torwarttrainer will dein Spiel umbauen | 2 | nein | 3 | ja |
-| Eigentor in der Nachspielzeit | 2 | nein | 3 | ja |
 | Der schnellste Stürmer der Liga | 2 | ja | 3 | ja |
 | Hinten dicht oder vorne mitspielen | 2 | ja | 3 | ja |
 | Vierte Gelbe Karte im Oktober | 2 | ja | 3 | ja |
@@ -2086,11 +2118,15 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Der Verein holt einen zweiten Neuner | 2 | ja | 6 | ja |
 | Drei Tore in einem Spiel | 2 | ja | 6 | ja |
 
-**Privat** (26)
+**Privat** (30)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
-| Jemand aus der Physiopraxis | 2 | ja | 6 | ja |
+| Zwei Termine, die sich nie treffen | 2 | ja | 4 | ja |
+| Er will für jedes Heimspiel zwei Karten | 2 | ja | 3 | ja |
+| Samstag ist der Geburtstag deiner besten Freundin | 2 | ja | 4 | ja |
+| Der Gruppenchat ist still geworden | 2 | ja | 3 | ja |
+| Jemand aus der Physiopraxis | 4 | ja | 6 | ja |
 | ein Mitspieler will dich verkuppeln | 2 | ja | 5 | ja |
 | Kennenlernen mit Hindernis | 2 | ja | 4 | ja |
 | deine Partnerin will zusammenziehen | 2 | ja | 9 | ja |
@@ -2125,18 +2161,17 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Eine Spritze vor dem Anpfiff | 2 | ja | 6 | ja |
 | Zu schnell auf nasser Straße | 2 | ja | 4 | ja |
 
-**Sportlich** (18)
+**Sportlich** (17)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
 | Wer schießt jetzt die Elfmeter? | 2 | ja | 3 | ja |
-| Standards übernehmen | 2 | nein | 2 | ja |
+| Standards übernehmen | 3 | nein | 2 | ja |
 | Vierter Monat ohne Startelf | 2 | ja | 4 | ja |
 | Verleihen lassen oder bleiben? | 2 | nein | 3 | ja |
 | Der Analyst bietet Einzelsitzungen an | 2 | nein | 3 | ja |
-| Derbywoche | 2 | ja | 4 | ja |
-| Die Leistungsdiagnostik ist eindeutig | 2 | nein | 3 | ja |
-| Trainingslager im Januar | 2 | nein | 3 | ja |
+| Derbywoche | 4 | ja | 4 | ja |
+| Die Leistungsdiagnostik ist eindeutig | 3 | ja | 3 | ja |
 | Die erste Rote Karte | 2 | nein | 6 | ja |
 | Der Videobeweis nimmt dir ein Tor | 2 | nein | 5 | ja |
 | Drei Spiele in acht Tagen | 2 | ja | 5 | ja |
@@ -2144,7 +2179,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Der Knoten platzt | 2 | ja | 6 | ja |
 | Halbzeit der Saison | 2 | nein | 6 | ja |
 | Die letzten fünf Spiele | 2 | ja | 6 | ja |
-| Nicht im Reisekader | 2 | ja | 5 | ja |
+| Nicht im Reisekader | 4 | ja | 5 | ja |
 | Aussprache mit dem Schiedsrichter | 2 | nein | 5 | ja |
 | Acht Wochen ohne gutes Spiel | 2 | ja | 6 | ja |
 
@@ -2165,23 +2200,22 @@ heruntergewichtet, damit sich nichts wiederholt.
 |---|---|---|---|---|
 | Der Trainer will dich umbauen | 2 | nein | 3 | ja |
 | Neuer Trainer, neues System | 2 | ja | 4 | ja |
-| Der Gegner hat euch komplett durchschaut | 2 | nein | 5 | ja |
-| Neues Pressingschema | 2 | nein | 4 | ja |
+| Der Gegner hat euch komplett durchschaut | 4 | ja | 5 | ja |
+| Neues Pressingschema | 3 | nein | 4 | ja |
 | Aus taktischen Gründen auf der Bank | 2 | nein | 6 | ja |
-| Der Analyst schickt dir eine Datei | 2 | nein | 6 | ja |
+| Der Analyst schickt dir eine Datei | 4 | nein | 6 | ja |
 
-**Transfer** (14)
+**Transfer** (13)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Ein größerer Verein lädt zum Probetraining | 2 | ja | 3 | ja |
 | Der Anruf, auf den man wartet | 2 | nein | 3 | ja |
 | Dein Jugendverein fragt an | 2 | nein | 2 | ja |
 | Erste Wochen beim neuen Verein | 2 | ja | 6 | ja |
 | Rückspiel gegen dein alter Verein | 3 | nein | 6 | ja |
 | Rekordablöse lastet schwer | 2 | ja | 4 | ja |
 | Die eigenen Fans haben nicht vergessen | 2 | ja | 5 | ja |
-| Zurück von der Leihe | 2 | ja | 3 | ja |
-| Winterwechselperiode | 2 | ja | 5 | ja |
 | Beobachter auf der Tribüne | 2 | ja | 4 | ja |
 | Der Medizincheck zieht sich | 2 | ja | 4 | ja |
 | Ein letztes Abenteuer im Ausland | 2 | nein | 5 | ja |
@@ -2200,15 +2234,22 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Eine Statue vor dem Stadion | 2 | nein | 6 | ja |
 | Der Verein steht unten, du könntest gehen | 2 | nein | 6 | ja |
 
-**Umfeld** (14)
+**Umfeld** (21)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
-| Anfrage aus deiner Heimat | 2 | nein | 2 | ja |
+| Einer aus deinem Jugendjahrgang meldet sich | 3 | nein | 7 | ja |
+| Er hat wieder angefangen | 2 | nein | 3 | ja |
+| Ein Text über deinen Jahrgang | 2 | ja | 3 | ja |
+| Das Geld ist weg | 2 | nein | 3 | ja |
+| Er steht wieder vor der Tür | 2 | nein | 3 | ja |
+| Dein erster Trainer ruft an | 2 | nein | 3 | ja |
+| Die Straße weiß Bescheid | 2 | nein | 2 | ja |
+| Dein Heimatverein feiert Jubiläum | 2 | nein | 2 | ja |
+| Anfrage aus deiner Heimat | 3 | nein | 2 | ja |
 | Der alte Freundeskreis will mitverdienen | 2 | ja | 3 | ja |
 | Eine eigene Stiftung gründen | 2 | nein | 2 | ja |
 | Anfrage von einer Klinik | 3 | nein | 2 | ja |
-| Der Zeugwart geht in Rente | 2 | nein | 4 | ja |
 | Rufe von der Tribüne | 2 | nein | 5 | ja |
 | Trauerflor | 2 | nein | 4 | ja |
 | Benefizspiel in der Sommerpause | 2 | ja | 4 | ja |
@@ -2223,16 +2264,22 @@ heruntergewichtet, damit sich nichts wiederholt.
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
-| Vom Fußball allein leben? | 2 | nein | 6 | ja |
-| Sechs Stunden im Bus | 2 | nein | 5 | ja |
+| Vom Fußball allein leben? | 3 | nein | 6 | ja |
+| Sechs Stunden im Bus | 4 | nein | 5 | ja |
 | Dem Verein fehlt die Lizenz | 2 | ja | 5 | ja |
 | Pokal gegen einen Erstligisten | 2 | ja | 6 | ja |
 | Achthundert Zuschauer | 2 | ja | 4 | ja |
 
-**Verein** (20)
+**Verein** (26)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Sie entlassen den, der dich geholt hat | 3 | nein | 7 | ja |
+| Er ruft aus der zweiten Liga an | 2 | nein | 3 | ja |
+| Ein Interview, in dem dein Name fällt | 2 | ja | 3 | ja |
+| Er sitzt jetzt im Fernsehen | 2 | ja | 3 | ja |
+| Er übernimmt wieder oben | 2 | ja | 3 | ja |
+| Sein letztes Spiel | 2 | nein | 3 | ja |
 | Abstiegskampf im Frühjahr | 2 | ja | 6 | ja |
 | Endspurt um den Aufstieg | 2 | ja | 6 | ja |
 | Ein Investor steigt ein | 3 | nein | 3 | ja |
@@ -2241,16 +2288,16 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Der Trainer wird entlassen | 2 | nein | 5 | ja |
 | Die Mannschaft wählt den Kapitän | 2 | ja | 2 | ja |
 | Alles selber machen | 2 | nein | 3 | ja |
-| Die Haupttribüne wird umgebaut | 2 | nein | 4 | ja |
+| Die Haupttribüne wird umgebaut | 3 | nein | 4 | ja |
 | Ein Investor aus dem Ausland übernimmt | 2 | ja | 5 | ja |
 | Dein Verein gehört zu einem Klubverbund | 2 | nein | 4 | ja |
 | Das größte Spiel deines Kontinents | 2 | ja | 5 | ja |
 | Der Verein zieht in ein neues Stadion | 2 | nein | 4 | ja |
 | Bonus für die Platzierung | 2 | nein | 5 | ja |
-| Der Verein muss sofort Gehälter senken | 2 | nein | 5 | ja |
-| Die Zielvorgabe für die Saison | 2 | nein | 6 | ja |
+| Der Verein muss sofort Gehälter senken | 3 | nein | 5 | ja |
+| Die Zielvorgabe für die Saison | 4 | ja | 6 | ja |
 | Blick auf die Tabelle | 2 | nein | 5 | ja |
-| Der Platzwart geht in Rente | 2 | nein | 4 | ja |
+| Der Platzwart geht in Rente | 3 | nein | 4 | ja |
 | Eine Einheit mit der U15 | 2 | nein | 5 | ja |
 | Krisensitzung nach dem sechsten Spiel ohne Sieg | 2 | ja | 6 | ja |
 
@@ -2272,12 +2319,13 @@ heruntergewichtet, damit sich nichts wiederholt.
 |---|---|---|---|---|
 | Eine Stiftung mit deinem Namen | 2 | nein | 6 | ja |
 
-**Vertrag** (15)
+**Vertrag** (16)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
+| Ein Zettel, den deine Eltern unterschreiben müssen | 2 | nein | 4 | ja |
 | Ablösefrei gehen oder verlängern? | 2 | nein | 3 | ja |
-| Streit um die Ausstiegsklausel | 2 | ja | 2 | ja |
+| Streit um die Ausstiegsklausel | 3 | ja | 2 | ja |
 | Neuer Sportdirektor, alte Vorbehalte | 2 | ja | 2 | ja |
 | Deine Agentur wird verkauft | 2 | ja | 2 | ja |
 | Treueprämie statt Gehaltserhöhung | 2 | ja | 2 | ja |
@@ -2297,7 +2345,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
 | Sechs Wochen Sommerpause | 2 | nein | 4 | ja |
-| Zwei Wochen vor dem Trainingsauftakt | 2 | nein | 5 | ja |
+| Zwei Wochen vor dem Trainingsauftakt | 3 | nein | 5 | ja |
 | Extraschichten vor dem Training | 3 | nein | 5 | ja |
 | Trainingslager im Januar | 2 | ja | 5 | ja |
 
@@ -2327,17 +2375,16 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Dein Verein steht am Abgrund | 2 | ja | 8 | ja |
 | Zurück zum Verein deines Lebens? | 2 | nein | 8 | ja |
 
-**Zukunft** (10)
+**Zukunft** (9)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
 | Trainerschein nebenbei machen | 2 | nein | 2 | ja |
 | Anfrage für ein Abschiedsspiel | 2 | nein | 2 | ja |
 | Ein Sender bietet dir einen Expertenvertrag | 2 | nein | 2 | ja |
-| Ein Verein bietet dir eine Doppelrolle | 2 | nein | 4 | ja |
 | Spielertrainer bei der Zweiten | 2 | nein | 6 | ja |
 | Lehrgang mit Sofortwirkung | 2 | nein | 5 | ja |
-| Was kommt danach? | 2 | nein | 5 | ja |
+| Was kommt danach? | 3 | nein | 5 | ja |
 | Fernstudium neben dem Profivertrag | 2 | nein | 5 | ja |
 | Man erinnert sich an dich | 2 | nein | 6 | ja |
 | Die Vitrine der Familie | 2 | nein | 6 | ja |
@@ -2365,7 +2412,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Ein Wettanbieter zahlt für Informationen | 2 | ja | 5 | ja |
 | Eine Gelbe Karte auf Bestellung | 2 | ja | 5 | ja |
 | Ein Modell, das zu gut klingt | 2 | ja | 5 | ja |
-| Die Runde spielt um echtes Geld | 2 | ja | 5 | ja |
+| Die Runde spielt um echtes Geld | 3 | ja | 5 | ja |
 | Jemand will sein Geld | 2 | ja | 4 | ja |
 | Etwas, das schneller heilen lässt | 2 | ja | 4 | ja |
 | Handwerker ohne Rechnung | 2 | ja | 4 | ja |
@@ -2972,7 +3019,10 @@ Die Stärke bestimmt, wie schwer der Weg in die Nationalmannschaft ist.
 | Medizinische Abteilung | Geringeres Verletzungsrisiko | 15 | 28 | 45 | 66 | 90 | 244 |
 | Ausbildung | Höhere Anlage der Talente | 20 | 37 | 58 | 84 | 114 | 313 |
 | Wettbewerbe | Bessere Vermittlung · Jugendturniere | 14 | 26 | 42 | 60 | 82 | 224 |
-| **Gesamt** | | | | | | | **1564 VC** |
+| Mentaltraining | Deutlich weniger Abbrecher · ruhiger im Sichtungsspiel | 26 | 48 | 78 | 112 | 152 | 416 |
+| Videoanalyse | Schnellere Entwicklung der Talente | 28 | 52 | 84 | 120 | 164 | 448 |
+| Netzwerk zu Profivereinen | Direkt mehr Profiverträge | 30 | 56 | 90 | 130 | 178 | 484 |
+| **Gesamt** | | | | | | | **2912 VC** |
 
 ### Was das Ansehen einer neuen Laufbahn mitgibt
 

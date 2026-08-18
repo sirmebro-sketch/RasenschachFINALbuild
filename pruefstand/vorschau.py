@@ -66,17 +66,33 @@ ersetze('import { SCHRIFTEN } from "./schriften.js";\n', "", "Einbindung schrift
 ersetze("const CSS = SCHRIFTEN + `\n", "const CSS = `\n" + m.group(1).strip() + "\n",
         "Schriften eingesetzt (" + str(round(len(m.group(1))/1024)) + " KB)")
 
+# --- 4b. Ereignisse hineinkopieren (seit 35.6 eine eigene Datei) ---
+# Die Vorschau muss EINE Datei sein, die im Chatfenster laeuft. Ein Import auf
+# ./ereignisse.js wuerde dort ins Leere zeigen — genau die Meldung "Artifact
+# failed to load", die die App-Fassung schon fuer ./storage.js erzeugt.
+epfad = os.path.join(os.path.dirname(os.path.abspath(quelle)), "ereignisse.js")
+if not os.path.exists(epfad):
+    print("ABBRUCH — ereignisse.js nicht gefunden neben " + quelle); sys.exit(1)
+ev = open(epfad, encoding="utf-8").read()
+if "export const machEreignisse" not in ev:
+    print("ABBRUCH — machEreignisse in ereignisse.js nicht lesbar"); sys.exit(1)
+ersetze('import { machEreignisse } from "./ereignisse.js";\n',
+        ev.replace("export const machEreignisse", "const machEreignisse", 1) + "\n",
+        "Ereignisse eingesetzt (" + str(ev.count('id:"')) + " Einträge)")
+
 # --- 5. Kennzeichnung, damit die beiden Fassungen nie verwechselt werden ---
 ersetze('const VERSION_INFO = "', 'const VERSION_INFO = "Vorschau · ', "Fassung gekennzeichnet")
 
 # --- 6. Gegenprobe: nichts darf übrig bleiben ---
-rest = re.findall(r'from "\./storage\.js"|from "\./schriften\.js"|(?<![\w.])store\b(?!\w)|\bSCHRIFTEN\b', s)
+rest = re.findall(r'from "\./storage\.js"|from "\./schriften\.js"|from "\./ereignisse\.js"|(?<![\w.])store\b(?!\w)|\bSCHRIFTEN\b', s)
 if rest:
     print("ABBRUCH — Reste gefunden: " + str(set(rest))); sys.exit(1)
 if "@font-face" not in s:
     print("ABBRUCH — Schriften fehlen in der Vorschau"); sys.exit(1)
 if "window.storage" not in s:
     print("ABBRUCH — window.storage fehlt"); sys.exit(1)
+if s.count('id:"') < 400:
+    print("ABBRUCH — zu wenige Ereignisse in der Vorschau: " + str(s.count('id:"'))); sys.exit(1)
 
 open(ziel, "w", encoding="utf-8").write(s)
 print("Vorschaufassung gebaut: " + ziel)

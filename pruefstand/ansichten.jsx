@@ -69,7 +69,7 @@ const leer = leereAkademie();
 const mitCoins = { ...leereAkademie(), vc: 240, verdient: 240 };
 let gegruendet = akaGruenden({ ...leereAkademie(), vc: 300 }, "Akademie am Volkspark", 2026);
 let reif = akaGruenden({ ...leereAkademie(), vc: 900,
-  stufen: { plaetze:6, scouting:6, internat:6, medizin:6, lehre:6, buehne:6 } }, "Reifes Haus", 2026);
+  stufen: Object.fromEntries(ABTEILUNGEN.map((x) => [x.id, AKA_MAX])) }, "Reifes Haus", 2026);
 for (let i = 0; i < 25; i++) reif = akaJahr(reif, reif.jahr + 1).a;
 /* Sonderfall: gegründet, aber niemand mehr im Haus */
 const leerImHaus = { ...gegruendet, talente: [] };
@@ -280,11 +280,11 @@ console.log("\n=== Nächster Schritt ===");
 {
   const proben = [["leer", leereAkademie()], ["mit 300 VC", { ...leereAkademie(), vc: 300 }],
     ["reif", reif], ["voll ausgebaut", { ...leereAkademie(), vc: 900,
-      stufen: { plaetze:6, scouting:6, internat:6, medizin:6, lehre:6, buehne:6 } }]];
+      stufen: Object.fromEntries(ABTEILUNGEN.map((x) => [x.id, AKA_MAX])) }]];
   proben.forEach(([n, a]) => {
     try {
       const z = akaNaechster(a);
-      const voll = akaSumme(a) >= 6 * AKA_MAX;
+      const voll = akaSumme(a) >= ABTEILUNGEN.length * AKA_MAX;
       if (voll && z) { zeige("Nächster Schritt · " + n, "meldet ein Ziel, obwohl alles ausgebaut ist"); return; }
       if (!voll && !z) { zeige("Nächster Schritt · " + n, "meldet kein Ziel"); return; }
       if (z && (z.anteil < 0 || z.anteil > 1)) { zeige("Nächster Schritt · " + n, "Anteil außerhalb 0–1: " + z.anteil); return; }
@@ -590,7 +590,14 @@ console.log("\n=== Wildcards ===");
 {
   const t = {};
   let kaputt = 0;
-  for (let i = 0; i < 4000; i++) {
+  /* 20.000 statt 4.000 (35.13). Die Prüfung wurde in einem Lauf rot und im
+     nächsten grün, ohne dass sich am Spiel etwas geändert hatte. Nachgemessen
+     an 400.000 Ziehungen: „hsv" kommt 1 zu 1.020 — bei 4.000 Ziehungen bleibt
+     es in 1,98 % der Läufe aus, also etwa in jedem fünfzigsten Prüfstandlauf.
+     Eine Prüfung, die zufällig rot wird, ist schlimmer als keine: sie bringt
+     einem bei, Rot zu übersehen. Mit 20.000 Ziehungen sind es 1 zu 328
+     Millionen. Kostet rund eine Sekunde. */
+  for (let i = 0; i < 20000; i++) {
     let c = null;
     try { c = drawWildcard(pick(Object.keys(POS)), [], null, {}, {}, 0); }
     catch (e) { if (!kaputt++) zeige("Wildcards", "Ziehen scheitert: " + e.message); continue; }
@@ -1318,7 +1325,13 @@ console.log("\n=== Zoom und Akademiefortschritt ===");
   else {
     if (frisch.ist !== 0) zeige("Akademie", "frisch gegründet zeigt " + frisch.ist + " Ausbaustufen statt 0");
     else ok++;
-    if (frisch.max !== 30) zeige("Akademie", "Höchstwert " + frisch.max + " statt 30");
+    /* Aus ABTEILUNGEN abgeleitet statt fest (35.13): mit drei neuen Abteilungen
+     waren 30 und 36 falsch, und beim naechsten Mal waere es wieder so.
+     Bewusst an beiden Stellen ausgerechnet statt in einer Konstanten — die
+     zwei Pruefungen stehen in verschiedenen Bloecken, und der erste Versuch
+     mit einer gemeinsamen Konstanten brach mit "SOLL_SUMME is not defined". */
+  if (frisch.max !== ABTEILUNGEN.length * (AKA_MAX - 1))
+    zeige("Akademie", "Höchstwert " + frisch.max + " statt " + ABTEILUNGEN.length * (AKA_MAX - 1));
     else ok++;
     console.log("  frisch gegründet   " + frisch.ist + " von " + frisch.max + " Ausbaustufen");
   }
@@ -1332,7 +1345,8 @@ console.log("\n=== Zoom und Akademiefortschritt ===");
      zu Recht an. */
   const alles = { ...reif, stufen: {} };
   ABTEILUNGEN.forEach((x) => { alles.stufen[x.id] = AKA_MAX; });
-  if (akaSumme(alles) !== 36) zeige("Akademie", "akaSumme bei vollem Ausbau ist " + akaSumme(alles) + ", erwartet 36");
+  if (akaSumme(alles) !== ABTEILUNGEN.length * AKA_MAX)
+    zeige("Akademie", "akaSumme bei vollem Ausbau ist " + akaSumme(alles) + ", erwartet " + ABTEILUNGEN.length * AKA_MAX);
   else ok++;
   console.log("  akaSumme voll      " + akaSumme(alles) + " (Errungenschaft prüft weiter darauf)");
 }

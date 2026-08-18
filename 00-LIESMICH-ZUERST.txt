@@ -1,0 +1,27 @@
+PROJEKTWISSEN AKTUALISIEREN — von 35.4 auf 35.15
+=================================================
+Enthaelt ALLES aus 35.5 bis 35.15. Nur dieses Paket noetig.
+
+ERSETZEN (11)
+  App.jsx · STAND.md · UEBERSICHT.md · pruefen.sh · exporte.txt
+  vorschau.py · browsertest.sh · apk.yml · ereignispruefung.cjs
+  ansichten.jsx · kalibrierung.cjs
+NEU (1)
+  ereignisse.js   518 Ereignisse. FLACH neben App.jsx, NICHT nach pruefstand/.
+
+ABLAGE
+  App.jsx · ereignisse.js · STAND.md · UEBERSICHT.md        flach
+  pruefen.sh · ereignispruefung.cjs · vorschau.py
+  browsertest.sh · exporte.txt · ansichten.jsx
+  kalibrierung.cjs                                          pruefstand/
+  apk.yml                                                   .github/workflows/
+
+NEUE APK: ja. package.json unveraendert.
+
+GEPRUEFT
+Pruefstand   407 Pruefungen, 0 Fehler, alle vier Zielbaender,
+             6 x 63 Ansichten, 10 Ereignispruefungen ohne Befund
+Bau          1.154,73 kB / 424,89 kB gepackt
+sicht.sh     13/13 - 8 px - 4/4 - Impressum 35.15
+Straenge     4 Straenge, 21 Ereignisse, Abschlussquote 92-100 %
+             60 % der Laufbahnen erleben mindestens eine Geschichte

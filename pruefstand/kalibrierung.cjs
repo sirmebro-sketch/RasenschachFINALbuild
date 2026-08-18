@@ -8,7 +8,13 @@ const ZIEL = {
   laufbahnenBisVollausbau: [25, 35],   // wie viele Karrieren der volle Ausbau kostet
   weltklasseStufe6Median:  [3,  8],    // Weltklassespieler in 25 Jahren, Stufe 6
   rautekarteMedian:        [28, 42],   // Laufbahnen bis zur Rautekarte (Ausgleichszähler)
-  vollausbauKosten:        [1400, 1700],
+  /* 35.13: von [1400,1700] auf [2700,3100] angehoben. Das ist KEINE stille
+     Anpassung an ein Ergebnis, sondern eine bewusst verschobene Schranke:
+     die Akademie hat drei Abteilungen mehr bekommen, der Vollausbau soll
+     ausdruecklich teurer sein. Das Band daneben — Laufbahnen bis Vollausbau,
+     25 bis 35 — bleibt unveraendert und ist die eigentliche Schranke. Es
+     faengt ab, wenn Kosten und Verdienst auseinanderlaufen. */
+  vollausbauKosten:        [2700, 3100],
 };
 const abw = [];
 function band(name, wert, [lo, hi], k = 1) {

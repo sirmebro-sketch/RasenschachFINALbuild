@@ -9,7 +9,7 @@
 #      TEILE=kalib bash pruefstand/pruefen.sh     # nur Kalibrierung
 #      TEILE=ansicht,rueck LAEUFE=8 bash ...      # nur Ansichten, 8 Durchläufe
 #
-#  Teile: aufbau · kalib · ansicht · rueck · bau      (Vorgabe: alle)
+#  Teile: aufbau · kalib · ansicht · ereignis · rueck · bau   (Vorgabe: alle)
 # ==========================================================================
 set -u
 QUELLE="${1:-/mnt/project/App.jsx}"
@@ -22,7 +22,7 @@ QUELLDIR="$(cd "$(dirname "$QUELLE")" && pwd)"
 ARBEIT="${ARBEIT:-/home/claude/rs}"
 LAEUFE="${LAEUFE:-6}"
 LAUFBAHNEN="${LAUFBAHNEN:-300}"
-TEILE="${TEILE:-aufbau,kalib,ansicht,rueck,bau}"
+TEILE="${TEILE:-aufbau,kalib,ansicht,ereignis,rueck,bau}"
 hat() { case ",$TEILE," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
 titel() { echo; echo "########## $1 ##########"; }
 FEHLER=0
@@ -69,6 +69,17 @@ if [ -f "$SCHRIFTQUELLE" ]; then
   echo "Schriften: $(du -h "$SCHRIFTQUELLE" | cut -f1)"
 else
   echo "FEHLER: schriften.js nicht gefunden neben $QUELLE"; FEHLER=$((FEHLER+1))
+fi
+# Ereignisse: seit 35.6 eine eigene Datei. Sie muss in BEIDE Bauverzeichnisse —
+# nach $BAU fuer das Pruefbuendel, nach $ARBEIT fuer den Produktionsbau. Fehlt
+# sie, meldet esbuild nur "Could not resolve" und man sucht in App.jsx.
+EREIGNISQUELLE="$(dirname "$(readlink -f "$QUELLE")")/ereignisse.js"
+if [ -f "$EREIGNISQUELLE" ]; then
+  cp "$EREIGNISQUELLE" "$BAU/ereignisse.js"
+  cp "$EREIGNISQUELLE" "$ARBEIT/ereignisse.js"
+  echo "Ereignisse: $(grep -c 'id:"' "$EREIGNISQUELLE") Einträge"
+else
+  echo "FEHLER: ereignisse.js nicht gefunden neben $QUELLE"; FEHLER=$((FEHLER+1))
 fi
 # Doppelte Namen in der Ausfuhrliste. Das hat den Aufbau schon zweimal
 # abgebrochen, und esbuild meldet es als "was originally exported here" mit
@@ -126,6 +137,49 @@ if [ -n "$LUEGT" ]; then
   FEHLER=$((FEHLER+1))
 fi
 
+# 4) Traegt die Fassung aus App.jsx einen Messblock in STAND.md? Kevin arbeitet
+#    mit Zahlen vor und nach, aber 35.2 und 35.3 gingen beide OHNE raus — zwei
+#    Fassungen hintereinander, gemerkt hat es niemand. Nach der Regel aus 35.1
+#    gehoert das damit hierher und nicht in einen Merksatz.
+#    Die Fassung wird laut Abschnitt 8 am ENDE angehoben, zusammen mit dem neuen
+#    Abschnitt. Waehrend der Sitzung zeigt App.jsx also die fertige Vorfassung,
+#    und diese Pruefung schweigt. Rot wird sie nur in dem Fenster zwischen
+#    "Nummer angehoben" und "Abschnitt geschrieben" — genau da soll sie stoeren.
+#    Sie prueft, DASS der Block da ist, nicht ob die Zahlen stimmen. Das kann
+#    kein Skript; dafuer gibt es die Gegenueberstellung vorher/nachher.
+if [ -f "$QUELLDIR/STAND.md" ]; then
+  FASSUNG=$(sed -n 's/^const VERSION = "\([^"]*\)".*/\1/p' "$ARBEIT/App.jsx" | head -1)
+  if [ -z "$FASSUNG" ]; then
+    echo "  WARNUNG: keine Fassungsnummer in App.jsx gefunden (const VERSION)."
+    FEHLER=$((FEHLER+1))
+  else
+    # Der Punkt in der Nummer ist im Suchmuster ein Platzhalter fuer jedes
+    # Zeichen — ohne Maskierung faende "35.3" auch "3543".
+    FRX=$(printf '%s' "$FASSUNG" | sed 's/\./\\./g')
+    # Eine Ueberschrift kann ZWEI Fassungen tragen ("## 34.36 / 34.37 · ...").
+    # Deshalb nicht auf den Zeilenanfang prüfen, sondern die Nummer im Kopf der
+    # Ueberschrift suchen — abgegrenzt, damit 35.3 nicht in 35.31 anschlaegt.
+    ABSCHNITT=$(awk -v rx="(^|[^0-9.])$FRX([^0-9.]|$)" '
+      /^## / {
+        if (drin) exit
+        kopf = $0; sub(/·.*/, "", kopf)
+        if (kopf ~ rx) drin = 1
+        next
+      }
+      drin { print }' "$QUELLDIR/STAND.md")
+    if [ -z "$ABSCHNITT" ]; then
+      echo "  WARNUNG: STAND.md hat keinen Abschnitt '## $FASSUNG'."
+      echo "           Die Fassung ist angehoben, der Eintrag fehlt noch."
+      FEHLER=$((FEHLER+1))
+    elif ! printf '%s\n' "$ABSCHNITT" | grep -q '^### Geprüft'; then
+      echo "  WARNUNG: Abschnitt '## $FASSUNG' in STAND.md hat keinen Messblock."
+      echo "           Ans Ende des Abschnitts gehoert '### Geprüft' mit den"
+      echo "           Zahlen dieses Laufs (Pruefungen, Fehler, Buendelgroesse)."
+      FEHLER=$((FEHLER+1))
+    fi
+  fi
+fi
+
 # Rueckwaerts-Anfuehrungszeichen im CSS-Block. Der Block ist eine
 # Schablonenzeichenkette (const CSS = SCHRIFTEN + `...`) — ein einzelnes ` in
 # einem Kommentar darin beendet sie vorzeitig. esbuild meldet dann irgendetwas
@@ -181,6 +235,20 @@ fi
 if hat ansicht; then
 titel "ANSICHTEN UND DURCHKLICKTEST"
 ( cd "$BAU" && timeout 280 node "$BAU/jsdom.cjs" "$BAU/a.js" ) || FEHLER=1
+fi
+
+# --------------------------------------------------------------------------
+if hat ereignis; then
+titel "EREIGNISSE"
+# Braucht das gebaute Buendel aus dem Aufbau. Laeuft NICHT von Hand, sondern
+# hier — zehn von achtzehn Werkzeugen liefen bis 35.1 nur von Hand und wurden
+# deshalb vergessen (siehe sicht.sh).
+if [ -f "$BAU/motor.js" ]; then
+  ( cd "$BAU" && node "$PS/ereignispruefung.cjs" "$ARBEIT/App.jsx" ) || FEHLER=1
+else
+  echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
+  FEHLER=1
+fi
 fi
 
 # --------------------------------------------------------------------------

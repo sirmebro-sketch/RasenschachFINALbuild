@@ -19,7 +19,7 @@ ARBEIT="${ARBEIT:-/tmp/bt}"
 
 rm -rf "$ARBEIT"; mkdir -p "$ARBEIT"; cd "$ARBEIT"
 cp "$QUELLE" App.jsx
-for D in schriften.js main.jsx index.html package.json; do
+for D in schriften.js ereignisse.js main.jsx index.html package.json; do
   [ -f "$QUELLDIR/$D" ] || { echo "FEHLER: $D fehlt neben $QUELLE"; exit 1; }
   cp "$QUELLDIR/$D" .
 done
