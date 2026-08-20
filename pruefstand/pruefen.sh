@@ -9,7 +9,7 @@
 #      TEILE=kalib bash pruefstand/pruefen.sh     # nur Kalibrierung
 #      TEILE=ansicht,rueck LAEUFE=8 bash ...      # nur Ansichten, 8 Durchläufe
 #
-#  Teile: aufbau · kalib · ansicht · ereignis · rueck · bau   (Vorgabe: alle)
+#  Teile: aufbau · kalib · ansicht · ereignis · verein · rueck · bau  (Vorgabe: alle)
 # ==========================================================================
 set -u
 QUELLE="${1:-/mnt/project/App.jsx}"
@@ -22,7 +22,7 @@ QUELLDIR="$(cd "$(dirname "$QUELLE")" && pwd)"
 ARBEIT="${ARBEIT:-/home/claude/rs}"
 LAEUFE="${LAEUFE:-6}"
 LAUFBAHNEN="${LAUFBAHNEN:-300}"
-TEILE="${TEILE:-aufbau,kalib,ansicht,ereignis,rueck,bau}"
+TEILE="${TEILE:-aufbau,kalib,ansicht,ereignis,verein,rueck,bau}"
 hat() { case ",$TEILE," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
 titel() { echo; echo "########## $1 ##########"; }
 FEHLER=0
@@ -73,6 +73,12 @@ fi
 # Ereignisse: seit 35.6 eine eigene Datei. Sie muss in BEIDE Bauverzeichnisse —
 # nach $BAU fuer das Pruefbuendel, nach $ARBEIT fuer den Produktionsbau. Fehlt
 # sie, meldet esbuild nur "Could not resolve" und man sucht in App.jsx.
+VEREINQUELLE="$(dirname "$(readlink -f "$QUELLE")")/verein.js"
+if [ -f "$VEREINQUELLE" ]; then
+  cp "$VEREINQUELLE" "$BAU/verein.js"; cp "$VEREINQUELLE" "$ARBEIT/verein.js"
+else
+  echo "FEHLER: verein.js nicht gefunden neben $QUELLE"; FEHLER=$((FEHLER+1))
+fi
 EREIGNISQUELLE="$(dirname "$(readlink -f "$QUELLE")")/ereignisse.js"
 if [ -f "$EREIGNISQUELLE" ]; then
   cp "$EREIGNISQUELLE" "$BAU/ereignisse.js"
@@ -245,6 +251,17 @@ titel "EREIGNISSE"
 # deshalb vergessen (siehe sicht.sh).
 if [ -f "$BAU/motor.js" ]; then
   ( cd "$BAU" && node "$PS/ereignispruefung.cjs" "$ARBEIT/App.jsx" ) || FEHLER=1
+else
+  echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
+  FEHLER=1
+fi
+fi
+
+# --------------------------------------------------------------------------
+if hat verein; then
+titel "VEREIN"
+if [ -f "$BAU/motor.js" ]; then
+  ( cd "$BAU" && node "$PS/vereinpruefung.cjs" ) || FEHLER=1
 else
   echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
   FEHLER=1

@@ -5,7 +5,21 @@
 > gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
 > der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
 
-**Fassung 35.15** · Stand 16. August 2026
+> ## Wo es weitergeht
+> **Offen ist genau eine Sache: das Tutorial.** Es soll beim ersten Start
+> erscheinen und jederzeit abrufbar sein und erklärt drei Dinge: den
+> Karrieredurchlauf, die Jugendakademie und den eigenen Verein.
+>
+> Alles andere aus Kevins Zettel und aus der Vereinsidee ist gebaut und
+> geprüft. Der Vereinsmodus steht im Hauptmenü unter der Jugendakademie und
+> ist ab **fünf abgeschlossenen Laufbahnen** frei.
+>
+> **Bevor daran weitergearbeitet wird:** Kevin sollte den Modus einmal auf dem
+> Gerät gespielt haben. Das Tutorial schreibt sich deutlich besser, wenn
+> bekannt ist, wo es tatsächlich hakt — und die Bildschirme sind seit 35.20
+> zwar geprüft, aber noch nie auf einem echten Telefon gesehen worden.
+
+**Fassung 35.21** · Stand 16. August 2026
 
 <!-- VERZEICHNIS -->
 
@@ -15,67 +29,73 @@
 
 | Zeile | Abschnitt |
 |---:|---|
-| 90 | 1. Was das Projekt ist |
-| 129 | 2. Zusammenarbeit |
-| 145 | 3. Was drin ist (Grobüberblick) |
-| 258 | 4. Kalibrierung — worauf eingestellt wurde |
-| 284 | 5. Prüfstand |
-| 337 | 6. Stolperfallen — teuer gelernt |
-| 375 | 7. Was offen ist |
-| 396 | 8. Wie ein neuer Chat anfangen sollte |
-| 423 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
-| 747 | Auf dem Gerät geprüft — 10.8.2026 |
-| 854 | 34.0 · Die Spielerporträts |
-| 971 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
-| 1219 | 34.8 · Vier gemeldete Punkte |
-| 1271 | 34.9 · Block A — fünf Fehler im Spielfluss |
-| 1336 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
-| 1391 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
-| 1439 | 34.12 · Block C — Frauenfußball |
-| 1494 | 34.13 · Block D, erster Teil |
-| 1543 | 34.14 · Die Wachstumskurve |
-| 1597 | 34.15 · Die Rückblick-Karten |
-| 1636 | 34.16 · Zwei Fehler aus Kevins Test |
-| 1696 | 34.17 · Die Freischaltungen |
-| 1731 | 34.18 · Der Vermächtnis-Laden |
-| 1799 | 34.19 · Der gekaufte Kartentausch wirkt |
-| 1845 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
-| 1877 | 34.21 · Laden und Zahnrad lagen aufeinander |
-| 1958 | 34.22 · Der Laden rechnet ab, und zwei Texte |
-| 2045 | 34.23 · Jede neue Seite beginnt oben |
-| 2102 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
-| 2174 | 34.25 · Die Ränge der Errungenschaften |
-| 2237 | 34.26 · Der Rückblick liegt auf Karteikarten |
-| 2307 | 34.27 · Drei wirklich runde Kopfformen |
-| 2376 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
-| 2412 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
-| 2479 | 34.30 · Aufräumen nach dem Belastungstest |
-| 2541 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
-| 2587 | 34.32 · Die Wildcard auf hellem Papier |
-| 2625 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
-| 2662 | 34.34 · Drei Meldungen aus dem Spiel |
-| 2717 | 34.35 · Bärte bleiben in der Kopfform |
-| 2750 | Kevins Testprotokoll zu 34.33 — Ergebnis |
-| 2775 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
-| 2823 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
-| 2870 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
-| 2921 | 35.1 · Werkzeugpflege |
-| 2976 | 35.2 · STAND.md hat ein Verzeichnis |
-| 3011 | 35.3 · Eine Regel weniger zum Merken |
-| 3048 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
-| 3156 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
-| 3285 | 35.6 · Die Ereignisse ziehen aus |
-| 3361 | 35.7 · Entscheidungen mit Folgen |
-| 3427 | 35.8 · Deine Werte öffnen Türen |
-| 3503 | 35.9 · Storystränge |
-| 3569 | 35.10 · Der Anfang war die engste Stelle |
-| 3642 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
-| 3706 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
-| 3773 | 35.13 · Die Akademie wird größer |
-| 3859 | 35.14 · Antworten, die nur manchmal da sind |
-| 3929 | 35.15 · Vier Geschichten statt einer |
-| 3981 | Offene Punkte (Stand 35.15) |
-| 4107 | Zusätzliche Stolperfallen |
+| 110 | 1. Was das Projekt ist |
+| 150 | 2. Zusammenarbeit |
+| 166 | 3. Was drin ist (Grobüberblick) |
+| 279 | 4. Kalibrierung — worauf eingestellt wurde |
+| 305 | 5. Prüfstand |
+| 358 | 6. Stolperfallen — teuer gelernt |
+| 396 | 7. Was offen ist |
+| 417 | 8. Wie ein neuer Chat anfangen sollte |
+| 463 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
+| 787 | Auf dem Gerät geprüft — 10.8.2026 |
+| 894 | 34.0 · Die Spielerporträts |
+| 1011 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
+| 1259 | 34.8 · Vier gemeldete Punkte |
+| 1311 | 34.9 · Block A — fünf Fehler im Spielfluss |
+| 1376 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
+| 1431 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
+| 1479 | 34.12 · Block C — Frauenfußball |
+| 1534 | 34.13 · Block D, erster Teil |
+| 1583 | 34.14 · Die Wachstumskurve |
+| 1637 | 34.15 · Die Rückblick-Karten |
+| 1676 | 34.16 · Zwei Fehler aus Kevins Test |
+| 1736 | 34.17 · Die Freischaltungen |
+| 1771 | 34.18 · Der Vermächtnis-Laden |
+| 1839 | 34.19 · Der gekaufte Kartentausch wirkt |
+| 1885 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
+| 1917 | 34.21 · Laden und Zahnrad lagen aufeinander |
+| 1998 | 34.22 · Der Laden rechnet ab, und zwei Texte |
+| 2085 | 34.23 · Jede neue Seite beginnt oben |
+| 2142 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
+| 2214 | 34.25 · Die Ränge der Errungenschaften |
+| 2277 | 34.26 · Der Rückblick liegt auf Karteikarten |
+| 2347 | 34.27 · Drei wirklich runde Kopfformen |
+| 2416 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
+| 2452 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
+| 2519 | 34.30 · Aufräumen nach dem Belastungstest |
+| 2581 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
+| 2627 | 34.32 · Die Wildcard auf hellem Papier |
+| 2665 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
+| 2702 | 34.34 · Drei Meldungen aus dem Spiel |
+| 2757 | 34.35 · Bärte bleiben in der Kopfform |
+| 2790 | Kevins Testprotokoll zu 34.33 — Ergebnis |
+| 2815 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
+| 2863 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
+| 2910 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
+| 2961 | 35.1 · Werkzeugpflege |
+| 3016 | 35.2 · STAND.md hat ein Verzeichnis |
+| 3051 | 35.3 · Eine Regel weniger zum Merken |
+| 3088 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
+| 3196 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
+| 3325 | 35.6 · Die Ereignisse ziehen aus |
+| 3401 | 35.7 · Entscheidungen mit Folgen |
+| 3467 | 35.8 · Deine Werte öffnen Türen |
+| 3543 | 35.9 · Storystränge |
+| 3609 | 35.10 · Der Anfang war die engste Stelle |
+| 3682 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
+| 3746 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
+| 3813 | 35.13 · Die Akademie wird größer |
+| 3899 | 35.14 · Antworten, die nur manchmal da sind |
+| 3969 | 35.15 · Vier Geschichten statt einer |
+| 4021 | 35.16 · Vierundzwanzig weitere Male anders |
+| 4086 | 35.17 · Der eigene Verein — Durchstich |
+| 4180 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
+| 4242 | 35.19 · Die Akademie wird zeitlos |
+| 4287 | 35.20 · Der Verein bekommt ein Gesicht |
+| 4351 | 35.21 · Der Verein ist erreichbar |
+| 4401 | Offene Punkte (Stand 35.21) |
+| 4539 | Zusätzliche Stolperfallen |
 
 <!-- ENDE VERZEICHNIS -->
 
@@ -102,7 +122,8 @@ schreibt Punkte in Unterstriche um):
 | Datei | Zweck |
 |---|---|
 | `App.jsx` | das ganze Spiel — **Android-Fassung**, bindet `./storage.js` ein |
-| `ereignisse.js` | die 463 Ereignisse, seit 35.6 ausgelagert (Fabrik `machEreignisse`) |
+| `ereignisse.js` | die 518 Ereignisse, seit 35.6 ausgelagert (Fabrik `machEreignisse`) |
+| `verein.js` | der eigene Verein, seit 35.17 (Fabrik `machVerein`) |
 | `main.jsx`, `index.html` | Einstiegspunkt |
 | `storage.js` | Speicher über Capacitor Preferences |
 | `package.json`, `vite.config.js` | Bau |
@@ -398,19 +419,38 @@ und `@capacitor/preferences`). `UEBERSICHT.md` ist auf 33.13 neu erzeugt.
 1. `STAND.md` lesen — auch die Abschnitte ab „Fassungen 33.3 bis 33.7".
 2. Fassungsnummer in `App.jsx` gegenprüfen. Abweichung sofort melden.
 3. Alle Dateien aus dem Projektwissen in ein **beschreibbares** Verzeichnis
-   legen — `/mnt/project` ist nur lesbar. Dann:
+   legen — `/mnt/project` ist nur lesbar. **Auf die Ablage achten:** im
+   Projektwissen liegt alles flach und mit Unterstrichen statt Punkten
+   (`vite_config.js`). Im Arbeitsverzeichnis gehört es so:
+
+       App.jsx · ereignisse.js · verein.js · STAND.md · UEBERSICHT.md   flach
+       alles andere aus dem Prüfstand                                   pruefstand/
+       apk.yml                                                          .github/workflows/
+       vite_config.js → vite.config.js, capacitor_config.json → …, _gitignore → .gitignore
+
+   `ereignisse.js` und `verein.js` gehören **flach neben App.jsx**, nicht nach
+   `pruefstand/`. Liegen sie falsch, meldet esbuild nur „Could not resolve"
+   und man sucht in App.jsx. Dann:
 
        bash pruefstand/pruefen.sh /pfad/zu/App.jsx
 
    Der Aufruf **braucht den Pfad**. Die Ausgabe muss `Baudateien: 6 von 6
-   gefunden` und `Schriften: 128K` enthalten; steht dort weniger, ist das
-   Projektwissen unvollständig und der Produktionsbau ungeprüft.
+   gefunden`, `Schriften: 128K` und `Ereignisse: 518 Einträge` enthalten;
+   steht dort weniger, ist das Projektwissen unvollständig und der
+   Produktionsbau ungeprüft.
 4. Ändern, erneut messen, **vorher/nachher gegenüberstellen**.
 5. Am Ende: Fassungsnummer, `VERSION_INFO` **und den Kopf dieser Datei**
    anheben, `STAND.md` fortschreiben, alle geänderten Dateien ausliefern.
 
-**Was der Prüfstand abdeckt:** Kalibrierung, 63 Ansichten, Durchklicktest,
-Rückwärtsprüfung mit alten Sicherungen, echter Produktionsbau.
+**Was der Prüfstand abdeckt** (Teile: `aufbau · kalib · ansicht · ereignis ·
+verein · rueck · bau`): Kalibrierung mit vier Zielbändern, **460 Ansichten**,
+Durchklicktest, **11 Ereignisprüfungen** (`ereignispruefung.cjs`),
+**47 Vereinsprüfungen** (`vereinpruefung.cjs`), Rückwärtsprüfung mit alten
+Sicherungen, echter Produktionsbau. Ein Lauf dauert rund 100 Sekunden.
+
+Einzelne Teile über `TEILE=` — etwa `TEILE=aufbau,verein bash pruefstand/pruefen.sh …`
+für eine schnelle Runde. **Ohne `aufbau` gibt es kein Bündel**, und die
+Ereignis- und Vereinsprüfungen melden das ausdrücklich, statt stillzuschweigen.
 **Was er nicht abdeckt:** alles, was nur auf dem Gerät sichtbar wird — Schriften
 in der WebView, `preserve-3d` beim Wenden des Passes, `navigator.wakeLock`.
 Dafür gibt es den Browsertest als Einzeldatei: `bash pruefstand/browsertest.sh App.jsx`.
@@ -3978,7 +4018,387 @@ Impressum 35.15.
 *(Im ersten Entwurf dieses Blocks stand 523 — geschätzt, nicht gezählt. Der
 Prüfstand meldete 518. Dieselbe Sorte Zahl wie die Bündelgröße in 35.4.)*
 
-## Offene Punkte (Stand 35.15)
+## 35.16 · Vierundzwanzig weitere Male anders
+
+Fortsetzung von 35.14. Dort hatten 15 Ereignisse eine gelegentliche Alternative
+bekommen — bei 518 Ereignissen war das ein Anfang, kein Zustand.
+
+Gemessen über 60 Laufbahnen, welche Ereignisse am häufigsten gezogen werden und
+noch **keine** Alternative haben; die obersten 24 daraus bedient. Jetzt **39 von
+1.132 Optionen** erscheinen nur manchmal.
+
+Bewusst wieder eigene dritte Ausgänge, keine Schattierungen: barfuß durch den
+Matsch in die Kabine. Das alte Trikot öffentlich verteidigen. Die Strafenkasse
+der U15 spenden statt der Weihnachtsfeier. Dem Schiedsrichter hinterher
+gratulieren, weil er recht hatte. Zwei Wochen in der Heimat, ohne dass jemand
+erfährt, dass man da ist.
+
+### Drei Funde, jeder von einer anderen Art
+
+**1. Ein Riegel an der falschen Stelle — beinahe.**
+`b_dopingkontrolle` kehrt alle fünf Saisons wieder, und meine neue Option vergab
+jedes Mal die Flagge `sauber`. Die Prüfung meldete es zu Recht. Die naheliegende
+Lösung — das Ereignis sperren — wäre falsch gewesen: **Kontrollen sollen
+wiederkehren.** Der Riegel gehört an die einzelne Option.
+
+Damit war aber die Prüfung zu grob: sie kannte nur die Bedingung des
+*Ereignisses*. Nachgeschärft, sie sieht jetzt auch Riegel an der Option, die die
+Flagge vergibt. In beide Richtungen gegengeprüft.
+
+**2. Ein Absturz mitten in der Saison.**
+Ich hatte `forceInjury:1` geschrieben. Die Wirkung erwartet `"leicht"`,
+`"mittel"` oder `"schwer"` — bei einer Zahl stirbt `simulateSeason` mit
+*Cannot read properties of undefined*. Nicht beim Laden, sondern **mitten im
+Spiel**. Die Kalibrierung ist sofort gestorben.
+
+Das ist die Sorte Tippfehler, die man in 1.132 Optionen nie von Hand findet.
+Also **neue harte Prüfung**: Wirkungen mit festen Werten müssen erlaubte Werte
+benutzen. Elf Prüfungen sind es jetzt.
+
+**3. Und einmal ich selbst, zum dritten Mal in derselben Falle.**
+Beim Nachschärfen der Prüfung sind drei Einfügungen hintereinander gescheitert,
+weil ich die Suchvorlage aus einer `sed`-Anzeige kopiert hatte — und die fügt
+zwei Leerzeichen ein. Schlimmer: ein `grep` auf die Ausgabe verschluckte den
+Absturz, das Skript lief gar nicht und die Gegenprobe zeigte **dreimal
+scheinbar dasselbe Ergebnis**. Genau die Stolperfalle *„schweigende Ausgabe ist
+kein bestandener Lauf"*. Die Gegenprobe prüft seitdem zuerst, ob das Skript
+überhaupt durchgelaufen ist.
+
+### Nachgemessen
+Über **30.000 Ziehungen**: alle 39 Anteile treffen ihren Sollwert, `EVENTS`
+bleibt unverändert. Bei 4.000 Ziehungen wichen zwei um zehn Punkte ab — beide
+innerhalb von gut zwei Standardabweichungen, also Rauschen. Statt die Toleranz
+zu lockern, wurde die Stichprobe vergrössert; dieselbe Entscheidung wie bei der
+Wildcardprüfung in 35.13.
+
+Überschneidung zweier aufeinanderfolgender Laufbahnen: **5,9 %** über die ganze
+Laufbahn (35.10: 7,0 %). Der Wert bewegt sich langsam, weil er nur Kennungen
+zählt und nicht, welche Knöpfe darunter standen.
+
+### Geprüft
+Prüfstand: **407 Prüfungen**, 0 Fehler, alle vier Zielbänder, 6 × 63 Ansichten,
+**11 Ereignisprüfungen** ohne Befund. Grundlinien unverändert.
+518 Ereignisse · 1.132 Optionen · 39 nur manchmal · 36 mit Bedingung.
+Bündel **1.161,97 kB** / 427,01 kB gepackt (die 1.161,95 oben waren vor dem
+Anheben der Fassungsnummer gemessen). `sicht.sh`: 13/13 · 8 px · 4/4 ·
+Impressum 35.16.
+
+## 35.17 · Der eigene Verein — Durchstich
+
+Kevins neue Idee: statt die Absolventen ziehen zu lassen, zieht man sie in eine
+eigene erste Mannschaft hoch und arbeitet sich durch die Ligen. **Dies ist der
+Rechenkern, nicht der Bildschirm** — bewusst in dieser Reihenfolge, damit
+zuerst nachweisbar ist, DASS die Aufstellung wirkt. Eine schöne Oberfläche über
+einer Rechnung, die die Wahl ignoriert, wäre genau der tote Code, den 35.7
+abgetragen hat.
+
+### Vier Messungen vor der ersten Zeile Code
+| Frage | Antwort |
+|---|---|
+| Gibt es eine Ligapyramide? | Ja. 1.239 Vereine, **21 Länder mit Unterbau**. GER: 3. Liga (49) → 2. Liga (59) → Bundesliga (75). |
+| Gibt es einen Elf-gegen-Elf-Motor? | **Nein.** Der Tabellenplatz entsteht aus der Vereinsstärke ± Zufall. |
+| Wie lange bis 11+Bank aus Absolventen? | **11 Jahre** bei Vollausbau, 30 bei Stufe 3. Untragbar. |
+| Und aus dem Bestand *hochgezogen*? | **Sofort.** Die Akademie hält gleichzeitig 17 (Stufe 4) bis 22 (Stufe 6) Talente. |
+
+Die dritte Zahl hätte das Konzept gekippt. Kevins Wort war aber
+„**hochziehen**", nicht „auf Absolventen warten" — und damit trägt es: der Kader
+ist aus dem Bestand zu füllen, die Spieler sind mit ~46 Stärke unfertig, und
+man plündert die Akademie, die 5,5 Talente im Jahr nachliefert. **Drei bis vier
+Jahre Erholung** sind der Preis. Das ist keine Hürde, das ist die Entscheidung,
+um die es geht.
+
+Und die vierte Zahl passt von selbst: dritte Ligen liegen bei **46–49**, ein
+hochgezogener Jugendkader bei **46**.
+
+### Was der Kern kann
+`verein.js`, Fabrik wie `ereignisse.js` (Ringimport). Gründung mit Land und
+Liga · 5 Formationen · 5 Taktiken · Hochziehen aus der Akademie · Mindestkader
+16 · Aufstellung mit Positionseignung · Mannschaftsstärke · Saison mit Tabelle,
+Auf- und Abstieg · Altern und Rücktritte · Chronik und Bilanz · 15-Jahres-Grenze.
+
+**Die Aufstellung wirkt an genau einer Stelle:** die Mannschaftsstärke ersetzt
+die feste Vereinsstärke, mit der die vorhandene Maschine ohnehin arbeitet. Kein
+Spielsimulator nötig — Tabelle, Zufall und Ligagröße gelten unverändert.
+
+Positionseignung nach Kevins Vorgabe: ein Torwart ist kein Stürmer, ein Stürmer
+kann außen spielen, ein Sechser im Mittelfeld. **Kein Wert zwischen 0 und 0,6** —
+was schlechter passt, gilt als unmöglich und wird gar nicht erst angeboten.
+
+### Zwei eigene Fehler, beide durch Messen gefunden
+1. **Frauenligen in der Männerpyramide.** Der erste Entwurf erkannte sie am
+   NAMEN — und „Serie A Femminile" hat zwei m, mein Muster nur eins. Aufstieg
+   von der Serie C in die Serie A Femminile. Die Vereine tragen ein Feld `g`;
+   danach wird jetzt getrennt. Die Stolperfalle „harte Zeichenkette", wörtlich.
+2. **Eine Bilanz voller Nullen.** Ich las `tabelle.eigene.tore` — `simTable`
+   liefert ein **Array**, die eigene Zeile trägt `me: true`. Aufgefallen nur,
+   weil der 15-Jahres-Lauf die Bilanz ausgegeben hat. Und beim Nachprüfen bin
+   ich prompt in die nächste Falle gelaufen: das Prüfbündel nicht neu gebaut
+   und ein **altes** geprüft.
+
+### Der Bogen trägt
+Ein voller Durchlauf, automatisch aufgestellt: Aufstieg im ersten oder zweiten
+Jahr, acht Jahre zweite Liga bei wachsender Stärke, Aufstieg, ein Abstieg, dann
+etabliert. **Die Stärke läuft bei 66 gegen die Wand** — mit reinen
+Eigengewächsen erreicht man die Bundesliga (Schnitt 75), beherrscht sie aber
+nicht. Genau die Bremse, die Kevin sich gewünscht hat, und sie entsteht von
+selbst statt durch eine Sperre.
+
+### Zwei weitere Befunde, die erst der Prüfstand brachte
+**Sechzehn Spieler sind nicht dasselbe wie eine Mannschaft.** Zieht man die
+stärksten Talente hoch, kann der Torwart fehlen. Neu: `bedarf()` sagt, welche
+Plätze unbesetzbar sind — im Spiel gehört das gross auf den Kaderbildschirm.
+
+**Und die Akademie hatte in 14,5 % der Fälle gar keinen Torwart** (gemessen über
+200 Akademien; Torhüter sind nur 8,3 % der Aufnahmen). Solange die Absolventen
+zu fremden Vereinen gingen, war das folgenlos — jetzt ist es eine Sackgasse.
+Absicherung: ist im Haus kein Torwart, wird der erste Neuzugang einer. **Null von
+200** danach, und der Torwartanteil bleibt bei rund neun Prozent.
+
+Dabei noch ein eigener Konstruktionsfehler: `bedarf` und `autoAufstellen` waren
+**zwei ähnliche Verfahren** und konnten sich widersprechen — die Auskunft meldete
+"alles besetzbar", die Aufstellung liess trotzdem einen Platz frei. Einer von
+zwölf Läufen fiel darauf herein. `bedarf` leitet sich jetzt aus `autoAufstellen`
+ab: ein Verfahren, eine Antwort. Dazu ein Reparaturdurchgang, der Lücken mit
+irgendjemandem füllt, der dort spielen kann — ein schwacher Mann ist immer
+besser als eine Lücke, die mit Stärke 24 zählt.
+
+### Geprüft
+Neuer Prüfteil **`verein`** mit **21 Prüfungen**, im Prüfstand verdrahtet.
+Zwanzig Läufe hintereinander grün.
+Darunter der eigentliche Punkt: eine falsche Aufstellung ist messbar schlechter
+(52,4 gegen 28,4), Taktik verschiebt Abwehr und Angriff gegenläufig, fünfzehn
+Saisons laufen ohne Abbruch durch, die Bilanz zählt echte Zahlen.
+Prüfstand gesamt: **407 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+11 Ereignisprüfungen, 21 Vereinsprüfungen. Bündel **1.162,02 kB** / 427,02 kB.
+
+### Was als Nächstes kommt
+Der Bildschirm: Gründung mit Wappen, Farben und Trikot · Kaderansicht mit
+Hochziehen · Aufstellung · Saisonbericht. Dazu die Anbindung an den
+Laufbahnzähler (Freischaltung ab 5 Laufbahnen), das Entfernen der Jahreszahlen
+aus der Akademie und das Tutorial.
+
+## 35.18 · Der Vereinsmodus ist zu Ende gerechnet
+
+35.17 hatte den Durchstich: gründen, hochziehen, aufstellen, eine Saison. Jetzt
+das, was den Kreis schliesst — **Abschluss, Vermächtnis, Ausbau,
+Freischaltung**. Weiter bewusst ohne Bildschirm: der kann danach nur noch
+anzeigen, was hier nachweisbar rechnet.
+
+### Freischaltung — nichts Neues zu zählen
+Kevins Vorgabe: Akademie ab 2 abgeschlossenen Laufbahnen, Verein ab 5. Der
+Zähler `karrieren` steht bereits in der Lebensstatistik. `freigeschaltet()`
+sagt zusätzlich, **wie viele noch fehlen** — „noch 2 bis zum Verein" ist eine
+Auskunft, ein grauer Knopf ohne Begründung ist eine Zumutung. Dieselbe
+Überlegung wie bei `sperre` an den Auswahlmöglichkeiten.
+
+### Vereinsausbau — drei Abteilungen, nicht neun
+Der Verein soll die Akademie nicht nachbauen, sondern ihre Absolventen besser
+machen. **Trainingszentrum** (schnellere Entwicklung) · **Stadion**
+(Mannschaftsstärke) · **Medizinische Abteilung** (längere Laufbahnen), je sechs
+Stufen. Die Kosten liegen über einer Akademiestufe: beides gleichzeitig
+auszubauen soll eine Entscheidung sein, kein Nebenher.
+
+**Jede Wirkung ist nachgewiesen, nicht nur vorhanden** — genau der Fehler, den
+35.7 abgetragen hat:
+- Stadion voll: Mannschaftsstärke **50 → 54**
+- Training voll: Kader nach einer Saison **52,1 → 57,1**
+- Medizin voll: **18 → 0** Abgänge bei einem Kader von 34-Jährigen
+
+### Abschluss und Vermächtnis
+Nach fünfzehn Jahren Bilanz. Die Punkte gewichten **Aufstieg höher als
+Platzierung**: der Modus soll zum Hocharbeiten einladen, nicht zum Verwalten.
+Ein Abstieg kostet, aber weniger als ein Aufstieg bringt — **wer es versucht
+und scheitert, steht besser da als wer nichts riskiert.** Gemessen und geprüft.
+
+Fünf Boni mit eigenen Schwellen, und man bekommt **alle**, die man erreicht hat
+— ein knapp verpasster Sprung wäre sonst ein Totalverlust. Guter Ruf ·
+Bekannte Adresse · Volle Kasse · Fussballschule · Legendenstatus.
+
+VC-Ausschüttung 60 bis 420. Zum Vergleich: eine Laufbahn bringt rund 107 VC,
+ein Vereinsdurchlauf dauert fünfzehn davon. Spürbar, aber kein Ersatz für die
+Akademie.
+
+**Der Bonus liegt am Verein, nicht an der Akademie**, und wird beim nächsten
+Abschluss neu bestimmt statt sich aufzustapeln. Nachgewiesen, dass er im
+*nächsten* Verein ankommt: ein hochgezogenes Talent startet mit 52 statt 50.
+
+### Ein Test, der das Falsche gemessen hat
+Die Medizinprüfung meldete erst **18 gegen 18** — kein Unterschied. Ursache war
+nicht der Code, sondern mein Testaufbau: Spieler mit Stärke 50 fallen auch mit
+Vollausbau unter die zweite Bedingung („ab 33 und schwächer als 55"). Der Test
+maß die Schwäche, nicht die Medizin. Mit Stärke 70: 18 gegen 0.
+
+### Geprüft
+Vereinsprüfung von 21 auf **39 Prüfungen**, acht Läufe hintereinander grün.
+Prüfstand gesamt: **407 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+11 Ereignisprüfungen, 39 Vereinsprüfungen. Bündel **1.162,03 kB** / 427,03 kB.
+`sicht.sh`: 13/13 · 8 px · 4/4 · Impressum 35.18.
+
+### Was jetzt noch fehlt
+Nur noch Anzeige: Gründung mit Wappen, Farben und Trikot · Kaderansicht mit
+Hochziehen · Aufstellung · Saisonbericht · Abschlussbilanz. Dazu die
+Jahreszahlen aus der Akademie und das Tutorial.
+
+## 35.19 · Die Akademie wird zeitlos
+
+Kevins Einwand zum Vereinsmodus: die Akademie soll ohne Jahreszahlen auskommen,
+damit sie individuell und grundsätzlich nutzbar bleibt. Jahreszahlen gehören in
+die Vereinsübersicht, nicht ins Nachwuchshaus.
+
+Bis 35.18 stand dort: *„Gegründet 2026 · Jahr 2041"*, *„Jahrgang 2032"*,
+*„Jahr 2039"* in der Chronik. Jetzt: **„16. Jahr · 15 Jahrgänge"**,
+**„Jahrgang 7"**, **„14. Jahr"**.
+
+### Intern bleibt der Zähler stehen
+`a.jahr` wird **nicht** entfernt. Er trägt die Reihenfolge, und ihn
+herauszunehmen hätte jede bestehende Sicherung entwertet — dieselbe Überlegung
+wie bei den Akademieabteilungen in 35.13, nur diesmal von vornherein bedacht.
+Nach aussen wird nur noch relativ gezählt.
+
+Zwei Hilfsfunktionen, beide für alte Sicherungen ausgelegt:
+- `akaJahrNr(a)` — das wievielte Jahr läuft
+- `akaJahrgang(a, j)` — aus einer gespeicherten Zahl die Nummer machen
+
+**Alte Sicherungen tragen in `ein` eine Weltjahreszahl**, neue eine kleine.
+Unterschieden wird an der Grenze 1900 — grosszügig, aber eine Akademie mit 1900
+Jahrgängen wird es nicht geben. Fehlt das Gründungsjahr, wird die Zahl
+**unverändert durchgereicht** statt eine falsche zu erfinden.
+
+### Ein Testaufbau, der das Falsche gemessen hat
+Die Zählprüfung meldete erst **1,1,1,1,1,1**. Ursache war nicht der Code:
+mein Test liess die Akademie Jahre laufen, ohne sie zu **gründen** — dann ist
+`gegruendet` null und die relative Zählung fällt zu Recht auf 1 zurück. Im
+Spiel gründet man immer zuerst. Zweiter Fall an einem Tag, in dem der Test und
+nicht die Sache falsch war.
+
+### Geprüft
+Vereinsprüfung von 39 auf **47 Prüfungen**. Darunter beide Richtungen der
+Umrechnung, die Grenze zu alten Sicherungen, fehlende Werte, und dass die
+Nummer über sechs Jahre lückenlos hochzählt.
+Prüfstand gesamt: **407 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+11 Ereignisprüfungen, 47 Vereinsprüfungen. Bündel **1.162,17 kB** / 427,08 kB.
+`sicht.sh`: 13/13 · 8 px · 4/4 · Impressum 35.19.
+
+### Was noch offen ist
+Nur noch Oberfläche: Gründungsbildschirm mit Wappen, Farben und Trikot ·
+Kaderansicht mit Hochziehen · Aufstellung · Saisonbericht · Abschlussbilanz ·
+Tutorial. Der Rechenkern darunter ist vollständig und geprüft.
+
+## 35.20 · Der Verein bekommt ein Gesicht
+
+Der Rechenkern stand seit 35.17/35.18 mit 47 Prüfungen. Jetzt die Anzeige —
+in dieser Reihenfolge, damit der Bildschirm nur zeigt, was nachweislich rechnet.
+
+### Wappen: gezeichnet, nicht gemalt
+Ein freier Zeicheneditor wäre auf einem Telefon Quälerei und in einer Sicherung
+ein Datenklotz. Stattdessen dieselbe Bauweise wie bei den Avataren: **5 Formen ×
+8 Zeichen × 2 Farben**. Ein Wappen ist damit vier Zahlen gross und beliebig oft
+neu würfelbar. Dazu ein Trikot in vier Mustern — die Farbwahl soll nicht
+abstrakt bleiben.
+
+Die Formen folgen der Hausschrift: harte Kanten, sichtbare Ränder, Raute.
+
+### Drei Bildschirme
+**Gründung** — Name, Stadt, Land, Farben, Wappen, Trikot. Die Vorschau steht
+**oben**, nicht am Ende: man soll sehen, was man baut, während man es baut. Die
+Ligapyramide wird ganz gezeigt, aber nur die unterste Stufe ist wählbar — der
+Weg nach oben soll sichtbar sein, ohne abkürzbar zu werden.
+
+**Verein** — vier Reiter (Kader · Aufstellung · Ausbau · Chronik). Der
+Anpfiffknopf steht **oben**, weil er das Ziel jeder Sitzung ist, und **er sagt,
+was fehlt**: „Noch 3 Spieler nötig" oder „Nicht besetzt: 1× TW". Ein grauer
+Knopf ohne Begründung ist eine Zumutung — dieselbe Überlegung wie bei `sperre`
+und bei „noch 2 bis zum Verein".
+
+Im Kaderreiter sind Talente, die eine **offene Position** füllen können,
+hervorgehoben. Im Aufstellungsreiter steht bei jedem fehlbesetzten Platz, wie
+viel Prozent ankommen.
+
+**Abschluss** — Bilanz, Vermächtnispunkte, VC und die Boni, die der nächste
+Verein mitbekommt.
+
+### Vier Fehler beim Einbau
+1. **Klassen erfunden.** Ich schrieb `className="feld"` für Eingaben — es heisst
+   `inp` und `sel`. Nachgesehen statt geraten wäre schneller gewesen.
+2. **Kein Ressort.** Ohne Eintrag in `RESSORT` bliebe die Kolumnentitelzeile
+   leer. Angelegt: „DEIN VEREIN".
+3. **Reine Zeichnungen gelten als leere Ansicht.** Die Prüfung verlangt Text;
+   für SVG gibt es den dritten Parameter `0`, so wie bei `Balken` und `Pass`.
+4. **`NAT_BY_ID[k].n` gibt es nicht** — das Feld heisst `name`, und nicht jedes
+   Land mit Vereinen steht darin. Der Gründungsbildschirm stürzte in
+   `localeCompare` auf `undefined` ab. Fehlt der Eintrag, wird jetzt die Kennung
+   angezeigt statt einer Lücke.
+
+Dazu zum vierten Mal an diesem Tag die Einrückungsfalle: eine Suchvorlage aus
+einer `sed`-Anzeige kopiert, die zwei Leerzeichen einfügt. Zeilenbasiertes
+Einsetzen funktioniert, textbasiertes Suchen nicht.
+
+### Geprüft
+Ansichtenprüfung von 407 auf **457** — **50 neue Ansichten**: jede Wappenform
+mit jedem Zeichen einzeln (ein fehlender Pfad fällt sonst erst auf, wenn jemand
+genau diese Kombination wählt), alle Trikotmuster, die Gründung, der Verein
+**ohne Kader** (dort zeigt sich, ob die Ansicht ohne Spieler hält), spielbereit,
+ohne Akademie, und beide Abschlüsse.
+Prüfstand gesamt: **457 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 47 Vereinsprüfungen.
+Bündel **1.162,22 kB** / 427,10 kB. `sicht.sh`: 13/13 · 8 px · 4/4 · Impressum 35.20.
+
+### Was noch fehlt
+Das **Tutorial** — und die Anbindung ans Hauptmenü, also der Knopf, der den
+Verein aufruft, samt Speichern des Vereinszustands. Beides ist Arbeit am
+laufenden Spiel und gehört auf das Gerät geprüft, nicht in den Prüfstand.
+
+## 35.21 · Der Verein ist erreichbar
+
+Bis 35.20 war der Vereinsmodus gebaut und geprüft, aber im Spiel **nicht
+aufrufbar**. Jetzt hängt er im Hauptmenü, wird gespeichert und geladen.
+
+### Drei Zustände in einer Route
+Nicht gegründet → Gründungsbildschirm. Laufend → Vereinsbildschirm.
+Abgeschlossen → Bilanz. Der **Abschluss hat Vorrang**: er ist das Ergebnis von
+fünfzehn Jahren und darf nicht hinter der Kaderliste verschwinden.
+
+### Eigener Speicherschlüssel
+`rasenschach:verein`, getrennt von der Akademie — der Verein wird beim
+Abschluss ersetzt, sie bleibt bestehen. In beide Sicherungslisten aufgenommen,
+damit er im Backup landet. Fällt das Schreiben aus, läuft das Spiel weiter;
+verloren wäre der letzte Zug, nicht der Stand.
+
+### Die Menüzeile zeigt auch, was gesperrt ist
+Vor der Freischaltung steht dort **„noch 3 Laufbahnen bis zur Freischaltung"**
+statt gar nichts. Ein verstecktes Ziel merkt niemand — dieselbe Überlegung wie
+bei `sperre` an den Auswahlmöglichkeiten.
+
+Dafür bekam `zeile()` einen echten Sperrzustand: ohne Klick wird sie
+abgeblendet und `disabled`, statt nur nicht zu reagieren. Ein Knopf, der
+klickbar aussieht und nichts tut, ist schlechter als ein sichtbar gesperrter.
+
+### Drei Fehler beim Verdrahten
+1. **`gesamt` gibt es nicht** — die Lebensstatistik heisst `ges`.
+2. **Der Ladeblock landete zwischen `try` und `catch`** der Akademie. esbuild
+   meldete *Expected „finally" but found „try"*.
+3. Beim Verschieben traf mein Suchtext **die falsche von zwei Fundstellen**
+   („noch keine Akademie" steht auch in einem Anzeigetext). Zeilengenau
+   nachgesetzt: das `catch`, das unmittelbar auf den `AKA_KEY`-Block folgt.
+
+Und einmal hat mich mein eigenes `head` getäuscht: `esbuild … | head -6` gibt
+den Rückgabecode der **Pipe** zurück, nicht den des Übersetzers — die Meldung
+„Übersetzung fehlerfrei" erschien neben einem Fehler. Seitdem wird die Ausgabe
+in eine Datei geschrieben und der Code getrennt geprüft. Dieselbe Klasse wie
+„schweigende Ausgabe ist kein bestandener Lauf".
+
+### Geprüft
+Ansichtenprüfung von 457 auf **460**: die Menüzeile in drei Zuständen —
+gesperrt (mit der fehlenden Zahl), frei mit Verein, frei ohne Verein.
+Prüfstand gesamt: **460 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 47 Vereinsprüfungen.
+Bündel **1.190,24 kB** / 435,86 kB gepackt (+28 kB gegenüber 35.19: Bildschirme
+und Anbindung). `sicht.sh`: 13/13 · 8 px · 4/4 · Impressum 35.21.
+
+### Was jetzt wirklich nur noch fehlt
+Das **Tutorial**. Alles andere ist da und aufrufbar.
+
+## Offene Punkte (Stand 35.21)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
@@ -4037,6 +4457,18 @@ Prüfstand meldete 518. Dieselbe Sorte Zahl wie die Bündelgröße in 35.4.)*
    Kevins Seite: der Prüfstand rechnet 300 Laufbahnen durch, aber niemand *spielt*
    sie. Ob sich eine Laufbahn über zwanzig Saisons richtig anfühlt, sagt keine
    Kennzahl.
+
+**Seit 35.20 erledigt:** der Verein hängt im Hauptmenü, wird gespeichert und ist ab 5 Laufbahnen frei.
+
+**Seit 35.19 erledigt:** Vereinsbildschirme mit Wappen, Farben und Trikot — 50 neue Ansichtsprüfungen.
+
+**Seit 35.18 erledigt:** die Akademie kennt keine Jahreszahlen mehr, alte Sicherungen werden umgerechnet.
+
+**Seit 35.17 erledigt:** Abschluss, Vermächtnisbonus, Vereinsausbau und Freischaltgrenzen — der Rechenkern ist vollständig.
+
+**Seit 35.16 erledigt:** Rechenkern des Vereinsmodus (Durchstich) mit 20 eigenen Prüfungen.
+
+**Seit 35.15 erledigt:** 24 weitere gelegentliche Alternativen; Prüfung auf feste Wirkungswerte ergänzt.
 
 **Seit 35.14 erledigt:** drei weitere Storystränge (Buch, Knie, Trainer), Einstiegsgewichte und Wartezeiten kalibriert.
 

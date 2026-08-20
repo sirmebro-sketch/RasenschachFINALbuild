@@ -1,0 +1,33 @@
+REPOSITORY AUF 35.21 BRINGEN
+=============================
+Dieses Archiv hat bereits die richtige Ordnerstruktur.
+Einfach ueber das Repository entpacken — die Pfade stimmen dann von selbst.
+
+  App.jsx                        ersetzen
+  ereignisse.js                  NEU
+  verein.js                      NEU
+  STAND.md                       ersetzen
+  UEBERSICHT.md                  ersetzen
+  pruefstand/ansichten.jsx       ersetzen
+  pruefstand/browsertest.sh      ersetzen
+  pruefstand/exporte.txt         ersetzen
+  pruefstand/kalibrierung.cjs    ersetzen
+  pruefstand/pruefen.sh          ersetzen
+  pruefstand/vorschau.py         ersetzen
+  pruefstand/ereignispruefung.cjs   NEU
+  pruefstand/vereinpruefung.cjs     NEU
+  .github/workflows/apk.yml      ersetzen
+
+WICHTIG
+  ereignisse.js und verein.js gehoeren in die WURZEL neben App.jsx,
+  nicht nach pruefstand/. Sonst bricht der Bau mit
+  "Could not resolve ./ereignisse.js" ab.
+
+  package.json ist UNVERAENDERT — es kommt kein neues Paket dazu.
+  Alle anderen Dateien im Repository bleiben, wie sie sind.
+
+GEPRUEFT aus genau diesem Stand
+  460 Pruefungen, 0 Fehler · alle vier Zielbaender
+  11 Ereignispruefungen · 47 Vereinspruefungen
+  Bau 1.190,24 kB / 435,86 kB · package.json unveraendert
+  sicht.sh 13/13 · Impressum 35.21

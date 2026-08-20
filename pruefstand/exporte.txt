@@ -32,4 +32,11 @@ export {
   wahlOffen, offeneWahlen,
   /* Storystraenge (35.9) */
   STRAENGE, strangDran, strangWeiter,
+  /* Eigener Verein (35.17) */
+  VEREIN,
+  /* Relative Jahreszaehlung der Akademie (35.19) */
+  akaJahrNr, akaJahrgang,
+  /* Vereinsansicht (35.20) */
+  Wappen, Trikot, VereinGruenden, VereinScreen, VereinAbschluss,
+  WAPPEN_FORMEN, WAPPEN_ZEICHEN, TRIKOT_MUSTER,
 };

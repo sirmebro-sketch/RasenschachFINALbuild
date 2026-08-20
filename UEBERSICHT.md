@@ -3,7 +3,7 @@
 > Diese Datei wird aus dem Quelltext erzeugt, nicht von Hand gepflegt.
 > Jede Zahl stammt aus den Daten des laufenden Spiels.
 
-**Fassung 35.15** · erzeugt am 17. August 2026
+**Fassung 35.21** · erzeugt am 20. August 2026
 
 ## Inhalt auf einen Blick
 
@@ -1590,7 +1590,7 @@ seltener nachgezogen, damit sich nichts wiederholt.
 
 - Ereignisse insgesamt: **518**
 - davon mit echter Wahl: **518**
-- davon mit ungewissem Ausgang: **267**
+- davon mit ungewissem Ausgang: **270**
 
 - an eine Bedingung geknüpft (Alter, Lage, Verein): **512**
 - jederzeit möglich: **6**
@@ -1685,7 +1685,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Zweimal Pommes, jeden Tag | 2 | nein | 3 | ja |
 | Neue Schuhe, neues Gefühl | 3 | ja | 5 | ja |
 | Schulung zu Nahrungsergänzung | 3 | ja | 4 | ja |
-| Der Verein zahlt einen Sprachkurs | 2 | nein | 5 | ja |
+| Der Verein zahlt einen Sprachkurs | 3 | nein | 5 | ja |
 | Die erste Steuererklärung | 2 | ja | 6 | ja |
 | Mieten oder kaufen | 3 | nein | 5 | ja |
 | Der Wagen auf dem Spielerparkplatz | 2 | nein | 5 | ja |
@@ -1807,7 +1807,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Wahl des Mannschaftsrats | 2 | ja | 5 | ja |
 | Deine Ansprache vor dem entscheidenden Spiel | 2 | ja | 8 | ja |
 | Streit zwischen ein Mitspieler und dem Trainer | 3 | ja | 7 | ja |
-| Der Vorstand lädt dich ein | 2 | ja | 7 | ja |
+| Der Vorstand lädt dich ein | 3 | ja | 7 | ja |
 | Ein Jüngerer wäre bereit | 2 | ja | 6 | ja |
 | Neue Kabinenordnung | 2 | ja | 6 | ja |
 | Du bist jetzt der Ältere | 2 | nein | 6 | ja |
@@ -1825,7 +1825,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Beteiligung an einer Spielerberatung | 2 | ja | 2 | ja |
 | Neue Schuhe im Test | 2 | ja | 4 | ja |
 | Zwei Sponsoren, ein Problem | 2 | nein | 5 | ja |
-| Präsentation des neuen Trikots | 2 | nein | 4 | ja |
+| Präsentation des neuen Trikots | 3 | ja | 4 | ja |
 | Titelprämie wird ausgezahlt | 2 | nein | 6 | ja |
 | Einsatzprämie erreicht | 2 | nein | 6 | ja |
 | Sechs Termine an einem freien Tag | 2 | nein | 5 | ja |
@@ -1865,19 +1865,19 @@ heruntergewichtet, damit sich nichts wiederholt.
 | streit | 2 | ja | 3 | ja |
 | Der Siebzehnjährige | 2 | nein | 3 | ja |
 | Der Mannschaftsrat will den Trainer kippen | 2 | ja | 2 | ja |
-| Ein Neuzugang für 30 Millionen | 2 | ja | 3 | ja |
+| Ein Neuzugang für 30 Millionen | 3 | ja | 3 | ja |
 | Die Mannschaft will die Sondereinheit boykottieren | 2 | nein | 2 | ja |
-| Strafenkatalog | 2 | nein | 4 | ja |
+| Strafenkatalog | 3 | nein | 4 | ja |
 | Das Einstandslied | 2 | nein | 7 | ja |
 | ein Mitspieler liegt lange | 4 | nein | 6 | ja |
 | Die freie Rückennummer | 3 | ja | 5 | ja |
 | Ein früherer Mitspieler wird dein Trainer | 2 | ja | 5 | ja |
-| Zimmeraufteilung im Trainingslager | 2 | nein | 4 | ja |
+| Zimmeraufteilung im Trainingslager | 3 | nein | 4 | ja |
 | Ein Spruch geht zu weit | 2 | ja | 5 | ja |
 | Eskalation in der Halbzeitkabine | 2 | ja | 5 | ja |
 | Die Mannschaft verweigert das Training | 2 | ja | 5 | ja |
-| Deine Trikots verschwinden | 2 | ja | 4 | — |
-| Abschlussfeier der Mannschaft | 2 | nein | 5 | ja |
+| Deine Trikots verschwinden | 3 | ja | 4 | — |
+| Abschlussfeier der Mannschaft | 3 | nein | 5 | ja |
 
 **Konkurrenz** (7)
 
@@ -1896,7 +1896,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
 | Die linke Socke zuerst | 2 | nein | 2 | ja |
-| Das Ritual | 2 | ja | 2 | — |
+| Das Ritual | 3 | ja | 2 | — |
 | Ein Fan will sich deinen Namen tätowieren lassen | 2 | nein | 2 | ja |
 | Trikottausch mit deinem Kindheitsidol | 2 | nein | 2 | ja |
 | Spielabbruch wegen Unwetter | 2 | ja | 2 | ja |
@@ -1904,9 +1904,9 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Ein Kind schreibt dir einen Brief | 2 | nein | 2 | ja |
 | Dein alter Jugendtrainer sitzt auf der Tribüne | 2 | nein | 2 | ja |
 | Schneetreiben beim Anpfiff | 2 | ja | 2 | ja |
-| Der Rasen ist eine Katastrophe | 2 | nein | 3 | ja |
-| Kontrolle um sechs Uhr morgens | 2 | ja | 5 | ja |
-| Neunzig Minuten Dauerregen | 2 | nein | 4 | ja |
+| Der Rasen ist eine Katastrophe | 3 | nein | 3 | ja |
+| Kontrolle um sechs Uhr morgens | 3 | ja | 5 | ja |
+| Neunzig Minuten Dauerregen | 3 | nein | 4 | ja |
 
 **Körper** (13)
 
@@ -1922,7 +1922,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Der Verein stellt einen Schlafcoach ein | 2 | nein | 2 | ja |
 | Saisonstart bei 34 Grad | 2 | ja | 2 | ja |
 | Der Körper wächst schneller als der Rest | 2 | ja | 6 | ja |
-| Der Schlaftracker sagt fünf Stunden | 2 | nein | 6 | ja |
+| Der Schlaftracker sagt fünf Stunden | 3 | nein | 6 | ja |
 | Die Körperfettmessung | 4 | ja | 6 | ja |
 | Eistonne nach jedem Spiel | 2 | nein | 5 | ja |
 
@@ -2083,7 +2083,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
-| Erste Pokalrunde beim Viertligisten | 2 | ja | 4 | ja |
+| Erste Pokalrunde beim Viertligisten | 3 | ja | 4 | ja |
 | Pokalfinale | 2 | ja | 4 | ja |
 
 **Position** (27)
@@ -2157,7 +2157,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
-| Angeschlagen vor dem wichtigsten Spiel | 2 | ja | 3 | ja |
+| Angeschlagen vor dem wichtigsten Spiel | 3 | ja | 3 | ja |
 | Eine Spritze vor dem Anpfiff | 2 | ja | 6 | ja |
 | Zu schnell auf nasser Straße | 2 | ja | 4 | ja |
 
@@ -2173,12 +2173,12 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Derbywoche | 4 | ja | 4 | ja |
 | Die Leistungsdiagnostik ist eindeutig | 3 | ja | 3 | ja |
 | Die erste Rote Karte | 2 | nein | 6 | ja |
-| Der Videobeweis nimmt dir ein Tor | 2 | nein | 5 | ja |
+| Der Videobeweis nimmt dir ein Tor | 3 | nein | 5 | ja |
 | Drei Spiele in acht Tagen | 2 | ja | 5 | ja |
 | Wahrscheinlich dein letztes Derby | 2 | ja | 6 | ja |
 | Der Knoten platzt | 2 | ja | 6 | ja |
-| Halbzeit der Saison | 2 | nein | 6 | ja |
-| Die letzten fünf Spiele | 2 | ja | 6 | ja |
+| Halbzeit der Saison | 3 | nein | 6 | ja |
+| Die letzten fünf Spiele | 3 | ja | 6 | ja |
 | Nicht im Reisekader | 4 | ja | 5 | ja |
 | Aussprache mit dem Schiedsrichter | 2 | nein | 5 | ja |
 | Acht Wochen ohne gutes Spiel | 2 | ja | 6 | ja |
@@ -2256,7 +2256,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Der Freundeskreis von früher | 2 | ja | 6 | ja |
 | Dein Bruder braucht einen Job | 2 | ja | 5 | ja |
 | Es geht dir nicht gut | 2 | ja | 5 | ja |
-| Zwei Wochen zu Hause | 2 | nein | 5 | ja |
+| Zwei Wochen zu Hause | 3 | nein | 5 | ja |
 | Jemand ahmt dich nach | 2 | nein | 5 | ja |
 | Ein alter Bekannter meldet sich | 2 | nein | 7 | ja |
 
@@ -2267,7 +2267,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Vom Fußball allein leben? | 3 | nein | 6 | ja |
 | Sechs Stunden im Bus | 4 | nein | 5 | ja |
 | Dem Verein fehlt die Lizenz | 2 | ja | 5 | ja |
-| Pokal gegen einen Erstligisten | 2 | ja | 6 | ja |
+| Pokal gegen einen Erstligisten | 3 | ja | 6 | ja |
 | Achthundert Zuschauer | 2 | ja | 4 | ja |
 
 **Verein** (26)
@@ -2324,7 +2324,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
 | Ein Zettel, den deine Eltern unterschreiben müssen | 2 | nein | 4 | ja |
-| Ablösefrei gehen oder verlängern? | 2 | nein | 3 | ja |
+| Ablösefrei gehen oder verlängern? | 3 | ja | 3 | ja |
 | Streit um die Ausstiegsklausel | 3 | ja | 2 | ja |
 | Neuer Sportdirektor, alte Vorbehalte | 2 | ja | 2 | ja |
 | Deine Agentur wird verkauft | 2 | ja | 2 | ja |
@@ -2347,14 +2347,14 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Sechs Wochen Sommerpause | 2 | nein | 4 | ja |
 | Zwei Wochen vor dem Trainingsauftakt | 3 | nein | 5 | ja |
 | Extraschichten vor dem Training | 3 | nein | 5 | ja |
-| Trainingslager im Januar | 2 | ja | 5 | ja |
+| Trainingslager im Januar | 3 | ja | 5 | ja |
 
 **Wechselfrage** (4)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
 | Anfrage im Wintertransferfenster | 3 | nein | 7 | ja |
-| Ein Abstiegskandidat ruft an | 2 | nein | 6 | ja |
+| Ein Abstiegskandidat ruft an | 3 | nein | 6 | ja |
 | Dein alter Trainer will dich zurück | 3 | nein | 6 | ja |
 | Ultimatum an den Trainer | 2 | ja | 6 | ja |
 
@@ -2385,7 +2385,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Spielertrainer bei der Zweiten | 2 | nein | 6 | ja |
 | Lehrgang mit Sofortwirkung | 2 | nein | 5 | ja |
 | Was kommt danach? | 3 | nein | 5 | ja |
-| Fernstudium neben dem Profivertrag | 2 | nein | 5 | ja |
+| Fernstudium neben dem Profivertrag | 3 | ja | 5 | ja |
 | Man erinnert sich an dich | 2 | nein | 6 | ja |
 | Die Vitrine der Familie | 2 | nein | 6 | ja |
 

@@ -2,14 +2,15 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from "re
 import { store } from "./storage.js";
 import { SCHRIFTEN } from "./schriften.js";
 import { machEreignisse } from "./ereignisse.js";
+import { machVerein } from "./verein.js";
 
 /* ================================================================
    FLUTLICHT v4 — Karriere-Simulator
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "35.15";
-const VERSION_INFO = "Drei weitere Geschichten, die sich über Jahre ziehen: ein Buch über dich, ein Knie das nicht aufhört, und der Trainer, der dich einst geholt hat.";
+const VERSION = "35.21";
+const VERSION_INFO = "Der eigene Verein steht jetzt im Hauptmenü und wird gespeichert — ab fünf abgeschlossenen Laufbahnen ist er frei.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -3774,6 +3775,12 @@ const offeneWahlen = (e, p) => (e.choices || []).filter((c) => wahlOffen(c, p));
 const EVENTS = machEreignisse({ T, fehler, heldentat, istTraum, lastS, sameClub, sameLeague, confOf, eur, ligaInfo, COL, POKAL, TIER, TOP5 });
 const EV_BY_ID = {}; EVENTS.forEach((e) => { EV_BY_ID[e.id] = e; });
 
+/* Der eigene Verein (35.17) liegt in einer eigenen Datei — dieselbe Bauweise
+   wie die Ereignisse, aus demselben Grund: ein Import von App.jsx waere ein
+   Ringimport. Die Helfer werden uebergeben. Wer dort etwas ergaenzt, das einen
+   weiteren Namen braucht, traegt ihn in BEIDEN Listen nach. */
+const VEREIN = machVerein({ CLUBS, LEAGUES, simTable, clamp, ri, rnd, gauss, chance, pick, POS, ligaInfo });
+
 /* ================= WILDCARDS =================
    Zu Beginn jeder Karriere wird genau eine Karte gezogen. Die Seltenheit
    bestimmt, wie stark sie wirkt — und wie unwahrscheinlich sie ist.      */
@@ -5380,6 +5387,9 @@ function verdict(p) {
    ================================================================ */
 
 const AKA_KEY = "rasenschach:akademie";
+/* Eigener Verein (35.21). Getrennt von der Akademie gespeichert: er wird beim
+   Abschluss ersetzt, sie bleibt bestehen. */
+const VER_KEY = "rasenschach:verein";
 
 /* Die sechs Abteilungen. Stufe 1 hat man von Anfang an, die Kosten stehen
    für den Sprung auf die jeweils nächste Stufe. Voller Ausbau kostet
@@ -5437,6 +5447,33 @@ const leereAkademie = () => ({
   talente: [], absolventen: [], chronik: [], ruhm: 0,
   bilanz: { aufgenommen:0, profis:0, weltklasse:0, nationalspieler:0, turniere:0, abbrecher:0 },
 });
+
+/* ---- Jahreszaehlung der Akademie (35.19) --------------------------------
+   Bis 35.18 stand in der Akademie eine Weltjahreszahl: "Gegruendet 2026 ·
+   Jahr 2041", "Jahrgang 2032". Kevins Einwand: die Akademie soll zeitlos
+   bleiben, Jahreszahlen gehoeren in die Vereinsuebersicht.
+
+   Intern bleibt `a.jahr` als Zaehler stehen — er traegt die Reihenfolge, und
+   ihn zu entfernen haette jede bestehende Sicherung entwertet. Nach aussen
+   wird nur noch RELATIV gezaehlt: das wievielte Jahr, der wievielte Jahrgang.
+
+   `akaJahrNr(a)`     — das wievielte Jahr laeuft gerade
+   `akaJahrgang(a, j)` — aus einer gespeicherten Jahreszahl die Nummer machen
+   Beide vertragen alte Sicherungen: dort steht in `ein` eine Weltjahreszahl,
+   hier wird sie gegen `gegruendet` verrechnet. Fehlt `gegruendet`, wird die
+   Zahl unveraendert durchgereicht statt eine falsche zu erfinden. */
+const akaJahrNr = (a) => {
+  if (!a || !a.gegruendet) return 1;
+  return Math.max(1, (a.jahr || a.gegruendet) - a.gegruendet + 1);
+};
+const akaJahrgang = (a, j) => {
+  if (j == null) return null;
+  if (!a || !a.gegruendet) return j;
+  /* Kleine Zahlen sind bereits relativ (neue Sicherungen), grosse sind
+     Weltjahre (alte). Die Grenze bei 1900 ist grosszuegig: eine Akademie
+     mit 1900 Jahrgaengen wird es nicht geben. */
+  return j < 1900 ? j : Math.max(1, j - a.gegruendet + 1);
+};
 
 const akaStufe = (a, id) => clamp((a && a.stufen && a.stufen[id]) || 1, 1, AKA_MAX);
 const akaSumme = (a) => ABTEILUNGEN.reduce((s, x) => s + akaStufe(a, x.id), 0);
@@ -5687,11 +5724,17 @@ const AKA_POS = ["TW","IV","IV","AV","AV","ZDM","ZM","ZM","ZOM","AF","AF","ST"];
 /* Ein Talent tritt mit fünfzehn ein. Wie gut es ist und was in ihm steckt,
    hängt an den Abteilungen — Plätze an der Grundstärke, Ausbildung an der
    Anlage, Scouting an der Streuung (man findet auch mal einen Ausreißer). */
-function talentBauen(a, jahr) {
+/* `wunschPos` (35.17) erzwingt eine Position. Gebraucht wird das genau fuer
+   Torhueter: sie sind 8,3 % der Aufnahmen, und gemessen ueber 200 Akademien
+   hatten 14,5 % gar keinen. Solange die Absolventen zu fremden Vereinen
+   gingen, war das folgenlos. Seit man mit ihnen eine eigene Mannschaft
+   bildet, ist es eine Sackgasse: ohne Torwart keine Aufstellung, ohne
+   Aufstellung keine Saison. */
+function talentBauen(a, jahr, wunschPos) {
   const S = { ...leereAkademie().stufen, ...((a && a.stufen) || {}) };
   const natId = pick(REGION_KEYS);
   const nat = NAT_BY_ID[natId] || NATIONS[0];
-  const pos = pick(AKA_POS);
+  const pos = wunschPos || pick(AKA_POS);
   const ovr = clamp(Math.round(34 + S.plaetze * 1.2 + gauss(0, 3)), 26, 56);
   const pot = clamp(Math.round(ovr + 10 + S.lehre * 2.6 + gauss(0, 3.5 + S.scouting * .9)), ovr + 3, 97);
   return {
@@ -5792,7 +5835,14 @@ function akaJahr(a0, weltjahr) {
 
   /* 3. Neuer Jahrgang */
   const anzahl = Math.max(1, ri(1, 2) + Math.round(S.scouting * .7));
-  for (let i = 0; i < anzahl; i++) { bleibenNach.push(talentBauen(a, jahr)); a.bilanz.aufgenommen++; }
+  /* Erst der Regelfall, dann die Absicherung: ist im ganzen Haus kein
+     Torwart, wird der erste Neuzugang einer. Greift nur im Notfall und
+     verschiebt die Verteilung deshalb kaum. */
+  for (let i = 0; i < anzahl; i++) {
+    const keinTW = !bleibenNach.some((t) => t.pos === "TW");
+    bleibenNach.push(talentBauen(a, jahr, (i === 0 && keinTW) ? "TW" : null));
+    a.bilanz.aufgenommen++;
+  }
   E.push({ art: "neu", txt: anzahl + " neue Talente aufgenommen." });
 
   /* 4. Jugendturnier */
@@ -6026,7 +6076,7 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
       <div className="fade">
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div>
-            <div className="eb">Gegründet {a.gegruendet} · Jahr {a.jahr}</div>
+            <div className="eb">{akaJahrNr(a)}. Jahr · {a.jahrgaenge} Jahrgänge</div>
             <div className="d" style={{ fontSize: "clamp(26px,7vw,44px)" }}>{a.name}</div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -6186,7 +6236,7 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
                           <div className="d" style={{ fontSize: 17, wordBreak: "break-word" }}>{x.name}</div>
                           <div className="m" style={{ fontSize: 10.5 }}>
                             {POS[x.pos] ? POS[x.pos].short : x.pos}
-                            {x.ein ? " · Jahrgang " + x.ein : ""}
+                            {x.ein ? " · Jahrgang " + akaJahrgang(a, x.ein) : ""}
                           </div>
                           {/* Wohin er gegangen ist. Absolventen aus Sicherungen
                               vor 35.12 haben kein klub-Feld — dann bleibt die
@@ -6216,7 +6266,7 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
               ? <div className="pan pad" style={{ fontSize: 13, color: "var(--mu)" }}>Noch nichts geschehen.</div>
               : a.chronik.map((c, i) => (
                   <div className="pan pad" key={c.jahr + "_" + i}>
-                    <div className="eb">Jahr {c.jahr}</div>
+                    <div className="eb">{akaJahrgang(a, c.jahr)}. Jahr</div>
                     <div className="g1" style={{ gap: 4, marginTop: 6 }}>
                       {c.e.map((e, j) => (
                         <div key={j} style={{ fontSize: 12.5, color: AKA_FARBE[e.art] || "var(--tx)" }}>{e.txt}</div>))}
@@ -7136,7 +7186,7 @@ async function ladeMitAltbestand(key) {
 const HALL_KEY = "rasenschach:halle";
 /* Alles, was die App dauerhaft ablegt — einzige Wahrheit für „Alles
    zurücksetzen". Wer einen neuen Schlüssel einführt, trägt ihn hier ein. */
-const SPEICHERSCHLUESSEL = [SAVE_KEY, SEEN_KEY, ACH_KEY, LIFE_KEY, META_KEY, HALL_KEY, AKA_KEY,
+const SPEICHERSCHLUESSEL = [SAVE_KEY, SEEN_KEY, ACH_KEY, LIFE_KEY, META_KEY, HALL_KEY, AKA_KEY, VER_KEY,
   "rasenschach:ruhe", "rasenschach:vib", "rasenschach:text",
   "rasenschach:speed", "rasenschach:schwer", "rasenschach:wach"];
 /* Schulnoten laufen von 1 bis 6 — die Farbe soll das auch tun. Vorher:
@@ -7300,6 +7350,8 @@ const RESSORT = {
   hall:      { n: "RUHMESHALLE",      s: 14, f: "var(--ac)" },
   erfolge:   { n: "ERRUNGENSCHAFTEN", s: 22, f: "var(--ok)" },
   akademie:  { n: "JUGENDAKADEMIE",   s: 30, f: "var(--mu)" },
+  /* Eigener Verein (35.20) — ohne Eintrag bliebe die Kolumnentitelzeile leer. */
+  verein: { n: "DEIN VEREIN", s: 31, f: "var(--mu)" },
   optionen:  { n: "REDAKTION",        s: 46, f: "var(--mu)" },
   archiv:    { n: "ARCHIV",           s: 48, f: "var(--mu)" },
   laden:     { n: "ANZEIGEN",         s: 8,  f: "var(--go)" },
@@ -7335,6 +7387,493 @@ function Folio({ r }) {
       </div>
     </div>
   );
+}
+
+/* ==== EIGENER VEREIN — Ansicht (35.20) ====================================
+   Der Rechenkern steht seit 35.17/35.18 in verein.js und ist mit 47 Prüfungen
+   belegt. Hier kommt die Anzeige dazu — bewusst in dieser Reihenfolge, damit
+   der Bildschirm nur zeigt, was nachweislich rechnet.
+
+   WARUM DAS WAPPEN GEZEICHNET UND NICHT GEMALT WIRD
+   Ein freier Zeicheneditor wäre auf einem Telefon Quälerei und in einer
+   Sicherung ein Datenklotz. Stattdessen dieselbe Bauweise wie bei den
+   Avataren: eine Handvoll Formen, zwei Farben, ein paar Zahlen. Ein Wappen
+   ist damit vier Zahlen gross und lässt sich beliebig oft neu würfeln.
+   Die Formen folgen der Hausschrift: harte Kanten, sichtbare Ränder, Raute.  */
+
+const WAPPEN_FORMEN = ["schild", "raute", "rund", "wimpel", "kreuz"];
+const WAPPEN_ZEICHEN = ["raute", "stern", "ball", "balken", "loewe", "anker", "berg", "blitz"];
+
+function Wappen({ w, farben, groesse = 64 }) {
+  const f = farben || { primaer: "#c0392b", sekundaer: "#f4f1ea" };
+  const form = (w && w.form) || "schild";
+  const zeichen = (w && w.zeichen) || "raute";
+  const g = groesse, m = g / 2;
+  /* Der Umriss. Alle Pfade sind auf 100×100 gerechnet und werden skaliert. */
+  const umriss = {
+    schild: "M8 6 H92 V56 C92 78 70 92 50 96 C30 92 8 78 8 56 Z",
+    raute:  "M50 4 L96 50 L50 96 L4 50 Z",
+    rund:   "M50 5 A45 45 0 1 1 49.9 5 Z",
+    wimpel: "M8 6 H92 V70 L50 96 L8 70 Z",
+    kreuz:  "M8 6 H92 V94 H8 Z",
+  }[form];
+  return (
+    <svg width={g} height={g} viewBox="0 0 100 100" aria-hidden
+      style={{ display: "block", flexShrink: 0 }}>
+      <path d={umriss} fill={f.primaer} stroke="var(--ln2)" strokeWidth="4" />
+      {form === "kreuz" && (
+        <g fill={f.sekundaer}><rect x="40" y="6" width="20" height="88" />
+          <rect x="8" y="40" width="84" height="20" /></g>)}
+      <g fill={f.sekundaer} transform="translate(50 48) scale(0.62) translate(-50 -50)">
+        {zeichen === "raute"  && <path d="M50 12 L82 50 L50 88 L18 50 Z" />}
+        {zeichen === "stern"  && <path d="M50 10 L61 39 L92 39 L67 58 L77 88 L50 69 L23 88 L33 58 L8 39 L39 39 Z" />}
+        {zeichen === "ball"   && <g><circle cx="50" cy="50" r="34" />
+          <path d="M50 28 L64 39 L59 56 H41 L36 39 Z" fill={f.primaer} /></g>}
+        {zeichen === "balken" && <g><rect x="16" y="30" width="68" height="12" />
+          <rect x="16" y="52" width="68" height="12" /></g>}
+        {zeichen === "loewe"  && <path d="M30 78 V52 L22 40 L34 44 L40 26 L50 38 L60 26 L66 44 L78 40 L70 52 V78 Z" />}
+        {zeichen === "anker"  && <g><rect x="45" y="26" width="10" height="52" />
+          <rect x="30" y="38" width="40" height="10" />
+          <path d="M22 60 C22 80 50 86 50 86 C50 86 78 80 78 60 L70 60 C70 72 50 76 50 76 C50 76 30 72 30 60 Z" /></g>}
+        {zeichen === "berg"   && <path d="M12 80 L38 34 L54 58 L66 42 L88 80 Z" />}
+        {zeichen === "blitz"  && <path d="M56 8 L26 56 H46 L40 92 L74 42 H52 Z" />}
+      </g>
+      <path d={umriss} fill="none" stroke="var(--ln2)" strokeWidth="4" />
+    </svg>);
+}
+
+/* Ein Trikot, damit die Farbwahl nicht abstrakt bleibt. */
+function Trikot({ farben, muster = "einfarbig", groesse = 56 }) {
+  const f = farben || { primaer: "#c0392b", sekundaer: "#f4f1ea" };
+  return (
+    <svg width={groesse} height={groesse} viewBox="0 0 100 100" aria-hidden style={{ display: "block" }}>
+      <defs>
+        <clipPath id="tk"><path d="M30 14 L20 20 L10 34 L22 44 L26 38 V88 H74 V38 L78 44 L90 34 L80 20 L70 14 L60 22 H40 Z" /></clipPath>
+      </defs>
+      <g clipPath="url(#tk)">
+        <rect x="0" y="0" width="100" height="100" fill={f.primaer} />
+        {muster === "streifen" && [0, 2, 4, 6].map((i) => (
+          <rect key={i} x={10 + i * 12} y="0" width="12" height="100" fill={f.sekundaer} />))}
+        {muster === "quer" && [0, 2, 4].map((i) => (
+          <rect key={i} x="0" y={20 + i * 20} width="100" height="20" fill={f.sekundaer} />))}
+        {muster === "raute" && <path d="M50 20 L74 50 L50 80 L26 50 Z" fill={f.sekundaer} />}
+      </g>
+      <path d="M30 14 L20 20 L10 34 L22 44 L26 38 V88 H74 V38 L78 44 L90 34 L80 20 L70 14 L60 22 H40 Z"
+        fill="none" stroke="var(--ln2)" strokeWidth="4" />
+    </svg>);
+}
+
+const TRIKOT_MUSTER = [["einfarbig", "Einfarbig"], ["streifen", "Streifen"],
+  ["quer", "Querstreifen"], ["raute", "Raute"]];
+const FARBTOENE = ["#c0392b", "#1f5c9e", "#1e7d44", "#2b2b2b", "#e0a21c",
+  "#6d3b8e", "#0f7a72", "#8c2f4a"];
+
+/* ------------------------------------------------------------ Gründung */
+function VereinGruenden({ aka, onFertig, onZurueck }) {
+  const laender = React.useMemo(() => {
+    const m = {};
+    CLUBS.forEach((c) => { if (!m[c.c]) m[c.c] = 0; m[c.c]++; });
+    return Object.keys(m)
+      .filter((k) => VEREIN.startligen(k).length > 0)
+      /* Das Feld heisst `name`, nicht `n` — und nicht jedes Land mit Vereinen
+         steht in NAT_BY_ID. Der erste Entwurf las `.n` und stuerzte in
+         localeCompare auf undefined ab. Fehlt der Eintrag, wird die Kennung
+         angezeigt statt eine Luecke. */
+      .map((k) => ({ id: k, n: ((NAT_BY_ID && NAT_BY_ID[k]) || {}).name || k }))
+      .sort((a, b) => String(a.n).localeCompare(String(b.n), "de"));
+  }, []);
+  const [land, setLand] = React.useState(laender[0] ? laender[0].id : "GER");
+  const [liga, setLiga] = React.useState("");
+  const [name, setName] = React.useState("");
+  const [stadt, setStadt] = React.useState("");
+  const [primaer, setPrimaer] = React.useState(FARBTOENE[0]);
+  const [sekundaer, setSekundaer] = React.useState("#f4f1ea");
+  const [form, setForm] = React.useState("schild");
+  const [zeichen, setZeichen] = React.useState("raute");
+  const [muster, setMuster] = React.useState("einfarbig");
+
+  const ligen = VEREIN.startligen(land);
+  React.useEffect(() => { setLiga(ligen[0] || ""); }, [land]);   /* Land gewechselt: Liga nachziehen */
+  const farben = { primaer, sekundaer };
+  const wappen = { form, zeichen };
+  const bereit = name.trim().length >= 2 && !!liga;
+
+  const Wahl = ({ werte, ist, setz }) => (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+      {werte.map(([k, l]) => (
+        <button key={k} className={"btn sm" + (ist === k ? " on" : "")} onClick={() => setz(k)}>{l}</button>))}
+    </div>);
+
+  return (
+    <Shell wide blatt="verein">
+      <div className="fade">
+        <div className="eb">Neuer Verein</div>
+        <div className="d" style={{ fontSize: "clamp(26px,7vw,44px)", marginBottom: 10 }}>Gründung</div>
+
+        {/* Die Vorschau steht oben und nicht am Ende: man soll sehen, was man
+            baut, während man es baut. */}
+        <div className="pan pad" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <Wappen w={wappen} farben={farben} groesse={78} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="d" style={{ fontSize: 22, overflow: "hidden", textOverflow: "ellipsis" }}>
+              {name.trim() || "Dein Verein"}</div>
+            <div className="m" style={{ fontSize: 12 }}>
+              {stadt.trim() ? stadt.trim() + " · " : ""}{liga || "—"}</div>
+          </div>
+          <Trikot farben={farben} muster={muster} groesse={62} />
+        </div>
+
+        <div className="pan pad" style={{ marginTop: 10 }}>
+          <div className="eb">Name und Ort</div>
+          <input className="inp" value={name} maxLength={26} placeholder="Vereinsname"
+            onChange={(e) => setName(e.target.value)} style={{ marginTop: 6 }} />
+          <input className="inp" value={stadt} maxLength={22} placeholder="Stadt"
+            onChange={(e) => setStadt(e.target.value)} style={{ marginTop: 6 }} />
+        </div>
+
+        <div className="pan pad" style={{ marginTop: 10 }}>
+          <div className="eb">Land</div>
+          <select className="sel" value={land} onChange={(e) => setLand(e.target.value)}
+            style={{ marginTop: 6 }}>
+            {laender.map((l) => <option key={l.id} value={l.id}>{l.n}</option>)}
+          </select>
+          <div className="eb" style={{ marginTop: 10 }}>Startliga</div>
+          {/* Nur die unterste Stufe ist wählbar — Kevins Vorgabe: man arbeitet
+              sich hoch. Die höheren stehen daneben, damit man den Weg sieht. */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, alignItems: "center" }}>
+            {ligen.map((l, i) => (
+              <React.Fragment key={l}>
+                {i > 0 && <span className="m" style={{ fontSize: 12 }}>→</span>}
+                <span className={"chip" + (i === 0 ? " a" : "")}
+                  style={i > 0 ? { opacity: .45 } : null}>{l}</span>
+              </React.Fragment>))}
+          </div>
+          <div className="m" style={{ fontSize: 11.5, marginTop: 6 }}>
+            Du startest ganz unten. Nach oben geht es über den Platz.</div>
+        </div>
+
+        <div className="pan pad" style={{ marginTop: 10 }}>
+          <div className="eb">Farben</div>
+          <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+            {FARBTOENE.map((c) => (
+              <button key={c} onClick={() => setPrimaer(c)} aria-label={"Farbe " + c}
+                style={{ width: 34, height: 34, background: c, border: "2px solid var(--ln2)",
+                  outline: primaer === c ? "2px solid var(--ac)" : "none", cursor: "pointer" }} />))}
+          </div>
+          <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+            {["#f4f1ea", "#111111", "#E8B84B", "#9fb8cf"].map((c) => (
+              <button key={c} onClick={() => setSekundaer(c)} aria-label={"Zweitfarbe " + c}
+                style={{ width: 34, height: 34, background: c, border: "2px solid var(--ln2)",
+                  outline: sekundaer === c ? "2px solid var(--ac)" : "none", cursor: "pointer" }} />))}
+          </div>
+          <div className="eb" style={{ marginTop: 10 }}>Trikot</div>
+          <Wahl werte={TRIKOT_MUSTER} ist={muster} setz={setMuster} />
+        </div>
+
+        <div className="pan pad" style={{ marginTop: 10 }}>
+          <div className="eb">Wappen</div>
+          <Wahl werte={WAPPEN_FORMEN.map((f) => [f, f[0].toUpperCase() + f.slice(1)])} ist={form} setz={setForm} />
+          <Wahl werte={WAPPEN_ZEICHEN.map((z) => [z, z[0].toUpperCase() + z.slice(1)])} ist={zeichen} setz={setZeichen} />
+          <button className="btn sm" style={{ marginTop: 8 }} onClick={() => {
+            setForm(pick(WAPPEN_FORMEN)); setZeichen(pick(WAPPEN_ZEICHEN));
+            setPrimaer(pick(FARBTOENE)); setMuster(pick(TRIKOT_MUSTER)[0]);
+          }}>Würfeln</button>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <button className="btn" onClick={onZurueck}>Zurück</button>
+          <button className="btn on" disabled={!bereit} style={{ flex: 1 }}
+            onClick={() => {
+              const r = VEREIN.gruenden(VEREIN.leererVerein(),
+                { name, stadt, land, liga, farben });
+              if (!r.fehler) onFertig({ ...r.v, wappen, muster });
+            }}>
+            {bereit ? "Verein gründen" : "Name fehlt"}
+          </button>
+        </div>
+      </div>
+    </Shell>);
+}
+
+/* ---------------------------------------------------- Vereinsbildschirm */
+/* Vier Reiter, dieselbe Bauweise wie die Akademie. Der Ablauf einer Saison:
+   Talente hochziehen → aufstellen → spielen. Erst wenn nichts mehr offen ist,
+   wird der Anpfiffknopf aktiv — und er sagt, WAS fehlt. Ein grauer Knopf ohne
+   Begründung ist eine Zumutung; dieselbe Überlegung wie bei `sperre` an den
+   Auswahlmöglichkeiten und bei „noch 2 bis zum Verein". */
+function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss }) {
+  const [reiter, setReiter] = React.useState("kader");
+  const [bericht, setBericht] = React.useState(null);
+  const reiterRef = React.useRef(null);
+  const st = VEREIN.staerke(v);
+  const bd = VEREIN.bedarf(v);
+  const form = VEREIN.FORMATIONEN.find((f) => f.id === v.formation) || VEREIN.FORMATIONEN[0];
+  const nachId = {}; (v.kader || []).forEach((s) => { nachId[s.id] = s; });
+  const REITER = [["kader", "Kader"], ["elf", "Aufstellung"], ["ausbau", "Ausbau"], ["chronik", "Chronik"]];
+
+  const holbar = (aka && aka.talente ? aka.talente : []).filter((t) => t.alter >= 16);
+  const fehlteil = Object.entries(bd.fehlt).map(([p, n]) => n + "× " + p).join(", ");
+
+  const spielen = () => {
+    const r = VEREIN.vereinSaison(v);
+    if (r.fehler) return;
+    setBericht(r);
+    onAendern(r.v);
+    if (r.vorbei) onAbschluss(VEREIN.abschluss(r.v));
+  };
+
+  /* Ein Saisonbericht schiebt sich über alles andere — er ist das Ergebnis
+     eines ganzen Jahres und soll nicht neben der Kaderliste verschwinden. */
+  if (bericht) {
+    const tab = bericht.tabelle || [];
+    return (
+      <Shell wide blatt="verein">
+        <div className="fade">
+          <div className="eb">{v.jahr - 1}. Jahr · {bericht.tabelle && bericht.tabelle.length} Vereine</div>
+          <div className="d" style={{ fontSize: "clamp(24px,6.5vw,38px)" }}>
+            {bericht.aufstieg ? "Aufgestiegen!" : bericht.abstieg ? "Abgestiegen." :
+             bericht.rang === 1 ? "Meister!" : "Platz " + bericht.rang}
+          </div>
+          <div className="m" style={{ fontSize: 12, marginBottom: 8 }}>
+            Mannschaftsstärke {bericht.staerke.gesamt} · Platz {bericht.rang} von {bericht.N}</div>
+
+          <div className="pan pad">
+            {tab.slice(0, 24).map((z) => (
+              <div key={z.pos} style={{ display: "flex", gap: 8, fontSize: 12.5, padding: "3px 0",
+                background: z.me ? "var(--pan2)" : "transparent", fontWeight: z.me ? 700 : 400 }}>
+                <span style={{ width: 22, textAlign: "right", color: "var(--mu)" }}>{z.pos}</span>
+                <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {z.club.n}</span>
+                <span style={{ width: 54, textAlign: "right", color: "var(--mu)" }}>{z.gf}:{z.ga}</span>
+                <span style={{ width: 28, textAlign: "right" }}>{z.pts}</span>
+              </div>))}
+          </div>
+
+          {!!bericht.abgaenge.length && (
+            <div className="pan pad" style={{ marginTop: 10 }}>
+              <div className="eb">Hören auf</div>
+              {bericht.abgaenge.map((s) => (
+                <div key={s.id} style={{ fontSize: 13, marginTop: 3 }}>
+                  {s.name} · {s.pos} · {s.alter} Jahre · {s.jahreImVerein} Jahre dabei</div>))}
+            </div>)}
+
+          <button className="btn on" style={{ marginTop: 12, width: "100%" }}
+            onClick={() => setBericht(null)}>Weiter</button>
+        </div>
+      </Shell>);
+  }
+
+  return (
+    <Shell wide blatt="verein">
+      <div className="fade">
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <Wappen w={v.wappen} farben={v.farben} groesse={58} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="eb">{v.jahr}. von {VEREIN.VEREIN_JAHRE} Jahren · {v.liga}</div>
+            <div className="d" style={{ fontSize: "clamp(22px,6vw,36px)" }}>{v.name}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div className="eb">Stärke</div>
+            <div className="d" style={{ fontSize: 28, color: st.spielbereit ? "var(--ok)" : "var(--bad)" }}>
+              {st.gesamt}</div>
+          </div>
+        </div>
+
+        <div className="pan pad" style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Stat k="Kader" v={(v.kader || []).length + "/" + VEREIN.KADER_MIN} />
+          <Stat k="Aufstiege" v={v.bilanz.aufstiege} acc />
+          <Stat k="Meister" v={v.bilanz.meister} acc />
+          <Stat k="Bester Platz" v={v.bilanz.bestePlatzierung == null ? "—" : v.bilanz.bestePlatzierung} />
+        </div>
+
+        {/* Der Anpfiff steht oben, weil er das Ziel jeder Sitzung ist. */}
+        <button className={"btn " + (st.spielbereit ? "on" : "")} disabled={!st.spielbereit}
+          style={{ marginTop: 10, width: "100%" }} onClick={spielen}>
+          {st.spielbereit ? "Saison spielen"
+            : !VEREIN.kaderVoll(v) ? "Noch " + (VEREIN.KADER_MIN - (v.kader || []).length) + " Spieler nötig"
+            : "Nicht besetzt: " + fehlteil}
+        </button>
+
+        <div ref={reiterRef} style={{ marginTop: 12 }}>
+          <div style={{ display: "flex", gap: 6, overflowX: "auto" }}>
+            {REITER.map(([k, l]) => (
+              <button key={k} className={"btn sm" + (reiter === k ? " on" : "")}
+                style={{ flexShrink: 0 }} onClick={() => setReiter(k)}>{l}</button>))}
+          </div>
+        </div>
+
+        {reiter === "kader" && (
+          <div style={{ marginTop: 10 }}>
+            <div className="pan pad">
+              <div className="eb">Aus der Jugend hochziehen</div>
+              <div className="m" style={{ fontSize: 11.5, marginTop: 3 }}>
+                {holbar.length ? "Wer hier hochgeht, fehlt der Akademie. Sie füllt sich wieder auf."
+                  : "Zurzeit ist niemand alt genug. Lass die Akademie ein Jahr laufen."}</div>
+              {holbar.sort((a, b) => b.ovr - a.ovr).slice(0, 14).map((t) => {
+                const gebraucht = Object.keys(bd.fehlt).some((pz) => VEREIN.kannSpielen(t, pz));
+                return (
+                  <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                    <span className={"chip" + (gebraucht ? " a" : "")}>{t.pos}</span>
+                    <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis",
+                      whiteSpace: "nowrap", fontSize: 13 }}>{t.name}</span>
+                    <span className="m" style={{ fontSize: 12 }}>{t.alter} J · {t.ovr}</span>
+                    <button className="btn sm" onClick={() => {
+                      const r = VEREIN.hochziehen(aka, v, t.id);
+                      if (!r.fehler) { onAkaAendern(r.aka); onAendern(VEREIN.autoAufstellen(r.v)); }
+                    }}>Hoch</button>
+                  </div>);
+              })}
+            </div>
+
+            <div className="pan pad" style={{ marginTop: 10 }}>
+              <div className="eb">Mannschaft</div>
+              {!(v.kader || []).length && <div className="m" style={{ fontSize: 12, marginTop: 4 }}>
+                Noch niemand da.</div>}
+              {(v.kader || []).slice().sort((a, b) => b.ovr - a.ovr).map((s) => (
+                <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5 }}>
+                  <span className="chip">{s.pos}</span>
+                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis",
+                    whiteSpace: "nowrap", fontSize: 13 }}>{s.name}</span>
+                  <span className="m" style={{ fontSize: 12 }}>{s.alter} J</span>
+                  <span className="d" style={{ fontSize: 15, width: 26, textAlign: "right" }}>{s.ovr}</span>
+                </div>))}
+            </div>
+          </div>)}
+
+        {reiter === "elf" && (
+          <div style={{ marginTop: 10 }}>
+            <div className="pan pad">
+              <div className="eb">Formation</div>
+              <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                {VEREIN.FORMATIONEN.map((f) => (
+                  <button key={f.id} className={"btn sm" + (v.formation === f.id ? " on" : "")}
+                    onClick={() => onAendern(VEREIN.autoAufstellen({ ...v, formation: f.id }))}>{f.n}</button>))}
+              </div>
+              <div className="eb" style={{ marginTop: 10 }}>Taktik</div>
+              {VEREIN.TAKTIKEN.map((t) => (
+                <button key={t.id} className={"btn sm" + (v.taktik === t.id ? " on" : "")}
+                  style={{ display: "block", width: "100%", textAlign: "left", marginTop: 5 }}
+                  onClick={() => onAendern({ ...v, taktik: t.id })}>
+                  <span className="d" style={{ fontSize: 14 }}>{t.n}</span>
+                  <span className="m" style={{ fontSize: 11.5, display: "block" }}>{t.t}</span>
+                </button>))}
+              <div className="m" style={{ fontSize: 12, marginTop: 8 }}>
+                Abwehr {st.abwehr} · Angriff {st.angriff}</div>
+            </div>
+
+            <div className="pan pad" style={{ marginTop: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <div className="eb">Elf</div>
+                <button className="btn sm" onClick={() => onAendern(VEREIN.autoAufstellen(v))}>
+                  Bestmöglich</button>
+              </div>
+              {form.plaetze.map((platz, i) => {
+                const s = nachId[(v.aufstellung || {})[i]];
+                const g = s ? VEREIN.guete(s.pos, platz) : 0;
+                return (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5 }}>
+                    <span className="chip a" style={{ width: 42, textAlign: "center" }}>{platz}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, overflow: "hidden",
+                      textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      color: s ? "var(--tx)" : "var(--bad)" }}>
+                      {s ? s.name : "— nicht besetzt —"}</span>
+                    {s && g < 1 && <span className="m" style={{ fontSize: 11 }}>
+                      {s.pos}, {Math.round(g * 100)} %</span>}
+                    {s && <span className="d" style={{ fontSize: 15 }}>{Math.round(s.ovr * g)}</span>}
+                  </div>);
+              })}
+            </div>
+          </div>)}
+
+        {reiter === "ausbau" && (
+          <div className="pan pad" style={{ marginTop: 10 }}>
+            <div className="eb">Vereinsausbau · {aka ? aka.vc : 0} VC verfügbar</div>
+            {VEREIN.VEREIN_AUSBAU.map((ab) => {
+              const stufe = VEREIN.ausbauStufe(v, ab.id);
+              const k = VEREIN.ausbauKosten(v, ab.id);
+              return (
+                <div key={ab.id} className="pan pad" style={{ marginTop: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <span className="d" style={{ fontSize: 15 }}>{ab.n}</span>
+                    <span className="m" style={{ fontSize: 12 }}>Stufe {stufe} / {VEREIN.AUSBAU_MAX}</span>
+                  </div>
+                  <div className="m" style={{ fontSize: 11.5, marginTop: 2 }}>{ab.t}</div>
+                  <div className="m" style={{ fontSize: 11.5 }}>{ab.wirkt}</div>
+                  <button className="btn sm" style={{ marginTop: 6 }}
+                    disabled={k == null || !aka || aka.vc < k}
+                    onClick={() => {
+                      const r = VEREIN.ausbauen(v, ab.id, aka ? aka.vc : 0);
+                      if (!r.fehler) { onAendern(r.v); onAkaAendern({ ...aka, vc: aka.vc - r.kosten,
+                        ausgegeben: (aka.ausgegeben || 0) + r.kosten }); }
+                    }}>
+                    {k == null ? "Voll ausgebaut" : "Ausbauen · " + k + " VC"}
+                  </button>
+                </div>);
+            })}
+          </div>)}
+
+        {reiter === "chronik" && (
+          <div style={{ marginTop: 10 }}>
+            {!v.chronik.length && <div className="pan pad m" style={{ fontSize: 12 }}>
+              Noch keine Saison gespielt.</div>}
+            {v.chronik.slice().reverse().map((c, i) => (
+              <div className="pan pad" key={i} style={{ marginTop: 8 }}>
+                <div className="eb">{c.jahr}. Jahr · {c.liga}</div>
+                <div className="d" style={{ fontSize: 16 }}>
+                  Platz {c.rang} von {c.N}
+                  {c.aufstieg ? " · Aufstieg" : c.abstieg ? " · Abstieg" : ""}</div>
+                <div className="m" style={{ fontSize: 11.5 }}>Stärke {c.staerke}
+                  {c.abgaenge.length ? " · Abgänge: " + c.abgaenge.join(", ") : ""}</div>
+              </div>))}
+          </div>)}
+
+        <button className="btn" style={{ marginTop: 12, width: "100%" }} onClick={onZurueck}>Zurück</button>
+      </div>
+    </Shell>);
+}
+
+/* ------------------------------------------------------- Abschlussbilanz */
+function VereinAbschluss({ v, ergebnis, onNeu, onZurueck }) {
+  return (
+    <Shell wide blatt="verein">
+      <div className="fade">
+        <div className="eb">Nach {VEREIN.VEREIN_JAHRE} Jahren</div>
+        <div className="d" style={{ fontSize: "clamp(26px,7vw,44px)" }}>{ergebnis.urteil}</div>
+        <div className="m" style={{ fontSize: 12, marginBottom: 10 }}>{v.name} · {v.liga}</div>
+
+        <div className="pan pad" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Stat k="Aufstiege" v={v.bilanz.aufstiege} acc />
+          <Stat k="Meister" v={v.bilanz.meister} acc />
+          <Stat k="Abstiege" v={v.bilanz.abstiege} />
+          <Stat k="Punkte" v={v.bilanz.punkte} />
+          <Stat k="Tore" v={v.bilanz.tore + ":" + (v.bilanz.gegentore || 0)} />
+        </div>
+
+        <div className="pan pad" style={{ marginTop: 10 }}>
+          <div className="eb">Vermächtnis</div>
+          <div className="d" style={{ fontSize: 30, color: "var(--go)" }}>
+            <Zahl v={ergebnis.vc} dauer={900} suffix=" VC" /></div>
+          <div className="m" style={{ fontSize: 11.5 }}>{ergebnis.punkte} Vermächtnispunkte</div>
+        </div>
+
+        <div className="pan pad" style={{ marginTop: 10 }}>
+          <div className="eb">Was der nächste Verein mitbekommt</div>
+          {!ergebnis.boni.length && <div className="m" style={{ fontSize: 12, marginTop: 4 }}>
+            Diesmal nichts. Ab 150 Punkten gibt es den ersten Bonus.</div>}
+          {ergebnis.boni.map((b) => (
+            <div key={b.id} style={{ marginTop: 6 }}>
+              <span className="chip a">{b.n}</span>
+              <span className="m" style={{ fontSize: 11.5, marginLeft: 6 }}>{b.t}</span>
+            </div>))}
+        </div>
+
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <button className="btn" onClick={onZurueck}>Später</button>
+          <button className="btn on" style={{ flex: 1 }}
+            onClick={() => onNeu(VEREIN.neuerVerein(ergebnis))}>Neuen Verein gründen</button>
+        </div>
+      </div>
+    </Shell>);
 }
 
 function Shell({ children, wide, blatt, zusatz }) {
@@ -9206,7 +9745,7 @@ function titelgeschichte(save, laeuft, hall, aka) {
     unter: "Trainingsschwerpunkte, Vertragspoker, Leihen, Angebote, die man besser ablehnt. Eine Laufbahn, eine Entscheidung nach der anderen." };
 }
 
-function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, onLaden, meta, aufRahmen }) {
+function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, verein, onVerein, gesamt, onLaden, meta, aufRahmen }) {
   const [ask, setAsk] = useState(false);
   const [opt, setOpt] = useState(false);
   const [anleitung, setAnleitung] = useState(false);
@@ -9227,10 +9766,14 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
      rechts die SEITENZAHL des Ressorts — dieselbe, die der Kolumnentitel dort
      zeigt. Links ein Strich in der Ressortfarbe. */
   const zeile = (schl, titel, wert, unter, klick) => {
+      /* Ohne Klick ist die Zeile gesperrt — sie bleibt sichtbar, damit man das
+         Ziel kennt, sieht aber nicht klickbar aus. */
+      const zu = !klick;
     const r = RESSORT[schl] || { s: "—", f: "var(--mu)" };
     return (
       <button className="btn" style={{ border: 0, borderBottom: "1px solid var(--ln)",
-        padding: "11px 0 11px 10px", borderLeft: "3px solid " + r.f }} onClick={klick}>
+        padding: "11px 0 11px 10px", borderLeft: "3px solid " + r.f, opacity: zu ? .45 : 1,
+          cursor: zu ? "default" : "pointer" }} disabled={zu} onClick={klick || undefined}>
         <span className="inhalt">
           <span className="d" style={{ fontSize: 16 }}>{titel}</span>
           <span className="punkte" />
@@ -9390,6 +9933,19 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
             aka && aka.gegruendet
               ? aka.name + " · " + ((aka.bilanz && aka.bilanz.profis) || 0) + " Profis"
               : ((aka && aka.vc ? aka.vc + " VC liegen bereit — " : "") + "noch nicht gegründet"), onAka)}
+              {/* Der Verein steht unter der Akademie, weil er auf ihr aufbaut. Vor der
+                  Freischaltung wird er trotzdem gezeigt — mit der Zahl, die noch fehlt.
+                  Ein verstecktes Ziel merkt niemand; dieselbe Ueberlegung wie bei den
+                  gesperrten Auswahlmoeglichkeiten. */}
+              {(() => {
+                const fr = VEREIN.freigeschaltet(gesamt);
+                return zeile("verein", "Dein Verein",
+                  fr.verein ? (verein && verein.gegruendet ? verein.jahr + ". Jahr" : "frei") : "gesperrt",
+                  !fr.verein ? "noch " + fr.nochVerein + " Laufbahn" + (fr.nochVerein === 1 ? "" : "en") + " bis zur Freischaltung"
+                    : verein && verein.gegruendet ? verein.name + " · " + verein.liga
+                    : "gründe deinen eigenen Verein",
+                  fr.verein ? onVerein : null);
+              })()}
         </div>
 
         {/* Impressumsstreifen */}
@@ -10584,7 +11140,7 @@ function TrophyView({ p }) {
 /* ---------- Ruhmeshalle und Abschluss ---------- */
 /* Sicherung: alle dauerhaften Daten als Text ausgeben und wieder einlesen.
    Damit überlebt der Fortschritt Gerätewechsel und Neuinstallationen.   */
-const SICHER_KEYS = [SAVE_KEY, HALL_KEY, SEEN_KEY, ACH_KEY, META_KEY, WC_KEY, LIFE_KEY, AKA_KEY, HSV_KEY];
+const SICHER_KEYS = [SAVE_KEY, HALL_KEY, SEEN_KEY, ACH_KEY, META_KEY, WC_KEY, LIFE_KEY, AKA_KEY, VER_KEY, HSV_KEY];
 
 function BackupScreen({ onBack, onImport }) {
   useZurueck(onBack);
@@ -11149,6 +11705,8 @@ function FlutlichtApp() {
   const [karriereRueck, setKarriereRueck] = useState(null);
   const [marken, setMarken] = useState([]);
   const [aka, setAka] = useState(leereAkademie());
+  const [verein, setVerein] = useState(null);
+  const [vAbschluss, setVAbschluss] = useState(null);
   const [hsvZ, setHsvZ] = useState(0);
   const reiterRef = useRef(null);
   const [log, setLog] = useState([]);
@@ -11177,6 +11735,9 @@ function FlutlichtApp() {
       try { const r = await store.get(AKA_KEY);
         if (r && r.value) setAka({ ...leereAkademie(), ...JSON.parse(r.value) }); }
       catch (e) { /* noch keine Akademie */ }
+      try { const r = await store.get(VER_KEY);
+        if (r && r.value) setVerein({ ...VEREIN.leererVerein(), ...JSON.parse(r.value) }); }
+      catch (e) { /* noch kein Verein */ }
       try { const r = await store.get("rasenschach:ruhe");
         if (r && r.value != null) { setRuhe(r.value === "1"); setRuheState(r.value === "1"); } }
       catch (e) { /* Voreinstellung behalten */ }
@@ -11389,6 +11950,13 @@ function FlutlichtApp() {
   };
 
   /* Alles wegräumen, was von einer vorherigen Laufbahn noch offen sein könnte */
+  /* Verein sichern. Getrennt von der Akademie, weil er beim Abschluss ersetzt
+     wird und sie bestehen bleibt. Faellt das Schreiben aus, laeuft das Spiel
+     weiter — verloren waere nur der letzte Zug, nicht der Stand. */
+  const vereinSichern = (n) => {
+    setVerein(n);
+    try { store.set(VER_KEY, JSON.stringify(n)); } catch (e) { /* kein Speicher */ }
+  };
   const einblendungenLeeren = () => {
     setRueckblick(null); setJubel([]); setMarken([]); setSchluss(null);
     setKarriereRueck(null); setSimLauf(false); setEnthuellung(null); setStopAsk(false);
@@ -11638,7 +12206,8 @@ function FlutlichtApp() {
     achN={ACHIEVEMENTS.filter((a) => ach && ach[a.id]).length}
     metaN={Object.keys(meta || {}).filter((k) => META[k]).length}
     onBackup={() => setPhase("sicherung")}
-    aka={aka} onAka={() => setPhase("akademie")} onLaden={() => setPhase("laden")}
+    aka={aka} onAka={() => setPhase("akademie")}
+      verein={verein} gesamt={ges} onVerein={() => setPhase("verein")} onLaden={() => setPhase("laden")}
     meta={meta} aufRahmen={(k) => { const n = { ...(meta || {}), rahmenWahl: k };
       setMeta(n); store.set(META_KEY, JSON.stringify(n)); }}
     ruhe={ruhe} setRuhe={setRuhe} setRuheState={setRuheState} />;
@@ -11646,6 +12215,26 @@ function FlutlichtApp() {
     onGruenden={(n) => { const x = akaGruenden(aka, n, (aka && aka.jahr) || 2026);
       setAka(x); speichereAka(x); }}
     onBack={() => setPhase(p && p.retired ? "end" : "menu")} />;
+  /* Eigener Verein (35.21). Drei Zustaende in einer Route: noch nicht
+     gegruendet, laufend, abgeschlossen. Der Abschluss hat Vorrang — er ist
+     das Ergebnis von fuenfzehn Jahren und darf nicht hinter dem Kader
+     verschwinden. */
+  if (phase === "verein") {
+    if (vAbschluss)
+      return <VereinAbschluss v={verein} ergebnis={vAbschluss}
+        onNeu={(nv) => { vereinSichern(nv); setVAbschluss(null); }}
+        onZurueck={() => { setVAbschluss(null); setPhase("menu"); }} />;
+    if (!verein || !verein.gegruendet)
+      return <VereinGruenden aka={aka}
+        onFertig={(nv) => vereinSichern(nv)}
+        onZurueck={() => setPhase("menu")} />;
+    return <VereinScreen v={verein} aka={aka}
+      onAendern={vereinSichern}
+      onAkaAendern={(na) => { setAka(na);
+        try { store.set(AKA_KEY, JSON.stringify(na)); } catch (e) { /* kein Speicher */ } }}
+      onAbschluss={(erg) => setVAbschluss(erg)}
+      onZurueck={() => setPhase("menu")} />;
+  }
   if (phase === "hall") return <HallScreen hall={hall} onBack={() => setPhase(p && p.retired ? "end" : "menu")} />;
   if (phase === "erfolge") return <AchievementScreen ach={ach} ges={ges} meta={meta} onBack={() => setPhase("menu")} />;
   if (phase === "sicherung") return <BackupScreen onBack={() => setPhase("menu")} onImport={ladeAlles} />;

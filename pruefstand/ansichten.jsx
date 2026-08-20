@@ -12,6 +12,8 @@ import App, {
   rerollWildcard, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS,
   weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen,
   ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich, AKA_MAX, leereBilanz,
+  Wappen, Trikot, VereinGruenden, VereinScreen, VereinAbschluss,
+  WAPPEN_FORMEN, WAPPEN_ZEICHEN, TRIKOT_MUSTER, VEREIN,
   hsvChance, akaStufe, akaSumme, akaRestkosten, leereAkademie, akaGruenden, akaJahr,
   akaVerbuchen, vcFuer, vcPosten, akaBonus, ABTEILUNGEN, createPlayer, develop,
   simulateSeason, makeOffers, marketValue, verdict, NATIONS, TYPES, MODES, POS, pick, CSS,
@@ -105,6 +107,16 @@ mach("Hauptmenü · Coins bereit", <MenuScreen {...menuProps} aka={mitCoins} />)
 mach("Hauptmenü · Akademie läuft", <MenuScreen {...menuProps} aka={reif} />);
 mach("Hauptmenü · aka undefined", <MenuScreen {...menuProps} aka={undefined} />);
 mach("Menü · Sicherung ohne Bilanz", <MenuScreen {...menuProps} aka={{ name:"X", gegruendet:2026, jahr:2030 }} />);
+/* Die Vereinszeile im Menü in beiden Zuständen (35.21). Der gesperrte ist der
+   wichtigere: dort muss die Zahl stehen, die noch fehlt. */
+mach("Menü · Verein gesperrt", <MenuScreen {...menuProps} gesamt={{ karrieren: 2 }} />);
+{
+  const v2 = VEREIN.gruenden(VEREIN.leererVerein(), { name: "FC Prüf", land: "GER", liga: "3. Liga" }).v;
+  mach("Menü · Verein frei", <MenuScreen {...menuProps} gesamt={{ karrieren: 7 }}
+    verein={v2} onVerein={() => {}} />);
+  mach("Menü · Verein ungegründet", <MenuScreen {...menuProps} gesamt={{ karrieren: 7 }}
+    verein={null} onVerein={() => {}} />);
+}
 mach("Hauptmenü · Stufen halb", <MenuScreen {...menuProps} aka={{ name:"Y", gegruendet:2026, jahr:2031, vc:5, stufen:{ plaetze:3 } }} />);
 
 /* ---------- Abschlussbildschirm mit echter Laufbahn ---------- */
@@ -305,6 +317,42 @@ console.log("\n=== Nächster Schritt ===");
   if (ist !== soll) zeige("Balken " + n, "Breite " + ist + " statt " + soll);
   else ok++;
 });
+/* --- Eigener Verein (35.20) ---------------------------------------------
+   Jede Wappenform und jedes Zeichen einmal zeichnen: ein fehlender Pfad faellt
+   sonst erst auf, wenn jemand genau diese Kombination waehlt. */
+WAPPEN_FORMEN.forEach((f) => WAPPEN_ZEICHEN.forEach((z) =>
+  mach("Wappen " + f + "/" + z, <Wappen w={{ form: f, zeichen: z }}
+    farben={{ primaer: "#c0392b", sekundaer: "#f4f1ea" }} />, 0)));
+TRIKOT_MUSTER.forEach(([m]) => mach("Trikot " + m,
+  <Trikot farben={{ primaer: "#1f5c9e", sekundaer: "#f4f1ea" }} muster={m} />, 0));
+mach("Verein · Gruendung", <VereinGruenden aka={null} onFertig={() => {}} onZurueck={() => {}} />);
+{
+  /* Ein Verein in mehreren Zustaenden. Der leere ist der wichtigste — dort
+     zeigt sich, ob die Ansicht ohne Kader haelt. */
+  const leerV = VEREIN.gruenden(VEREIN.leererVerein(), { name: "Pruef", land: "GER", liga: "3. Liga" }).v;
+  const kaderV = ["TW","TW","IV","IV","IV","AV","AV","ZDM","ZDM","ZM","ZM","ZOM","AF","AF","ST","ST"]
+    .map((pz, i2) => ({ id: "s" + i2, name: "Spieler " + i2, pos: pz, ovr: 50, pot: 78,
+      alter: 19, form: 50, fitness: 80, spiele: 0, tore: 0, jahreImVerein: 0 }));
+  const vollV = VEREIN.autoAufstellen({ ...leerV, kader: kaderV });
+  const akaV = { vc: 500, talente: [{ id: "t1", name: "Talent", pos: "ST", ovr: 48, pot: 80, alter: 17 }] };
+  const nix = () => {};
+  mach("Verein ohne Kader", <VereinScreen v={leerV} aka={akaV} onAendern={nix}
+    onAkaAendern={nix} onZurueck={nix} onAbschluss={nix} />);
+  mach("Verein spielbereit", <VereinScreen v={vollV} aka={akaV} onAendern={nix}
+    onAkaAendern={nix} onZurueck={nix} onAbschluss={nix} />);
+  mach("Verein ohne Akademie", <VereinScreen v={vollV} aka={null} onAendern={nix}
+    onAkaAendern={nix} onZurueck={nix} onAbschluss={nix} />);
+  const stark = { ...vollV, jahr: 16, bilanz: { saisons: 15, aufstiege: 3, abstiege: 1,
+    meister: 2, tore: 800, gegentore: 700, punkte: 760, bestePlatzierung: 1 } };
+  mach("Verein Abschluss stark", <VereinAbschluss v={stark}
+    ergebnis={VEREIN.abschluss(stark)} onNeu={nix} onZurueck={nix} />);
+  const mager = { ...vollV, jahr: 16, bilanz: { saisons: 15, aufstiege: 0, abstiege: 2,
+    meister: 0, tore: 300, gegentore: 500, punkte: 400, bestePlatzierung: 14 } };
+  mach("Verein Abschluss mager", <VereinAbschluss v={mager}
+    ergebnis={VEREIN.abschluss(mager)} onNeu={nix} onZurueck={nix} />);
+}
+
+
 mach("Ausbau-Ring", <AusbauRing von={14} bis={36} farbe="var(--ac)" />);
 mach("Ausbau-Ring · leer", <AusbauRing von={0} bis={36} farbe="var(--ac)" />);
 

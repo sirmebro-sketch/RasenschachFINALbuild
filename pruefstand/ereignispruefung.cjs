@@ -194,6 +194,15 @@ console.log("-- hart --");
    Ohne diese Einschraenkung meldet die Pruefung 44 Zeilen, fast alle
    folgenlos. */
 {
+  /* Der Riegel darf auch an der EINZELNEN OPTION sitzen, und oft ist das die
+     bessere Stelle: b_dopingkontrolle SOLL wiederkehren — Kontrollen kommen
+     mehrfach —, aber die Option, die „sauber" vergibt, soll nur einmal
+     erscheinen. Das ganze Ereignis zu sperren waere falsch gewesen: die
+     naheliegende "Loesung" haette ein funktionierendes Ereignis kaputtgemacht. */
+  const optionGeschuetzt = (d, f) =>
+    (d.e.choices || []).some((c) =>
+      c.cond && new RegExp("p\\.flags\\.\\s*" + f + "\\b").test(String(c.cond)) &&
+      (c.roll || []).some((r) => r.fx && r.fx.flag === f));
   const setzer = {};
   daten.forEach(d => d.flaggen.forEach(f => (setzer[f] = setzer[f] || new Set()).add(d)));
   const treffer = [];
@@ -207,6 +216,7 @@ console.log("-- hart --");
       const erwaehnt = new RegExp("p\\.flags\\.\\s*" + f + "\\b").test(d.cond) ||
                        new RegExp("p\\.flags\\[[\"'`]" + f).test(d.cond);
       if (erwaehnt) return;
+      if (optionGeschuetzt(d, f)) return;   // Riegel sitzt an der Option
       if (d.e.rep != null)
         treffer.push(d.id.padEnd(22) + " vergibt „" + f + "“ und darf wiederkehren (rep:" + d.e.rep + ")");
       else if (ds.length > 1)
@@ -382,6 +392,32 @@ const AUSNAHMEN = {
       .map(([k, ds]) => k + " (" + ds.length + " Ereignisse, " +
         Math.max(...ds.map((d) => d.e.stufe || 1)) + " Stufen)").join(" · "));
 }
+
+/* --------------------------------- H7) Wirkungen mit festen Werten */
+/* forceInjury erwartet "leicht" | "mittel" | "schwer" und schlaegt sonst mit
+   `Cannot read properties of undefined` in simulateSeason auf — ein Absturz
+   MITTEN in der Saison, nicht beim Laden. Ich habe in 35.16 forceInjury:1
+   geschrieben; die Kalibrierung ist sofort gestorben. Genau die Sorte Tippfehler,
+   die man in 1.132 Optionen nie von Hand findet.
+   Dieselbe Pruefung fuer alle Wirkungen, die nur bestimmte Werte vertragen. */
+{
+  const ERLAUBT = {
+    forceInjury: ["leicht", "mittel", "schwer"],
+    suspend: null,          // Zahl
+  };
+  const treffer = [];
+  daten.forEach((d) => (d.e.choices || []).forEach((c, ci) => (c.roll || []).forEach((r) => {
+    if (!r.fx) return;
+    Object.entries(ERLAUBT).forEach(([k, werte]) => {
+      if (r.fx[k] == null || !werte) return;
+      if (!werte.includes(r.fx[k]))
+        treffer.push(d.id + " Option " + (ci + 1) + ": fx." + k + " = " +
+          JSON.stringify(r.fx[k]) + ", erlaubt sind " + werte.join(" | "));
+    });
+  })));
+  hartePruefung("Wirkungen mit festen Werten benutzen erlaubte Werte", treffer);
+}
+
 
 console.log("\n-- Grundlinie --");
 

@@ -80,11 +80,22 @@ ersetze('import { machEreignisse } from "./ereignisse.js";\n',
         ev.replace("export const machEreignisse", "const machEreignisse", 1) + "\n",
         "Ereignisse eingesetzt (" + str(ev.count('id:"')) + " Einträge)")
 
+# --- 4c. Verein hineinkopieren (seit 35.17 eine eigene Datei) ---
+vpfad = os.path.join(os.path.dirname(os.path.abspath(quelle)), "verein.js")
+if not os.path.exists(vpfad):
+    print("ABBRUCH — verein.js nicht gefunden neben " + quelle); sys.exit(1)
+vv = open(vpfad, encoding="utf-8").read()
+if "export const machVerein" not in vv:
+    print("ABBRUCH — machVerein in verein.js nicht lesbar"); sys.exit(1)
+ersetze('import { machVerein } from "./verein.js";\n',
+        vv.replace("export const machVerein", "const machVerein", 1) + "\n",
+        "Verein eingesetzt")
+
 # --- 5. Kennzeichnung, damit die beiden Fassungen nie verwechselt werden ---
 ersetze('const VERSION_INFO = "', 'const VERSION_INFO = "Vorschau · ', "Fassung gekennzeichnet")
 
 # --- 6. Gegenprobe: nichts darf übrig bleiben ---
-rest = re.findall(r'from "\./storage\.js"|from "\./schriften\.js"|from "\./ereignisse\.js"|(?<![\w.])store\b(?!\w)|\bSCHRIFTEN\b', s)
+rest = re.findall(r'from "\./storage\.js"|from "\./schriften\.js"|from "\./ereignisse\.js"|from "\./verein\.js"|(?<![\w.])store\b(?!\w)|\bSCHRIFTEN\b', s)
 if rest:
     print("ABBRUCH — Reste gefunden: " + str(set(rest))); sys.exit(1)
 if "@font-face" not in s:
