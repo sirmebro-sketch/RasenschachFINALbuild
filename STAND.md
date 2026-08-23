@@ -1,25 +1,30 @@
 # Rasenschach XI — Stand
 
-> **Für Claude:** Diese Datei zuerst lesen. Dann die Fassungsnummer in
-> `App.jsx` (**Zeile 10** — Zeile 9 ist `NAME`, Zeile 11 `VERSION_INFO`)
-> gegenprüfen — stimmt sie nicht mit der hier genannten überein, ist eine
-> der beiden Dateien veraltet. Das sagen, bevor irgendetwas geändert wird.
+> **Für Claude:** Diese Datei zuerst lesen, dann den Prüfstand fahren. Er
+> vergleicht die Fassung in `App.jsx` mit der Kopfzeile weiter unten und meldet
+> es, wenn beide auseinanderlaufen — dann ist eine der Dateien veraltet, und
+> das gehört gesagt, bevor irgendetwas geändert wird.
+>
+> Von Hand: `grep -n 'const VERSION' App.jsx`. **Keine Zeilennummer merken** —
+> hier stand bis 35.22 „Zeile 10“, und die zeigte durch zwei neue Importe
+> längst auf eine leere Zeile.
 
 > ## Wo es weitergeht
-> **Offen ist genau eine Sache: das Tutorial.** Es soll beim ersten Start
-> erscheinen und jederzeit abrufbar sein und erklärt drei Dinge: den
-> Karrieredurchlauf, die Jugendakademie und den eigenen Verein.
+> **Kevins Zettel ist abgearbeitet.** Karrieredurchlauf, Jugendakademie,
+> eigener Verein und das Tutorial stehen und sind geprüft.
 >
-> Alles andere aus Kevins Zettel und aus der Vereinsidee ist gebaut und
-> geprüft. Der Vereinsmodus steht im Hauptmenü unter der Jugendakademie und
-> ist ab **fünf abgeschlossenen Laufbahnen** frei.
+> **Was jetzt zählt, kann der Prüfstand nicht:** die Sachen einmal auf einem
+> echten Telefon sehen. Drei Dinge sind fällig und keines davon ist je auf
+> Kevins Gerät gelaufen —
+> * der **Vereinsmodus** (35.17–35.20),
+> * der **Willkommensschirm** (35.26); er erscheint nur bei einer frischen
+>   Installation oder wenn `rasenschach:willkommen` gelöscht wird,
+> * der **Spielerpass** mit seiner festen Höhe (35.23).
 >
-> **Bevor daran weitergearbeitet wird:** Kevin sollte den Modus einmal auf dem
-> Gerät gespielt haben. Das Tutorial schreibt sich deutlich besser, wenn
-> bekannt ist, wo es tatsächlich hakt — und die Bildschirme sind seit 35.20
-> zwar geprüft, aber noch nie auf einem echten Telefon gesehen worden.
+> Danach: Langzeitbeobachtung (offener Punkt 13) und die Gestaltungsfragen
+> 1 bis 3 und 5, die alle Augen brauchen statt Messungen.
 
-**Fassung 35.21** · Stand 16. August 2026
+**Fassung 35.29** · Stand 21. August 2026
 
 <!-- VERZEICHNIS -->
 
@@ -29,73 +34,81 @@
 
 | Zeile | Abschnitt |
 |---:|---|
-| 110 | 1. Was das Projekt ist |
-| 150 | 2. Zusammenarbeit |
-| 166 | 3. Was drin ist (Grobüberblick) |
-| 279 | 4. Kalibrierung — worauf eingestellt wurde |
-| 305 | 5. Prüfstand |
-| 358 | 6. Stolperfallen — teuer gelernt |
-| 396 | 7. Was offen ist |
-| 417 | 8. Wie ein neuer Chat anfangen sollte |
-| 463 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
-| 787 | Auf dem Gerät geprüft — 10.8.2026 |
-| 894 | 34.0 · Die Spielerporträts |
-| 1011 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
-| 1259 | 34.8 · Vier gemeldete Punkte |
-| 1311 | 34.9 · Block A — fünf Fehler im Spielfluss |
-| 1376 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
-| 1431 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
-| 1479 | 34.12 · Block C — Frauenfußball |
-| 1534 | 34.13 · Block D, erster Teil |
-| 1583 | 34.14 · Die Wachstumskurve |
-| 1637 | 34.15 · Die Rückblick-Karten |
-| 1676 | 34.16 · Zwei Fehler aus Kevins Test |
-| 1736 | 34.17 · Die Freischaltungen |
-| 1771 | 34.18 · Der Vermächtnis-Laden |
-| 1839 | 34.19 · Der gekaufte Kartentausch wirkt |
-| 1885 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
-| 1917 | 34.21 · Laden und Zahnrad lagen aufeinander |
-| 1998 | 34.22 · Der Laden rechnet ab, und zwei Texte |
-| 2085 | 34.23 · Jede neue Seite beginnt oben |
-| 2142 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
-| 2214 | 34.25 · Die Ränge der Errungenschaften |
-| 2277 | 34.26 · Der Rückblick liegt auf Karteikarten |
-| 2347 | 34.27 · Drei wirklich runde Kopfformen |
-| 2416 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
-| 2452 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
-| 2519 | 34.30 · Aufräumen nach dem Belastungstest |
-| 2581 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
-| 2627 | 34.32 · Die Wildcard auf hellem Papier |
-| 2665 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
-| 2702 | 34.34 · Drei Meldungen aus dem Spiel |
-| 2757 | 34.35 · Bärte bleiben in der Kopfform |
-| 2790 | Kevins Testprotokoll zu 34.33 — Ergebnis |
-| 2815 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
-| 2863 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
-| 2910 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
-| 2961 | 35.1 · Werkzeugpflege |
-| 3016 | 35.2 · STAND.md hat ein Verzeichnis |
-| 3051 | 35.3 · Eine Regel weniger zum Merken |
-| 3088 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
-| 3196 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
-| 3325 | 35.6 · Die Ereignisse ziehen aus |
-| 3401 | 35.7 · Entscheidungen mit Folgen |
-| 3467 | 35.8 · Deine Werte öffnen Türen |
-| 3543 | 35.9 · Storystränge |
-| 3609 | 35.10 · Der Anfang war die engste Stelle |
-| 3682 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
-| 3746 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
-| 3813 | 35.13 · Die Akademie wird größer |
-| 3899 | 35.14 · Antworten, die nur manchmal da sind |
-| 3969 | 35.15 · Vier Geschichten statt einer |
-| 4021 | 35.16 · Vierundzwanzig weitere Male anders |
-| 4086 | 35.17 · Der eigene Verein — Durchstich |
-| 4180 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
-| 4242 | 35.19 · Die Akademie wird zeitlos |
-| 4287 | 35.20 · Der Verein bekommt ein Gesicht |
-| 4351 | 35.21 · Der Verein ist erreichbar |
-| 4401 | Offene Punkte (Stand 35.21) |
-| 4539 | Zusätzliche Stolperfallen |
+| 123 | 1. Was das Projekt ist |
+| 192 | 2. Zusammenarbeit |
+| 208 | 3. Was drin ist (Grobüberblick) |
+| 321 | 4. Kalibrierung — worauf eingestellt wurde |
+| 360 | 5. Prüfstand |
+| 428 | 6. Stolperfallen — teuer gelernt |
+| 466 | 7. Was offen ist |
+| 487 | 8. Wie ein neuer Chat anfangen sollte |
+| 554 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
+| 878 | Auf dem Gerät geprüft — 10.8.2026 |
+| 985 | 34.0 · Die Spielerporträts |
+| 1102 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
+| 1350 | 34.8 · Vier gemeldete Punkte |
+| 1402 | 34.9 · Block A — fünf Fehler im Spielfluss |
+| 1467 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
+| 1522 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
+| 1570 | 34.12 · Block C — Frauenfußball |
+| 1625 | 34.13 · Block D, erster Teil |
+| 1674 | 34.14 · Die Wachstumskurve |
+| 1728 | 34.15 · Die Rückblick-Karten |
+| 1767 | 34.16 · Zwei Fehler aus Kevins Test |
+| 1827 | 34.17 · Die Freischaltungen |
+| 1862 | 34.18 · Der Vermächtnis-Laden |
+| 1930 | 34.19 · Der gekaufte Kartentausch wirkt |
+| 1976 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
+| 2008 | 34.21 · Laden und Zahnrad lagen aufeinander |
+| 2089 | 34.22 · Der Laden rechnet ab, und zwei Texte |
+| 2176 | 34.23 · Jede neue Seite beginnt oben |
+| 2233 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
+| 2305 | 34.25 · Die Ränge der Errungenschaften |
+| 2368 | 34.26 · Der Rückblick liegt auf Karteikarten |
+| 2438 | 34.27 · Drei wirklich runde Kopfformen |
+| 2507 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
+| 2543 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
+| 2610 | 34.30 · Aufräumen nach dem Belastungstest |
+| 2672 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
+| 2718 | 34.32 · Die Wildcard auf hellem Papier |
+| 2756 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
+| 2793 | 34.34 · Drei Meldungen aus dem Spiel |
+| 2848 | 34.35 · Bärte bleiben in der Kopfform |
+| 2881 | Kevins Testprotokoll zu 34.33 — Ergebnis |
+| 2906 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
+| 2954 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
+| 3001 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
+| 3052 | 35.1 · Werkzeugpflege |
+| 3107 | 35.2 · STAND.md hat ein Verzeichnis |
+| 3142 | 35.3 · Eine Regel weniger zum Merken |
+| 3179 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
+| 3287 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
+| 3416 | 35.6 · Die Ereignisse ziehen aus |
+| 3492 | 35.7 · Entscheidungen mit Folgen |
+| 3558 | 35.8 · Deine Werte öffnen Türen |
+| 3634 | 35.9 · Storystränge |
+| 3700 | 35.10 · Der Anfang war die engste Stelle |
+| 3773 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
+| 3837 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
+| 3904 | 35.13 · Die Akademie wird größer |
+| 3990 | 35.14 · Antworten, die nur manchmal da sind |
+| 4060 | 35.15 · Vier Geschichten statt einer |
+| 4112 | 35.16 · Vierundzwanzig weitere Male anders |
+| 4177 | 35.17 · Der eigene Verein — Durchstich |
+| 4271 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
+| 4333 | 35.19 · Die Akademie wird zeitlos |
+| 4378 | 35.20 · Der Verein bekommt ein Gesicht |
+| 4442 | 35.21 · Der Verein ist erreichbar |
+| 4492 | 35.22 · Was hier stand, stimmte nicht mehr |
+| 4578 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
+| 4684 | 35.24 · Durchsicht des ganzen Projektwissens |
+| 4795 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
+| 4866 | 35.26 · Das Tutorial |
+| 4968 | 35.27 · Erster Gerätetest des Vereinsmodus |
+| 5051 | 35.28 · Der Verein läuft nebenher |
+| 5167 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
+| 5256 | Offene Punkte (Stand 35.29) |
+| 5430 | Zusätzliche Stolperfallen |
 
 <!-- ENDE VERZEICHNIS -->
 
@@ -109,9 +122,24 @@
 
 ## 1. Was das Projekt ist
 
-Ein Karriere-Simulator für Fußball, auf Deutsch, als **eine einzige
-`App.jsx`** (~840 KB, ~10.800 Zeilen). Läuft als Android-App: GitHub baut
-per Aktion `apk.yml` eine APK, die ohne Internet funktioniert.
+Ein Karriere-Simulator für Fußball, auf Deutsch. Läuft als Android-App: GitHub
+baut per Aktion `apk.yml` eine APK, die ohne Internet funktioniert.
+
+Der Spielcode steht in **`App.jsx`** (764 KB, 12.829 Zeilen). Sie bindet vier
+eigene Dateien ein — nachzählbar an den `import`-Zeilen 2 bis 5:
+
+| Datei | Größe | Was | Seit |
+|---|---|---|---|
+| `ereignisse.js` | 372 KB, 2.875 Zeilen | die 518 Ereignisse | 35.6 |
+| `verein.js` | 28 KB, 480 Zeilen | der eigene Verein | 35.17 |
+| `schriften.js` | 128 KB | Anton und Archivo als Base64 | 33.3 |
+| `storage.js` | 595 B | Speicher über Capacitor | vor 33.0 |
+
+Bis 35.22 stand hier „**eine einzige** `App.jsx`“. Für Schriften und Speicher
+war das immer schon eine Vereinfachung, seit dem Auszug der Ereignisse (35.6)
+und des Vereins (35.17) ist auch **Spielinhalt** ausgelagert — dann trägt sie
+nicht mehr. Alle Zahlen gemessen am 21.8.2026; sie wachsen mit jeder Fassung,
+siehe offener Punkt 10.
 
 **Zielpublikum:** soll selbsterklärend sein, auch für jemanden, der so
 etwas noch nie gespielt hat. Deutschsprachige Oberfläche durchgehend.
@@ -129,13 +157,27 @@ schreibt Punkte in Unterstriche um):
 | `package.json`, `vite.config.js` | Bau |
 | `capacitor.config.json` | App-Hülle |
 | `apk.yml` | GitHub-Aktion, gehört nach `.github/workflows/` |
-| `ANLEITUNG.md` | Anleitung für Kevin, Schritt für Schritt |
+| `.gitignore` | im Projektwissen als `_gitignore` |
+| `schriften.js` | Anton und Archivo als Base64 |
+| `schriften-lizenz.txt` | SIL OFL für **beide** Schriften — muss mit der App ausgeliefert werden |
 | `STAND.md` | diese Datei |
+| `UEBERSICHT.md` | Inhaltsübersicht, **erzeugt** aus dem Spielcode — nicht von Hand ändern |
+| `LIESMICH.md` | Kurzanleitung zum Prüfstand |
+| `appicon.py` | Symbolsatz erzeugen, im Repo unter `symbol/` |
 | `pruefstand/` | Prüfwerkzeuge, siehe Abschnitt 5 |
+
+Bis 35.24 stand hier `ANLEITUNG.md` — die Datei gibt es nicht und hat es in
+diesem Projektwissen nie gegeben. Sechs vorhandene Dateien fehlten dafür.
+**Was hier steht, ist die Liste dessen, was hochzuladen ist**; ein Eintrag
+zu viel schickt genauso in die Irre wie einer zu wenig.
 
 **Zwei Fassungen, eine Quelle.** `App.jsx` ist die Android-Fassung. Für das
 Testen im Chat erzeugt `pruefstand/vorschau.py` daraus eine Vorschaufassung
-(`window.storage` statt Capacitor, Schriften aus dem Netz). Die Spielmechanik
+(`window.storage` statt Capacitor, Schriften **aus `schriften.js` hineinkopiert**).
+Bis 35.24 stand hier „Schriften aus dem Netz" — das beschrieb den Stand vor
+33.3 und war der Fehler, den 33.3 behoben hat: die Vorschau zeigte etwas
+anderes als das Gerät. `vorschau.py` bricht heute ab, wenn `schriften.js`
+fehlt. Die Spielmechanik
 ist Zeichen für Zeichen identisch — das Skript bricht ab, wenn es etwas nicht
 findet, und prüft am Ende, dass keine Reste übrig bleiben.
 
@@ -167,7 +209,7 @@ Was daraus folgt:
 
 Laufbahn von 16 bis Karriereende: Trainingsschwerpunkt, 2–3 Ereignisse je
 Saison, simulierte Saison mit echten Wettbewerben, Transferfenster.
-Dazu: Wildcards mit Seltenheitsstufen, 150 Errungenschaften, Nationalmann-
+Dazu: Wildcards mit Seltenheitsstufen, 162 Errungenschaften, Nationalmann-
 schaft, Vermögen und Anschaffungen, Ruhmeshalle, Saison- und Karriere-
 rückblick, Kapitänsbinde im Pass, Sicherung per Textbaustein.
 
@@ -278,27 +320,40 @@ einem Treffer wieder bei 0,1 %. Gemessen nachher: **Median 20 Laufbahnen**
 
 ## 4. Kalibrierung — worauf eingestellt wurde
 
-Gemessen am 7.8.2026 über 300 simulierte Laufbahnen bzw. 40–200 Akademie-
+**Gemessen am 21.8.2026** über 300 simulierte Laufbahnen bzw. 40–120 Akademie-
 durchläufe. **Die Zielbänder stehen in `pruefstand/kalibrierung.cjs` ganz
-oben und lassen das Skript fehlschlagen, wenn sie verlassen werden.**
+oben und lassen das Skript fehlschlagen, wenn sie verlassen werden** — die
+Tabelle hier ist eine Abschrift des Laufs, nicht die Quelle. Bei Abweichung
+gilt das Skript.
 
 | Kennzahl | Gemessen | Zielband |
 |---|---|---|
-| VC je Laufbahn | Mittel 51, Median 51 | — |
-| Laufbahnen bis Vollausbau | **30,5** | 25–35 |
-| Kosten des Vollausbaus | 1.564 VC | 1.400–1.700 |
+| VC je Laufbahn | Mittel **105,3**, Median 106 (P10 56, P90 160) | — |
+| Laufbahnen bis Vollausbau | **27,6** | 25–35 |
+| Kosten des Vollausbaus | **2.912 VC** | 2.700–3.100 |
 | Weltklasse, Stufe 6 / 25 Jahre | Median **5** (P10 2, P90 8) | 3–8 |
-| Laufbahnen bis zur Rautekarte | Median **33** (P10 14, P90 61) | 28–42 |
+| Laufbahnen bis zur Rautekarte | Median **35** (P10 14, P90 62) | 28–42 |
 
 Ertrag der Akademie über 25 Jahre je Ausbaustufe (Profis / Weltklasse):
-Stufe 1 → 1,8 / 0 · Stufe 3 → 9,9 / 0 · Stufe 5 → 39 / 1,1 · Stufe 6 → 49 / 4,2
+Stufe 1 → 1,9 / 0 · Stufe 3 → 14,9 / 0 · Stufe 5 → 55,7 / 1,6 · Stufe 6 → 61,4 / 4,7
 
-Realistischer Verlauf über 40 Laufbahnen mit stufenweisem Ausbau: rund 33
-Profis, 1–2 Weltklassespieler, Ansehen ~160 → Anlage +3, Ruf +4, +60 Tsd. €,
-Entwicklung +4 %.
+Realistischer Verlauf über 40 Laufbahnen mit stufenweisem Ausbau (30 Durchgänge,
+`pruefstand/verlauf40.cjs`): **70,6 Profis, 3,7 Weltklassespieler, Ansehen 338**
+(Median 349) → Anlage +4, Ruf +6, +100 Tsd. €, Entwicklung +6 %. Der Vollausbau
+wird dabei in **30 von 30** Durchgängen erreicht — was zur Zeile „27,6 Laufbahnen“
+oben passt und sie von der anderen Seite bestätigt.
 
-Sicherungsgröße der Akademie nach 25 Jahren: **19 KB** (Talente offen,
+Sicherungsgröße der Akademie nach 25 Jahren: **22,3 KB** (Talente offen,
 Ehrentafel auf 40 gekappt, Chronik auf 25 Jahre).
+
+> **Warum dieser Abschnitt bis 35.22 falsch war.** Er trug die Datierung
+> 7.8.2026 und stammte damit aus der Zeit vor dem Akademieausbau. 35.12/35.13
+> haben drei Abteilungen ergänzt, die Kosten des Vollausbaus von 1.564 auf
+> 2.912 VC angehoben und den Verdienst gespreizt — fünf von sieben Werten waren
+> danach überholt, und das genannte Zielband (1.400–1.700) widersprach dem
+> Skript. Wer sich darauf verlassen hätte, hätte einen **bestandenen** Lauf für
+> einen Fehlschlag gehalten. Gemessene Zahlen altern; wenn hier künftig etwas
+> steht, gehört das Messdatum dazu.
 
 ---
 
@@ -323,15 +378,30 @@ Teile: `aufbau` · `kalib` · `ansicht` · `rueck` · `bau`
 | `ansichten.jsx` | Akademieansichten, Härtefälle, Durchklicktest, Speicherprobe |
 | `rueckwaerts.jsx` | 63 bestehende Ansichten mit vier ganz verschiedenen Laufbahnen |
 | `jsdom.cjs` | startet ein Bündel in einer Browserumgebung |
+| `ereignispruefung.cjs` | harte Prüfungen und Grundlinie über alle 518 Ereignisse. **Läuft in `pruefen.sh`** |
+| `vereinpruefung.cjs` | 47 Rechenprüfungen zum eigenen Verein. **Läuft in `pruefen.sh`** |
+| `verzeichnis.cjs` | schreibt das Verzeichnis in `STAND.md` neu. **Läuft in `pruefen.sh`** — dort nur als Warnung, mit `--pruefen` einzeln |
 | `vorschau.py` | erzeugt die Vorschaufassung für den Chat |
 | `uebersicht.cjs` | erzeugt `UEBERSICHT.md` aus den Spieldaten |
-| `browsertest.sh` | baut den Browsertest als Einzeldatei (siehe unten) |
+| `browsertest.sh` | baut den Browsertest als Einzeldatei (siehe unten). **`ERSTSTART=1`** laesst die Willkommens-Vorbelegung weg — dann verhaelt sich die Datei wie eine frisch installierte App |
 | `portraetbogen.cjs` | rendert Porträts als Bildtafel — ohne das ist Grafik blind |
 | `messwerkzeug.js` | Diagnose, Bildrate und A/B-Schalter für den Browsertest |
 | `startprobe.cjs` | fährt die fertige Einzeldatei in jsdom hoch |
 | `erreichbar.cjs` | misst, welche Ligen und Vereine erreichbar sind (seit 34.8; stand bis 34.20 nicht in dieser Tabelle) |
 | `kopfleiste.cjs` | vermisst die Kopfknöpfe des Titelblatts in echtem Chromium (seit 34.21) |
 | `seitenanfang.cjs` | prüft in echtem Chromium, dass jeder Seitenwechsel oben beginnt (seit 34.23) |
+| `verlauf40.cjs` | misst 40 Laufbahnen mit stufenweisem Akademieausbau (seit 35.22). **Läuft NICHT in `pruefen.sh`** — 40 s für eine Auskunft ohne Zielband. Liefert die Zahlen für Abschnitt 4. |
+| `passhoehe.sh` | Klammer für die Passmessung (seit 35.23). Baut das Bündel aus der übergebenen Quelle **selbst** und fährt zwei Breiten (412, 360). Hängt in `sicht.sh`. |
+| `passbogen.jsx` | baut den Pass mit gesetzten Karriereständen (0 bis 18 Stationen) für die Passmessung |
+| `passmessung.cjs` | misst die Passhöhe in Chromium. Schranke: mehr als 1 px Unterschied zwischen zwei Ständen ist rot |
+| `texttreue.cjs` | gleicht die Zahl im sichtbaren Text einer Errungenschaft gegen ihre Bedingung ab (seit 35.24). Auf Abruf; Ausgabe ist eine Liste zum Durchsehen, kein rotes Licht |
+| `grosstest.cjs` | Belastungslauf über Merkmale, Spieler und ganze Laufbahnen |
+| `ereignisse.cjs` | zählt, wie oft sich Ereignisse über 30 Laufbahnen wiederholen |
+| `bindenbogen.cjs` | alle 212 Kapitänsbinden als Bildtafel. Braucht ein Ziel: `node bindenbogen.cjs ziel.svg` |
+| `knoepfe.sh` | prueft, dass Knoepfe lesbar sind und im Bild bleiben (seit 35.28). Haengt in `sicht.sh`, faehrt 412 und 360 px |
+| `werkstatt.js` | Abkürzungen zum Prüfen im Browsertest (seit 35.29): Laufbahnen, Coins, Ausbau, Einschreiben. **Nur bei `ERSTSTART=1`**, nicht in der APK |
+| `knopfbogen.jsx` | rendert die Bildschirme mit Knopfzeilen durch die echte `Shell` |
+| `knopfmessung.cjs` | misst je Knopf: passt der Text hinein, bleibt er im Bild |
 | `appicon.py` | erzeugt den Android-Symbolsatz aus einem Bild |
 
 **`kopfleiste.cjs` braucht einen echten Browser.** Es läuft **nicht** in
@@ -417,16 +487,27 @@ und `@capacitor/preferences`). `UEBERSICHT.md` ist auf 33.13 neu erzeugt.
 ## 8. Wie ein neuer Chat anfangen sollte
 
 1. `STAND.md` lesen — auch die Abschnitte ab „Fassungen 33.3 bis 33.7".
-2. Fassungsnummer in `App.jsx` gegenprüfen. Abweichung sofort melden.
+2. Fassungsnummer gegenprüfen — `grep -n 'const VERSION' App.jsx`. Seit 35.22
+   macht das auch `pruefen.sh` selbst und meldet, wenn `App.jsx` und der Kopf
+   dieser Datei auseinanderlaufen. Abweichung sofort melden.
 3. Alle Dateien aus dem Projektwissen in ein **beschreibbares** Verzeichnis
    legen — `/mnt/project` ist nur lesbar. **Auf die Ablage achten:** im
    Projektwissen liegt alles flach und mit Unterstrichen statt Punkten
    (`vite_config.js`). Im Arbeitsverzeichnis gehört es so:
 
-       App.jsx · ereignisse.js · verein.js · STAND.md · UEBERSICHT.md   flach
-       alles andere aus dem Prüfstand                                   pruefstand/
+       App.jsx · ereignisse.js · verein.js · schriften.js · storage.js
+       main.jsx · index.html · package.json · schriften-lizenz.txt
+       STAND.md · UEBERSICHT.md · LIESMICH.md                           flach
+       alle Prüfwerkzeuge (Abschnitt 5)                                 pruefstand/
+       appicon.py                                                       symbol/
        apk.yml                                                          .github/workflows/
        vite_config.js → vite.config.js, capacitor_config.json → …, _gitignore → .gitignore
+
+   **Die Baudateien gehören flach, nicht nach `pruefstand/`.** Bis 35.24 stand
+   hier nur „alles andere aus dem Prüfstand", und `schriften.js`, `storage.js`,
+   `main.jsx`, `index.html` und `package.json` fielen unter „alles andere“.
+   Wer sie einsortiert, bekommt weniger als `Baudateien: 6 von 6` — und der
+   Produktionsbau läuft ungeprüft durch.
 
    `ereignisse.js` und `verein.js` gehören **flach neben App.jsx**, nicht nach
    `pruefstand/`. Liegen sie falsch, meldet esbuild nur „Could not resolve"
@@ -441,6 +522,14 @@ und `@capacitor/preferences`). `UEBERSICHT.md` ist auf 33.13 neu erzeugt.
 4. Ändern, erneut messen, **vorher/nachher gegenüberstellen**.
 5. Am Ende: Fassungsnummer, `VERSION_INFO` **und den Kopf dieser Datei**
    anheben, `STAND.md` fortschreiben, alle geänderten Dateien ausliefern.
+6. **Die Einlegeanleitung gehört ins Lieferpaket, NICHT ins Projektwissen.**
+   Sie beschreibt einen Übergang („von 35.3 auf 35.4") und ist in dem Moment
+   falsch, in dem der Übergang vollzogen ist. 35.4 hat daraus geschlossen, sie
+   müsse immer gleich heißen — das war die falsche Lehre und hat nicht
+   geholfen: die Anleitung von 35.3→35.4 lag noch bis 35.24 im Projektwissen
+   und beschrieb dort 19 Fassungen lang einen Stand, den es nicht mehr gab.
+   Ein Transportdokument im Wissensspeicher altert, ein gleicher Dateiname
+   ändert daran nichts.
 
 **Was der Prüfstand abdeckt** (Teile: `aufbau · kalib · ansicht · ereignis ·
 verein · rueck · bau`): Kalibrierung mit vier Zielbändern, **460 Ansichten**,
@@ -454,9 +543,11 @@ Ereignis- und Vereinsprüfungen melden das ausdrücklich, statt stillzuschweigen
 **Was er nicht abdeckt:** alles, was nur auf dem Gerät sichtbar wird — Schriften
 in der WebView, `preserve-3d` beim Wenden des Passes, `navigator.wakeLock`.
 Dafür gibt es den Browsertest als Einzeldatei: `bash pruefstand/browsertest.sh App.jsx`.
-**Alle drei sind am 10.8.2026 auf dem Gerät bestätigt worden** (siehe „Auf dem Gerät
-geprüft"). Nach jeder Änderung an Schriften, Pass oder Wachsperre gehört das wiederholt —
-der Prüfstand kann es strukturell nicht.
+**Zuletzt am 10.8.2026 auf dem Gerät bestätigt** (siehe „Auf dem Gerät geprüft").
+Nach jeder Änderung an Schriften, Pass oder Wachsperre gehört das wiederholt —
+der Prüfstand kann es strukturell nicht. **Seither fällig und nicht erfolgt:**
+der Pass hat in 35.23 eine feste Höhe bekommen, und der Vereinsmodus aus
+35.17–35.20 war nie auf einem Telefon.
 
 ---
 
@@ -4398,7 +4489,771 @@ und Anbindung). `sicht.sh`: 13/13 · 8 px · 4/4 · Impressum 35.21.
 ### Was jetzt wirklich nur noch fehlt
 Das **Tutorial**. Alles andere ist da und aufrufbar.
 
-## Offene Punkte (Stand 35.21)
+## 35.22 · Was hier stand, stimmte nicht mehr
+
+**Am Spiel ist nichts geändert.** `App.jsx` unterscheidet sich von 35.21 in
+genau zwei Zeilen (`VERSION`, `VERSION_INFO`), nachgewiesen per `diff`. Diese
+Fassung räumt fünf Stellen auf, an denen diese Datei etwas anderes behauptete
+als der Code — gefunden bei der Eingangsprüfung einer Sitzung, in der sonst
+nichts zu tun war.
+
+Das ist kein Aufräumen um des Aufräumens willen. Punkt 3 unten hätte einen
+**bestandenen Prüflauf wie einen Fehlschlag aussehen lassen.**
+
+### Die fünf Fundstellen
+
+| # | Wo | Stand bis 35.21 | Gemessen |
+|---|---|---|---|
+| 1 | Kopf dieser Datei | „Fassungsnummer in `App.jsx` Zeile 10“ | `VERSION` steht auf **Zeile 12**, Zeile 10 ist leer |
+| 2 | Abschnitt 1 | „**eine einzige** `App.jsx` (~840 KB, ~10.800 Zeilen)“ | **764 KB, 12.829 Zeilen** — und sie bindet **vier** eigene Dateien ein, zwei davon mit Spielinhalt |
+| 3 | Abschnitt 4 | Vollausbau 1.564 VC, Zielband **1.400–1.700** | **2.912 VC**, Zielband **2.700–3.100** |
+| 4 | Abschnitt 4 | VC je Laufbahn 51 · 40-Laufbahnen-Verlauf „~33 Profis, Ansehen ~160“ | **105,3** · **70,6 Profis, Ansehen 338** |
+| 5 | Offener Punkt 10 | „`App.jsx` hat noch 12.041 Zeilen“ | **12.829** — die 12.041 waren der Stand von 35.11 |
+
+Punkt 3 ist der teure. Abschnitt 4 trug die Datierung 7.8.2026 und stammte
+damit aus der Zeit **vor** dem Akademieausbau. 35.13 hat das Zielband bewusst
+angehoben und das in `kalibrierung.cjs` sauber begründet — nur hier stand
+weiter das alte. Formal deckte der Vorrangvermerk in Abschnitt 3 das ab („was
+später kommt, gilt“); praktisch stand über der Tabelle das Wort „Gemessen“,
+und eine gemessene Zahl, die nicht mehr gilt, ist kein Vorrangproblem.
+
+### Was gegen die Wiederholung hilft
+Vier der fünf Stellen sind Zahlen, die mit jeder Fassung altern. Sie zu
+berichtigen ist nur die halbe Arbeit — in fünf Fassungen stünde dasselbe
+wieder da. Deshalb zwei Änderungen an der Mechanik:
+
+**Der Kopf verweist nicht mehr auf eine Zeilennummer, sondern auf eine
+Prüfung.** Neue Prüfung 5 in `pruefen.sh` vergleicht die Fassung in `App.jsx`
+mit der Kopfzeile dieser Datei. Genau der Fall aus der Stolperfalle „‚Daran
+denken‘ ist keine Regel“: entweder prüfbar, dann in `pruefen.sh` — oder nicht,
+dann steht hier, warum nicht.
+
+**Gegengeprüft in vier Richtungen**, weil eine Prüfung, die nur schweigt,
+nichts beweist:
+
+| Fall | Erwartet | Gemessen |
+|---|---|---|
+| alles stimmt | schweigt | schweigt ✓ |
+| Kopf auf 35.19 verstellt | feuert | „Fassung laeuft auseinander — App.jsx 35.21, STAND.md-Kopf 35.19“ ✓ |
+| `App.jsx` auf 35.99, Kopf unverändert | feuert | Prüfung 4 **und** 5 melden ✓ |
+| Kopfzeile gelöscht | feuert | „keine Kopfzeile **Fassung <Nr>**“ ✓ |
+
+**Die 40-Laufbahnen-Zahl ist jetzt nachrechenbar.** Sie war eine Einmalmessung
+ohne Werkzeug — niemand konnte sie wiederholen, also fiel auch nicht auf, dass
+sie veraltet war. Neu: `pruefstand/verlauf40.cjs`. Es läuft **nicht** in
+`pruefen.sh`: 40 s für eine Auskunft ohne Zielband wären 40 % mehr Laufzeit.
+Diese Begründung steht im Kopf des Skripts, nicht nur hier.
+
+Beim Bau des Werkzeugs zwei eigene Fehler, beide durch Messen gefunden: die
+Bonusfelder heißen `dev` und `money` (in Mio €), nicht `growth`; und die
+Laufbahnschleife musste wörtlich aus `kalibrierung.cjs` übernommen werden,
+sonst wären die Zahlen nicht vergleichbar. Ein Unterschied ist gewollt und
+steht im Kopf: `kalibrierung.cjs` spielt **ohne** Akademiebonus, `verlauf40.cjs`
+**mit** — ohne diese Rückkopplung misst man nicht den Verlauf, sondern etwas
+anderes.
+
+### Der neue Verlauf, und warum er die Kalibrierung stützt
+30 Durchgänge à 40 Laufbahnen, Ausbau immer günstigstes zuerst:
+
+    Profis       Mittel  70,6 · Median  70 · Spanne 58–83
+    Weltklasse   Mittel   3,7 · Median   4 · Spanne 1–7
+    Ansehen      Mittel 338,1 · Median 349 · Spanne 246–410
+    Vollausbau (54 Stufen) erreicht: 30 von 30
+
+Die letzte Zeile ist die interessante. Die Kalibrierung rechnet „2.912 VC
+geteilt durch 105,3 VC je Laufbahn = 27,6“ — eine **Division**, kein
+gespielter Verlauf. Dass 40 tatsächlich durchgespielte Laufbahnen in 30 von 30
+Fällen zum Vollausbau führen, bestätigt die Rechnung von der anderen Seite.
+Zwei unabhängige Wege zur selben Aussage sind mehr wert als eine Zahl zweimal.
+
+### Geprüft
+Prüfstand gesamt: **460 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 47 Vereinsprüfungen.
+Bündel **1.190,23 kB** / 435,85 kB gepackt (−0,01 kB gegenüber 35.21: der
+neue `VERSION_INFO`-Text ist kürzer — es gibt keine andere Codeänderung).
+`sicht.sh`: 13/13 · 8 px · 4/4 · Impressum 35.22.
+Neue Prüfung 5 in vier Richtungen gegengeprüft (Tabelle oben).
+`verlauf40.cjs`: 30 Durchgänge, 40 s.
+
+## 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die vermutete
+
+Offener Punkt 8 („Spielerpass wächst weiter", von Kevin am 15.8. auf dem Gerät
+gemeldet). Der Punkt nannte einen Hauptverdächtigen — und der war es nicht.
+
+### Was der Punkt vermutete, und warum es falsch war
+> „Verdächtig ist `.zellen` (`flex-wrap:wrap` mit `flex:1 0 auto`): die vier
+> Felder *Stationen · Spiele · Tore · Vorlagen* können nicht schrumpfen und
+> brechen um, sobald die Zahlen breiter werden."
+
+**Der Block bricht nie um.** Nicht bei 412 px, nicht bei 360 px, nicht bei
+vierstelligen Zahlen (1024 Spiele, 640 Tore). Grund steht eine Zeile weiter
+oben im CSS: `.zellen .eb{display:block}` — die Beschriftung steht **über**
+der Zahl, nicht daneben. „Vorlagen“ ist breiter als jede Zahl, die darunter
+passt, also bestimmt die Beschriftung die Feldbreite, und die ändert sich nie.
+Gemessene Luft: 71,7 px bei 412 px Breite, 19,7 px bei 360 px.
+
+Die Vermutung war plausibel und stand zwei Fassungen lang unwidersprochen da.
+Sie hätte zu einer Änderung an `.zellen` geführt — und `.zellen` steckt an
+**sieben** Stellen, darunter die Karriere-Kopfleiste. Der Satz „vor der
+Änderung messen“, der im Punkt stand, hat genau das verhindert.
+
+### Was es wirklich war
+Gemessen über acht Karrierestände bei 412 px:
+
+| Stand | Höhe | Sprung |
+|---|---|---|
+| 0 Stationen | 240,0 | — |
+| 1 Station | 311,6 | **+72** |
+| 5 Stationen | 311,6 | 0 |
+| 6 Stationen | 328,9 | **+17** |
+| 10 / 16 / 18 Stationen, alle Extreme | 328,9 | 0 |
+
+**Zwei Sprünge, beide aus 34.16.** Jene Fassung deckelte die Vereinsliste auf
+150 px und schrieb dazu, der Pass sei „von der ersten Station an gleich hoch“:
+
+* **+17,3 px ab sechs Stationen** — die Hinweiszeile „N Stationen · in der
+  Liste blättern“, die den Deckel *erklärt*. Nachgerechnet: 13,3 px Zeilenhöhe
+  + 4 px Rand = 17,3, exakt der gemessene Sprung. Der Fix hat sein eigenes
+  Versprechen um die Zeile verfehlt, die ihn ankündigt.
+* **+72 px bei der ersten Saison** — vor der ersten Station steht statt der
+  150-px-Liste ein Textabsatz. Das Versprechen galt „ab der ersten Station“,
+  und davor eben nicht. Dieser Sprung ist der größere und stand nirgends.
+
+Der zweite ist nur aufgefallen, weil der Stand „0 Stationen“ nachträglich in
+die Messreihe kam. Die erste Fassung der Messung begann bei einer Station und
+hätte den größeren der beiden Sprünge nie gesehen.
+
+### Behoben
+* Der Zweig ohne Stationen bekommt dieselbe feste Höhe (150 px) und dieselben
+  Ränder wie die Liste.
+* Der Platz der Hinweiszeile wird immer reserviert, mit einem geschützten
+  Leerzeichen als Rückfall. **Keine feste px-Zahl** — eine wäre bei der
+  nächsten Schriftänderung falsch, ohne dass es auffällt.
+
+Ergebnis: **328,9 px konstant über alle acht Stände, bei 412 und bei 360 px.**
+Der leere Pass ist damit 89 px höher als vorher; das ist der Preis dafür, dass
+das Layout darunter nie springt.
+
+### Neu im Prüfstand
+`passbogen.jsx` (baut den Pass mit gesetzten Karriereständen), `passmessung.cjs`
+(misst in Chromium), `passhoehe.sh` (Klammer, zwei Breiten). Hängt in `sicht.sh`.
+
+Mit **Schranke**, nicht als Auskunft: mehr als 1 px Unterschied zwischen zwei
+Ständen ist rot. Gegengeprüft in beide Richtungen — grün bei heiler Fassung,
+und mit je einem wieder eingebauten Fehler `✗ +17,3 px` bzw. `✗ +88,9 px`,
+Rückgabecode 1, `sicht.sh` meldet „1 Bereich(e) fehlgeschlagen“.
+
+### Vier eigene Fehler beim Bau des Messwerkzeugs
+Alle vier hätten stille Falschaussagen erzeugt. Sie stehen hier, weil drei
+davon nur durch die Gegenprobe auffielen und nicht durch das Ergebnis.
+
+1. **Vereinsobjekt statt Name** in `seasons` gesteckt. Eine Saison trägt `club`
+   als Namen, `clubRef` als Objekt, `y` als Jahr — geraten statt nachgesehen.
+   170 React-Fehler, gemessen wurde nichts.
+2. **Luft gegen die gewachsene statt der nötigen Breite** gemessen. `flex-grow:1`
+   füllt die Zeile immer aus, die Summe der Felder ist also **immer** gleich der
+   Behälterbreite. Die Messung meldete für jeden Fall „knapp“, auch für den mit
+   einer Station. Jetzt wird `flex-grow` kurz abgeschaltet, gemessen, zurückgesetzt.
+3. **In die scrollende Liste hineingemessen.** Deren Einträge stehen im DOM
+   unterhalb der Clip-Grenze. Die Messung meldete für 18 Stationen eine
+   Rückseite von 552 px — eine Höhe, die es auf keinem Bildschirm gibt.
+4. **`passhoehe.sh` maß blind, was in `/tmp/ps` lag**, statt der übergebenen
+   Quelle. Dieselbe Klasse wie „altes Bündel geprüft“ aus 35.17 — nachgebaut in
+   genau dem Werkzeug, das solche Fehler finden soll. **Aufgefallen nur, weil
+   die Gegenprobe mit absichtlich kaputtem Pass grün blieb.** Ein Ergebnis, das
+   stimmt, obwohl die Eingabe kaputt ist, ist kein Ergebnis. Das Skript baut
+   jetzt selbst und druckt „gebaut aus: `const VERSION = …`“ als Beleg.
+
+### Nicht angefasst
+* **`wachstum` ist ein toter Parameter** in `function Pass({ p, full, wachstum })`
+  — nirgends übergeben, nirgends im Rumpf benutzt. Ballast, kein Fehler; steht
+  als offener Punkt.
+* **Bei 360 px läuft der Pass über** (380 px breit bei 360 px Sichtfeld, Seite
+  scrollt auf 399 px). Kevins S24 Ultra hat 412 px, dort tritt es nicht auf.
+  Beobachtet in der vereinfachten Messumgebung, **im Spiel nicht verifiziert** —
+  steht als offener Punkt, nicht als Befund.
+
+### Geprüft
+Prüfstand gesamt: **460 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 47 Vereinsprüfungen.
+Bündel **1.190,42 kB** / 435,89 kB gepackt (+0,19 kB gegenüber 35.22).
+`sicht.sh`: 13/13 · 8 px · 4/4 · Impressum 35.23 · Passhöhe 328,9 px konstant
+über 8 Stände bei 412 und 360 px.
+Passprüfung in beide Richtungen gegengeprüft (zwei eingebaute Fehler, beide rot).
+
+## 35.24 · Durchsicht des ganzen Projektwissens
+
+Kevin hat vor dem Einspielen um eine vollständige Kontrolle gebeten: nicht nur
+„was hat sich geändert“, sondern „was ist falsch, was kann raus“. Alle 40
+Dateien durchgesehen. **Ein Fehler war im Spiel sichtbar**, der Rest in den
+Unterlagen.
+
+### Im Spiel: die Akademie hatte drei Abteilungen zu wenig
+Seit 35.12 hat die Jugendakademie **neun** Abteilungen. Zwei für den Spieler
+sichtbare Texte sagten weiter „sechs“:
+
+| Wo | Stand bis 35.23 |
+|---|---|
+| Errungenschaft `a_aka_voll` | „Alle **sechs** Abteilungen auf Stufe 6“ |
+| Akademiebildschirm, voll ausgebaut | „**Sechs** Abteilungen, alle auf Maximum.“ |
+| Kommentar bei `ABTEILUNGEN` | „Die **sechs** Abteilungen“ |
+
+Die Bedingung dahinter war die ganze Zeit richtig
+(`akaSumme(A) >= ABTEILUNGEN.length * AKA_MAX`) — nur der Text daneben war es
+nicht. Zwölf Fassungen lang, direkt neben der Zahl, die es widerlegt.
+
+Neu formuliert **ohne Zahl**: „Jede Abteilung auf Höchststufe“ und „Jede
+Abteilung auf Maximum.“ Ein Text ohne Zahl kann nicht veralten. Beim nächsten
+Ausbau ist nichts nachzuziehen.
+
+### Dafür ein neues Werkzeug: `texttreue.cjs`
+Der Fehler ist nicht durch Lesen aufgefallen, sondern durch einen Widerspruch
+**in der erzeugten `UEBERSICHT.md`**: Zeile 24 nannte 9 Abteilungen, Zeile 2568
+sechs. Beide Zahlen stammten aus demselben Spielcode.
+
+Damit so etwas nicht vom Zufall abhängt, gleicht `texttreue.cjs` jetzt die
+Zahl im sichtbaren Text jeder Errungenschaft gegen die Zahlen in ihrer
+Bedingung ab. Zahlwörter werden mitübersetzt — ohne das fände die Prüfung
+genau den Fall nicht, wegen dem sie gebaut wurde.
+
+Ergebnis: **162 Einträge, 4 gemeldet, 1 echt.** Die drei anderen sind
+Fehlalarme und bleiben es: bei „In einer der fünf Topligen“ steckt die Fünf im
+Namen `top5Saisons`, bei „Karten aller sechs Seltenheitsstufen“ zählt die
+Bedingung sechs Stufen einzeln auf. Deshalb ist die Ausgabe eine **Liste zum
+Durchsehen und kein rotes Licht** — ein Hinweisgeber, der bei jedem Lauf
+Fehlalarme wirft, wird nach dem zweiten Mal überlesen (wie die verworfene
+Farbwertprüfung in `pruefen.sh`).
+
+**Grenze des Werkzeugs, ausdrücklich:** es sieht nur Errungenschaften. Die
+zweite Fundstelle — der Akademiebildschirm — lag außerhalb und wurde von Hand
+gefunden. Wer sich darauf verlässt, prüft ein Siebtel der sichtbaren Texte.
+
+### In den Unterlagen: sieben Stellen
+| # | Wo | Stand bis 35.23 | Richtig |
+|---|---|---|---|
+| 1 | Projektwissen | `00-LIESMICH-ZUERST.txt` beschrieb **35.3 → 35.4** | **gehört gelöscht** |
+| 2 | Abschnitt 1, Dateitabelle | listete `ANLEITUNG.md` | gibt es nicht; sechs vorhandene Dateien fehlten |
+| 3 | Abschnitt 1 | Vorschau lädt „Schriften aus dem Netz“ | seit **33.3** falsch — sie kopiert sie aus `schriften.js` |
+| 4 | Abschnitt 3 | „150 Errungenschaften“ | **162** |
+| 5 | Abschnitt 5, Werkzeugtabelle | 7 von 27 Werkzeugen fehlten | darunter drei, die bei **jedem** Lauf mitlaufen |
+| 6 | Abschnitt 8, Ablage | „alles andere → `pruefstand/`“ | fünf **Baudateien** gehören flach |
+| 7 | `LIESMICH.md` | Werkzeugliste unvollständig, Gerätedatum als Dauerzustand | ergänzt und datiert |
+
+Punkt 3 ist bemerkenswert: 33.3 hat den Fehler behoben, dass die Vorschau
+etwas anderes zeigte als das Gerät — und die Beschreibung des Fehlers blieb
+als Beschreibung des Zustands stehen.
+
+Punkt 6 hätte jemanden echten Ärger gekostet: wer `schriften.js` und
+`package.json` nach `pruefstand/` legt, bekommt weniger als „Baudateien: 6 von
+6“ und einen ungeprüften Produktionsbau.
+
+### Warum Punkt 1 eine eigene Lehre hat
+35.4 fand schon einmal zwei widersprüchliche Anleitungen im Projektwissen und
+schloss daraus: **sie muss immer gleich heißen**, dann überschreibt sie sich.
+Das war die falsche Lehre. Die Anleitung von 35.3→35.4 lag danach noch
+**19 Fassungen** dort und beschrieb einen Stand, den es längst nicht mehr gab.
+
+Der Name war nie das Problem. Eine Einlegeanleitung beschreibt einen *Übergang*
+und ist in dem Moment falsch, in dem er vollzogen ist — sie gehört ins
+Lieferpaket, nicht in den Wissensspeicher. Steht jetzt als Schritt 6 in
+Abschnitt 8.
+
+### Geprüft, aber in Ordnung — damit es niemand zweimal prüft
+* **Alle 27 Prüfwerkzeuge laufen.** Einzeln nachgefahren, auch die auf Abruf.
+  `grosstest.cjs` meldet „Keine Auffaelligkeiten“, `erreichbar.cjs` 82 Ligen und
+  1235 von 1239 Vereinen erreichbar, `bindenbogen.cjs` 212 Binden.
+* **Die Bildwerkzeuge müssen SELBST in `/tmp/ps` liegen**, nicht nur von dort
+  aufgerufen werden — `require("./motor.js")` ist relativ zum Skript. Mein
+  erster Testlauf scheiterte daran und sah aus wie vier kaputte Werkzeuge.
+  Steht jetzt in `LIESMICH.md`.
+* **`schriften-lizenz.txt` ist vollständig.** Ich hätte um ein Haar einen
+  Lizenzmangel gemeldet: die ersten Zeilen nennen nur Anton. Die Archivo-Lizenz
+  steht ab Zeile 98. Nachgesehen statt behauptet.
+* **Baudateien sauber:** `package.json`, `vite.config.js`, `capacitor.config.json`,
+  `index.html`, `main.jsx`, `.gitignore`, `apk.yml` (Aktionen auf v4/v3, Node 20,
+  Java 17 — passend zu Capacitor 6).
+
+### Nicht geändert, nur notiert
+`storage.js` gibt bei einem leeren Wert `null` zurück (`value ? … : null`),
+die Browsertest-Fassung in `browsertest.sh` unterscheidet dagegen sauber
+zwischen „leer“ und „nicht vorhanden“. **Praktisch folgenlos** — alle Aufrufe
+schreiben `JSON.stringify(…)` oder `String(n)`, nie einen Leerstring. Geändert
+wird trotzdem nichts: `storage.js` sitzt zwischen App und Gerät, und eine
+Änderung ohne belegten Anlass ist dort das größere Risiko. Steht als offener
+Punkt 16.
+
+### Geprüft
+Prüfstand gesamt: **460 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 47 Vereinsprüfungen.
+Bündel **1.190,38 kB** / 435,87 kB gepackt (−0,04 kB gegenüber 35.23).
+`sicht.sh`: 13/13 · 8 px · 4/4 · Impressum 35.24 · Passhöhe 328,9 px konstant.
+`texttreue.cjs`: 162 geprüft, 3 Fehlalarme, 0 echte Treffer.
+`UEBERSICHT.md` neu erzeugt (3.051 Zeilen, Fassung 35.24).
+Werkzeugtabelle und `LIESMICH.md` maschinell gegen das Verzeichnis abgeglichen:
+alle 27 Werkzeuge in beiden erwähnt.
+
+## 35.25 · Ein gemeldeter Fehler, den es nicht gab
+
+Offene Punkte 14 und 15, beide aus 35.23. **Punkt 14 ist widerlegt, nicht
+behoben** — das ist ein Unterschied, und er gehört so protokolliert.
+
+### Punkt 14: der Überlauf existiert nicht
+35.23 meldete, der Pass sei bei 360 px Sichtfeld 380 px breit und die Seite
+scrolle auf 399 px. Nachgemessen im **echten** Aufbau:
+
+    412 px   Scrollbreite 412   kein Überlauf
+    360 px   Scrollbreite 360   kein Überlauf
+    320 px   Scrollbreite 320   kein Überlauf
+
+Der Befund war ein Artefakt der eigenen Messumgebung. `passbogen.jsx` setzte
+den Pass in einen selbstgebauten Rahmen (`width:100%; padding:0 14px`) statt
+in die Kette, in der er im Spiel steht: **`Shell` → `.main` → `.a-pass`**.
+`Shell` bringt `maxWidth` und eigenen Innenabstand mit, `.main` ist ein Raster.
+Der Nachbau traf die Breite ungefähr, das Verhalten nicht.
+
+Punkt 14 hat sich selbst gerettet: dort stand „**Beobachtet in der Messumgebung,
+im Spiel nicht verifiziert** — erst nachstellen, dann erst ändern." Ohne diesen
+Satz wäre an einem Layout geändert worden, das in Ordnung ist.
+
+`passbogen.jsx` rendert jetzt durch die echten Komponenten. Kein Nachbau mehr.
+
+### Was die echte Messung dafür zeigt
+| Breite | Passhöhe | Zellenblock |
+|---|---|---|
+| 412 px (S24 Ultra) | **348,1** konstant | einzeilig, 70,5 px Luft |
+| 360 px | **348,1** konstant | einzeilig, 18,5 px Luft |
+| 320 px | **385,9** konstant | **durchgehend** zweizeilig |
+
+320 px ist neu dabei und läuft dauerhaft mit. Dass der Block dort umbricht, ist
+zulässig: `flex-wrap:wrap` tut genau das, wenn vier Felder nicht nebeneinander
+passen — und weil es **über alle Stände gleich** passiert, springt nichts.
+
+### Punkt 15: toter Parameter entfernt
+`function Pass({ p, full, wachstum })` → `({ p, full })`. Nirgends übergeben,
+nirgends benutzt.
+
+### Drei eigene Fehler beim Umbau der Messung
+Alle drei hätten falsche Aussagen erzeugt, zwei davon **grüne**.
+
+1. **Die Prüfung maß 915 px** — die Fensterhöhe. Nach dem Umbau auf die echte
+   Kette war `rahmen.firstElementChild` nicht mehr der Pass, sondern Shells
+   Wurzelknoten. Gemeldet wurde „348,1 px konstant über 8 Stände", nur eben mit
+   915. **Grün, konstant und falsch.** Die Prüfung greift jetzt gezielt
+   `.wender` und meldet ausdrücklich, wenn sie ins Leere greift — ein
+   Messaufbau, der nichts findet, ist nicht „in Ordnung".
+2. **Ein Härtefall, den es nicht gibt.** Die Messung meldete +22 px bei 360 px
+   für einen langen Namen. Der Testname hatte **34 Zeichen** — das Eingabefeld
+   im Erstellbildschirm lässt **22** zu, die 34 gehören zum *Akademie*namen
+   daneben. Längster generierter Name: 20 Zeichen (gemessen über 4.000
+   Ziehungen). Ersetzt durch zwei echte 22-Zeichen-Fälle.
+3. **Der Umbruch bei 320 px wurde rot gemeldet.** Er ist aber durchgehend und
+   damit sprungfrei. Ohne diese Korrektur wäre an `.zellen` geändert worden —
+   der Klasse, die an **sieben** Stellen hängt, darunter die Karriere-Kopfleiste.
+   Rot ist jetzt nur noch der gemischte Fall: mal umbrochen, mal nicht, denn
+   genau der erzeugt einen Sprung mitten in der Laufbahn.
+
+Der rote Faden: eine Messung, die grün meldet, ist kein Beweis, dass sie
+gemessen hat. Zwei der drei Fehler sahen aus wie ein bestandener Lauf.
+
+### Geprüft
+Prüfstand gesamt: **460 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 47 Vereinsprüfungen.
+Bündel **1.190,37 kB** / 435,87 kB gepackt (−0,01 kB gegenüber 35.24).
+`sicht.sh`: 13/13 · 8 px · 4/4 · Impressum 35.25 · Passhöhe konstant bei
+412, 360 **und** 320 px.
+Gegenprobe: Hinweiszeile wieder bedingt gemacht → `✗ +17,3 px`, Rückgabecode 1.
+
+## 35.26 · Das Tutorial
+
+Damit ist der letzte offene Punkt aus Kevins Zettel gebaut. Das Tutorial
+besteht aus **drei** Teilen, die zusammenspielen:
+
+| Teil | Wann | Was |
+|---|---|---|
+| Willkommensschirm | einmal beim allerersten Start | drei Tafeln: Laufbahn, Akademie, Verein |
+| Kurzanleitung | jederzeit unterm Zahnrad | jetzt **7** Kapitel statt 5 |
+| Freischalthinweis | einmal je Freischaltung | eine Tafel im Hauptmenü |
+
+### Der Willkommensschirm
+Drei Tafeln mit je einer gezeichneten Skizze, Blättern, Überspringen. Gezeigt
+werden **Akademie und Verein, obwohl beide noch gesperrt sind** (ab 2 bzw. 5
+Laufbahnen) — dieselbe Überlegung wie beim Verein im Hauptmenü: ein
+verstecktes Ziel merkt niemand.
+
+**Warum gezeichnet und nicht fotografiert:** die App läuft ohne Netz, jedes
+Bild wäre Base64 im Bündel. Die Schriften allein sind 128 KB. Drei SVG-Tafeln
+kosten ein paar hundert Byte und passen zur Formensprache — harte Kanten,
+Raute, keine runden Ecken.
+
+Zwei Fälle, die leicht danebengehen und deshalb ausdrücklich geregelt sind:
+* **`willGesehen === null` heisst „noch am Lesen"**, nicht „noch nie gesehen".
+  Ohne diese Unterscheidung blitzte der Schirm bei **jedem** Start kurz auf,
+  bevor der Speicher antwortet.
+* **Ohne Speicher (`hasStore()` false) erscheint er nie.** Dort liesse sich
+  „gesehen" nicht merken, und er käme bei jedem Start wieder.
+
+Eigener Schlüssel `WILL_KEY`; er hängt in `SPEICHERSCHLUESSEL` **und** in
+`SICHER_KEYS`, wandert also mit der Sicherung mit.
+
+### Kurzanleitung: zwei neue Kapitel
+„Die Jugendakademie" (4 Einträge) und „Dein eigener Verein" (5 Einträge),
+eingehängt vor „Noch was". Sie stehen **immer** da, auch solange gesperrt.
+
+Beide nennen die Freischaltschwelle im ersten Eintrag („Ab der zweiten
+Laufbahn", „Ab der fünften Laufbahn"), damit niemand sucht, wo nichts ist.
+Das Vereinskapitel sagt auch, was danach kommt: dritte Liga, sechzehn Mann,
+fünfzehn Jahre bis zur Bilanz.
+
+### Freischalthinweis
+`FreiHinweis` im Hauptmenü, mit „Verstanden" wegklickbar, danach nie wieder.
+**Der Verein hat Vorrang vor der Akademie**, wenn beide auf einmal fällig
+werden (etwa nach einer zurückgespielten Sicherung): erst der Verein, beim
+nächsten Menübesuch die Akademie. Nacheinander statt zwei Tafeln übereinander.
+
+### Prüfstand
+`ansichten.jsx` prüft den Schirm mit: keine Tafel ohne Kopf oder Text, keine
+ohne Zeichnung, keine über 260 Zeichen, alle drei Themen erklärt, Tafel 1
+zeigt ihren Kopf, die Blätteranzeige nennt die Gesamtzahl, und **„Überspringen"
+ist da** — ein Erstschirm ohne Ausweg wäre eine Falle.
+
+Die Ansichtsprüfungen steigen dadurch von **460 auf 478**.
+
+### Was hier ehrlich dazugehört
+Dieser Abschnitt ist **nachgetragen**. Der Code entstand in derselben Sitzung,
+war aber weder in `STAND.md` erwähnt noch als Fassung geführt — `ansichten.jsx`
+trug bereits den Vermerk „(35.26)", während `App.jsx` auf 35.25 stand und die
+Zeile „Wo es weitergeht" weiter behauptete, das Tutorial sei offen.
+
+Aufgefallen ist es nur, weil vor dem Bauen nachgesehen wurde, was schon da
+ist — sonst wäre ein zweiter Willkommensschirm neben den ersten gebaut worden.
+**Auch die Durchsicht in 35.24 hat es nicht gefunden:** dort wurden Dateien,
+Zahlen und Werkzeuge gegen die Wirklichkeit geprüft, aber nicht die Aussage
+„offen ist genau eine Sache". Eine Behauptung über den Funktionsumfang gehört
+genauso gegengeprüft wie eine Zahl.
+
+### Was der Prüfstand dabei aufgedeckt hat
+Der Schirm war **nicht fertig**, als dieser Abschnitt begonnen wurde. Er steht
+vor dem Hauptmenü — und eine frisch geladene Testseite ist genau der
+„allererste Start". Drei Prüfungen liefen daraufhin ins Leere:
+
+* `startprobe.cjs` suchte Titelblatt und Impressum und stand im Schirm:
+  **beide ✗**, „angezeigt (keine)".
+* `kopfleiste.cjs` und `seitenanfang.cjs` warteten je **30 Sekunden** auf das
+  Zahnrad, das hinter dem Schirm liegt, und brachen ab.
+
+Behoben durch **Vorbelegen** von `rasenschach:willkommen`, nicht durch
+Wegklicken: nach einem Klick müsste auf Reacts nächsten Durchlauf gewartet
+werden, und ein synchroner Lesevorgang sieht dann noch den alten Zustand
+(ausprobiert — „Ausweg" ✓, alles dahinter trotzdem ✗).
+
+Die Vorbelegung steht in **`browsertest.sh`**, nicht in den drei Prüfskripten
+einzeln: dort entsteht die Seite, die alle Browserprüfungen benutzen. Eine
+Stelle statt drei.
+
+**Der Schirm bleibt dadurch geprüft** — nachgewiesen, nicht behauptet: mit
+einer absichtlich leeren Tafel meldet der Lauf `✗ Willkommen — 1 Tafeln ohne
+Kopf oder Text` und 477 statt 478. `startprobe.cjs` prüft zusätzlich, dass die
+Vorbelegung überhaupt greift, damit „Menü erschienen" nicht mit „Schirm
+zufällig ausgeblieben" verwechselt wird.
+
+### Geprüft
+Prüfstand gesamt: **478 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 47 Vereinsprüfungen.
+Bündel **1.197,57 kB** / 437,95 kB gepackt (+7,20 kB gegenüber 35.25 — die
+drei SVG-Tafeln, zwei Anleitungskapitel und der Schirm selbst).
+`sicht.sh`: **14/14** (eine Prüfung mehr: greift die Vorbelegung?) · 8 px ·
+4/4 · Impressum 35.26 · Passhöhe konstant bei 412, 360 und 320 px.
+Gegenprobe: Tafel ohne Text → `✗`, 477 statt 478 Prüfungen.
+
+## 35.27 · Erster Gerätetest des Vereinsmodus
+
+Kevin hat die Vereinsgründung zum ersten Mal auf dem S24 Ultra gesehen und
+**zwei Fehler gemeldet, die der Prüfstand strukturell nicht finden konnte** —
+beide sind Layout, und Layout ist in jsdom unsichtbar.
+
+Genau dafür stand seit 35.20 der Satz in „Wo es weitergeht": erst spielen,
+dann weiterbauen.
+
+### 1. Die Vorschau scrollte weg
+Wappen, Trikot und Name stehen oben, Farben und Muster weit unten. Wer eine
+Farbe ändert, sieht nichts — er muss hochblättern, schauen, wieder runter.
+
+Die Lösung stand schon im Programm: die Spielererstellung heftet ihren
+Vorschaublock mit `position:sticky` an. Ihr Kommentar sagt sogar wörtlich
+**„und dasselbe gilt für Verein (Trikotfarben) und Name"** — gedacht, nicht
+gebaut. Jetzt gebaut, mit denselben Angaben.
+
+Gemessen: nach 900 px Blättern steht die Vorschau bei **0 px** und ist
+sichtbar; vorher war sie längst aus dem Bild.
+
+### 2. Der Gründen-Knopf war unlesbar gequetscht
+| | Zurück | Gründen-Knopf |
+|---|---|---|
+| vorher, 412 px | 348 px | **32 px** bei 53 px Bedarf |
+| nachher, 412 px | 78 px | **302 px** |
+| nachher, 360 px | 78 px | **250 px** |
+
+Ursache ist eine Zeile CSS, die überall sonst richtig ist: **`.btn{width:100%}`**.
+Steht ein solcher Knopf neben einem mit `flex:1`, beansprucht er die ganze
+Zeile, und der Hauptknopf bekommt nur den Rest.
+
+**Dieselbe Zeile stand an zwei Stellen** — Vereinsgründung und Vereinsabschluss
+(„Später" / „Neuen Verein gründen"). Gefunden durch Absuchen aller Knopfzeilen:
+sieben haben zwei Knöpfe, aber nur bei diesen beiden hat *einer* `flex:1` und
+der andere nichts. Wo beide nichts haben, teilen sie sich gleichmässig — kein
+Fehler. Behoben über eine Klasse `.btn.schmal`, nicht zweimal inline.
+
+### Zwei eigene Fehler, beide beim Kommentieren
+1. **Der Kommentar zur neuen CSS-Klasse hat die App zerstört.** Er enthielt ein
+   Anführungszeichen (`„Verein gründen"`), und der CSS-Text ist eine
+   Zeichenkette — das Zeichen beendete sie. Die Seite meldete
+   `.btn is not a function` und blieb leer. Verwandt mit der Stolperfalle
+   „Kommentarzeichen in CSS-Blöcken", nur mit einem anderen Zeichen. Im Block
+   steht jetzt ein Hinweis darauf.
+2. **Derselbe Kommentar hat danach eine Prüfung getäuscht.** Er nannte
+   „Fassung 35.27", und `startprobe.cjs` sucht per Muster nach
+   `Fassung ([0-9.]+)`. Gemeldet wurde „Quelle 35.26 · angezeigt 35.27" —
+   **beide Zahlen echt, die zweite aus einem Kommentar.**
+
+   Der Grund: `Shell` rendert `<style>{CSS}</style>` **innerhalb** von `#root`,
+   und `textContent` nimmt Stilblöcke mit. Die Prüfung liest jetzt über einen
+   Klon ohne `<style>` und `<script>` — sichtbarer Text ist, was der Spieler
+   liest. Ein erster Versuch, die Textknoten selbst abzulaufen, verlor dabei das
+   Impressum („angezeigt (keine)"); `textContent` auf dem bereinigten Klon kennt
+   die Fälle, die eine eigene Schleife übersieht.
+
+   Gegengeprüft: Impressum künstlich auf 9.99 verbogen → `✗ Quelle 35.26 ·
+   angezeigt 9.99`. Die Prüfung schaut also nicht einfach weg.
+
+### Der Browsertest kann jetzt auch Erststart
+Kevin wollte die Einzeldatei zum Vorabprüfen, bevor eine APK gebaut wird. Das
+ging so nicht: seit 35.26 belegt `browsertest.sh` den Willkommensschirm vor,
+damit die Prüfungen nicht darin steckenbleiben — die Datei hätte den Schirm
+also **nie** gezeigt, ausgerechnet das Neue.
+
+Neuer Schalter **`ERSTSTART=1`**. Ohne ihn wird vorbelegt (der Prüfstand läuft
+öfter), mit ihm verhält sich die Datei wie eine frische Installation.
+Nachgemessen in Chromium, beide Fälle: Standard → kein Schirm, Fassung 35.27
+sichtbar; `ERSTSTART=1` → Schirm da. Keine Seitenfehler in beiden.
+
+**Beim Anschauen wichtig:** der Schirm merkt sich im `localStorage`, dass er
+weg war. Zum zweiten Mal braucht es ein privates Fenster oder ein geleertes
+`rasenschach:willkommen`.
+
+### Geprüft
+Prüfstand gesamt: **478 Prüfungen**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 47 Vereinsprüfungen.
+Bündel **1.198,33 kB** / 438,28 kB gepackt (+0,76 kB gegenüber 35.26).
+`sicht.sh`: 14/14 · 8 px · 4/4 · Impressum 35.27 · Passhöhe konstant bei
+412, 360 und 320 px.
+Knopfbreiten und Anheften in echtem Chromium nachgemessen, beide Breiten.
+
+## 35.28 · Der Verein läuft nebenher
+
+Kevin hat den Vereinsmodus auf dem Gerät gespielt und einen **konzeptionellen**
+Fehler gefunden, keinen Layoutfehler: der Verein lief völlig unabhängig von den
+Spielerlaufbahnen. Vier Vereinsjahre, ohne dass eine einzige Laufbahn dazwischen
+lag — aufstellen, simulieren, aufstellen, simulieren.
+
+### Was fehlte
+Am Karriereende, in `finish()`, stand:
+
+    const AK2 = akaVerbuchen(aka, vcNeu);   // ein Jahr Akademie
+
+**Ein entsprechender Aufruf für den Verein fehlte vollständig.** Stattdessen gab
+es im Vereinsbildschirm einen Knopf „Saison spielen", beliebig oft drückbar.
+
+Der Knopf stammte aus 35.17. Dort steht ausdrücklich: *„Dies ist der Rechenkern,
+nicht der Bildschirm"* — er war der Behelf, um den Kern überhaupt auslösen zu
+können. 35.20 baute den Bildschirm darum herum, und der Behelf blieb stehen,
+**weil nirgends stand, dass er einer war.** Die Kopplung ans Karriereende ist in
+dieser Datei an keiner Stelle beschrieben; sie stand nur in Kevins Kopf, deshalb
+hat auch keine Prüfung sie eingefordert.
+
+### Wie es jetzt läuft
+Nach Kevins drei Entscheidungen:
+
+| Frage | Entscheidung |
+|---|---|
+| Kader nicht spielbereit? | muss **vor** dem Karrierestart stehen, dann zählt er |
+| Wo der Bericht? | **kurz**, in der Karriereübersicht, wie der Akademiebericht |
+| Knopf „Saison spielen"? | weg — stattdessen **einschreiben** |
+
+**Einschreiben** ist ein einmaliger Schritt: „Verein in die 3. Liga
+einschreiben", danach läuft es von selbst. Bewusst nicht umkehrbar — ein
+Verein, den man zwischendurch abmelden kann, ist keiner. An seine Stelle tritt
+eine Auskunft statt eines grauen Knopfs: *„Das 4. Jahr wird gespielt, sobald du
+die nächste Laufbahn beendest."* Steht der Kader nicht, sagt sie stattdessen,
+was fehlt und dass das Jahr sonst ausfällt.
+
+**Die Saison** hängt jetzt in `finish()`, direkt neben dem Akademiejahr. Das ist
+die richtige Stelle: beides läuft nebenher, während man spielt, und wird fällig,
+wenn eine Laufbahn endet.
+
+**`spieltMit(v)`** entscheidet, ob eine Saison ansteht — als eigene Funktion,
+nicht als dreimal nachgebaute Bedingung. Bildschirm, Ablauf und Prüfstand fragen
+dieselbe Stelle; drei getrennte Fassungen desselben Satzes laufen früher oder
+später auseinander.
+
+**Der Bericht** steht in der Karriereübersicht vor dem Akademieblock: Liga,
+Platz, Punkte, Torverhältnis, Auf- oder Abstieg, Zahl der Abgänge. Fällt ein
+Jahr aus, steht das ausdrücklich da — sonst wundert man sich, warum der Verein
+steht.
+
+### Neu geprüft: 47 → 56
+Acht Prüfungen in `vereinpruefung.cjs`, darunter die entscheidende:
+**„kein Knopf 'Saison spielen' mehr im Programm"** — sie liest den Quelltext und
+fängt, wenn ein zweiter Auslöser zurückkommt. Zwei Wege für dieselbe Sache wären
+zwei Wege, die auseinanderlaufen, und einer davon hätte die Kopplung wieder
+umgehbar gemacht.
+
+Gegengeprüft in beide Richtungen: Knopf zurückgebaut → `✗`, Kaderprüfung beim
+Einschreiben entfernt → `✗`. Beide Male mit Rückgabecode 1.
+
+### Fünf eigene Fehler
+Vier davon geratene Namen, alle beim Messen gefunden — und einer schwerer als
+die anderen:
+
+1. **Der Prüfblock hing hinter `process.exit()`.** Er wäre nie gelaufen und
+   hätte wie eine bestandene Prüfung ausgesehen. Von allen Fehlern dieser
+   Sitzung der gefährlichste: eine Prüfung, die gar nicht stattfindet, meldet
+   nichts — und Schweigen liest sich wie Erfolg.
+2. `aufgestiegen`/`abgestiegen` statt **`aufstieg`/`abstieg`**.
+3. `speichereVerein` statt **`vereinSichern`** — die Funktion gab es nicht.
+4. Tore und Punkte direkt am Saisonergebnis gesucht; sie stehen in der
+   **Tabellenzeile mit `me`**.
+5. `hochziehen(v, talent)` mit zwei Argumenten aufgerufen — die Signatur ist
+   **`hochziehen(aka, v, talentId)`**, und das dritte ist die ID. Ergebnis:
+   „Talent nicht gefunden", leerer Kader, und die Meldung lautete am Ende
+   *„Kein Verein gegründet"* — drei Schritte von der Ursache entfernt.
+
+Die Punkte 2 bis 4 wären still geblieben: `undefined` bricht nichts, der
+Bericht hätte einfach Lücken gezeigt.
+
+### Was Kevin wissen sollte
+Der Verein läuft **15 Jahre**. Mit einer Saison je Laufbahn sind das **15
+abgeschlossene Laufbahnen**, plus 5 bis zur Freischaltung. Zum Vergleich:
+Akademie-Vollausbau nach 27,6 Laufbahnen, Rautekarte im Median nach 35. Die
+Größenordnung passt, aber es ist ein langer Bogen. Wer ihn kürzen will, ändert
+`VEREIN_JAHRE` — jetzt, solange die Kopplung frisch ist.
+
+### Auch die neue Prüfung war zweimal falsch gebaut
+Bevor sie verlässlich lief, hat sie zweimal etwas Falsches gemessen — beides
+gehört hierher, weil beides eine Prüfung betrifft und nicht das Spiel:
+
+* **Feste Jahreszahl.** Erst liefen 14 Akademiejahre. Im isolierten Lauf gab
+  das 16 Talente, im vollen Prüfstand 14. Eine Prüfung, die mal rot und mal
+  grün ist, ist schlimmer als keine: nach dem zweiten Fehlalarm glaubt ihr
+  niemand mehr.
+* **Warten auf etwas, das nie eintritt.** Der zweite Entwurf wartete, bis
+  18 Talente gleichzeitig verfügbar sind. Das kann nicht passieren — **Talente
+  altern aus**, es stehen immer nur rund 14 auf einmal da. Jetzt wird
+  hochgezogen und gewartet im Wechsel, wie in der Prüfung weiter oben.
+* **Falscher Pfad.** Die Quelltextprüfung las `App.jsx` relativ zum
+  Arbeitsverzeichnis und stürzte im Prüfstand mit `ENOENT` ab. `pruefen.sh`
+  reicht die Quelle jetzt durch; findet die Prüfung sie trotzdem nicht, meldet
+  sie das ausdrücklich — eine übersprungene Prüfung ist kein bestandener Lauf.
+
+Dreimal einzeln und zweimal im vollen Prüfstand wiederholt, jedes Mal 56.
+
+### Geprüft
+Prüfstand gesamt: **478 Ansichten**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, **56 Vereinsprüfungen** (vorher 47).
+Bündel **1.201,27 kB** / 439,16 kB gepackt (+2,94 kB gegenüber 35.27).
+`sicht.sh`: 14/14 · 8 px · 4/4 · Impressum 35.28 · Passhöhe konstant bei
+412, 360 und 320 px.
+Gegenprobe: Knopf zurückgebaut → `✗`; Kaderprüfung entfernt → `✗`.
+
+## 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden
+
+35.27 hat drei Knopfzeilen berichtigt und dafür `knoepfe.sh` gebaut — eine
+Messung in echtem Chromium, weil eine Quelltextsuche den dritten Fall
+übersehen hatte. Beim Nachschärfen kamen **zwei Lücken** heraus, beide von der
+Sorte, die grün meldet.
+
+### Lücke 1: ein Prüffall, der nichts prüfte
+`VereinAbschluss` braucht **zwei** Eigenschaften, `v` und `ergebnis`. Der Bogen
+gab nur `ergebnis` mit. Der Bildschirm blieb leer, meldete „Cannot read
+properties of undefined (reading 'name')" — und die Messung zählte brav
+„22 Knöpfe, alle in Ordnung". **Ein Bildschirm, der nicht rendert, hat auch
+keine kaputten Knöpfe.** Behoben: 22 → 24 Knöpfe, die beiden des Abschlusses
+sind jetzt dabei.
+
+### Lücke 2: nur die erste Tafel
+Der Willkommensschirm hat auf **Tafel 1 keinen Zurück-Knopf** — der erscheint
+ab Tafel 2. Und genau dort lag der gemeldete Fehler: Zurück 388 px, Weiter
+32 px, rechte Kante bei **440 px auf einem 412 px breiten Bildschirm**.
+
+Die Prüfung hat ihn nicht gefunden. Sie hat gemeldet, alles sei in Ordnung,
+während zwei Tafeln weiter ein Knopf aus dem Bild ragte. Jetzt blättert sie
+durch, was sich blättern lässt, und misst jede Tafel: **24 → 124 Knöpfe.**
+
+### Gegengeprüft — dreimal
+| Eingebauter Fehler | Ergebnis |
+|---|---|
+| `.btn.schmal` geleert | **grün** — und das ist richtig: der Inline-Teil des Fixes trägt allein |
+| Urzustand der Vereinszeilen (`flex: 1` statt `flex: 1 1 auto`) | `✗ 2 von 24`, Code 1 |
+| Urzustand des Willkommensschirms | `✗ Weiter 32 px, rechte Kante 440`, Code 1 |
+
+Die erste Zeile ist die lehrreiche: Mein erster Gegenversuch blieb grün, und
+ich hätte ihn fast als „Prüfung wirkungslos" verbucht. Der Fix hat zwei Teile,
+und einer davon reicht — der Versuch hat also nicht den Fehler
+wiederhergestellt, sondern nur die halbe Reparatur zurückgenommen. **Eine
+Gegenprobe, die grün bleibt, kann auch bedeuten, dass man das Falsche kaputt
+gemacht hat.**
+
+### Dazu: eine Werkstatt für den Browsertest
+Kevin braucht Abkürzungen zum Prüfen — Akademie ab 2 Laufbahnen, Verein ab 5,
+Vollausbau nach rund 28. Wer das erspielt, prüft eine Woche.
+
+`pruefstand/werkstatt.js`, unten rechts als 30×30-Griff (das Messwerkzeug sitzt
+links). Laufbahnen +1/+5/+20, Coins +500/+3000, Akademie voll ausbauen, Verein
+einschreiben, Willkommensschirm zurückholen, Spielstand löschen, Einstellungen
+zurücksetzen, Stand anzeigen.
+
+**Sie fasst die App nicht an** — dieselbe Regel wie beim Messwerkzeug. Sie
+schreibt ausschliesslich in den `localStorage`, also dorthin, wo die App beim
+Start ohnehin nachsieht, und lädt neu. Griffe sie in die laufende App, prüfte
+der Browsertest etwas anderes als die APK; genau dieser Fehler steckt in 33.3,
+wo die Vorschau Schriften nachlud und die App nicht.
+
+**Nur bei `ERSTSTART=1`.** In der Fassung für den Prüfstand bleibt sie draussen,
+sonst zählte `knoepfe.sh` dreizehn Werkzeugknöpfe mit. Belegt: mit Schalter
+2 Treffer im HTML, ohne 0 — und `sicht.sh` meldet unverändert 124 Knöpfe.
+
+**Was sie nicht kann, und warum das hier steht:** eine laufende Laufbahn
+vorspulen. Der Spielstand ist ein halb gespielter Verlauf mit Verein, Vertrag
+und Ereignisgedächtnis; ihn von aussen weiterzurechnen hiesse, die
+Entwicklungsformeln ein zweites Mal zu bauen — dann prüft man die Kopie. Die
+Werkstatt setzt die Voraussetzungen und überlässt das Spielen dem Spiel.
+
+Beim Bauen zwei eigene Fehler: `rasenschach:erfolge` hielt ich fälschlich für
+erfunden (mein Suchmuster übersah Zeilen mit doppeltem Leerzeichen), und
+**zwei echte Schlüssel fehlten** — `karten` und `raute`. „Alles löschen" hätte
+Reste stehen lassen. Jetzt maschinell abgeglichen: jeder Schlüssel des Spiels
+ist erfasst. Einstellungen (Ruhe, Tempo, Vibration …) liegen bewusst getrennt
+und werden nicht mitgelöscht — wer den Stand zurücksetzt, will nicht seine
+Vorlieben verlieren.
+
+### Nachtrag: eine Prüfung fiel bei relativem Aufruf aus
+Beim Bauen des Repository-Pakets (`pruefen.sh ./App.jsx` statt mit vollem Pfad)
+meldete die Quelltextprüfung „App.jsx nicht gefunden — NICHT geprueft". Sie hat
+sich damit **richtig** verhalten: sie sagt es, statt still zu bestehen. Aber
+eine Prüfung, die je nach Aufrufform ausfällt, ist nur eine halbe Prüfung.
+
+`pruefen.sh` macht `QUELLE_APP` jetzt absolut, bevor es sie durchreicht — das
+Skript läuft aus dem Bauverzeichnis, wo ein relativer Pfad ins Leere zeigt.
+Gegengeprüft: mit `./App.jsx` aus einem Repository-Ordner läuft der volle
+Prüfstand durch, 478 + 56, Code 0.
+
+### Geprüft
+`sicht.sh`: 14/14 · 8 px · 4/4 · Impressum · Passhöhe konstant bei 412, 360
+und 320 px · **124 Knöpfe** bei zwei Breiten, alle lesbar und im Bild.
+Werkstatt in Chromium geprüft: „+5" gedrückt → 5 Laufbahnen im Speicher,
+Rückmeldung sichtbar, keine Seitenfehler.
+Prüfstand unverändert: 478 Ansichten, 56 Vereinsprüfungen, 0 Fehler.
+
+## Offene Punkte (Stand 35.29)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
@@ -4422,19 +5277,23 @@ Das **Tutorial**. Alles andere ist da und aufrufbar.
    greift nur bei neuen Laufbahnen. So gewollt, sollte aber im Blick bleiben.
 7. **Aus Abschnitt 7 weiterhin offen:** Akademie im Karriere-Rückblick erwähnen,
    Jugendturniere mit Namen und Gegner sichtbar machen.
-8. **Spielerpass wächst weiter (gemeldet 15.8.).** Nicht die Vereinsliste — die
-   steht seit 34.16 fest auf 150 px. Verdächtig ist `.zellen` (`flex-wrap:wrap`
-   mit `flex:1 0 auto`): die vier Felder *Stationen · Spiele · Tore · Vorlagen*
-   können nicht schrumpfen und brechen um, sobald die Zahlen breiter werden.
-   Dazu ab sechs Stationen einmalig die Zeile „N Stationen“. **Vor der Änderung
-   messen** — `.zellen` steckt auch in der Karriere-Kopfleiste.
+8. ~~**Spielerpass wächst weiter (gemeldet 15.8.).**~~ **Erledigt in 35.23.**
+   Die hier genannte Vermutung (`.zellen` bricht um) war **falsch** — der Block
+   bricht nie, weil die Beschriftung über der Zahl steht und breiter ist als
+   jede Zahl. Es waren zwei andere Stellen: +72 px bei der ersten Saison und
+   +17 px ab der sechsten Station, beide aus 34.16. Der Pass steht jetzt fest
+   auf 328,9 px, `sicht.sh` prüft es mit 1 px Toleranz. Der Satz „vor der
+   Änderung messen“ hat hier eine Änderung an sieben Stellen verhindert.
 9. **„Moral“ umbenennen?** Als sichtbare Beschriftung nur zwei Stellen (Meter im
    Zustand, Wirkungstabelle); das Feld `morale` mit 910 Vorkommen bleibt
    unangetastet, sonst brechen alte Spielstände. Empfehlung: „Moral“ ist im
    Fußball das etablierte Wort, „Motivation“ trifft es nicht — der Wert ist
    Stimmung, nicht Antrieb. Der eigentliche Mangel: **in der Kurzanleitung fehlt
    Moral komplett**, obwohl Form, Fitness, Vertrauen und Bekanntheit dort stehen.
-10. **`App.jsx` hat noch 12.041 Zeilen** (seit 35.6, vorher 14.271). Das ist KEINE Anforderung
+10. **`App.jsx` hat 12.829 Zeilen** (gemessen 21.8.2026; hier stand bis 35.22
+   „12.041“ — das war der Stand von 35.11, also 788 Zeilen zu wenig. Vor 35.6
+   waren es 14.271, dann fielen die Ereignisse heraus, seither wächst es
+   wieder). Das ist KEINE Anforderung
    der APK — `schriften.js` und `storage.js` sind bereits eigene Dateien, Vite
    bündelt Importe problemlos. Eine Aufteilung in acht bis zwölf Bausteine würde
    jede Sitzung schneller machen, berührt aber `exporte.txt`, den
@@ -4457,6 +5316,38 @@ Das **Tutorial**. Alles andere ist da und aufrufbar.
    Kevins Seite: der Prüfstand rechnet 300 Laufbahnen durch, aber niemand *spielt*
    sie. Ob sich eine Laufbahn über zwanzig Saisons richtig anfühlt, sagt keine
    Kennzahl.
+
+14. ~~**Bei 360 px läuft der Spielerpass über.**~~ **Widerlegt in 35.25** — der
+   Überlauf existiert nicht. Im echten Aufbau (`Shell` → `.main` → `.a-pass`)
+   scrollt bei 412, 360 und 320 px nichts. Der Befund war ein Artefakt der
+   damaligen Messumgebung, die einen eigenen Rahmen statt der echten Kette
+   benutzte. Der Punkt hat sich selbst gerettet: „im Spiel nicht verifiziert —
+   erst nachstellen, dann erst ändern" stand ausdrücklich darin.
+15. ~~**`wachstum` ist ein toter Parameter.**~~ **Erledigt in 35.25**, entfernt.
+
+16. **`storage.js` behandelt den Leerwert anders als die Browsertest-Fassung**
+   (gefunden 35.24). Produktiv `value ? { key, value } : null` — ein
+   gespeicherter Leerstring käme als „nicht vorhanden“ zurück. `browsertest.sh`
+   unterscheidet sauber (`value == null`). **Praktisch folgenlos:** alle
+   Aufrufe schreiben `JSON.stringify(…)` oder `String(n)`, nie einen
+   Leerstring. Bewusst nicht geändert — `storage.js` sitzt zwischen App und
+   Gerät. Wenn dort ohnehin gearbeitet wird, angleichen.
+
+**Seit 35.28 erledigt:** die Knopfprüfung blättert jetzt durch und erfasst den Vereinsabschluss — 24 statt 22, dann 124 statt 24 Knöpfe.
+
+**Seit 35.27 erledigt:** der eigene Verein läuft nebenher — eine Saison je abgeschlossener Laufbahn statt auf Knopfdruck; Einschreiben ersetzt den Saisonknopf; kurzer Vereinsbericht in der Karriereübersicht.
+
+**Seit 35.26 erledigt:** erster Gerätetest des Vereinsmodus — die Vorschau bleibt beim Blättern oben, der Gründen-Knopf ist wieder lesbar (dieselbe Ursache an zwei Stellen).
+
+**Seit 35.25 erledigt:** das Tutorial — Willkommensschirm beim ersten Start, zwei neue Kapitel in der Kurzanleitung, einmaliger Hinweis beim Freischalten. Damit ist Kevins Zettel abgearbeitet.
+
+**Seit 35.24 erledigt:** offener Punkt 14 widerlegt (kein Überlauf), Punkt 15 entfernt; die Passmessung läuft durch die echten Komponenten und deckt 320 px mit ab.
+
+**Seit 35.23 erledigt:** die Akademie sagt nicht mehr „sechs Abteilungen“, wenn es neun sind; `texttreue.cjs` gleicht Errungenschaftstexte gegen ihre Bedingungen ab; sieben falsche oder fehlende Stellen in `STAND.md` und `LIESMICH.md` berichtigt; `UEBERSICHT.md` neu erzeugt.
+
+**Seit 35.22 erledigt:** der Spielerpass bleibt über die ganze Laufbahn gleich hoch; `sicht.sh` prüft es mit 1 px Toleranz.
+
+**Seit 35.21 erledigt:** fünf veraltete Angaben in dieser Datei berichtigt; der Prüfstand vergleicht jetzt die Fassung im Kopf mit `App.jsx`; der 40-Laufbahnen-Verlauf ist als `verlauf40.cjs` nachrechenbar.
 
 **Seit 35.20 erledigt:** der Verein hängt im Hauptmenü, wird gespeichert und ist ab 5 Laufbahnen frei.
 

@@ -13,7 +13,24 @@ const {
   akaRestkosten, leereAkademie, akaStufe,
 } = E;
 
-const ziel = process.argv[2] || "/tmp/UEBERSICHT.md";
+/* Das Ziel ist das ERSTE Argument, nicht die Quelle — die kommt aus
+   /tmp/ps/motor.js. Ein "node uebersicht.cjs App.jsx UEBERSICHT.md" hat
+   deshalb am 16.8.2026 wortlos die App.jsx ueberschrieben: 14.304 Zeilen
+   Spiel gegen 3.001 Zeilen Uebersicht, ohne eine einzige Rueckfrage. Zwei
+   Riegel, beide haetten genau das verhindert. */
+const args = process.argv.slice(2);
+if (args.length > 1) {
+  console.error("FEHLER: uebersicht.cjs nimmt GENAU ein Argument — die Zieldatei.");
+  console.error("        Die Quelle kommt aus /tmp/ps/motor.js und wird nicht uebergeben.");
+  console.error("        Bekommen: " + args.join(" "));
+  process.exit(1);
+}
+const ziel = args[0] || "/tmp/UEBERSICHT.md";
+if (!/\.md$/i.test(ziel)) {
+  console.error("FEHLER: das Ziel muss auf .md enden. Bekommen: " + ziel);
+  console.error("        Ein Quelltextpfad an dieser Stelle loescht die Datei.");
+  process.exit(1);
+}
 const L = [];
 const p = (x = "") => L.push(x);
 const z1 = (x) => (Math.round(x * 10) / 10).toFixed(1);

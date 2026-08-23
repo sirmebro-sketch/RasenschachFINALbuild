@@ -11,6 +11,7 @@ export {
   TYPES, MODES, CLUBS, leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, vcPosten,
   akaBonus, akaRuhm, ABTEILUNGEN, akaStufe, akaPreis, akaRestkosten, akaSumme, akaSpanne,
   talentBauen, AKA_KEY, Shell, Pass, Guard, MenuScreen, CreateScreen, CompetitionView,
+  Willkommen, WILLKOMMEN, FreiHinweis, leerGesehen,
   StatsView, MoneyView, HistoryView, SquadView, TrophyView, HallScreen, EndScreen,
   NationalView, SocialView, AchievementScreen, BackupScreen, AkademieScreen, TalentZeile,
   KarriereRueckblick, SaisonRueckblick, WildcardEnthuellung, WildcardCard, Balken,

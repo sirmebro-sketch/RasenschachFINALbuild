@@ -3,7 +3,7 @@
 > Diese Datei wird aus dem Quelltext erzeugt, nicht von Hand gepflegt.
 > Jede Zahl stammt aus den Daten des laufenden Spiels.
 
-**Fassung 35.21** · erzeugt am 20. August 2026
+**Fassung 35.24** · erzeugt am 21. August 2026
 
 ## Inhalt auf einen Blick
 
@@ -2565,7 +2565,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 |---|---|---|
 | Ein Name in der Szene | Ansehen von 150 erreichen | — |
 | Kein Zufall | Drei Absolventen werden Weltklasse | — |
-| Alles ausgebaut | Alle sechs Abteilungen auf Stufe 6 | — |
+| Alles ausgebaut | Jede Abteilung auf Höchststufe | — |
 | Tausend Spiele | 1.000 Pflichtspiele in einer Laufbahn | — |
 | Vierhundert Tore | 400 Tore in einer Laufbahn | Glückssträhne III |
 | Weltmeister | Eine Weltmeisterschaft gewinnen | Karte: Schule des Lebens |

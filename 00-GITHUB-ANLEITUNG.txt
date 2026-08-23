@@ -1,0 +1,84 @@
+RASENSCHACH XI · Fassung 35.29 · Stand fuers Repository
+================================================================
+Dieser Ordner ist der VOLLSTAENDIGE Inhalt deines Repositories,
+in der richtigen Struktur. Alte Dateien loeschen, diese
+hineinkopieren, committen, pushen.
+
+  Wurzel/
+    App.jsx  ereignisse.js  verein.js  schriften.js  storage.js
+    main.jsx  index.html  package.json  vite.config.js
+    capacitor.config.json  .gitignore  schriften-lizenz.txt
+    STAND.md  UEBERSICHT.md  LIESMICH.md
+  .github/workflows/
+    apk.yml                  <- baut die APK
+  pruefstand/                <- 31 Pruefwerkzeuge
+  symbol/
+    appicon.py
+
+Insgesamt 49 Dateien (48 + diese Anleitung, die du nicht
+mitcommitten musst).
+
+ACHTUNG bei den Namen: im Projektwissen heissen drei Dateien
+anders, weil dort keine Punkte am Anfang gehen. Hier stehen sie
+schon richtig:
+    vite_config.js        -> vite.config.js
+    capacitor_config.json -> capacitor.config.json
+    _gitignore            -> .gitignore
+    apk.yml               -> .github/workflows/apk.yml
+    appicon.py            -> symbol/appicon.py
+
+Die .gitignore faengt an mit einem PUNKT — manche Entpacker
+blenden solche Dateien aus. Wenn sie fehlt, landen node_modules
+und dist im Repository.
+
+
+VOLLSTAENDIGKEITSPROBE
+----------------------------------------------------------------
+Aus GENAU diesem Ordner wurden beide Pruefstaende gefahren,
+nichts von woanders:
+
+    bash pruefstand/pruefen.sh ./App.jsx      -> Code 0
+    bash pruefstand/sicht.sh   ./App.jsx      -> Code 0
+
+  Baudateien 6/6 · Schriften 128K · Ereignisse 518
+  Kalibrierung    alle vier Zielbaender
+  Ansichten       478 Pruefungen, 0 Fehler
+  Verein           56 Pruefungen, 0 Fehler
+  Ereignisse       11 Pruefungen, 0 harte Treffer
+  Rueckwaerts       6 x 63 Ansichten, 0 Fehler
+  Produktionsbau  1.201,27 kB / 439,16 kB gepackt
+  package.json    unveraendert
+  Verzeichnis     75 Abschnitte
+  sicht.sh        14/14 · 8 px · 4/4 · Impressum 35.29
+                  Passhoehe konstant bei 412, 360, 320 px
+                  124 Knoepfe, alle lesbar und im Bild
+
+Damit ist belegt, dass keine Datei fehlt: haette eine gefehlt,
+waere der Bau gescheitert.
+
+
+EIN FUND DABEI
+----------------------------------------------------------------
+Beim Pruefen aus diesem Ordner heraus fiel auf, dass EINE
+Pruefung bei relativem Aufruf ("./App.jsx" statt vollem Pfad)
+ausfiel — sie meldete ehrlich "nicht gefunden, NICHT geprueft",
+lief aber nicht. pruefen.sh macht den Pfad jetzt absolut.
+Gegengeprueft, deshalb steht oben "./App.jsx".
+
+
+DIE APK BAUEN
+----------------------------------------------------------------
+Nach dem Push laeuft die Aktion apk.yml von selbst. Die fertige
+APK liegt danach unter Actions -> letzter Lauf -> Artifacts.
+
+
+WAS DANACH ZU PRUEFEN WAERE
+----------------------------------------------------------------
+  * Der VEREINSMODUS im Ganzen — er laeuft jetzt nebenher, eine
+    Saison je abgeschlossener Laufbahn (35.28). Braucht fuenf
+    abgeschlossene Laufbahnen.
+  * Der WILLKOMMENSSCHIRM (35.26) — erscheint nur bei frischer
+    Installation.
+  * Der SPIELERPASS mit fester Hoehe (35.23).
+  * Die drei Skizzen im Willkommensschirm auf einem echten
+    Display; die hat noch nie jemand darauf gesehen.

@@ -8,6 +8,7 @@ import App, {
   MenuScreen, EndScreen, AkademieScreen, TalentZeile, WildcardEnthuellung, Balken,
   AusbauRing, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, WildcardCard,
   AchievementScreen, Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass,
+  Willkommen, WILLKOMMEN, FreiHinweis, leerGesehen,
   VCLADEN, SHOP_BILD, shopFuer, ladenGesperrt, ladenKaufbar, VCLadenAnsicht, tauschRest,
   rerollWildcard, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS,
   weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen,
@@ -856,6 +857,83 @@ console.log("\n=== Sprache ===");
   else ok++;
   if (lang) zeige("Anleitung", lang + " Zeilen über 130 Zeichen — zu lang für eine Kurzanleitung");
   else ok++;
+
+  /* ---- Willkommensschirm (35.26) ---------------------------------------- */
+  /* Der Schirm erscheint genau EINMAL im Leben eines Spielstands. Wenn dort
+     etwas fehlt, sieht es niemand ein zweites Mal — und beschwert sich auch
+     nicht, weil er nicht weiss, was hätte stehen sollen. Deshalb geprüft. */
+  {
+    let wLeer = 0, wLang = 0, wOhneBild = 0;
+    WILLKOMMEN.forEach((t) => {
+      if (!t.kopf || !t.text) wLeer++;
+      if (typeof t.bild !== "function") wOhneBild++;
+      /* Grosszügiger als die Anleitung (130): hier stehen ganze Absätze,
+         keine Stichworte. Aber eine Grenze braucht es, sonst wächst der Text
+         über den Bildschirm hinaus und die Knöpfe rutschen darunter. */
+      if ((t.text || "").length > 260) wLang++;
+    });
+    if (wLeer) zeige("Willkommen", wLeer + " Tafeln ohne Kopf oder Text"); else ok++;
+    if (wOhneBild) zeige("Willkommen", wOhneBild + " Tafeln ohne Zeichnung"); else ok++;
+    if (wLang) zeige("Willkommen", wLang + " Tafeln über 260 Zeichen"); else ok++;
+    /* Die drei Dinge, die STAND.md als Auftrag nennt, müssen vorkommen. Ohne
+       diese Prüfung könnte eine Tafel still verschwinden. */
+    const alles = WILLKOMMEN.map((t) => t.kopf + " " + t.text).join(" ");
+    const fehlt = [["Laufbahn", /laufbahn|spieler/i], ["Akademie", /akademie/i],
+                   ["Verein", /verein/i]].filter(([, r]) => !r.test(alles));
+    if (fehlt.length) zeige("Willkommen", "erklärt nicht: " + fehlt.map((f) => f[0]).join(", "));
+    else ok++;
+    /* Rendern. `mach` gibt {div, root} zurück und prüft selbst auf leere
+       Ansicht sowie NaN/undefined — der erste Entwurf hier behandelte den
+       Rückgabewert als Text und brach mit „h.includes is not a function" ab.
+       Nachgesehen statt geraten. */
+    const w = mach("Willkommen", <Willkommen onFertig={() => {}} />);
+    if (w) {
+      const t = w.div.textContent || "";
+      /* Beim Öffnen steht Tafel 1 — und die Blätteranzeige muss die Gesamtzahl
+         nennen, sonst weiss niemand, wie lang das noch geht. */
+      if (!t.includes(WILLKOMMEN[0].kopf)) zeige("Willkommen", "Tafel 1 zeigt ihren Kopf nicht");
+      else ok++;
+      if (!t.includes("/ " + String(WILLKOMMEN.length).padStart(2, "0")))
+        zeige("Willkommen", "Blätteranzeige nennt die Gesamtzahl nicht");
+      else ok++;
+      /* Ein Ausweg muss immer da sein: wer den Schirm nicht lesen will, darf
+         nicht festsitzen. */
+      if (!/Überspringen/.test(t)) zeige("Willkommen", "kein Ausweg: Überspringen fehlt");
+      else ok++;
+      w.root.unmount();
+    }
+
+    /* ---- Freischalthinweis ---- */
+    for (const was of ["aka", "verein"]) {
+      const h = mach("Freischalthinweis · " + was, <FreiHinweis was={was} onZu={() => {}} />);
+      if (h) {
+        const t = h.div.textContent || "";
+        /* Muss sagen, WAS neu ist — ein Hinweis ohne Gegenstand ist Lärm. */
+        const treffer = was === "aka" ? /Akademie/i.test(t) : /Verein/i.test(t);
+        if (!treffer) zeige("Freischalthinweis", was + ": nennt die Sache nicht beim Namen");
+        else ok++;
+        if (!/Verstanden/.test(t)) zeige("Freischalthinweis", was + ": kein Weg zum Schliessen");
+        else ok++;
+        h.root.unmount();
+      }
+    }
+
+    /* Die Schwellen müssen zu dem passen, was die Tafeln und die Anleitung
+       versprechen. Stünde in verein.js FREI_VEREIN = 6, liefe der Text „ab der
+       5. Laufbahn" ins Leere — genau der Fehler, den die Akademie mit ihren
+       „sechs Abteilungen" zwölf Fassungen lang hatte. */
+    const fr0 = VEREIN.freigeschaltet({ karrieren: 0 });
+    if (fr0.nochAkademie !== 2) zeige("Willkommen", "Akademie-Schwelle ist " + fr0.nochAkademie + ", die Tafel sagt 2");
+    else ok++;
+    if (fr0.nochVerein !== 5) zeige("Willkommen", "Vereins-Schwelle ist " + fr0.nochVerein + ", die Tafel sagt 5");
+    else ok++;
+    /* Und niemand darf beides gleichzeitig geschenkt bekommen, ohne dass die
+       Reihenfolge stimmt. */
+    if (!VEREIN.freigeschaltet({ karrieren: 2 }).akademie) zeige("Willkommen", "bei 2 Laufbahnen ist die Akademie nicht offen");
+    else ok++;
+    if (VEREIN.freigeschaltet({ karrieren: 4 }).verein) zeige("Willkommen", "Verein schon bei 4 Laufbahnen offen");
+    else ok++;
+  }
   /* Behördendeutsch darf sich nicht wieder einschleichen. Der Ton lässt sich
      nicht prüfen, aber diese Wendungen sind ein verlässliches Zeichen dafür,
      dass ein Satz nicht aus der Kabine kommt. Gemessen an 445 Titeln, 974

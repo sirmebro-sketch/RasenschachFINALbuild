@@ -87,6 +87,14 @@ export const machVerein = (H) => {
     farben: { primaer: "#c0392b", sekundaer: "#f4f1ea" },
     wappen: null,                  /* kommt mit dem Editor, hier nur der Platz */
     jahr: 0,                       /* 1 bis VEREIN_JAHRE */
+    /* EINGESCHRIEBEN heisst: der Verein nimmt am Spielbetrieb teil und spielt
+       ab jetzt bei JEDER abgeschlossenen Spielerlaufbahn eine Saison. Bis 35.28
+       gab es das nicht — stattdessen einen Knopf „Saison spielen", den man
+       beliebig oft druecken konnte. Der Verein lief damit voellig unabhaengig
+       von den Laufbahnen, was nie so gedacht war (Kevin am 21.8. auf dem
+       Geraet gesehen). Der Knopf war ein Behelf aus 35.17, als es den
+       Rechenkern schon gab und den Bildschirm noch nicht. */
+    eingeschrieben: false,
     kader: [],
     formation: "442",
     taktik: "ausgeglichen",
@@ -470,10 +478,32 @@ export const machVerein = (H) => {
     return v;
   };
 
+  /* ---- Einschreiben in den Spielbetrieb --------------------------------
+     Ein einmaliger Schritt: danach spielt der Verein bei jeder abgeschlossenen
+     Spielerlaufbahn eine Saison, ohne dass jemand etwas druecken muss. Der
+     Kader muss dafuer stehen — Kevins Vorgabe: „vor dem Spieler-Karrierestart
+     gesetzt, dann zaehlt er".
+     Bewusst NICHT umkehrbar: wer sich einschreibt, spielt die fuenfzehn Jahre.
+     Ein Verein, den man zwischendurch abmelden kann, waere kein Verein.      */
+  const einschreiben = (v) => {
+    if (!v || !v.gegruendet) return { fehler: "Kein Verein gegruendet." };
+    if (v.eingeschrieben) return { fehler: "Schon eingeschrieben." };
+    const st = staerke(v);
+    if (!st.spielbereit) return { fehler: "Kader oder Aufstellung fehlen." };
+    return { v: { ...v, eingeschrieben: true } };
+  };
+
+  /* Laeuft am Ende einer Laufbahn eine Saison? Genau dann, wenn eingeschrieben,
+     noch nicht durch und spielbereit. Als eigene Funktion, damit Bildschirm,
+     Ablauf und Pruefstand DIESELBE Antwort bekommen — drei Stellen, die
+     denselben Satz einzeln nachbauen, laufen frueher oder spaeter auseinander. */
+  const spieltMit = (v) => !!(v && v.gegruendet && v.eingeschrieben
+    && v.jahr <= VEREIN_JAHRE && staerke(v).spielbereit);
+
   return { KADER_MIN, VEREIN_JAHRE, FORMATIONEN, TAKTIKEN, GUETE,
            leererVerein, gruenden, pyramide, stufenVon, startligen,
            hochziehen, kaderVoll, bedarf, startklar, alsSpieler, guete, kannSpielen,
-           staerke, autoAufstellen, vereinSaison,
+           staerke, autoAufstellen, vereinSaison, einschreiben, spieltMit,
            FREI_AKADEMIE, FREI_VEREIN, freigeschaltet,
            VEREIN_AUSBAU, AUSBAU_MAX, ausbauStufe, ausbauKosten, ausbauen,
            BONI, punkte, abschluss, neuerVerein };

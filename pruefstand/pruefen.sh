@@ -183,6 +183,24 @@ if [ -f "$QUELLDIR/STAND.md" ]; then
       echo "           Zahlen dieses Laufs (Pruefungen, Fehler, Buendelgroesse)."
       FEHLER=$((FEHLER+1))
     fi
+
+    # 5) Nennt der KOPF von STAND.md dieselbe Fassung? Bis 35.22 stand dort
+    #    stattdessen ein Merksatz, der zum Gegenpruefen eine Zeilennummer in
+    #    App.jsx nannte ("Zeile 10") — die durch zwei neue Importe laengst um
+    #    zwei verrutscht war und ins Leere zeigte. Eine Anweisung, die mit
+    #    jeder Aenderung veraltet, gehoert nach der Regel aus 35.3 hierher
+    #    und nicht in einen Merksatz. Prueft 4 und 5 zusammen: Abschnitt da,
+    #    Messblock da, Kopf aktuell.
+    KOPFFASSUNG=$(sed -n 's/^\*\*Fassung \([0-9][0-9.]*\)\*\*.*/\1/p' "$QUELLDIR/STAND.md" | head -1)
+    if [ -z "$KOPFFASSUNG" ]; then
+      echo "  WARNUNG: STAND.md hat keine Kopfzeile '**Fassung <Nr>** · Stand <Datum>'."
+      FEHLER=$((FEHLER+1))
+    elif [ "$KOPFFASSUNG" != "$FASSUNG" ]; then
+      echo "  WARNUNG: Fassung laeuft auseinander — App.jsx $FASSUNG, STAND.md-Kopf $KOPFFASSUNG."
+      echo "           Eine der beiden Dateien ist veraltet. Das gehoert geklaert,"
+      echo "           BEVOR irgendetwas geaendert wird."
+      FEHLER=$((FEHLER+1))
+    fi
   fi
 fi
 
@@ -261,7 +279,13 @@ fi
 if hat verein; then
 titel "VEREIN"
 if [ -f "$BAU/motor.js" ]; then
-  ( cd "$BAU" && node "$PS/vereinpruefung.cjs" ) || FEHLER=1
+  # QUELLE_APP absolut machen: das Skript laeuft aus $BAU, ein relativer Pfad
+  # zeigt dort ins Leere. Aufgefallen beim Bauen aus einem Repository-Ordner
+  # (`pruefen.sh ./App.jsx`) — die Quelltextpruefung meldete "nicht gefunden,
+  # NICHT geprueft". Sie hat sich damit richtig verhalten, aber eine Pruefung,
+  # die je nach Aufrufform ausfaellt, ist nur eine halbe Pruefung.
+  QA="$(cd "$(dirname "$QUELLE")" && pwd)/$(basename "$QUELLE")"
+  ( cd "$BAU" && QUELLE_APP="$QA" node "$PS/vereinpruefung.cjs" ) || FEHLER=1
 else
   echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
   FEHLER=1

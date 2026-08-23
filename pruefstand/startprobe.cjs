@@ -33,6 +33,23 @@ let html = fs.readFileSync(datei, "utf8");
   html = html.replace("</body>", () => "<scr" + "ipt>" + rumpf + "</scr" + "ipt></body>");
 }
 
+/* WILLKOMMENSSCHIRM VORBELEGEN. Seit 35.26 steht er vor dem Menue, und ein
+   frisch geladenes Buendel ist genau der "allererste Start". Diese Probe lief
+   danach sofort rot: sie suchte Titelblatt und Impressum und stand im Schirm.
+
+   Weggeklickt wird er NICHT — nach dem Klick muesste auf Reacts naechsten
+   Durchlauf gewartet werden, und ein synchroner Lesevorgang sieht dann noch
+   den alten Zustand (ausprobiert: "Ausweg" ✓, alles dahinter trotzdem ✗).
+   Stattdessen den Schluessel setzen, bevor die App laeuft.
+
+   Der Schirm selbst ist dadurch nicht ungeprueft: `ansichten.jsx` nimmt ihn
+   mit sieben eigenen Pruefungen auseinander (Koepfe, Texte, Zeichnungen,
+   Laenge, Blaetteranzeige, Ueberspringen). Arbeitsteilung: dort der INHALT,
+   hier dass die App ueberhaupt bis zum Menue kommt. */
+html = html.replace("</head>", () => "<scr" + "ipt>try{localStorage.setItem("
+  + "'rasenschach:willkommen',JSON.stringify({schirm:true,aka:true,verein:true}));}"
+  + "catch(e){}</scr" + "ipt></head>");
+
 const vc = new VirtualConsole();
 const fehler = [];
 vc.on("jsdomError", (e) => fehler.push(String(e && e.message).slice(0, 200)));
@@ -44,7 +61,26 @@ setTimeout(() => {
   const d = dom.window.document;
   /* NICHT body.textContent: darin steckt der Quelltext des Buendels, in dem
      jede gesuchte Zeichenfolge ohnehin vorkommt. Nur die Wurzel zaehlt. */
-  const t = (d.querySelector("#root") || {}).textContent || "";
+  /* Nach einem Klick muss der Text NEU gelesen werden — eine einmal
+     gespeicherte Zeichenkette altert sofort. */
+  const roh = () => {
+    const w = d.querySelector("#root");
+    if (!w) return "";
+    /* Den STILBLOCK ausklammern. `Shell` rendert <style>{CSS}</style> INNERHALB
+       von #root, und dessen textContent enthaelt jeden Kommentar im CSS. Ein
+       Kommentar mit dem Wort „Fassung" und einer Nummer liess die
+       Impressumspruefung darauf anspringen statt auf das Impressum: gemeldet
+       wurde „Quelle 35.26 · angezeigt 35.27" — beide Zahlen echt, nur die
+       zweite aus einem Kommentar. Sichtbarer Text ist, was der Spieler liest.
+
+       Ueber einen KLON, nicht ueber eine eigene Sammelschleife: der erste
+       Versuch lief die Kindknoten selbst ab und verlor dabei das Impressum
+       ("angezeigt (keine)"). textContent kennt alle Faelle, die so eine
+       Schleife uebersieht. */
+    const k = w.cloneNode(true);
+    k.querySelectorAll("style,script").forEach((e) => e.remove());
+    return k.textContent || "";
+  };
   const w = (b) => (b ? "\u2713" : "\u2717");
   let ok = 0, schlecht = 0;
   const pruef = (name, b, zusatz) => {
@@ -55,6 +91,13 @@ setTimeout(() => {
   console.log("=== Startprobe ===");
   pruef("Wurzel gefuellt", (d.querySelector("#root") || {}).childElementCount > 0,
         "Kindelemente: " + ((d.querySelector("#root") || {}).childElementCount || 0));
+
+  /* Belegt der Schluessel oben wirklich vor? Ohne diese Zeile waere nicht zu
+     unterscheiden, ob das Menue erscheint oder der Schirm nur zufaellig
+     ausbleibt. */
+  const t = roh();
+  pruef("Willkommensschirm vorbelegt, Menue erreicht", !/Überspringen/.test(t));
+
   pruef("Titelblatt da", t.includes("KARRIERE-SIMULATION"));
   const gezeigt = (t.match(/Fassung ([0-9.]+)/) || [])[1] || "(keine)";
   if (sollFassung)

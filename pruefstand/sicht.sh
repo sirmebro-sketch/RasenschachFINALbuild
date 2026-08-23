@@ -68,6 +68,36 @@ else
     fi
     [ "${PIPESTATUS[0]}" != "0" ] && FEHLER=$((FEHLER+1))
   done
+
+  # Passhoehe. Braucht KEIN browsertest-HTML, sondern ein eigenes Buendel aus
+  # /tmp/ps — deshalb getrennt von der Schleife oben. Laeuft nur, wenn der
+  # Pruefstand gebaut ist; sonst waere die Messung eine Erfindung.
+  echo
+  echo "########## PASSHOEHE ##########"
+  if [ ! -f "$PS/passhoehe.sh" ]; then
+    echo "  passhoehe.sh fehlt — nicht geprueft."; NICHT=$((NICHT+1))
+  elif [ ! -f /tmp/ps/probe.jsx ]; then
+    echo "  /tmp/ps fehlt — erst 'pruefen.sh' laufen lassen. NICHT geprueft."
+    echo "  Das ist kein gruenes Ergebnis, nur ein fehlendes."
+    NICHT=$((NICHT+1))
+  else
+    bash "$PS/passhoehe.sh" "$QUELLE" 2>&1 | grep -E '===|✓|✗|→|Spanne' | sed 's/^/  /'
+    [ "${PIPESTATUS[0]}" != "0" ] && FEHLER=$((FEHLER+1))
+  fi
+
+  # Knopfzeilen. Derselbe Fehler ist DREIMAL aufgetreten (Vereinsgruendung,
+  # Vereinsabschluss, Willkommensschirm): `.btn{width:100%}` neben einem Knopf
+  # mit flex:1 quetscht den Nachbarn auf einen Streifen. Eine Quelltextsuche
+  # hat den dritten Fall nicht gefunden — im Text stand bereits `flex:0 0 auto`,
+  # was richtig aussieht und nichts hilft. Deshalb wird gemessen.
+  echo
+  echo "########## KNOEPFE ##########"
+  if [ ! -f "$PS/knoepfe.sh" ]; then
+    echo "  knoepfe.sh fehlt — nicht geprueft."; NICHT=$((NICHT+1))
+  else
+    bash "$PS/knoepfe.sh" "$QUELLE" 2>&1 | grep -E '===|✓|✗' | sed 's/^/  /'
+    [ "${PIPESTATUS[0]}" != "0" ] && FEHLER=$((FEHLER+1))
+  fi
 fi
 
 echo

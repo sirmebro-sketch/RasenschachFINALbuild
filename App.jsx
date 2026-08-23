@@ -9,8 +9,8 @@ import { machVerein } from "./verein.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "35.21";
-const VERSION_INFO = "Der eigene Verein steht jetzt im Hauptmenü und wird gespeichert — ab fünf abgeschlossenen Laufbahnen ist er frei.";
+const VERSION = "35.29";
+const VERSION_INFO = "Alle Knöpfe sind jetzt maschinell nachgemessen — keiner ist mehr abgeschnitten oder außerhalb des Bildes.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -5391,7 +5391,10 @@ const AKA_KEY = "rasenschach:akademie";
    Abschluss ersetzt, sie bleibt bestehen. */
 const VER_KEY = "rasenschach:verein";
 
-/* Die sechs Abteilungen. Stufe 1 hat man von Anfang an, die Kosten stehen
+/* Die Abteilungen — neun seit 35.12, vorher sechs. KEINE Zahl in Texte
+   schreiben, die daneben stehen: bis 35.24 versprachen zwei sichtbare Stellen
+   dem Spieler „sechs Abteilungen", lange nachdem es neun waren.
+   Stufe 1 hat man von Anfang an, die Kosten stehen
    für den Sprung auf die jeweils nächste Stufe. Voller Ausbau kostet
    1.564 VC — das entspricht rund dreißig ordentlich gespielten Laufbahnen. */
 const ABTEILUNGEN = [
@@ -6100,7 +6103,7 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
                   <div className="eb" style={{ color: "var(--go)" }}>Vollständig ausgebaut</div>
                   <div className="d" style={{ fontSize: 19, marginTop: 2 }}>Alles steht</div>
                   <p style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 4 }}>
-                    Sechs Abteilungen, alle auf Maximum. Mehr geht nicht.</p>
+                    Jede Abteilung auf Maximum. Mehr geht nicht.</p>
                 </>
               ) : naechster.reicht ? (
                 <>
@@ -6388,6 +6391,15 @@ const CSS = SCHRIFTEN + `
 .btn.on{border-color:var(--ac);background:rgba(127,166,212,.14);
  box-shadow:inset 3px 0 0 var(--ac);}
 .btn:disabled{opacity:.4;cursor:not-allowed;}
+/* Nebenknopf in einer Knopfzeile. .btn bringt width:100% mit - steht ein
+   solcher Knopf neben einem mit flex:1, frisst er die ganze Zeile und der
+   Hauptknopf wird auf Restbreite gequetscht. Gemessen in der Vereinsgruendung:
+   Zurueck 348 px, der Gruenden-Knopf 32 px bei 53 px Bedarf - der Text war auf
+   dem Geraet nicht mehr lesbar (gemeldet 21.8. auf dem S24 Ultra).
+   KEINE Anfuehrungszeichen in diesem Block: der CSS-Text ist eine Zeichenkette,
+   ein " darin beendet sie. Genau daran ist die erste Fassung dieses Kommentars
+   gescheitert - die Seite meldete ".btn is not a function" und blieb leer. */
+.btn.schmal{width:auto;flex:0 0 auto;}
 .btn.pri{background:var(--tx);border-color:var(--tx);color:var(--bg);font-weight:600;
  border-bottom:4px solid #8E97A6;}
 .btn.pri:hover{background:#F2F5FA;border-color:#F2F5FA;}
@@ -6760,6 +6772,15 @@ const hasStore = () => {
    übernommen.                                                              */
 const SAVE_KEY = "rasenschach:stand";
 const SEEN_KEY = "rasenschach:gesehen";
+/* Getrennt von SEEN_KEY: das sind die gesehenen EREIGNISSE. Ein gemeinsamer
+   Schluessel haette den Willkommensschirm bei jeder Sicherungsruecknahme
+   mitgeloescht oder umgekehrt.
+
+   Inhalt ist ein JSON-Objekt { schirm, aka, verein } — alles, was der Spieler
+   EINMAL sieht und dann nie wieder. Drei einzelne Schluessel waeren drei
+   Eintraege in SICHER_KEYS und drei Gelegenheiten, einen zu vergessen. */
+const WILL_KEY = "rasenschach:willkommen";
+const leerGesehen = () => ({ schirm: false, aka: false, verein: false });
 const ACH_KEY  = "rasenschach:erfolge";
 /* ================= META-FORTSCHRITT =================
    Alles, was über einzelne Laufbahnen hinaus zählt: eine lebenslange
@@ -6989,7 +7010,7 @@ const ACHIEVEMENTS = [
   ok:(p,G,A)=>!!A&&(A.ruhm||0)>=150 },
 { id:"a_aka_welt3", s:"platin", n:"Kein Zufall",           t:"Drei Absolventen werden Weltklasse",
   ok:(p,G,A)=>!!A&&A.bilanz.weltklasse>=3 },
-{ id:"a_aka_voll",  s:"platin", n:"Alles ausgebaut",       t:"Alle sechs Abteilungen auf Stufe 6",
+{ id:"a_aka_voll",  s:"platin", n:"Alles ausgebaut",       t:"Jede Abteilung auf Höchststufe",
   ok:(p,G,A)=>!!A&&akaSumme(A)>=ABTEILUNGEN.length*AKA_MAX },
 { id:"a_aka_erbe",  s:"legende",n:"Ein Lebenswerk",        t:"Zehn Weltklassespieler und 25 Jahrgänge",
   ok:(p,G,A)=>!!A&&A.bilanz.weltklasse>=10&&A.jahrgaenge>=25 },
@@ -7186,7 +7207,7 @@ async function ladeMitAltbestand(key) {
 const HALL_KEY = "rasenschach:halle";
 /* Alles, was die App dauerhaft ablegt — einzige Wahrheit für „Alles
    zurücksetzen". Wer einen neuen Schlüssel einführt, trägt ihn hier ein. */
-const SPEICHERSCHLUESSEL = [SAVE_KEY, SEEN_KEY, ACH_KEY, LIFE_KEY, META_KEY, HALL_KEY, AKA_KEY, VER_KEY,
+const SPEICHERSCHLUESSEL = [SAVE_KEY, SEEN_KEY, WILL_KEY, ACH_KEY, LIFE_KEY, META_KEY, HALL_KEY, AKA_KEY, VER_KEY,
   "rasenschach:ruhe", "rasenschach:vib", "rasenschach:text",
   "rasenschach:speed", "rasenschach:schwer", "rasenschach:wach"];
 /* Schulnoten laufen von 1 bis 6 — die Farbe soll das auch tun. Vorher:
@@ -7511,8 +7532,15 @@ function VereinGruenden({ aka, onFertig, onZurueck }) {
         <div className="d" style={{ fontSize: "clamp(26px,7vw,44px)", marginBottom: 10 }}>Gründung</div>
 
         {/* Die Vorschau steht oben und nicht am Ende: man soll sehen, was man
-            baut, während man es baut. */}
-        <div className="pan pad" style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            baut, während man es baut. UND SIE BLEIBT BEIM BLÄTTERN OBEN HÄNGEN —
+            Farben, Trikotmuster und Wappen stehen weit unten, und ohne das
+            Anheften stellt man sie ein, scrollt hoch, schaut, scrollt runter.
+            Auf dem Gerät gemeldet (21.8.), gebaut wie in der Spielererstellung.
+            `.pan` bringt position:relative mit; die Angabe hier sticht sie aus,
+            weil sie direkt am Element steht. Der Grund muss deckend sein, sonst
+            liest man den durchscheinenden Text darunter mit. */}
+        <div className="pan pad" style={{ display: "flex", alignItems: "center", gap: 14,
+          position: "sticky", top: 0, zIndex: 5, borderBottomWidth: 2, background: "var(--pan)" }}>
           <Wappen w={wappen} farben={farben} groesse={78} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="d" style={{ fontSize: 22, overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -7581,8 +7609,8 @@ function VereinGruenden({ aka, onFertig, onZurueck }) {
         </div>
 
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button className="btn" onClick={onZurueck}>Zurück</button>
-          <button className="btn on" disabled={!bereit} style={{ flex: 1 }}
+          <button className="btn schmal" onClick={onZurueck}>Zurück</button>
+          <button className="btn on" disabled={!bereit} style={{ flex: "1 1 auto", minWidth: 0 }}
             onClick={() => {
               const r = VEREIN.gruenden(VEREIN.leererVerein(),
                 { name, stadt, land, liga, farben });
@@ -7614,13 +7642,10 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
   const holbar = (aka && aka.talente ? aka.talente : []).filter((t) => t.alter >= 16);
   const fehlteil = Object.entries(bd.fehlt).map(([p, n]) => n + "× " + p).join(", ");
 
-  const spielen = () => {
-    const r = VEREIN.vereinSaison(v);
-    if (r.fehler) return;
-    setBericht(r);
-    onAendern(r.v);
-    if (r.vorbei) onAbschluss(VEREIN.abschluss(r.v));
-  };
+  /* `spielen()` ist mit 35.28 entfallen. Eine Saison wird nur noch am Ende
+     einer Spielerlaufbahn ausgeloest (siehe `finish`), damit es genau EINEN
+     Weg gibt. Zwei Ausloeser fuer dasselbe waeren zwei Wege, die auseinander-
+     laufen — und einer davon haette die Kopplung wieder umgehbar gemacht. */
 
   /* Ein Saisonbericht schiebt sich über alles andere — er ist das Ergebnis
      eines ganzen Jahres und soll nicht neben der Kaderliste verschwinden. */
@@ -7686,13 +7711,42 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
           <Stat k="Bester Platz" v={v.bilanz.bestePlatzierung == null ? "—" : v.bilanz.bestePlatzierung} />
         </div>
 
-        {/* Der Anpfiff steht oben, weil er das Ziel jeder Sitzung ist. */}
-        <button className={"btn " + (st.spielbereit ? "on" : "")} disabled={!st.spielbereit}
-          style={{ marginTop: 10, width: "100%" }} onClick={spielen}>
-          {st.spielbereit ? "Saison spielen"
-            : !VEREIN.kaderVoll(v) ? "Noch " + (VEREIN.KADER_MIN - (v.kader || []).length) + " Spieler nötig"
-            : "Nicht besetzt: " + fehlteil}
-        </button>
+        {/* EINSCHREIBEN statt „Saison spielen". Bis 35.28 stand hier ein Knopf,
+            der eine Saison auf Zuruf gestartet hat — beliebig oft, voellig
+            unabhaengig von den Laufbahnen. Das war nie gedacht: der Verein soll
+            NEBENHER laufen, eine Saison je abgeschlossener Spielerlaufbahn, wie
+            die Akademie ihr Jahr. Der Knopf stammte aus 35.17, als es den
+            Rechenkern schon gab und den Bildschirm noch nicht; beim Nachbauen
+            des Bildschirms in 35.20 blieb er stehen.
+            Jetzt ist es ein einmaliger Schritt: einschreiben, danach laeuft es
+            von selbst. */}
+        {!v.eingeschrieben ? (
+          <button className={"btn " + (st.spielbereit ? "on" : "")} disabled={!st.spielbereit}
+            style={{ marginTop: 10, width: "100%" }}
+            onClick={() => { const r = VEREIN.einschreiben(v); if (!r.fehler) onAendern(r.v); }}>
+            {st.spielbereit ? "Verein in die " + v.liga + " einschreiben"
+              : !VEREIN.kaderVoll(v) ? "Noch " + (VEREIN.KADER_MIN - (v.kader || []).length) + " Spieler nötig"
+              : "Nicht besetzt: " + fehlteil}
+          </button>
+        ) : (
+          /* Kein Knopf mehr, sondern eine Auskunft: was passiert als Naechstes
+             und wovon es abhaengt. Ein grauer Knopf ohne Begruendung ist eine
+             Zumutung — dieselbe Ueberlegung wie bei `sperre`. */
+          <div className="pan pad" style={{ marginTop: 10,
+            borderColor: st.spielbereit ? "var(--go)" : "var(--warn, var(--ln2))" }}>
+            <div className="eb" style={{ color: st.spielbereit ? "var(--go)" : "var(--mu)" }}>
+              {st.spielbereit ? "Eingeschrieben" : "Eingeschrieben, aber nicht spielbereit"}
+            </div>
+            <div style={{ fontSize: 12.5, marginTop: 3 }}>
+              {st.spielbereit
+                ? "Das " + v.jahr + ". Jahr wird gespielt, sobald du die nächste Laufbahn beendest."
+                : (!VEREIN.kaderVoll(v)
+                    ? "Noch " + (VEREIN.KADER_MIN - (v.kader || []).length) + " Spieler nötig — "
+                    : "Nicht besetzt: " + fehlteil + " — ")
+                  + "sonst fällt das " + v.jahr + ". Jahr aus."}
+            </div>
+          </div>
+        )}
 
         <div ref={reiterRef} style={{ marginTop: 12 }}>
           <div style={{ display: "flex", gap: 6, overflowX: "auto" }}>
@@ -7868,8 +7922,8 @@ function VereinAbschluss({ v, ergebnis, onNeu, onZurueck }) {
         </div>
 
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button className="btn" onClick={onZurueck}>Später</button>
-          <button className="btn on" style={{ flex: 1 }}
+          <button className="btn schmal" onClick={onZurueck}>Später</button>
+          <button className="btn on" style={{ flex: "1 1 auto", minWidth: 0 }}
             onClick={() => onNeu(VEREIN.neuerVerein(ergebnis))}>Neuen Verein gründen</button>
         </div>
       </div>
@@ -9151,7 +9205,7 @@ function WildcardCard({ card, big, onReroll, rerollLeft, rerollN }) {
   );
 }
 
-function Pass({ p, full, wachstum }) {
+function Pass({ p, full }) {
   const [c1] = clubColors(p.club);
   const [um, setUm] = useState(false);
   const letzterTipp = useRef(0);
@@ -9269,8 +9323,17 @@ function Pass({ p, full, wachstum }) {
         <span className="m" style={{ letterSpacing: ".10em" }}>{nr}</span>
       </div>
       {!stationen.length ? (
-        <div style={{ fontSize: 12.5, color: "var(--tinte2)" }}>
-          Noch keine Saison gespielt. Der erste Eintrag kommt im Sommer.
+        /* GLEICHE Höhe und gleiche Ränder wie die Liste daneben. Vorher stand
+           hier nur ein Textabsatz — der Pass war dadurch 240 px hoch und
+           sprang mit der ersten Saison auf 311,6 (gemessen 35.23, +72 px).
+           34.16 hat die Liste gedeckelt und dazu geschrieben, der Pass sei
+           „von der ersten Station an gleich hoch": das stimmte, aber DAVOR
+           eben nicht. */
+        <div style={{ height: 150, display: "flex", alignItems: "center",
+          borderTop: "1px solid rgba(20,23,26,.16)", borderBottom: "1px solid rgba(20,23,26,.16)" }}>
+          <div style={{ fontSize: 12.5, color: "var(--tinte2)" }}>
+            Noch keine Saison gespielt. Der erste Eintrag kommt im Sommer.
+          </div>
         </div>
       ) : (
         /* Beide Seiten liegen im selben Rasterfeld, der Pass nimmt also die
@@ -9300,9 +9363,15 @@ function Pass({ p, full, wachstum }) {
         </div>
       )}
 
-      {stationen.length > 5 && (
-        <div className="eb" style={{ marginTop: 4, textAlign: "right" }}>
-          {stationen.length} Stationen · in der Liste blättern</div>)}
+      {/* Platz IMMER reservieren. Die Zeile erscheint ab sechs Stationen und
+          liess den Pass dabei um gemessene 17,3 px wachsen (311,6 → 328,9) —
+          genau das, was der Listendeckel aus 34.16 verhindern sollte. Ein
+          geschütztes Leerzeichen hält die Zeilenhöhe; eine feste px-Zahl wäre
+          bei der nächsten Schriftänderung falsch, ohne dass es auffällt. */}
+      <div className="eb" style={{ marginTop: 4, textAlign: "right" }}>
+        {stationen.length > 5
+          ? stationen.length + " Stationen · in der Liste blättern"
+          : "\u00A0"}</div>
 
       <div className="m zellen" style={{ fontSize: 11, marginTop: 11 }}>
         <div><span className="eb">Stationen</span>{stationen.length}</div>
@@ -9366,12 +9435,194 @@ const ANLEITUNG = [
     ["Vermächtnispunkte", "Zählen, was du geschafft hast, und bestimmen deinen Platz in der Ruhmeshalle."],
     ["Vermächtnis-Coins", "Was anderes. Damit baust du die Jugendakademie aus — die bleibt über alle Laufbahnen."],
     ["Errungenschaften", "162 Stück. Ein paar schalten Karten oder Startvorteile frei."]]],
+  ["Die Jugendakademie", [
+    ["Ab der zweiten Laufbahn", "Steht im Hauptmenü. Gegründet wird sie mit den Coins aus deiner ersten Karriere."],
+    ["Neun Abteilungen", "Jede geht bis Stufe 6. Was du ausbaust, entscheidest du — alles auf einmal geht nie."],
+    ["Sie arbeitet, während du spielst", "Jedes Jahr kommen Talente nach. Ein paar werden Profis, wenige Weltklasse."],
+    ["Ansehen bringt Vorsprung", "Je besser die Akademie läuft, desto stärker startet dein nächster Spieler."]]],
+  ["Dein eigener Verein", [
+    ["Ab der fünften Laufbahn", "Steht unter der Akademie. Vorher siehst du, wie viele Laufbahnen noch fehlen."],
+    ["Deine Talente, deine Mannschaft", "Statt die Absolventen ziehen zu lassen, ziehst du sie hoch. Sechzehn Mann, dann geht's los."],
+    ["Von unten durch die Ligen", "Ein Jugendkader passt in die dritte Liga. Nach oben musst du dich arbeiten."],
+    ["Die Akademie muss nachliefern", "Wer den Kader auf einmal füllt, wartet drei bis vier Jahre, bis wieder was nachkommt. Das ist die Entscheidung."],
+    ["Fünfzehn Jahre", "Dann wird Bilanz gezogen. Danach kannst du neu gründen."]]],
   ["Noch was", [
     ["Bleibt alles auf dem Handy", "Kein Konto, kein Netz. Neues Gerät? Sicherung mitnehmen, unterm Zahnrad."],
     ["Spielweise und Schwierigkeit", "Stehen in den Optionen und gelten fürs nächste Mal. Eine laufende Laufbahn bleibt, wie sie gestartet ist."],
     ["Ein Spielstand", "Genau einer. Fängst du neu an, ist der alte weg — was fertig ist, steht in der Ruhmeshalle."]]],
 ];
 
+
+/* ---------- Freischalthinweis ---------- */
+/* Erscheint EINMAL, wenn Akademie oder Verein aufgehen. Steht oben im
+   Hauptmenü statt als Fenster davor: wer gerade eine Laufbahn beendet hat,
+   will das Ergebnis sehen und nicht weggeklickt werden. Wer ihn schliesst,
+   sieht ihn nie wieder — der Eintrag im Menü bleibt ja stehen. */
+function FreiHinweis({ was, onZu }) {
+  const t = was === "aka"
+    ? { kopf: "Die Jugendakademie ist offen",
+        text: "Gründe sie mit deinen Coins. Sie arbeitet weiter, während du die nächste Laufbahn spielst." }
+    : { kopf: "Dein eigener Verein ist offen",
+        text: "Zieh deine Absolventen hoch statt sie ziehen zu lassen. Sechzehn Mann, dann geht's los." };
+  return (
+    <div className="pan" style={{ marginBottom: 12, borderColor: "var(--go)" }}>
+      <div className="band matt" style={{ color: "var(--go)" }}>
+        <span>Neu</span>
+        <button className="btn sm" onClick={onZu}>Verstanden</button>
+      </div>
+      <div className="pad" style={{ paddingTop: 9 }}>
+        <div className="d" style={{ fontSize: 16 }}>{t.kopf}</div>
+        <p style={{ fontSize: 12.5, color: "var(--mu)", marginTop: 3 }}>{t.text}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Willkommen ---------- */
+/* Drei Tafeln beim allerersten Start: Laufbahn, Akademie, Verein. Danach nie
+   wieder von selbst — abrufbar bleibt alles über die Kurzanleitung.
+
+   WARUM GEZEICHNET UND NICHT FOTOGRAFIERT: die App läuft ohne Netz und die
+   APK soll klein bleiben. Jedes Bild wäre Base64 im Bündel, so wie die
+   Schriften — die allein sind schon 128 KB. Drei SVG-Tafeln kosten ein paar
+   hundert Byte und passen ausserdem zur Formensprache: harte Kanten, Raute,
+   keine runden Ecken.
+
+   Akademie und Verein sind beim ersten Start noch GESPERRT (ab 2 bzw. 5
+   Laufbahnen). Sie werden trotzdem gezeigt, mit der Zahl dabei — dieselbe
+   Überlegung wie beim Verein im Hauptmenü: ein verstecktes Ziel merkt
+   niemand. */
+
+/* Tafel 1 — die drei Schritte einer Saison, als Kette. */
+function BildLaufbahn() {
+  const kasten = (x, txt) => (
+    <g key={x}>
+      <rect x={x} y={26} width={44} height={34} fill="var(--pan2)" stroke="var(--ln2)" />
+      <text x={x + 22} y={47} textAnchor="middle" fontSize="9.5" fill="var(--tx)"
+        fontFamily="Rasen Text, sans-serif">{txt}</text>
+    </g>
+  );
+  return (
+    <svg viewBox="0 0 170 86" width="100%" height="86" aria-hidden style={{ display: "block" }}>
+      {kasten(4, "Training")}
+      {kasten(63, "Wahl")}
+      {kasten(122, "Saison")}
+      {[52, 111].map((x) => (
+        <path key={x} d={`M${x} 43 h9`} stroke="var(--go)" strokeWidth="1.5" />
+      ))}
+      {/* Raute als Taktzeichen der Sommerpause */}
+      <path d="M158 70 l5 5 -5 5 -5 -5 Z" fill="var(--go)" />
+      <text x="85" y="80" textAnchor="middle" fontSize="8.5" fill="var(--mu)"
+        fontFamily="Rasen Text, sans-serif">und wieder von vorn</text>
+    </svg>
+  );
+}
+
+/* Tafel 2 — Abteilungen als Balken, die unterschiedlich weit ausgebaut sind. */
+function BildAkademie() {
+  const hoehen = [34, 22, 30, 14, 26, 18, 30, 10, 22];
+  return (
+    <svg viewBox="0 0 170 86" width="100%" height="86" aria-hidden style={{ display: "block" }}>
+      <line x1="4" y1="62" x2="166" y2="62" stroke="var(--ln2)" />
+      {hoehen.map((h, i) => (
+        <rect key={i} x={7 + i * 18} y={62 - h} width={13} height={h}
+          fill={h >= 30 ? "var(--go)" : "var(--pan2)"} stroke="var(--ln2)" />
+      ))}
+      <text x="85" y="78" textAnchor="middle" fontSize="8.5" fill="var(--mu)"
+        fontFamily="Rasen Text, sans-serif">neun Abteilungen, du wählst</text>
+    </svg>
+  );
+}
+
+/* Tafel 3 — Talente steigen aus der Akademie in den Kader. */
+function BildVerein() {
+  return (
+    <svg viewBox="0 0 170 86" width="100%" height="86" aria-hidden style={{ display: "block" }}>
+      <rect x="6" y="44" width="54" height="22" fill="var(--pan2)" stroke="var(--ln2)" />
+      <text x="33" y="58" textAnchor="middle" fontSize="8.5" fill="var(--mu)"
+        fontFamily="Rasen Text, sans-serif">Akademie</text>
+      <rect x="110" y="18" width="54" height="22" fill="var(--pan2)" stroke="var(--go)" />
+      <text x="137" y="32" textAnchor="middle" fontSize="8.5" fill="var(--go)"
+        fontFamily="Rasen Text, sans-serif">dein Kader</text>
+      {/* Vier Rauten als aufsteigende Talente */}
+      {[0, 1, 2, 3].map((i) => {
+        const x = 70 + i * 11, y = 52 - i * 8;
+        return <path key={i} d={`M${x} ${y} l4 4 -4 4 -4 -4 Z`} fill="var(--go)"
+          opacity={0.4 + i * 0.2} />;
+      })}
+      <text x="85" y="80" textAnchor="middle" fontSize="8.5" fill="var(--mu)"
+        fontFamily="Rasen Text, sans-serif">sechzehn Mann, dann geht's los</text>
+    </svg>
+  );
+}
+
+const WILLKOMMEN = [
+  { kopf: "Deine Laufbahn", bild: BildLaufbahn, frei: null,
+    text: "Du bist der Spieler, nicht der Trainer. Jede Saison legst du dein Training fest, triffst eine Entscheidung und schaust zu, wie es läuft. Mit 16 geht's los, das Knie sagt Bescheid, wann Schluss ist." },
+  { kopf: "Die Jugendakademie", bild: BildAkademie, frei: "ab der 2. Laufbahn",
+    text: "Am Karriereende bleiben dir Coins. Damit baust du eine Akademie, die weiterläuft, während du die nächste Laufbahn spielst. Neun Abteilungen, jede bis Stufe 6 — alles auf einmal geht nie." },
+  { kopf: "Dein eigener Verein", bild: BildVerein, frei: "ab der 5. Laufbahn",
+    text: "Irgendwann lässt du die Absolventen nicht mehr ziehen, sondern ziehst sie hoch. Sechzehn Mann, dritte Liga, und von da nach oben. Die Akademie muss nachliefern — das ist die Entscheidung." },
+];
+
+function Willkommen({ onFertig }) {
+  const [i, setI] = useState(0);
+  const letzte = i === WILLKOMMEN.length - 1;
+  const s = WILLKOMMEN[i];
+  /* Die Hardwaretaste blättert zurück, statt das Spiel zu verlassen — und auf
+     der ersten Tafel schliesst sie. Ohne das führte der erste Tastendruck
+     eines neuen Spielers aus der App heraus. */
+  useZurueck(() => (i > 0 ? setI(i - 1) : onFertig()));
+  const Bild = s.bild;
+  return (
+    <div className="fade" style={{ maxWidth: 520, margin: "0 auto" }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+        <div className="d" style={{ fontSize: 26 }}>Willkommen</div>
+        <button className="btn sm" onClick={onFertig}>Überspringen</button>
+      </div>
+
+      <div className="pan" style={{ marginTop: 12 }}>
+        <div className="band matt">
+          <span>{s.kopf}</span>
+          <span className="m">{String(i + 1).padStart(2, "0")} / {String(WILLKOMMEN.length).padStart(2, "0")}</span>
+        </div>
+        <div className="pad" style={{ paddingTop: 12 }}>
+          <div style={{ background: "var(--bg)", border: "1px solid var(--ln2)", padding: "8px 6px" }}>
+            <Bild />
+          </div>
+          {s.frei && (
+            <div className="eb" style={{ marginTop: 9, color: "var(--go-k)" }}>{s.frei}</div>
+          )}
+          <p style={{ fontSize: 13, color: "var(--mu)", marginTop: s.frei ? 4 : 10, lineHeight: 1.55 }}>
+            {s.text}
+          </p>
+        </div>
+      </div>
+
+      {/* Fortschritt als Rautenkette, nicht als Punkte — gleiche Sprache wie
+          der Rest des Spiels. */}
+      <div style={{ display: "flex", gap: 7, justifyContent: "center", marginTop: 14 }}>
+        {WILLKOMMEN.map((_, j) => (
+          <svg key={j} width="9" height="9" viewBox="0 0 10 10" aria-hidden>
+            <path d="M5 0 l5 5 -5 5 -5 -5 Z" fill={j === i ? "var(--go)" : "var(--ln2)"} />
+          </svg>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+        {i > 0 && (
+          <button className="btn schmal" style={{ minWidth: 96 }} onClick={() => setI(i - 1)}>
+            Zurück
+          </button>
+        )}
+        <button className="btn pri" style={{ flex: "1 1 auto", minWidth: 0 }}
+          onClick={() => (letzte ? onFertig() : setI(i + 1))}>
+          <span className="d" style={{ fontSize: 16 }}>{letzte ? "Los geht's" : "Weiter"}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Kurzanleitung({ onZu }) {
   useZurueck(onZu);
@@ -9745,7 +9996,7 @@ function titelgeschichte(save, laeuft, hall, aka) {
     unter: "Trainingsschwerpunkte, Vertragspoker, Leihen, Angebote, die man besser ablehnt. Eine Laufbahn, eine Entscheidung nach der anderen." };
 }
 
-function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, verein, onVerein, gesamt, onLaden, meta, aufRahmen }) {
+function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, verein, onVerein, gesamt, onLaden, meta, aufRahmen, freiHinweis, onFreiZu }) {
   const [ask, setAsk] = useState(false);
   const [opt, setOpt] = useState(false);
   const [anleitung, setAnleitung] = useState(false);
@@ -9788,6 +10039,9 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
   return (
     <Shell>
       <div className="fade">
+        {/* Der Freischalthinweis steht ganz oben, damit er nicht zwischen den
+            Menüzeilen untergeht — und nur, wenn wirklich etwas neu ist. */}
+        {freiHinweis && <FreiHinweis was={freiHinweis} onZu={onFreiZu} />}
         {/* Kopfleiste: Ausgabennummer links, Laden und Zahnrad rechts.
             Als Flexzeile, nicht mit absolut gesetzten Knöpfen — so können die
             beiden weder aufeinander liegen noch kann die Beschriftung links
@@ -11140,7 +11394,7 @@ function TrophyView({ p }) {
 /* ---------- Ruhmeshalle und Abschluss ---------- */
 /* Sicherung: alle dauerhaften Daten als Text ausgeben und wieder einlesen.
    Damit überlebt der Fortschritt Gerätewechsel und Neuinstallationen.   */
-const SICHER_KEYS = [SAVE_KEY, HALL_KEY, SEEN_KEY, ACH_KEY, META_KEY, WC_KEY, LIFE_KEY, AKA_KEY, VER_KEY, HSV_KEY];
+const SICHER_KEYS = [SAVE_KEY, HALL_KEY, SEEN_KEY, WILL_KEY, ACH_KEY, META_KEY, WC_KEY, LIFE_KEY, AKA_KEY, VER_KEY, HSV_KEY];
 
 function BackupScreen({ onBack, onImport }) {
   useZurueck(onBack);
@@ -11538,6 +11792,45 @@ function EndScreen({ p, onNew, onHall, onAka }) {
                 <div key={i} style={{ fontSize: 13, marginTop: i ? 4 : 0 }}>· {t}</div>))}
             </div>);
         })()}
+        {/* Ein Jahr eigener Verein — kurz, direkt vor dem Akademieblock. Beides
+            ist dasselbe: etwas, das nebenher gelaufen ist, waehrend man spielte.
+            Deshalb steht es hier und nicht auf einer eigenen Seite: bis 35.28
+            schob sich ein ganzseitiger Saisonbericht ueber alles, was aber nur
+            daran lag, dass er auf Knopfdruck kam. */}
+        {p.vereinBericht && (() => {
+          const b = p.vereinBericht;
+          if (b.ausgefallen) return (
+            <div className="pan pad" style={{ marginTop: 12, borderColor: "var(--ln2)" }}>
+              <div className="eb" style={{ color: "var(--mu)" }}>{b.name} · Jahr ausgefallen</div>
+              <div style={{ fontSize: 12.5, marginTop: 3 }}>
+                Der Kader stand nicht — kein Spielbetrieb in diesem Jahr. Vor der
+                nächsten Laufbahn aufstellen, dann zählt es wieder.</div>
+            </div>);
+          const kopf = b.meister ? "Meister!" : b.aufstieg ? "Aufgestiegen!"
+            : b.abstieg ? "Abgestiegen" : "Platz " + b.rang;
+          return (
+            <div className="pan pad" style={{ marginTop: 12,
+              borderColor: (b.meister || b.aufstieg) ? "var(--go)" : "var(--ln2)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between",
+                alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                <div>
+                  <div className="eb" style={{ color: (b.meister || b.aufstieg) ? "var(--go)" : "var(--mu)" }}>
+                    {b.name} · {b.jahr}. Jahr</div>
+                  <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 2 }}>
+                    {b.liga} · Platz {b.rang} von {b.N}
+                    {b.punkte != null ? " · " + b.punkte + " Punkte" : ""}
+                    {b.tore != null ? " · " + b.tore + ":" + b.gegentore : ""}</div>
+                </div>
+                <div className="d" style={{ fontSize: 20,
+                  color: (b.meister || b.aufstieg) ? "var(--go)" : "var(--tx)" }}>{kopf}</div>
+              </div>
+              {(b.abgaenge > 0 || b.vorbei) && (
+                <div style={{ fontSize: 12, marginTop: 6, color: "var(--mu)" }}>
+                  {b.abgaenge > 0 ? b.abgaenge + " Abgänge — die Akademie muss nachliefern." : ""}
+                  {b.vorbei ? (b.abgaenge > 0 ? " " : "") + "Die fünfzehn Jahre sind um." : ""}
+                </div>)}
+            </div>);
+        })()}
         {p.vcGewinn != null && (() => {
           const gross = (p.akaEreignisse || []).filter((e) => e.art === "gross" || e.art === "titel");
           const rest = (p.akaEreignisse || []).filter((e) => e.art !== "gross" && e.art !== "titel");
@@ -11708,6 +12001,10 @@ function FlutlichtApp() {
   const [verein, setVerein] = useState(null);
   const [vAbschluss, setVAbschluss] = useState(null);
   const [hsvZ, setHsvZ] = useState(0);
+  /* null = noch nicht aus dem Speicher gelesen. WICHTIG dass es nicht mit
+     dem Leerwert startet: sonst blitzte der Willkommensschirm bei JEDEM Start
+     kurz auf, bevor der Speicher antwortet. */
+  const [gesehen, setGesehen] = useState(null);
   const reiterRef = useRef(null);
   const [log, setLog] = useState([]);
   const topRef = useRef(null);
@@ -11721,6 +12018,9 @@ function FlutlichtApp() {
       catch (e) { /* kein Spielstand vorhanden */ }
       try { const v = await ladeMitAltbestand(SEEN_KEY); if (v) setSeen(JSON.parse(v)); }
       catch (e) { /* noch keine früheren Laufbahnen */ }
+      try { const r = await store.get(WILL_KEY);
+        setGesehen(r && r.value ? { ...leerGesehen(), ...JSON.parse(r.value) } : leerGesehen()); }
+      catch (e) { setGesehen(leerGesehen()); /* nichts gespeichert = noch nie gesehen */ }
       try { const r = await store.get(ACH_KEY); if (r && r.value) setAch(JSON.parse(r.value)); }
       catch (e) { /* noch keine Errungenschaften */ }
       try { const r = await store.get(LIFE_KEY); if (r && r.value) setGes({ ...leereBilanz(), ...JSON.parse(r.value) }); }
@@ -11925,6 +12225,41 @@ function FlutlichtApp() {
     const AK2 = akaVerbuchen(aka, vcNeu);
     q.vcGewinn = vcNeu; q.vcPosten = vcPosten(q);
     q.akaEreignisse = AK2.ereignisse; q.akaName = AK2.a.name; q.akaAktiv = !!AK2.a.gegruendet;
+
+    /* ---- Ein Jahr eigener Verein ------------------------------------------
+       Genau hier gehoert es hin, direkt neben das Akademiejahr: beides laeuft
+       NEBENHER, waehrend man spielt, und wird faellig, wenn eine Laufbahn
+       endet. Bis 35.28 fehlte diese Kopplung ganz — der Verein hing an einem
+       Knopf und lief voellig unabhaengig von den Laufbahnen.
+       `spieltMit` entscheidet, nicht eine hier nachgebaute Bedingung: sonst
+       weiss der Bildschirm etwas anderes als der Ablauf. Ist der Kader nicht
+       gestellt, faellt das Jahr aus — Kevins Vorgabe: der Kader muss vor dem
+       Karrierestart stehen, dann zaehlt er. */
+    if (VEREIN.spieltMit(verein)) {
+      const VS = VEREIN.vereinSaison(verein);
+      if (!VS.fehler) {
+        /* Feldnamen NACHGESEHEN, nicht geraten: die Saison liefert `aufstieg`
+           und `abstieg` (nicht „aufgestiegen"), Tore und Punkte stehen nur in
+           der Tabellenzeile mit `me`, und gespeichert wird ueber
+           `vereinSichern` — ein `speichereVerein` gibt es nicht. Drei erfundene
+           Namen im ersten Entwurf, alle drei still: sie waeren `undefined`
+           geworden und der Bericht haette Luecken gezeigt statt zu brechen. */
+        vereinSichern(VS.v);
+        const meins = (VS.tabelle || []).find((z) => z.me) || {};
+        q.vereinBericht = {
+          name: verein.name, jahr: verein.jahr, liga: verein.liga,
+          rang: VS.rang, N: VS.N, tore: meins.gf, gegentore: meins.ga,
+          punkte: meins.pts, aufstieg: !!VS.aufstieg, abstieg: !!VS.abstieg,
+          meister: VS.rang === 1, vorbei: !!VS.vorbei,
+          abgaenge: (VS.abgaenge || []).length,
+        };
+        if (VS.vorbei) setVAbschluss(VEREIN.abschluss(VS.v));
+      }
+    } else if (verein && verein.gegruendet && verein.eingeschrieben) {
+      /* Eingeschrieben, aber nicht spielbereit: das Jahr faellt aus. Das
+         gehoert GESAGT, sonst wundert man sich, warum der Verein steht. */
+      q.vereinBericht = { ausgefallen: true, name: verein.name, jahr: verein.jahr };
+    }
     const zl = akaNaechster(AK2.a);
     q.akaZiel = zl ? { name: zl.abt.n, stufe: zl.stufe + 1, preis: zl.preis,
       fehlt: zl.fehlt, reicht: zl.reicht, anteil: zl.anteil } : null;
@@ -12197,7 +12532,41 @@ function FlutlichtApp() {
     setP(q);
   };
 
+  /* Der Willkommensschirm steht VOR dem Hauptmenü, aber nur beim allerersten
+     Start und nur, wenn der Speicher schon geantwortet hat. `willGesehen ===
+     null` heisst „noch am Lesen" — in dem Fall zeigt die Zeile darunter das
+     Menü, wie bisher, statt eine leere Seite. Ein Spieler, der ohne Speicher
+     unterwegs ist (hasStore() false), sieht den Schirm nie; das ist richtig,
+     denn dort liesse sich „gesehen" auch nicht merken, und der Schirm käme
+     bei jedem Start wieder. */
+  /* Einmal-Zustände fortschreiben. Immer über den ganzen Datensatz, nie
+     einzeln — sonst überschreibt der zweite Schreibvorgang den ersten. */
+  const merkeGesehen = async (teil) => {
+    const next = { ...(gesehen || leerGesehen()), ...teil };
+    setGesehen(next);
+    try { await store.set(WILL_KEY, JSON.stringify(next)); } catch (e) { /* kein Speicher */ }
+  };
+
+  if (phase === "menu" && gesehen && !gesehen.schirm && hasStore()) return (
+    <Shell blatt="optionen" zusatz="WILLKOMMEN">
+      <Willkommen onFertig={() => merkeGesehen({ schirm: true })} />
+    </Shell>
+  );
+  /* Welcher Hinweis ist faellig? Der Verein hat Vorrang, weil er die spaetere
+     Freischaltung ist — wer beide auf einmal erreicht (etwa nach einer
+     zurueckgespielten Sicherung), sieht erst den Verein, beim naechsten
+     Menuebesuch die Akademie. Nacheinander statt zwei Tafeln uebereinander. */
+  const freiJetzt = (() => {
+    if (!gesehen) return null;
+    const fr = VEREIN.freigeschaltet(ges);
+    if (fr.verein && !gesehen.verein) return "verein";
+    if (fr.akademie && !gesehen.aka) return "aka";
+    return null;
+  })();
+
   if (phase === "menu") return <MenuScreen hall={hall} save={save}
+    freiHinweis={freiJetzt}
+    onFreiZu={() => merkeGesehen(freiJetzt === "verein" ? { verein: true } : { aka: true })}
     onNew={() => { dropSave(); setPhase("create"); }}
     onResume={() => { if (save && save.p) { einblendungenLeeren();
       setP(save.p); setPhase("play"); setStep("training");

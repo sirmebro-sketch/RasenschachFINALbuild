@@ -271,5 +271,105 @@ console.log("=== Vereinsprüfung ===\n");
 }
 
 
+/* ============================================================================
+   35.28 — Der Verein laeuft NEBENHER, nicht auf Zuruf
+   ----------------------------------------------------------------------------
+   Bis 35.28 gab es einen Knopf "Saison spielen", der beliebig oft gedrueckt
+   werden konnte: der Verein lief voellig unabhaengig von den Spielerlaufbahnen.
+   Kevin hat es auf dem Geraet gesehen — vier Vereinsjahre, ohne dass eine
+   einzige Laufbahn dazwischen lag.
+
+   Geprueft wird die REGEL, nicht der Bildschirm: `spieltMit` entscheidet, ob am
+   Ende einer Laufbahn eine Saison faellig ist. Alle drei Stellen (Bildschirm,
+   Ablauf, Pruefstand) fragen dieselbe Funktion — sonst laufen sie auseinander.
+   ========================================================================== */
+(function vereinLaeuftNebenher() {
+  const V2 = App.VEREIN;
+  const gruen = (name) => {
+    /* Genau der Aufruf, der oben in dieser Datei schon funktioniert. Der erste
+       Entwurf gab `startligen("GER")[0]` mit — das ist kein Ligakuerzel, und
+       die Gruendung meldete "Kein Verein gegruendet". Nachgesehen statt
+       weitergeraten. */
+    const r = V2.gruenden(V2.leererVerein(),
+      { name: name || "Prueffverein", land: "GER", liga: "3. Liga" });
+    return r && r.v ? r.v : null;
+  };
+
+  let v = gruen();
+  pr("Verein: frisch gegruendet ist NICHT eingeschrieben", v && v.eingeschrieben === false);
+  pr("Verein: spielt nicht mit, solange nicht eingeschrieben", !V2.spieltMit(v));
+
+  /* Einschreiben ohne Kader muss scheitern — sonst laeuft ein leerer Verein. */
+  const ohne = V2.einschreiben(v);
+  pr("Verein: Einschreiben ohne Kader wird abgelehnt", !!(ohne && ohne.fehler));
+
+  /* Mit Kader und Aufstellung muss es gehen. Die Talente kommen aus einer
+     ausgebauten Akademie, damit genug da sind. */
+  /* Abteilungen HOCHSETZEN, sonst liefert die Akademie zu wenig: der erste
+     Entwurf spielte zwoelf Jahre auf Stufe 1 und bekam 4 Talente statt 16.
+     Dasselbe Muster wie oben in dieser Datei. */
+  /* HOCHZIEHEN UND WARTEN im Wechsel. Zwei Entwuerfe vorher gescheitert:
+     erst feste 14 Jahre (mal 16 Talente, mal 14 — die Pruefung war mal rot,
+     mal gruen), dann Warten auf 18 gleichzeitig verfuegbare. Letzteres kann
+     NIE eintreten: Talente altern aus, es stehen immer nur ~14 auf einmal da.
+     Wer wartet, bis sich genug ansammeln, wartet ewig.
+     Also nehmen, was da ist, ein Jahr weiterlaufen lassen, wieder nehmen —
+     genau wie die Pruefung weiter oben in dieser Datei. */
+  let a = App.leereAkademie();
+  App.ABTEILUNGEN.forEach((x) => { a.stufen[x.id] = 6; });
+  let voll = v, jahr = 2026;
+  /* Abbruch bei SPIELBEREIT, nicht bei Kadergroesse. Der dritte Entwurf zog
+     genau 16 Mann hoch und scheiterte trotzdem sporadisch mit „Kader oder
+     Aufstellung fehlen": sechzehn Spieler reichen nicht, wenn kein Torwart
+     dabei ist. Gefragt ist nicht die Zahl, sondern die Besetzung — also so
+     lange nachlegen, bis die Aufstellung steht. */
+  for (let i = 0; i < 60; i++) {
+    voll = V2.autoAufstellen(voll);
+    if (V2.staerke(voll).spielbereit) break;
+    const r = App.akaJahr(a, jahr++); a = r.a || a;
+    for (const t of (a.talente || []).filter((x) => x.alter >= 16)) {
+      if ((voll.kader || []).length >= V2.KADER_MIN + 10) break;
+      const h = V2.hochziehen(a, voll, t.id);
+      if (h && !h.fehler) { voll = h.v; a = h.aka; }
+    }
+  }
+  pr("Verein: Kader spielbereit bekommen", V2.staerke(voll).spielbereit,
+     (voll.kader || []).length + " Mann");
+  {
+    voll = V2.autoAufstellen(voll);
+    const ein = V2.einschreiben(voll);
+    pr("Verein: Einschreiben mit vollem Kader geht", !!(ein && ein.v && ein.v.eingeschrieben),
+       ein && ein.fehler ? ein.fehler : "");
+    if (ein && ein.v) {
+      pr("Verein: eingeschrieben + spielbereit = spielt mit", V2.spieltMit(ein.v));
+      const alt = { ...ein.v, jahr: V2.VEREIN_JAHRE + 1 };
+      pr("Verein: nach " + V2.VEREIN_JAHRE + " Jahren spielt er nicht mehr mit", !V2.spieltMit(alt));
+      const duenn = { ...ein.v, kader: (ein.v.kader || []).slice(0, 3), aufstellung: {} };
+      pr("Verein: zu duenner Kader = Jahr faellt aus", !V2.spieltMit(duenn));
+    }
+  }
+
+  /* Es darf KEINEN zweiten Weg geben, eine Saison auszuloesen. Der alte Knopf
+     ist entfernt; diese Pruefung faengt, wenn er zurueckkommt. */
+  /* Diese eine Pruefung liest den QUELLTEXT, nicht den Rechenkern — ein
+     zweiter Ausloeser waere im Motor unsichtbar. Der Pfad kommt aus der
+     Umgebung, weil das Skript aus dem Bauverzeichnis laeuft, wo keine App.jsx
+     liegt: der erste Entwurf nahm "App.jsx" und stuerzte dort mit ENOENT ab.
+     Findet sie die Datei nicht, MELDET sie das — eine uebersprungene Pruefung
+     ist kein bestandener Lauf. */
+  const fs = require("fs");
+  const kandidaten = [process.env.QUELLE_APP, "App.jsx", "../App.jsx"].filter(Boolean);
+  const gefunden = kandidaten.find((k) => { try { return fs.statSync(k).isFile(); } catch (e) { return false; } });
+  if (!gefunden) {
+    pr("Verein: kein Knopf 'Saison spielen' mehr im Programm", false,
+       "App.jsx nicht gefunden — NICHT geprueft");
+  } else {
+    const quelle = fs.readFileSync(gefunden, "utf8");
+    pr("Verein: kein Knopf 'Saison spielen' mehr im Programm",
+       !/["'>]\s*Saison spielen\s*["'<]/.test(quelle));
+  }
+})();
+
 console.log("\n" + ok + " Prüfungen bestanden, " + fehler + " Fehler.");
 process.exit(fehler ? 1 : 0);
+
