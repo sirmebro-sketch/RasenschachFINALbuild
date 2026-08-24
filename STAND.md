@@ -14,17 +14,32 @@
 > eigener Verein und das Tutorial stehen und sind geprüft.
 >
 > **Was jetzt zählt, kann der Prüfstand nicht:** die Sachen einmal auf einem
-> echten Telefon sehen. Drei Dinge sind fällig und keines davon ist je auf
-> Kevins Gerät gelaufen —
-> * der **Vereinsmodus** (35.17–35.20),
+> echten Telefon sehen. Zwei Gerätetests hat es gegeben, beide haben etwas
+> gefunden, was hier drinnen unsichtbar ist:
+> * **35.27** — Vereinsgründung auf dem S24 Ultra: Vorschau scrollte weg,
+>   Gründen-Knopf auf 32 px gequetscht. Zwei Layoutfehler.
+> * **35.28** — Vereinsmodus im Spiel: der Verein lief völlig unabhängig von
+>   den Laufbahnen. Ein konzeptioneller Fehler, den keine Messung stellt.
+>
+> **Nie auf einem Telefon gewesen — und das ist die Liste für den nächsten
+> Gerätetest:**
 > * der **Willkommensschirm** (35.26); er erscheint nur bei einer frischen
 >   Installation oder wenn `rasenschach:willkommen` gelöscht wird,
-> * der **Spielerpass** mit seiner festen Höhe (35.23).
+> * der **Spielerpass** mit seiner festen Höhe (35.23),
+> * das **Einschreiben** statt des Saisonknopfs und der Vereinsbericht in der
+>   Karriereübersicht (35.28) — die *Lösung* des dort gemeldeten Fehlers,
+> * die berichtigten **Knopfzeilen** ab Tafel 2 des Willkommensschirms (35.29).
+>
+> Ein Gerätetest, der einen Fehler findet, bestätigt nicht die Reparatur. Die
+> Behebungen aus 35.27 bis 35.29 sind alle nur gemessen, nicht gesehen. Für die
+> Abkürzungen (Akademie ab 2 Laufbahnen, Verein ab 5, Vollausbau nach rund 28)
+> gibt es seit 35.29 `pruefstand/werkstatt.js` im Browsertest — mit
+> `ERSTSTART=1` gebaut, sonst ist sie nicht drin.
 >
 > Danach: Langzeitbeobachtung (offener Punkt 13) und die Gestaltungsfragen
 > 1 bis 3 und 5, die alle Augen brauchen statt Messungen.
 
-**Fassung 35.29** · Stand 21. August 2026
+**Fassung 35.42** · Stand 24. August 2026
 
 <!-- VERZEICHNIS -->
 
@@ -34,81 +49,94 @@
 
 | Zeile | Abschnitt |
 |---:|---|
-| 123 | 1. Was das Projekt ist |
-| 192 | 2. Zusammenarbeit |
-| 208 | 3. Was drin ist (Grobüberblick) |
-| 321 | 4. Kalibrierung — worauf eingestellt wurde |
-| 360 | 5. Prüfstand |
-| 428 | 6. Stolperfallen — teuer gelernt |
-| 466 | 7. Was offen ist |
-| 487 | 8. Wie ein neuer Chat anfangen sollte |
-| 554 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
-| 878 | Auf dem Gerät geprüft — 10.8.2026 |
-| 985 | 34.0 · Die Spielerporträts |
-| 1102 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
-| 1350 | 34.8 · Vier gemeldete Punkte |
-| 1402 | 34.9 · Block A — fünf Fehler im Spielfluss |
-| 1467 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
-| 1522 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
-| 1570 | 34.12 · Block C — Frauenfußball |
-| 1625 | 34.13 · Block D, erster Teil |
-| 1674 | 34.14 · Die Wachstumskurve |
-| 1728 | 34.15 · Die Rückblick-Karten |
-| 1767 | 34.16 · Zwei Fehler aus Kevins Test |
-| 1827 | 34.17 · Die Freischaltungen |
-| 1862 | 34.18 · Der Vermächtnis-Laden |
-| 1930 | 34.19 · Der gekaufte Kartentausch wirkt |
-| 1976 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
-| 2008 | 34.21 · Laden und Zahnrad lagen aufeinander |
-| 2089 | 34.22 · Der Laden rechnet ab, und zwei Texte |
-| 2176 | 34.23 · Jede neue Seite beginnt oben |
-| 2233 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
-| 2305 | 34.25 · Die Ränge der Errungenschaften |
-| 2368 | 34.26 · Der Rückblick liegt auf Karteikarten |
-| 2438 | 34.27 · Drei wirklich runde Kopfformen |
-| 2507 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
-| 2543 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
-| 2610 | 34.30 · Aufräumen nach dem Belastungstest |
-| 2672 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
-| 2718 | 34.32 · Die Wildcard auf hellem Papier |
-| 2756 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
-| 2793 | 34.34 · Drei Meldungen aus dem Spiel |
-| 2848 | 34.35 · Bärte bleiben in der Kopfform |
-| 2881 | Kevins Testprotokoll zu 34.33 — Ergebnis |
-| 2906 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
-| 2954 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
-| 3001 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
-| 3052 | 35.1 · Werkzeugpflege |
-| 3107 | 35.2 · STAND.md hat ein Verzeichnis |
-| 3142 | 35.3 · Eine Regel weniger zum Merken |
-| 3179 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
-| 3287 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
-| 3416 | 35.6 · Die Ereignisse ziehen aus |
-| 3492 | 35.7 · Entscheidungen mit Folgen |
-| 3558 | 35.8 · Deine Werte öffnen Türen |
-| 3634 | 35.9 · Storystränge |
-| 3700 | 35.10 · Der Anfang war die engste Stelle |
-| 3773 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
-| 3837 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
-| 3904 | 35.13 · Die Akademie wird größer |
-| 3990 | 35.14 · Antworten, die nur manchmal da sind |
-| 4060 | 35.15 · Vier Geschichten statt einer |
-| 4112 | 35.16 · Vierundzwanzig weitere Male anders |
-| 4177 | 35.17 · Der eigene Verein — Durchstich |
-| 4271 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
-| 4333 | 35.19 · Die Akademie wird zeitlos |
-| 4378 | 35.20 · Der Verein bekommt ein Gesicht |
-| 4442 | 35.21 · Der Verein ist erreichbar |
-| 4492 | 35.22 · Was hier stand, stimmte nicht mehr |
-| 4578 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
-| 4684 | 35.24 · Durchsicht des ganzen Projektwissens |
-| 4795 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
-| 4866 | 35.26 · Das Tutorial |
-| 4968 | 35.27 · Erster Gerätetest des Vereinsmodus |
-| 5051 | 35.28 · Der Verein läuft nebenher |
-| 5167 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
-| 5256 | Offene Punkte (Stand 35.29) |
-| 5430 | Zusätzliche Stolperfallen |
+| 151 | 1. Was das Projekt ist |
+| 223 | 2. Zusammenarbeit |
+| 239 | 3. Was drin ist (Grobüberblick) |
+| 352 | 4. Kalibrierung — worauf eingestellt wurde |
+| 391 | 5. Prüfstand |
+| 460 | 6. Stolperfallen — teuer gelernt |
+| 499 | 7. Was offen ist |
+| 520 | 8. Wie ein neuer Chat anfangen sollte |
+| 596 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
+| 920 | Auf dem Gerät geprüft — 10.8.2026 |
+| 1027 | 34.0 · Die Spielerporträts |
+| 1144 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
+| 1392 | 34.8 · Vier gemeldete Punkte |
+| 1444 | 34.9 · Block A — fünf Fehler im Spielfluss |
+| 1509 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
+| 1564 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
+| 1612 | 34.12 · Block C — Frauenfußball |
+| 1667 | 34.13 · Block D, erster Teil |
+| 1716 | 34.14 · Die Wachstumskurve |
+| 1770 | 34.15 · Die Rückblick-Karten |
+| 1809 | 34.16 · Zwei Fehler aus Kevins Test |
+| 1869 | 34.17 · Die Freischaltungen |
+| 1904 | 34.18 · Der Vermächtnis-Laden |
+| 1972 | 34.19 · Der gekaufte Kartentausch wirkt |
+| 2018 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
+| 2050 | 34.21 · Laden und Zahnrad lagen aufeinander |
+| 2131 | 34.22 · Der Laden rechnet ab, und zwei Texte |
+| 2218 | 34.23 · Jede neue Seite beginnt oben |
+| 2275 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
+| 2347 | 34.25 · Die Ränge der Errungenschaften |
+| 2410 | 34.26 · Der Rückblick liegt auf Karteikarten |
+| 2480 | 34.27 · Drei wirklich runde Kopfformen |
+| 2549 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
+| 2585 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
+| 2652 | 34.30 · Aufräumen nach dem Belastungstest |
+| 2714 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
+| 2760 | 34.32 · Die Wildcard auf hellem Papier |
+| 2798 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
+| 2835 | 34.34 · Drei Meldungen aus dem Spiel |
+| 2890 | 34.35 · Bärte bleiben in der Kopfform |
+| 2923 | Kevins Testprotokoll zu 34.33 — Ergebnis |
+| 2948 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
+| 2996 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
+| 3043 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
+| 3094 | 35.1 · Werkzeugpflege |
+| 3149 | 35.2 · STAND.md hat ein Verzeichnis |
+| 3184 | 35.3 · Eine Regel weniger zum Merken |
+| 3221 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
+| 3329 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
+| 3458 | 35.6 · Die Ereignisse ziehen aus |
+| 3534 | 35.7 · Entscheidungen mit Folgen |
+| 3600 | 35.8 · Deine Werte öffnen Türen |
+| 3676 | 35.9 · Storystränge |
+| 3742 | 35.10 · Der Anfang war die engste Stelle |
+| 3815 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
+| 3879 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
+| 3946 | 35.13 · Die Akademie wird größer |
+| 4032 | 35.14 · Antworten, die nur manchmal da sind |
+| 4102 | 35.15 · Vier Geschichten statt einer |
+| 4154 | 35.16 · Vierundzwanzig weitere Male anders |
+| 4219 | 35.17 · Der eigene Verein — Durchstich |
+| 4313 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
+| 4375 | 35.19 · Die Akademie wird zeitlos |
+| 4420 | 35.20 · Der Verein bekommt ein Gesicht |
+| 4484 | 35.21 · Der Verein ist erreichbar |
+| 4534 | 35.22 · Was hier stand, stimmte nicht mehr |
+| 4620 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
+| 4726 | 35.24 · Durchsicht des ganzen Projektwissens |
+| 4837 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
+| 4908 | 35.26 · Das Tutorial |
+| 5010 | 35.27 · Erster Gerätetest des Vereinsmodus |
+| 5093 | 35.28 · Der Verein läuft nebenher |
+| 5209 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
+| 5287 | 35.30 · Die Bauanleitung war unvollständig |
+| 5446 | 35.31 · Die Moral steht in der Anleitung — und liefert ande… |
+| 5536 | 35.32 · Die Akademie steht im Rückblick |
+| 5641 | 35.33 · Die Ruhmeshalle war nie geprüft |
+| 5720 | 35.34 · Jugendturniere bekommen Namen und Gegner |
+| 5858 | 35.35 · Drei Flaggen bekommen Folgen |
+| 5973 | 35.36 · Die letzten zwei Flaggen bekommen Inhalt |
+| 6067 | 35.37 · Ereignisse, die zum falschen Moment kommen |
+| 6219 | 35.38 · Der Kapitän spricht nicht mehr mit sich selbst |
+| 6329 | 35.39 · Die Akademie zahlt früher — und sagt es |
+| 6442 | 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe |
+| 6524 | 35.41 · Werkzeugkasten aufgeräumt |
+| 6632 | 35.42 · Der Abschlussbildschirm wird übersichtlich |
+| 6754 | Offene Punkte (Stand 35.42) |
+| 6978 | Zusätzliche Stolperfallen |
 
 <!-- ENDE VERZEICHNIS -->
 
@@ -125,21 +153,24 @@
 Ein Karriere-Simulator für Fußball, auf Deutsch. Läuft als Android-App: GitHub
 baut per Aktion `apk.yml` eine APK, die ohne Internet funktioniert.
 
-Der Spielcode steht in **`App.jsx`** (764 KB, 12.829 Zeilen). Sie bindet vier
+Der Spielcode steht in **`App.jsx`** (783 KB, 13.198 Zeilen). Sie bindet vier
 eigene Dateien ein — nachzählbar an den `import`-Zeilen 2 bis 5:
 
 | Datei | Größe | Was | Seit |
 |---|---|---|---|
-| `ereignisse.js` | 372 KB, 2.875 Zeilen | die 518 Ereignisse | 35.6 |
-| `verein.js` | 28 KB, 480 Zeilen | der eigene Verein | 35.17 |
-| `schriften.js` | 128 KB | Anton und Archivo als Base64 | 33.3 |
+| `ereignisse.js` | 370 KB, 2.875 Zeilen | die 518 Ereignisse | 35.6 |
+| `verein.js` | 27 KB, 510 Zeilen | der eigene Verein | 35.17 |
+| `schriften.js` | 127 KB | Anton und Archivo als Base64 | 33.3 |
 | `storage.js` | 595 B | Speicher über Capacitor | vor 33.0 |
 
 Bis 35.22 stand hier „**eine einzige** `App.jsx`“. Für Schriften und Speicher
 war das immer schon eine Vereinfachung, seit dem Auszug der Ereignisse (35.6)
 und des Vereins (35.17) ist auch **Spielinhalt** ausgelagert — dann trägt sie
-nicht mehr. Alle Zahlen gemessen am 21.8.2026; sie wachsen mit jeder Fassung,
-siehe offener Punkt 10.
+nicht mehr. Alle Zahlen gemessen am **23.8.2026**; sie wachsen mit jeder
+Fassung, siehe offener Punkt 10. Zwischen 35.22 und 35.29 sind sie hier nicht
+mitgezogen worden — die Tabelle nannte 764 KB / 12.829 Zeilen, also 369 Zeilen
+zu wenig, und für `verein.js` 480 statt 510. Wer eine Zahl hier ändert, misst
+sie: `stat -c %s <Datei>` und `wc -l <Datei>`, nicht schätzen.
 
 **Zielpublikum:** soll selbsterklärend sein, auch für jemanden, der so
 etwas noch nie gespielt hat. Deutschsprachige Oberfläche durchgehend.
@@ -379,7 +410,8 @@ Teile: `aufbau` · `kalib` · `ansicht` · `rueck` · `bau`
 | `rueckwaerts.jsx` | 63 bestehende Ansichten mit vier ganz verschiedenen Laufbahnen |
 | `jsdom.cjs` | startet ein Bündel in einer Browserumgebung |
 | `ereignispruefung.cjs` | harte Prüfungen und Grundlinie über alle 518 Ereignisse. **Läuft in `pruefen.sh`** |
-| `vereinpruefung.cjs` | 47 Rechenprüfungen zum eigenen Verein. **Läuft in `pruefen.sh`** |
+| `vereinpruefung.cjs` | Rechenprüfungen zum eigenen Verein — 56 seit 35.28 (vorher 47). **Läuft in `pruefen.sh`**, das die gültige Zahl selbst meldet |
+| `sicht.sh` | **Klammer für alles, was jsdom nicht sehen kann.** Baut einmal und fährt dann Startprobe, `kopfleiste.cjs`, `seitenanfang.cjs`, `passhoehe.sh` und `knoepfe.sh` nacheinander. Fehlt ein Teil, meldet sie das und endet mit Rückgabecode 3 — ein unvollständiger Lauf ist kein bestandener. Stand bis 35.29 nur in den Zeilen ihrer eigenen Teile, nicht in dieser Tabelle |
 | `verzeichnis.cjs` | schreibt das Verzeichnis in `STAND.md` neu. **Läuft in `pruefen.sh`** — dort nur als Warnung, mit `--pruefen` einzeln |
 | `vorschau.py` | erzeugt die Vorschaufassung für den Chat |
 | `uebersicht.cjs` | erzeugt `UEBERSICHT.md` aus den Spieldaten |
@@ -459,6 +491,7 @@ und eine allgemeine Prüfung auf `NaN`/`undefined` in jeder Ansicht.
 | CSS-Spezifität schlägt Klassen | `.karton .m` (0,2,0) überschrieb `.stufe` (0,1,0) und setzte dunkle Schrift auf dunkle Fläche. Farben, die von einer berechneten Fläche abhängen, gehören **inline** — inline schlägt jede Klasse. |
 | Prüfung, die nichts zu messen hatte | Ein Prüfmittel kann grün melden, weil der geprüfte Zustand gar nicht eintrat: bei 412×915 ist das Hauptmenü fensterhoch, es gab nichts zu rollen, und „vorher 0 → nachher 0“ sah aus wie ein Erfolg. **Jede Messung braucht eine Untergrenze**, unterhalb derer sie „nicht messbar“ meldet — und das muss als Fehlschlag zählen. |
 | Werkzeug, das die Quelle als Ziel nimmt | `uebersicht.cjs <Ziel.md>` nimmt die **Zieldatei** als erstes Argument — die Quelle kommt aus `/tmp/ps/motor.js`. Ein `uebersicht.cjs App.jsx UEBERSICHT.md` hat deshalb wortlos die `App.jsx` überschrieben. Bei jedem Werkzeug, das schreibt, vor dem ersten Aufruf nachsehen, **welches Argument das Ziel ist**. Seit 35.4 sperrt das Werkzeug beides ab (nur ein Argument, muss auf `.md` enden). |
+| Eine Anleitung, die niemand benutzt | `LIESMICH.md` sagt, welche Dateien ins Projektwissen gehören. `ereignisse.js` und `verein.js` fehlten dort seit **35.6 bzw. 35.17** — nie aufgefallen, weil das Projektwissen fortgeschrieben und nie danach neu aufgebaut wurde. **Eine Beschreibung, die nie gegen die Wirklichkeit gehalten wird, altert unbemerkt beliebig weit.** Das gilt für jede Liste, jede Anleitung, jede Tabelle hier. Seit 35.30 rechnet `pruefen.sh` diese eine nach; bei allen anderen bleibt es beim Hinsehen. |
 | Layout ist im Prüfstand unsichtbar | jsdom rechnet keine Geometrie. Ob zwei Dinge übereinanderliegen, sich überschneiden oder aus dem Bild laufen, kann `pruefen.sh` **strukturell nicht** beantworten. Dafür `pruefstand/kopfleiste.cjs` auf einer gebauten Einzeldatei — oder die Ursache im CSS prüfen statt die Wirkung im Baum. |
 
 ---
@@ -532,10 +565,13 @@ und `@capacitor/preferences`). `UEBERSICHT.md` ist auf 33.13 neu erzeugt.
    ändert daran nichts.
 
 **Was der Prüfstand abdeckt** (Teile: `aufbau · kalib · ansicht · ereignis ·
-verein · rueck · bau`): Kalibrierung mit vier Zielbändern, **460 Ansichten**,
+verein · rueck · bau`): Kalibrierung mit vier Zielbändern, **478 Ansichten**,
 Durchklicktest, **11 Ereignisprüfungen** (`ereignispruefung.cjs`),
-**47 Vereinsprüfungen** (`vereinpruefung.cjs`), Rückwärtsprüfung mit alten
+**56 Vereinsprüfungen** (`vereinpruefung.cjs`), Rückwärtsprüfung mit alten
 Sicherungen, echter Produktionsbau. Ein Lauf dauert rund 100 Sekunden.
+Die drei Zahlen sind der Stand von 35.30 und wachsen mit jeder Fassung — **was
+gilt, meldet der Lauf selbst.** Sie stehen hier zur Orientierung, nicht als
+Sollwert; bis 35.29 standen hier 460 und 47, beide aus 35.23.
 
 Einzelne Teile über `TEILE=` — etwa `TEILE=aufbau,verein bash pruefstand/pruefen.sh …`
 für eine schnelle Runde. **Ohne `aufbau` gibt es kein Bündel**, und die
@@ -543,11 +579,17 @@ Ereignis- und Vereinsprüfungen melden das ausdrücklich, statt stillzuschweigen
 **Was er nicht abdeckt:** alles, was nur auf dem Gerät sichtbar wird — Schriften
 in der WebView, `preserve-3d` beim Wenden des Passes, `navigator.wakeLock`.
 Dafür gibt es den Browsertest als Einzeldatei: `bash pruefstand/browsertest.sh App.jsx`.
-**Zuletzt am 10.8.2026 auf dem Gerät bestätigt** (siehe „Auf dem Gerät geprüft").
-Nach jeder Änderung an Schriften, Pass oder Wachsperre gehört das wiederholt —
-der Prüfstand kann es strukturell nicht. **Seither fällig und nicht erfolgt:**
-der Pass hat in 35.23 eine feste Höhe bekommen, und der Vereinsmodus aus
-35.17–35.20 war nie auf einem Telefon.
+**Zuletzt am 10.8.2026 vollständig auf dem Gerät bestätigt** (siehe „Auf dem
+Gerät geprüft"). Nach jeder Änderung an Schriften, Pass oder Wachsperre gehört
+das wiederholt — der Prüfstand kann es strukturell nicht.
+
+**Seither zweimal auf dem Gerät:** die Vereinsgründung (35.27) und der
+Vereinsmodus im Spiel (35.28). Beide Male hat Kevin etwas gefunden, was hier
+unsichtbar ist — einmal Layout, einmal ein fehlendes Konzept.
+**Weiterhin nie auf einem Telefon:** die feste Passhöhe (35.23), der
+Willkommensschirm (35.26), das Einschreiben samt Vereinsbericht (35.28) und die
+berichtigten Knopfzeilen (35.29). Die Liste steht auch oben im Wegweiser; wer
+sie hier ändert, ändert sie dort mit.
 
 ---
 
@@ -5235,17 +5277,6 @@ ist erfasst. Einstellungen (Ruhe, Tempo, Vibration …) liegen bewusst getrennt
 und werden nicht mitgelöscht — wer den Stand zurücksetzt, will nicht seine
 Vorlieben verlieren.
 
-### Nachtrag: eine Prüfung fiel bei relativem Aufruf aus
-Beim Bauen des Repository-Pakets (`pruefen.sh ./App.jsx` statt mit vollem Pfad)
-meldete die Quelltextprüfung „App.jsx nicht gefunden — NICHT geprueft". Sie hat
-sich damit **richtig** verhalten: sie sagt es, statt still zu bestehen. Aber
-eine Prüfung, die je nach Aufrufform ausfällt, ist nur eine halbe Prüfung.
-
-`pruefen.sh` macht `QUELLE_APP` jetzt absolut, bevor es sie durchreicht — das
-Skript läuft aus dem Bauverzeichnis, wo ein relativer Pfad ins Leere zeigt.
-Gegengeprüft: mit `./App.jsx` aus einem Repository-Ordner läuft der volle
-Prüfstand durch, 478 + 56, Code 0.
-
 ### Geprüft
 `sicht.sh`: 14/14 · 8 px · 4/4 · Impressum · Passhöhe konstant bei 412, 360
 und 320 px · **124 Knöpfe** bei zwei Breiten, alle lesbar und im Bild.
@@ -5253,14 +5284,1485 @@ Werkstatt in Chromium geprüft: „+5" gedrückt → 5 Laufbahnen im Speicher,
 Rückmeldung sichtbar, keine Seitenfehler.
 Prüfstand unverändert: 478 Ansichten, 56 Vereinsprüfungen, 0 Fehler.
 
-## Offene Punkte (Stand 35.29)
+## 35.30 · Die Bauanleitung war unvollständig
+
+Eine Sitzung, die nur mit Lesen und Messen anfangen sollte — `STAND.md`,
+Fassung gegenprüfen, Prüfstand. Alles grün: 478 Ansichten, 56 Vereinsprüfungen,
+11 Ereignisprüfungen, `sicht.sh` 14/14, Bündel auf die Kommastelle wie in
+35.29. **Am Code war nichts.** Sieben Sachen standen trotzdem falsch da, und
+eine davon war ernst.
+
+### Der ernste Fall: sechs Dateien fehlten in LIESMICH.md
+`LIESMICH.md` beginnt mit „Was in dieses Projektwissen gehört". Das ist keine
+Beschreibung, das ist eine **Bauanleitung**: wer das Projektwissen danach neu
+aufsetzt, bekommt genau die Dateien, die dort stehen. Genannt waren 42 von 48.
+
+Die sechs Fehlenden, nach Schwere:
+
+| Datei | Was ohne sie passiert |
+|---|---|
+| `ereignisse.js` | esbuild meldet „Could not resolve" — **das Spiel baut nicht** |
+| `verein.js` | dasselbe |
+| `werkstatt.js` | `browsertest.sh` bricht wegen `set -eu` ab, `sicht.sh` läuft gar nicht erst an |
+| `knoepfe.sh` | `sicht.sh` überspringt die Knopfmessung, endet mit Code 3 |
+| `knopfbogen.jsx` | dito |
+| `knopfmessung.cjs` | dito |
+
+`ereignisse.js` und `verein.js` sind seit **35.6 und 35.17** ausgelagert und
+standen dort **nie**. Dass es trotzdem lief, liegt daran, dass niemand die
+Anleitung je gebraucht hat — das Projektwissen wurde fortgeschrieben, nicht neu
+aufgebaut. Eine Anleitung, die niemand benutzt, wird auch von niemandem
+widerlegt.
+
+Die anderen vier kamen mit 35.28 und 35.29 dazu, also **vorletzte und letzte
+Sitzung**. Der Abstand zwischen „Werkzeug gebaut" und „Werkzeug in der Liste"
+war zweimal hintereinander unendlich.
+
+**Kein stiller Fehler:** alle sechs Lücken hätten laut geknallt — esbuild
+bricht ab, `set -eu` bricht ab, `sicht.sh` endet mit Code 3 und dem Satz „Ein
+unvollstaendiger Lauf ist kein bestandener Lauf". Nachgestellt und bestätigt.
+Das macht es nicht harmlos, es macht es nur auffindbar: der Schaden wäre eine
+verlorene Sitzung gewesen, keine falsche Zahl.
+
+### Die Liste prüft sich jetzt selbst
+Nach der Regel aus 35.2 — *lässt es sich prüfen, gehört es in `pruefen.sh`* —
+ist das keine Merkaufgabe mehr. Prüfung 6 vergleicht die beiden Mengen, die
+tatsächlich wachsen:
+
+* **alle Dateien in `pruefstand/`** — jedes neue Werkzeug fällt auf
+* **die eigenen Importe der `App.jsx`** — ausgelesen, nicht aufgezählt; ein
+  fünfter Import fällt von selbst auf, ohne dass jemand die Prüfung anfasst
+
+Die sechs Baudateien bleiben draussen, die zählt der Aufbau oben schon ab
+(`Baudateien: 6 von 6`). Eine zweite Zählung derselben Sache wäre eine zweite
+Stelle, die auseinanderlaufen kann.
+
+**Gegengeprüft, vier Richtungen:**
+
+| Eingriff | Ergebnis |
+|---|---|
+| `knoepfe.sh` aus der Liste gestrichen | ✗ `nennt diese Dateien nicht: knoepfe.sh`, Code 1 |
+| `verein.js` überall in der Datei ersetzt | ✗ `… verein.js`, Code 1 |
+| `LIESMICH.md` ganz entfernt | ✗ `Liste NICHT geprueft` — nicht still grün, Code 1 |
+| neues Werkzeug angelegt, nicht eingetragen | ✗ `… zaehlwerk.cjs`, Code 1 |
+
+**Wichtig für später, weil ich genau daran zuerst gescheitert bin:** die
+Prüfung fragt *„steht der Name irgendwo in `LIESMICH.md`“*, nicht *„steht er
+in der Liste“*. Mein erster Gegenversuch strich nur die Listenzeile von
+`verein.js` — und blieb **grün**, weil der Name zwölf Zeilen tiefer im
+Fließtext noch einmal vorkommt. Das ist keine Lücke, sondern die Absicht: eine
+Datei, die überhaupt genannt wird, findet auch jemand, der von Hand nachbaut.
+Wer schärfer prüfen will, müsste die Listenblöcke abgrenzen — dann hängt die
+Prüfung an der Formatierung der Datei, und die ändert sich öfter als ihr
+Inhalt. Bewusst so gelassen.
+
+**Mein zweiter Fehlversuch war ein Pfadfehler**, der immer gleiche: das neue
+Werkzeug lag in `/tmp/g6/pruefstand/`, aufgerufen habe ich `pruefen.sh` aus
+`/home/claude/rs`. Damit zeigte `$PS` auf das *alte* Verzeichnis, und die
+Prüfung sah die neue Datei nie. Aus dem richtigen Verzeichnis gestartet:
+`✗ zaehlwerk.cjs`. Zwei von vier Gegenproben waren also zuerst grün, und
+**keine der beiden, weil die Prüfung nichts taugt.** Eine Gegenprobe, die grün
+bleibt, ist erst dann ein Befund, wenn der Versuchsaufbau stimmt — dieselbe
+Lehre wie in 35.29, dort mit `.btn.schmal`.
+
+Die dritte ist die wichtige. Eine Prüfung, deren Grundlage fehlt, darf nicht
+schweigen — sonst löscht man die Datei und bekommt einen grünen Lauf.
+
+### Sechs weitere Stellen, die danebenzeigten
+1. **Der Wegweiser oben.** Er behauptete, der Vereinsmodus sei *„nie auf Kevins
+   Gerät gelaufen"* — dabei heisst 35.27 wörtlich „Erster Gerätetest des
+   Vereinsmodus" und 35.28 beginnt mit „Kevin hat den Vereinsmodus auf dem
+   Gerät gespielt". Der Wegweiser stammte aus 35.26 und ist über drei Fassungen
+   nicht mitgezogen worden. Das ist die erste Zeile, die eine neue Sitzung
+   liest, und sie hätte auf eine erledigte Aufgabe gezeigt.
+   **Neu geschrieben** — und dabei der wichtigere Punkt festgehalten: ein
+   Gerätetest, der einen Fehler findet, bestätigt **nicht die Reparatur**. Die
+   Behebungen aus 35.27, 35.28 und 35.29 sind alle nur gemessen, nie gesehen.
+   Dieselbe veraltete Aussage stand nochmal in Abschnitt 8 und in
+   `LIESMICH.md`; alle drei berichtigt.
+2. **Abschnitt 5** nannte 47 Vereinsprüfungen. Sind seit 35.28 **56**.
+3. **Abschnitt 8** nannte 460 Ansichten und 47 Vereinsprüfungen — beide der
+   Stand von 35.23. Sind **478** und **56**. Dazusteht jetzt, dass diese Zahlen
+   mit jeder Fassung wachsen und der Lauf selbst meldet, was gilt.
+4. **Offener Punkt 8** nannte für die Passhöhe „328,9 px". Diese Zahl hat
+   **35.25 ausdrücklich verworfen** — sie kam aus der Messumgebung, die den
+   Pass in einem eigenen Rahmen nachbaute statt in der echten Kette. Gemessen
+   sind es 348,1 px (412 und 360 px) und 385,9 px (320 px). Eine widerlegte
+   Zahl, vier Fassungen lang stehengeblieben, ausgerechnet in dem Punkt, der
+   vom Messen handelt. Daraus die Lehre, die jetzt dort steht: **verlässlich
+   ist die Aussage „konstant", nicht die Zahl.**
+5. **Abschnitt 1 und offener Punkt 10** nannten 764 KB / 12.829 Zeilen für
+   `App.jsx`. Gemessen: **801.728 B / 13.198 Zeilen**, also 369 Zeilen mehr —
+   das Tutorial und drei Fassungen. `verein.js` stand mit 480 Zeilen da, hat
+   **510**. Der Zeilenzähler ist damit zum **zweiten Mal hintereinander**
+   veraltet gewesen (bis 35.22: 12.041, bis 35.29: 12.829).
+6. **`sicht.sh` hatte keine eigene Zeile in der Werkzeugtabelle.** Sie stand
+   nur als „Hängt in `sicht.sh`" bei zwei ihrer eigenen Teile — die Klammer
+   fehlte in der Tabelle, die sie zusammenhält. Nachgetragen, mit dem Verhalten
+   bei fehlenden Teilen (Code 3).
+
+### Was `UEBERSICHT.md` betrifft: nichts
+Die Datei trug den Stempel 35.24. Neu erzeugt und gegen die alte gediffed:
+**zeichengleich, einzig die Kopfzeile unterscheidet sich.** Zwischen 35.24 und
+35.29 hat sich an den Spieldaten, die sie abbildet, nichts geändert — das
+Tutorial, das Einschreiben und die Knopfzeilen berühren keine Zahl darin. Die
+Datei war also nicht falsch, nur alt gestempelt. Der Unterschied ist wichtig
+genug, um ihn hinzuschreiben, statt „aktualisiert" zu melden.
+
+### Am Spiel wurde nichts geändert
+`App.jsx` unterscheidet sich von 35.29 in **genau zwei Zeilen**: `VERSION` und
+`VERSION_INFO`. Nachgewiesen per `diff` — vier geänderte Zeilen, zwei hin, zwei
+her. `VERSION_INFO` sagt das im Impressum auch so; einen Fortschritt zu
+behaupten, den es nicht gibt, wäre dieselbe Sorte Fehler wie die sechs oben.
+
+Die einzige Codeänderung dieser Fassung steht in `pruefen.sh` und läuft nie in
+der APK.
+
+### Ein eigener Fehler, und zwar der immer gleiche
+In den Messblock hier unten hatte ich **1.201,25 kB / 439,17 kB** geschrieben,
+bevor der Bau gelaufen war — hergeleitet daraus, dass der neue
+`VERSION_INFO`-Text kürzer ist. Gemessen sind es **1.201,27 / 439,16**, genau
+wie in 35.29: der Unterschied verschwindet in der Rundung.
+
+Die Zahl war fast richtig. Das ist das Problem: eine geschätzte Zahl, die
+danebenliegt, fällt auf; eine, die *knapp* danebenliegt, wird Bestand. Kevin
+hat Schätzungen in Protokollblöcken mehrfach angemerkt, und ich habe sie in
+derselben Sitzung wieder produziert, in der ich sechs andere veraltete Zahlen
+berichtigt habe. **Messblock nach dem Lauf schreiben, nicht davor** — sonst ist
+er eine Vorhersage mit dem Aussehen einer Messung.
+
+### Geprüft
+Prüfstand gesamt: **478 Ansichten**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 56 Vereinsprüfungen.
+Bündel **1.201,27 kB** / 439,16 kB gepackt — **unverändert gegenüber 35.29**,
+wie es sein muss: am Spiel wurde nichts geändert ausser zwei Zeichenketten.
+`sicht.sh`: 14/14 · 8 px · 4/4 · Impressum 35.30 · Passhöhe 348,1 px konstant
+bei 412 und 360 px, 385,9 px konstant bei 320 px · 124 Knöpfe bei zwei Breiten.
+Vollständigkeit: **0 von 48 Dateien ungenannt** (vorher 6).
+Gegenprobe zur neuen Prüfung 6 in vier Richtungen, alle `✗` mit Code 1.
+`UEBERSICHT.md` neu erzeugt: 3.051 Zeilen, gegen die Fassung von 35.24
+zeichengleich ausser der Kopfzeile.
+
+## 35.31 · Die Moral steht in der Anleitung — und liefert anders als gedacht
+
+Offener Punkt 9: von fünf Werten, die der Spieler sieht, erklärte die
+Kurzanleitung vier. **Moral fehlte.** Wer nachschlug, was der Balken bedeutet,
+fand nichts.
+
+### Erst messen, dann formulieren
+Der naheliegende Satz wäre gewesen: „Moral schiebt deine Entwicklung.“ Die
+Formel scheint das zu stützen — in `develop()` steht der Faktor
+`(.8 + p.morale / 340)`, das sind **34,3 % Unterschied je Jahr** zwischen Moral
+100 und Moral 5.
+
+**Über eine ganze Laufbahn gemessen ist davon fast nichts übrig.** 500
+Laufbahnen je Bedingung, Ablauf wie in `kalibrierung.cjs`, Moral vor jedem
+`develop()` festgenagelt:
+
+| Bedingung | Spitzenstärke Median | Mittel | P10 | P90 |
+|---|---|---|---|---|
+| Moral 100 | 78 | 76,8 | 66 | 86 |
+| Moral 70 | 77 | 76,2 | 64 | 86 |
+| Moral 5 | 75 | 73,7 | 62 | 83 |
+| ungenagelt | 78 | 76,5 | 64 | 86 |
+
+**3,1 Punkte Spitzenstärke zwischen ganz oben und ganz unten — 4,2 %.** Aus 34 %
+je Jahr werden 4 % über eine Laufbahn, und der Grund steht in derselben Zeile:
+das Wachstum hängt am **Abstand zum Potenzial** (`gap * .28 * …`). Ein
+langsamerer Faktor bedeutet, dass der Spieler später an seine Decke kommt,
+nicht dass die Decke tiefer liegt. Wer 25 Saisons spielt, kommt so oder so nah
+heran.
+
+Natürliche Moral mit 25 Jahren: **Median 82,5**. Der Wert liegt im normalen
+Spiel also ohnehin oben, und die realistische Spanne ist noch schmaler als die
+gemessenen 3,1 Punkte.
+
+### Wo Moral wirklich hängt
+Nicht an der Stärke, sondern an den Ereignissen. In `ereignisse.js` stehen
+**sechs Bedingungen** auf `morale`, und sie zeigen in beide Richtungen:
+
+| Bedingung | Was sie öffnet |
+|---|---|
+| `morale<45` | Trainingsstreik (Kabine) |
+| `morale<40 && age>=21` | Eskalation in der Halbzeitkabine |
+| `morale<38 && trust<45` | Die Mannschaft verweigert das Training |
+| `morale<=42 && age>=19` | „Es geht dir nicht gut“ (Umfeld) |
+| `morale>=60 && age>=29` | Wahlmöglichkeit: den Rivalen zum Essen einladen |
+| `morale>=70` | Wahlmöglichkeit: die Kartenrunde auflösen |
+
+Vier Ereignisse kommen von **tiefer** Moral, zwei Optionen brauchen **hohe**.
+Das ist die Mechanik, die wirklich liefert — der Entwicklungsfaktor ist
+Beiwerk. Der Anleitungstext sagt deshalb genau das, in dieser Reihenfolge:
+
+> **Moral** — Wie es dir geht. Oben entwickelst du dich etwas schneller, unten
+> kommt Ärger in die Kabine, den du nicht bestellt hast.
+
+„Etwas schneller“ ist keine Bescheidenheitsfloskel, sondern die gemessenen
+4,2 %. Hätte ich den Satz vor der Messung geschrieben, stünde dort „deutlich
+schneller“ — und die Anleitung hätte etwas versprochen, was die Mechanik nicht
+hält.
+
+### Warum „Moral“ bleibt
+Der offene Punkt fragte auch nach Umbenennung. Bleibt: im Fußball ist „Moral“
+das etablierte Wort, „Motivation“ träfe es nicht — der Wert ist Stimmung,
+nicht Antrieb. Ausserdem hängen 910 Vorkommen von `morale` daran; ein
+umbenanntes Feld bräche jeden alten Spielstand.
+
+### Nebenbefund, folgenlos
+`donate()` klemmt Moral mit `clamp(…, 0, 100)` ab, überall sonst gilt
+`clamp(…, 5, 100)`. Bleibt folgenlos, weil dort nur addiert wird — die
+Untergrenze greift nie. Nicht angefasst: eine Zeile ohne Wirkung zu ändern,
+wäre eine Änderung ohne Messung.
+
+### Wechselwirkungen geprüft
+`ANLEITUNG` wird an drei Stellen gelesen: die Kurzanleitung bildet sie mit
+`.map()` ab (keine festen Höhen), die Optionen zeigen `ANLEITUNG.length` als
+„Abschnitte“ (unverändert 7, weil der Eintrag in ein bestehendes Kapitel geht),
+und `ansichten.jsx` zählt Kapitel und Zeilen zur Laufzeit. Keine Stelle
+enthält eine fest eingetragene Zahl, die hätte nachgezogen werden müssen.
+
+### Geprüft
+Prüfstand gesamt: **478 Ansichten**, 0 Fehler, alle vier Zielbänder,
+6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen, 56 Vereinsprüfungen.
+Kurzanleitung: **7 Kapitel · 26 Zeilen** (vorher 25) · längste Zeile 119 Zeichen
+(vorher 111 — der neue Eintrag ist jetzt der längste der Anleitung).
+Bündel **1.201,38 kB** / 439,22 kB gepackt, vorher 1.201,27 / 439,16 —
+**+0,11 kB** roh, +0,06 kB gepackt. Das ist der Text und sonst nichts.
+`sicht.sh`: 14/14 · 8 px · 4/4 · Impressum 35.31 · Passhöhe 348,1 px konstant
+bei 412 und 360 px, 385,9 px konstant bei 320 px · 124 Knöpfe bei zwei Breiten
+— alle Werte unverändert gegenüber 35.30, wie es sein muss.
+Moralmessung: 500 Laufbahnen je Bedingung, vier Bedingungen (Tabelle oben).
+
+## 35.32 · Die Akademie steht im Rückblick
+
+Offener Punkt 7, erste Hälfte. Am Karriereende laufen **zwei** Bildschirme
+nacheinander, und nur einer kannte die Akademie:
+
+* **Karriere-Rückblick** (`KarriereRueckblick`) — das Kartenspiel zum
+  Durchtippen, bis zu zehn Seiten. Erwähnte die Akademie **auf keiner**.
+* **Abschlussbildschirm** danach — zeigt sie sehr wohl: „Ein Jahr in {Name}“,
+  VC-Gutschrift mit Posten, Akademieereignisse, nächstes Ausbauziel.
+
+### Warum das mehr als Kosmetik war
+`createPlayer` schreibt in `p.aka`, was die Akademie diesem Spieler
+**mitgegeben** hat. Gemessen, was dabei herauskommt:
+
+| Akademie | Ruhm | Anlage | Bekanntheit | Startkapital | Entwicklung |
+|---|---|---|---|---|---|
+| keine (1. Laufbahn) | 0 | — | — | — | — |
+| Stufe 2, 10 Jahre | 10 | — | — | — | — |
+| Stufe 4, 20 Jahre | 91 | +2 | +2 | +30 Tsd. € | +2 % |
+| Stufe 6, 25 Jahre | 272 | +4 | +6 | +100 Tsd. € | +6 % |
+
+Die Karte „Deine Stärke“ zeigt in der Fußzeile `Anlage {p.potential}`. Standen
+davon **+4** aus der Akademie drin, stand das nirgends — die Rrückkopplung, die
+den Ausbau lohnend anfühlen lässt, war unsichtbar.
+
+**Nebenbefund, nicht angefasst:** bis Ruhm 35 gibt die Akademie **gar nichts**.
+Wer Stufe 3 hat und fünfzehn Jahre wartet, kommt auf Ruhm 18 und bekommt keinen
+einzigen Punkt. Das ist eine Kalibrierfrage, keine Anzeigefrage — sie gehört
+nicht in dieselbe Fassung wie die Anzeige. Als offener Punkt aufgenommen.
+
+### Eine Zeile, keine eigene Seite
+Kevins Entscheidung (Weg B von drei vorgelegten). Die Zeile steht auf der Karte,
+auf der auch die Anlage steht — der Rückblick hat schon bis zu zehn Seiten, und
+eine elfte mit drei kurzen Zeilen verwässert das Durchtippen.
+
+> aus Akademie am Volkspark: Anlage +4 · Bekanntheit +6 · Startkapital +100 Tsd. € · Entwicklung +6 %
+
+**Ausgeweitet gegenüber der Vorlage, und das gehört gesagt:** vorgeschlagen war
+nur der Anlageanteil. Gebaut sind alle vier Posten. Grund: `akaBonusText` ist
+dieselbe Funktion, die der Akademiebildschirm benutzt — nur den Anlageanteil
+herauszugreifen hätte eine zweite, von Hand gepflegte Liste gebraucht, und die
+wäre beim nächsten neuen Posten stumm auseinandergelaufen. Wer es enger will,
+sagt Bescheid; die Stelle ist eine Zeile.
+
+### Drei Gegenproben, jede in die richtige Richtung
+Neu in `ansichten.jsx`. Der Rückblick zeigt immer nur EINE Seite, die Prüfung
+klickt sich also bis zur Karte „Deine Stärke“ durch (höchstens zwölf Tipper,
+sonst Fehler) und liest erst dort.
+
+| Fall | Erwartung |
+|---|---|
+| reife Akademie | Zeile steht da, **mit allen** Posten aus `akaBonusText` |
+| ohne Akademie (1. Laufbahn) | Zeile steht **nicht** da |
+| `p.aka` gelöscht (alter Spielstand) | zeichnet, Zeile steht **nicht** da |
+
+Bewiesen, dass die Prüfungen beißen — zwei absichtliche Fehler in der Quelle:
+
+| Eingriff | Ergebnis |
+|---|---|
+| Bedingung `akaMit.length > 0` entfernt | ✗ zwei Fehler: „ohne Akademie steht die Herkunftszeile trotzdem da“ und derselbe für den alten Spielstand |
+| Zeile ganz entfernt | ✗ ein Fehler: „mit Akademie fehlt die Herkunftszeile“ |
+
+Ohne die zweite Richtung wäre die Prüfung wertlos gewesen: eine Zeile, die
+**immer** gezeichnet wird, hätte den ersten Fall bestanden — und bei jeder
+ersten Laufbahn hätte „aus deiner Akademie:“ ohne einen Posten dahinter
+gestanden.
+
+### `overflow:hidden` — die Falle, die man nicht sieht
+`.karteikarte` trägt `overflow:hidden`. Wächst der Inhalt über die Karte hinaus,
+wird er **stumm abgeschnitten**; kein Test wäre rot geworden. Deshalb in echtem
+Chromium nachgemessen, drei Breiten, mit und ohne Zeile:
+
+| Breite | ohne | mit | Zuwachs | abgeschnitten? |
+|---|---|---|---|---|
+| 412 px | 232,8 px | 270,8 px | +38,0 px | nein |
+| 360 px | 222,7 px | 260,7 px | +38,0 px | nein |
+| 320 px | 215,5 px | 269,0 px | **+53,5 px** | nein |
+
+Bei 320 px bricht die Zeile auf mehr Zeilen um, daher der größere Zuwachs. Die
+höchste gemessene Karte ist 270,8 px — der Schleier ist bildschirmhoch, bei
+560 px Höhe bleibt reichlich Luft. Das Messwerkzeug war ein Wegwerfstück und
+liegt nicht im Prüfstand: es misst EINE Karte. Wächst künftig eine weitere
+Rückblickseite, gehört daraus ein festes Werkzeug gemacht.
+
+### Wechselwirkungen geprüft
+`akaBonusText` musste in `exporte.txt` aufgenommen werden, sonst hätte der
+Prüfstand die neue Probe nicht übersetzen können. `KarriereRueckblick` stand
+dort schon (aus `rueckwaerts.jsx`). Der Abschlussbildschirm ist **nicht**
+angefasst — er zeigt weiter das Akademiejahr, also was aus ihr wurde; der
+Rückblick zeigt jetzt, was sie beigetragen hat. Zwei verschiedene Fragen, zwei
+verschiedene Bildschirme.
+
+### Geprüft
+Prüfstand gesamt: **484 Ansichten** (vorher 478, die drei neuen Proben und ihre
+Renderungen), 0 Fehler, alle vier Zielbänder, 6 × 63 Ansichten rückwärts,
+11 Ereignisprüfungen, 56 Vereinsprüfungen.
+Herkunftszeile im Lauf ausgegeben: `Anlage +4 · Bekanntheit +6 · Startkapital
++100 Tsd. € · Entwicklung +6 %`.
+Gegenproben: 2 absichtliche Fehler → 482/2 und 483/1 statt 484/0.
+Bündel **1.201,58 kB** / 439,26 kB gepackt, vorher 1.201,38 / 439,22 — **+0,20 kB**.
+Kartenhöhe in Chromium: 270,8 / 260,7 / 269,0 px bei 412 / 360 / 320 px,
+nichts abgeschnitten.
+`sicht.sh`: 14/14 · 8 px · 4/4 · Impressum 35.32 · Passhöhe 348,1 px konstant
+bei 412 und 360 px, 385,9 px konstant bei 320 px · 124 Knöpfe bei zwei Breiten.
+
+## 35.33 · Die Ruhmeshalle war nie geprüft
+
+Offener Punkt 4. Beim Nachsehen war der Befund größer als der Punkt: nicht nur
+`zahlenPruefen` griff dort nicht — **`HallScreen` wurde überhaupt nur mit
+`hall={[]}` gezeichnet.** Drei Aufrufe in `ansichten.jsx`, alle mit leerer
+Halle. Die Ruhmeshalle **mit Einträgen** kam in keiner Ansichtsprüfung vor.
+
+### Zwei Schreibweisen, ein blindes Werkzeug
+In diesem Spiel steht ein Wert neben seiner Beschriftung auf zwei Arten:
+
+```jsx
+<div><span className="eb">Stärke</span><span>{x.peak}</span></div>   // Akademie, Ehrentafel
+<div><span className="eb">Peak</span>{h.peak}</div>                  // Ruhmeshalle
+```
+
+`zahlenPruefen` las den Wert mit `feld.nextElementSibling`. Das sieht **nur
+Elemente**. Bei der zweiten Schreibweise ist der Wert ein blanker Textknoten,
+und `nextElementSibling` liefert `null`.
+
+Jetzt wird alles eingesammelt, was hinter der Beschriftung im selben Kasten
+steht — Elemente wie Textknoten:
+
+```js
+let t = "";
+for (let n = feld.nextSibling; n; n = n.nextSibling) t += n.textContent || "";
+```
+
+**Warum das Werkzeug und nicht die Anzeige geändert wurde:** die Markierung im
+Spiel umzubauen, damit ein Prüfwerkzeug sie findet, wäre der Schwanz, der mit
+dem Hund wedelt — und hätte sieben Stellen angefasst statt einer. Die
+Schreibweise mit dem nackten Textknoten ist völlig in Ordnung; blind war das
+Werkzeug.
+
+### Bewiesen, dass der Umbau nötig war
+Nicht behauptet, sondern gefahren: das **alte** `zahlenPruefen` gegen die neue
+Ruhmeshallenprüfung gestellt.
+
+| Zustand | Ergebnis |
+|---|---|
+| neues Werkzeug, heile Anzeige | 500 Prüfungen, **0 Fehler** |
+| **altes** Werkzeug (`nextElementSibling`), heile Anzeige | ✗ Peak, Spiele, Tore, Vorlagen, Titel … — blind auf jede Zelle ohne eigenes `<span>` |
+| neues Werkzeug, `{h.peak}` aus der Anzeige entfernt | ✗ `„Peak“ zeigt keine Zahl, sondern „“` — in beiden Halleneinträgen, 498/2 |
+
+Die mittlere Zeile ist der eigentliche Nachweis. Hätte ich nur den dritten Fall
+gefahren, wäre grün gewesen, dass die Prüfung beißt — nicht, dass sie vorher
+nicht beißen **konnte**. Von acht Zellen der Ruhmeshalle hat das alte Werkzeug
+genau eine gesehen: `Punkte`, weil dort als einzige ein `<span>` um den Wert
+steht.
+
+### Zwei neue Ansichten, nicht eine
+* **drei Einträge**, alle acht Zellen geprüft
+* **Altbestand ohne `apps`, `assists`, `heimat`** — Einträge von vor 33.10 haben
+  diese Felder nicht. Die beiden Zellen entfallen dann bewusst; geprüft wird,
+  dass die übrigen sechs stehen und nirgends `undefined` erscheint.
+
+Die Felder des Halleintrags sind **nachgesehen** worden, nicht geraten:
+`saveHall` schreibt name, pos, nat, natId, age, score, tier, peak, titles,
+caps, goals, worth, apps, assists, saisons, von, bis, heimat, heimatSpiele.
+
+### Wechselwirkungen geprüft
+`zahlenPruefen` wird an drei Stellen gerufen: sechs Akademiezustände, die
+Ehrentafel und jetzt die Ruhmeshalle. Die ersten beiden benutzen die
+`<span>`-Schreibweise — für sie ändert der Umbau nichts, weil die
+Geschwisterkette das `<span>` genauso einsammelt. Beleg: sie sind im selben
+Lauf grün geblieben. Am Spielcode ist ausser der Fassungszeile **nichts**
+geändert.
+
+### Geprüft
+Prüfstand gesamt: **500 Ansichten** (vorher 484 — 16 neue: acht Zellen mit
+Einträgen, sechs im Altbestand, zwei Renderungen), 0 Fehler, alle vier
+Zielbänder, 6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen,
+56 Vereinsprüfungen.
+Im Lauf ausgegeben: `Ruhmeshalle 8 Zellen geprüft · 3 Zellenreihen gezeichnet`.
+Gegenproben: altes Werkzeug → blind auf fünf und mehr Zellen; Wert entfernt
+→ 498/2.
+Bündel **1.201,58 kB** / 439,26 kB gepackt — in der Rundung unverändert
+gegenüber 35.32, wie es sein muss: geändert wurde `ansichten.jsx`, das nie in
+die APK kommt, und vier Zeichen im Impressumstext.
+
+## 35.34 · Jugendturniere bekommen Namen und Gegner
+
+Offener Punkt 7, zweite Hälfte — damit ist er ganz erledigt. Bis 35.33 stand in
+`akaJahr` **ein** Satz:
+
+> Sieg beim internationalen Jugendturnier.
+
+Wortgleich, ohne Turnier, ohne Gegner. Gemessen, wie oft: bei vollem Ausbau
+**im Mittel 13,5-mal in 25 Jahren**, also in mehr als jedem zweiten
+Chronikeintrag. (Der Median liegt genau auf der Kante und fällt je nach
+Stichprobe auf 13 oder 14 — zweimal nachgemessen, zweimal anders. Deshalb
+steht hier der Mittelwert: er ist die stabilere Zahl.)
+
+### Was ausdrücklich NICHT geändert wurde
+Die Siegwahrscheinlichkeit. Sie steht Zeichen für Zeichen wie vorher da:
+
+```js
+chance(clamp((staerke - 44) * .035 + S.buehne * .05, .02, .72))
+```
+
+`bilanz.turniere` zählt weiter **nur Siege** und geht mit Faktor 6 in `akaRuhm`
+ein. Rührte ich daran, verschiebe ich die Zielbänder in `kalibrierung.cjs` und
+damit die halbe Akademie. **Sichtbar machen heißt sichtbar machen, nicht neu
+ausbalancieren** — und das ist nachgemessen, nicht versichert:
+
+| Ausbau (Wettbewerbe / übrige) | Siege vorher (Median / Ø) | Siege nachher |
+|---|---|---|
+| 0 / 0 | 0 / 0,5 | 0 / 0,5 |
+| 0 / 3 | 0 / 0,6 | 0 / 0,5 |
+| 3 / 3 | 3 / 2,8 | 3 / 2,7 |
+| 6 / 3 | 6 / 6,5 | 6 / 6,5 |
+| 0 / 6 | 6 / 6,2 | 6 / 5,8 |
+| 3 / 6 | 10 / 9,7 | 10 / 9,6 |
+| 6 / 6 | 14 / 13,7 | 14 / 13,5 |
+
+200 Akademien über 25 Jahre je Zeile. Die Abweichungen liegen im Rauschen der
+Stichprobe; kein Median hat sich bewegt.
+
+### Was dazukommt
+In Jahren **ohne** Sieg wird jetzt ausgespielt, ob die Akademie überhaupt dabei
+war. Das hängt allein an `buehne` — der Abteilung, die „Turniere,
+Sichtungsspiele“ verspricht und bis jetzt **nichts zeigte, solange man nicht
+gewann**. Wer sie ausbaut und trotzdem nie gewinnt, sah für sein Geld gar
+nichts.
+
+Diese Teilnahme zählt **nirgends** mit: kein Zähler, kein Ruhm, keine Bilanz.
+Sie steht in der Chronik und sonst nirgends — genau deshalb bleiben die
+Zielbänder unberührt.
+
+| Ausbau | Teilnahmen ohne Sieg in 25 Jahren (Ø) |
+|---|---|
+| Wettbewerbe 0 | **0,0** |
+| Wettbewerbe 3, übrige 3 | 8,6 |
+| Wettbewerbe 6, übrige 3 | 14,3 |
+| Wettbewerbe 6, übrige 6 | 9,0 |
+
+Dass es bei vollem Ausbau **weniger** werden, ist kein Fehler: wer stärkere
+Talente hat, gewinnt öfter, und dann bleiben weniger sieglose Jahre übrig, in
+denen überhaupt gerollt wird.
+
+### Zehn Namen, erfunden
+Echte Turniernamen sind geschützt, und ein Spiel, das offline läuft und
+niemandem gehört, braucht das nicht:
+
+> Blaues Band der Jugend · Internationales Pfingstturnier · Nachwuchspokal der
+> Landesverbände · Turnier der acht Akademien · Wintercup der Leistungszentren ·
+> Hallenmasters der A-Jugend · Sichtungsturnier am Deich · Juniorenpokal der
+> Hafenstädte · Osterturnier der Talentschmieden · Grenzlandcup der U19
+
+Zehn: genug, dass sich in 25 Jahren nichts aufdrängt, wenig genug, dass die
+Chronik nicht beliebig wirkt. Jeder Name ist eine Zeile und in einer Minute
+ausgetauscht.
+
+**Der Gegner kommt aus `CLUBS`**, gefiltert auf Stärke ≥ 78 und Männer, mit
+„U19“ dahinter — nicht aus einer zweiten Liste. Eine eigene Gegnerliste wäre
+beim nächsten neuen Verein stumm veraltet. Gemessen sind **43 verschiedene
+Gegner** aufgetreten.
+
+So liest sich das jetzt:
+
+> Sieg beim Blauen Band der Jugend — im Endspiel gegen FC Liverpool U19.
+> Beim Grenzlandcup der U19 im Halbfinale an Ajax Amsterdam U19 gescheitert.
+
+### Eine eigene Farbe für das Ausscheiden
+Erster Entwurf gab der Niederlagenzeile `art:"neu"` — dasselbe Blau wie
+„N neue Talente aufgenommen“. In **jedem** Jahr steht schon eine blaue Zeile;
+zwei nebeneinander lesen sich wie zwei gleich wichtige Nachrichten. `AKA_FARBE`
+hat jetzt einen eigenen Eintrag `turnier` in Gedämpft. Der Sieg bleibt Gold.
+
+### Fünf Prüfungen, jede mit Gegenprobe
+Neu in `ansichten.jsx`, 60 Jahre bei vollem Ausbau:
+
+| Eingriff in die Quelle | Ergebnis |
+|---|---|
+| Gegner aus dem Siegtext entfernt | ✗ „ein Siegtext nennt keinen Gegner“ — 504/1 |
+| Turniername auf einen festen Eintrag gesetzt | ✗ „nur 1 verschiedene Turniernamen“ — 504/1 |
+| Niederlage hängt nicht mehr an `buehne` | ✗ „ohne Wettbewerbe erscheint trotzdem eine Turnierzeile“ (21 statt 0) — 504/1 |
+| Niederlage bekommt die Farbe der Neuzugänge | ✗ „dieselbe Chronikfarbe“ — 504/1 |
+
+### Ein eigener Fehler, zweimal derselbe
+**Erstens:** die erste Gegenprobe kam **grün** zurück — nicht weil die Prüfung
+schwach war, sondern weil mein Suchtext die Quelle gar nicht traf. Das Python
+brach mit `AssertionError` ab, die Ausgabe lief in einen anderen Strom, und der
+Prüfstand fuhr auf der **unveränderten** Kopie. Eine Gegenprobe, deren Eingriff
+nicht stattgefunden hat, meldet Erfolg. **Der Abbruch des Eingriffs muss den
+Lauf verhindern**, nicht nur eine Zeile in den Fehlerstrom schreiben.
+
+**Zweitens:** getroffen hat der Suchtext deshalb nicht, weil ich den
+Gedankenstrich als `\u2014` in die Quelle geschrieben hatte statt als Zeichen.
+JavaScript liest das richtig — die Anzeige stimmte —, aber in der Datei stand
+Kauderwelsch, wo im ganzen übrigen Projekt deutscher Text steht. Vier weitere
+solche Stellen standen in `ansichten.jsx`. Alle ausgeschrieben.
+
+### Wechselwirkungen geprüft
+`akaRuhm` und `bilanz.turniere`: unberührt (Messung oben). `AKA_FARBE` wird an
+**zwei** Stellen gelesen — Akademiebildschirm und Abschlussbildschirm; beide
+fallen mit `|| "var(--tx)"` auf einen Standardwert zurück, ein neuer Schlüssel
+kann dort also nichts brechen. Alte Spielstände tragen Chronikeinträge mit
+`art:"neu"` und `art:"titel"` und werden weiter genauso gezeichnet.
+Errungenschaft `a_aka_turn` („Ein Jugendturnier gewinnen“) hängt an
+`A.bilanz.turniere >= 1` — unverändert, weil der Zähler unverändert ist.
+
+### Geprüft
+Prüfstand gesamt: **505 Ansichten** (vorher 500), 0 Fehler, **alle vier
+Zielbänder** — Vollausbau 26,7 (25–35), Kosten 2912 (2700–3100), Weltklasse 5
+(3–8), Rautekarte 33 (28–42). 6 × 63 Ansichten rückwärts, 11
+Ereignisprüfungen, 56 Vereinsprüfungen.
+Im Lauf ausgegeben: `60 Jahre voll ausgebaut: 32 Siege · 19 Ausscheiden ·
+10 Turniernamen · ohne Wettbewerbe: 0 Zeilen`.
+Siegquote vorher/nachher: sieben **Ausbaukombinationen** (nicht Stufen — davon
+gibt es sechs), kein Median ausserhalb des Stichprobenrauschens (Tabelle oben).
+Die Tabelle in einem zweiten, unabhängigen Lauf nachgemessen: 0 / 0 / 3 / 6 /
+6 / 10 / 13 gegen dokumentierte 0 / 0 / 3 / 6 / 6 / 10 / 14 — nur die letzte
+Zeile kippt, und zwar die, deren Median auf der Kante sitzt.
+43 verschiedene Gegner, 10 von 10 Turniernamen aufgetreten.
+Bündel **1.202,18 kB** / 439,52 kB gepackt, vorher 1.201,58 / 439,26 —
+**+0,60 kB**. Das sind die zehn Namen, die fünf Runden und zwei Textbausteine.
+
+## 35.35 · Drei Flaggen bekommen Folgen
+
+Offener Punkt 11, erster Teil. Fünf Flaggen wurden gesetzt und von niemandem
+gelesen. **Erst gemessen, wie oft sie überhaupt vorkommen** — 1.500 Laufbahnen,
+Ablauf wie im Kalibrierwerkzeug, Wahl zufällig:
+
+| Flagge | gesetzt in | zum Vergleich: Flaggen, die wirken |
+|---|---|---|
+| `manipuliert` | 1,9 % | `kapitaen` 34,3 % |
+| `pendeln` | 1,3 % | `wetten` 13,1 % |
+| `beidseitig` | 0,9 % | `abschluss` 11,3 % |
+| `attest` | 0,2 % | `insider` 3,5 % |
+| `treugeblieben` | nicht messbar | `sesshaft` 1,7 % · **`maulwurf` 0,7 %** |
+
+Zwei Sachen daran zählen. **`maulwurf` ist seltener als drei der fünf** und
+trotzdem an drei Stellen angeschlossen — Seltenheit ist also kein Grund, es zu
+lassen. Und die Null bei `treugeblieben` ist **ein Fehler meines Messaufbaus**,
+keine Spieltatsache: das Ereignis verlangt `istTraum(p)`, mein Prüfling hat nie
+einen Traumverein (`p.traum` bleibt `null`, nachgesehen).
+
+### 1. `beidseitig` — ein gebrochenes Versprechen, kein fehlender Inhalt
+Der Ereignistext von `pa_seitenwechsel` sagt wörtlich: *„Das macht dich für
+jeden Trainer wertvoller.“* Und dann geschah nichts. Beide Quellen der Flagge
+sind `pos:["AV"]`, die Sache ist also in sich stimmig.
+
+Angeschlossen am **Zweikampf um den Stammplatz** in `roleFor`: wer beide
+Außenbahnen spielt, wird von EINEM starken Nebenmann nicht aus der Elf
+gedrängt — er weicht auf die andere Seite aus.
+
+```js
+if (rivalOvr != null) d -= beidfuessig
+  ? clamp((rivalOvr - ovr) * .30, -2, 4)
+  : clamp((rivalOvr - ovr) * .55, -2, 7);
+```
+
+Gemessen, was das über die Spanne austrägt:
+
+| Nebenmann ist besser um | ohne | mit |
+|---|---|---|
+| 4 Punkte | Rotation | Rotation |
+| **8 Punkte** | **Ergänzung** | **Rotation** |
+| 12 Punkte | Ergänzung | Ergänzung |
+| 16 Punkte | Ergänzung | Ergänzung |
+
+Genau ein Fenster, und das ist Absicht: gegen einen übermächtigen Nebenmann
+hilft auch Beidfüßigkeit nicht, gegen einen knapp besseren war man ohnehin
+drin. Der Unterschied liegt dort, wo es kippt.
+
+**Nicht angeschlossen: die Angebotszahl.** Das Wildcard gibt dafür bereits
+`offers:1`. Ein zweiter Aufschlag hätte Wildcardträgern doppelt
+gutgeschrieben, ohne dass irgendwo stünde warum.
+
+### 2. `manipuliert` — gehörte in die Schmutzliste
+Der 55-%-Zweig heißt *„Es merkt niemand“* — und dann merkte es wirklich nie
+jemand. Die Flagge steht jetzt in `dreckig` neben `wetten`, `maulwurf`,
+`altersluege` und `steuermodell`.
+
+**Bewusst NICHT** in die Beliebtheitsrechnung (Zeile 4611): die ist öffentlich,
+und wer die Flagge trägt, ist öffentlich unbescholten. Die Weltbilanz führt
+Buch über das, was war, nicht über das, was die Leute wissen.
+
+### 3. `pendeln` — lief weiter, kostete aber nur einmal
+Acht Punkte Fitness einmalig, danach vergessen — dabei pendelt man ja weiter.
+Jetzt zwei Punkte je Saison, **solange die Beziehung hält**. Das Ende ist
+eingebaut und braucht keinen Zeitzähler: geht sie auseinander, gibt es nichts
+mehr zu pendeln und die Flagge fällt weg. Zwei Punkte, nicht vier — über
+fünfzehn Saisons wäre das sonst eine zweite Karriereende-Bedingung geworden.
+
+### Vier Gegenproben
+Jede Prüfung vergleicht **zwei Spieler, die sich nur in der Flagge
+unterscheiden**. Anders liesse sich nicht sagen, ob die Flagge wirkt oder der
+Zufall.
+
+| Eingriff | Ergebnis |
+|---|---|
+| `beidseitig`-Anschluss entfernt | ✗ „ändert die Rolle nicht: beide bench“ |
+| `beidseitig` wirkt AUCH ohne Nebenmann (+3 pauschal) | ✗ „wirkt auch ohne Nebenmann — das ist zu viel“ |
+| `manipuliert` aus `dreckig` entfernt | ✗ „zählt nicht als Skandal (0 → 0)“ |
+| heiler Stand | 509/0 |
+
+Die zweite ist die, die ich fast vergessen hätte. Ohne sie wäre eine Flagge
+durchgegangen, die überall Rabatt gibt statt nur im Zweikampf — und die erste
+Prüfung wäre trotzdem grün geblieben.
+
+### Zwei eigene Fehler, beide dokumentiert
+**`bilanzErgaenzen` verändert nicht, sondern gibt zurück.** Meine erste Probe
+übergab eine Bilanz und las danach das Eingabeobjekt — zweimal null, rot, aber
+aus dem falschen Grund. Signatur nachgesehen: `(G, p) => neue Bilanz`.
+
+**Bearbeitungsskripte meldeten Erfolg, ohne geschrieben zu haben — zweimal.**
+Einmal passte in einem Skript mit zwei Ersetzungen die zweite nicht, also wurde
+gar nichts geschrieben und die erste ging mit unter; aufgefallen erst am
+`ReferenceError` im Lauf. Einmal landete derselbe Platzhalterblock **doppelt**
+in STAND.md. **Nach jedem Schreibvorgang nachsehen, nicht der Erfolgsmeldung
+glauben** — dieselbe Lehre wie beim Blockschnitt, an anderer Stelle. Seither
+folgt auf jedes Skript ein `grep`.
+
+### Grundlinie gesenkt
+`ereignispruefung.cjs` führt `toteFlaggen` als Grundlinie. Sie stand auf 5, das
+Werkzeug meldete von sich aus: *„2 (unter der Grundlinie 5; bitte
+GRUNDLINIE.toteFlaggen auf 2 senken)“*. Steht jetzt auf 2. Die verbliebenen
+zwei sind `attest` und `treugeblieben` — beide brauchen eigenen Inhalt.
+
+### Geprüft
+Prüfstand gesamt: **509 Ansichten** (vorher 505), 0 Fehler, alle vier
+Zielbänder, 6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen,
+56 Vereinsprüfungen.
+Im Lauf ausgegeben: `beidseitig gegen starken Nebenmann: bench → rot · ohne
+Nebenmann: rot = rot` und `manipuliert in der Weltbilanz: Skandale 0 → 1`.
+Tote Flaggen: **5 → 2**, vom Werkzeug selbst gezählt.
+Gegenproben: drei absichtliche Fehler → je 508/1 statt 509/0.
+Bündel **1.202,38 kB** / 439,60 kB gepackt, vorher 1.202,18 / 439,52 —
+**+0,20 kB**.
+`sicht.sh`: 14/14 · 8 px · 4/4 · Impressum 35.35 · 124 Knöpfe.
+
+## 35.36 · Die letzten zwei Flaggen bekommen Inhalt
+
+Offener Punkt 11, zweiter Teil — damit ist er erledigt. `attest` und
+`treugeblieben` liessen sich nicht wie die drei aus 35.35 an eine vorhandene
+Rechnung hängen: die eine ist eine **Lüge, die jemand anders kennt**, die
+andere eine **Entscheidung, an die sich andere erinnern**. Beides sind
+Geschichten, keine Rechenwege. Also zwei neue Ereignisse.
+
+### `attest_zurueck` — Der Arzt meldet sich
+> Er will nichts Böses, sagt er. Nur ein Trikot mit Unterschrift, für die
+> Praxis. Und beim nächsten Mal vielleicht Karten.
+
+Drei Wege, und keiner ist gratis:
+
+| Wahl | Was passiert |
+|---|---|
+| **Trikot schicken** | Er fragt wieder. Und wieder. Moral −10, kein Ende — die Flagge bleibt offen |
+| **Nicht mehr melden** | 60 % er gibt auf (Moral −6) · 40 % er redet, der Verein fragt nach (Vertrauen −22) |
+| **Reinen Tisch machen** | Vertrauen −14, aber Moral +8, Vermächtnis +4 — und niemand hat mehr etwas in der Hand |
+
+Der mittlere Weg ist der einzige mit Würfel, und das ist Absicht: Aussitzen ist
+weder sicher noch sicher schlecht. Der bequemste Weg (Trikot) schliesst die
+Sache **nicht** ab — nur die beiden anderen setzen `attestErledigt`. Wer
+nachgibt, bleibt erpressbar, und genau das ist der Punkt.
+
+### `tv_bannerbleibt` — Sie erinnern sich
+> Das Banner in der Nordkurve hängt immer noch. Darauf steht nur ein Datum —
+> der Tag, an dem du abgesagt hast. Vor dir läuft ein Kind mit deinem Namen auf
+> dem Rücken, das damals noch nicht geboren war.
+
+**Bewusst nur EINE Wahl.** „Die Stadt vergisst das nie“ soll sich nicht wie eine
+neue Entscheidung anfühlen — es ist eine Erinnerung, kein Dilemma. Moral +16,
+Vermächtnis +14, Form +5, und danach ist es vorbei (`bannergesehen`).
+
+Bedingung: `treugeblieben` **und mindestens acht Saisons**. Der Satz „ein Kind,
+das damals noch nicht geboren war“ muss stimmen können; nach zwei Jahren
+wäre er albern.
+
+### Warum Bedingungen geprüft werden und nicht Durchläufe
+Die beiden Flaggen werden in 0,2 % bzw. kaum messbar vielen Laufbahnen gesetzt
+(gemessen in 35.35). **Ein Ereignis, das nie erscheint, ist so folgenlos wie
+die Flagge vorher — nur schwerer zu bemerken.** Ein Zufallsdurchlauf würde die
+beiden praktisch nie ziehen und deshalb nichts beweisen. Geprüft wird darum die
+Bedingung selbst, sieben Fälle, jeder in die Richtung, in die er gehört:
+
+| Ereignis | Fall | soll |
+|---|---|---|
+| `attest_zurueck` | mit `attest` | greift |
+| | ohne `attest` | schweigt |
+| | nach reinem Tisch | schweigt |
+| `tv_bannerbleibt` | treu, 8 Saisons | greift |
+| | treu, erst 7 Saisons | **schweigt** |
+| | nicht treu, 12 Saisons | schweigt |
+| | schon gesehen | schweigt |
+
+Dazu eine achte: `tv_bannerbleibt` muss **genau eine** Wahl haben. Steht das
+eines Tages anders da, war es kein Versehen mehr, sondern eine Entscheidung —
+und dann soll sie auffallen.
+
+### Drei Gegenproben
+| Eingriff | Ergebnis |
+|---|---|
+| Bedingung von `attest_zurueck` auf `true` | ✗ zwei Fehler: „ohne attest“ und „nach reinem Tisch“ greifen beide |
+| Wiederholsperre `!bannergesehen` entfernt | ✗ „schon gesehen: erwartet schweigt, war greift“ |
+| beide Ereignisse wieder entfernt | ✗ zwei Fehler: „Ereignis gibt es nicht“ |
+
+Die zweite ist die wichtige: ohne sie wäre ein Erinnerungsmoment
+durchgegangen, der **jedes Jahr** wiederkommt — und nichts nutzt sich schneller
+ab als eine Erinnerung, die man fünfmal hat.
+
+### Grundlinie auf null
+`toteFlaggen` stand seit 35.7 auf 5, seit 35.35 auf 2, jetzt auf **0**. Das ist
+das erste Mal, dass keine einzige Flagge im Spiel gesetzt wird, ohne dass sie
+irgendwo gelesen würde. Steigt die Zahl wieder, ist eine neue Flagge ohne
+Folgen dazugekommen — die Grundlinie ist ab jetzt eine echte Sperre und kein
+Schuldenstand mehr.
+
+Die zwei neuen Flaggen `attestErledigt` und `bannergesehen` zählen nicht als
+tot: sie werden in der Bedingung desselben Ereignisses gelesen. Das hat das
+Werkzeug selbst festgestellt, nicht ich.
+
+### Geprüft
+Prüfstand gesamt: **517 Ansichten** (vorher 509 — acht neue), 0 Fehler, alle
+vier Zielbänder, 6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen,
+56 Vereinsprüfungen.
+Ereignisse: **520** (vorher 518).
+Tote Flaggen: **2 → 0**, vom Werkzeug gezählt.
+Fast gleiche Textpaare: 5, unverändert — die neuen Texte kollidieren mit
+keinem der 518 vorhandenen.
+Gegenproben: drei absichtliche Fehler → 515/2, 516/1, 510/2 statt 517/0.
+Bündel **1.204,12 kB** / 440,10 kB gepackt, vorher 1.202,38 / 439,60 —
+**+1,74 kB**. Das sind die beiden Ereignisse mit ihren sechs Ausgängen.
+`sicht.sh`: 14/14 · 8 px · 4/4 · Impressum 35.36 · 124 Knöpfe.
+
+## 35.37 · Ereignisse, die zum falschen Moment kommen
+
+Kevins Auftrag: **alle** Ereignisse durchgehen, samt Texten, Bedingungen und
+Auswirkungen. Seine Beispiele: die Binde wird angeboten, obwohl man sie trägt;
+ein Kind wird angekündigt, obwohl die Lage nicht passt.
+
+520 Ereignisse sieht man nicht mit den Augen durch. Also ein Werkzeug:
+**`stimmigkeit.cjs`**, fünf Proben über **520 Ereignisse, 1.136
+Auswahlmöglichkeiten, 1.439 Ausgänge**.
+
+### Was sauber war
+| Probe | Befund |
+|---|---|
+| `fx`-Schlüssel, die `applyFx` nicht kennt (verpuffen stumm) | **0** |
+| Würfel, die sich nicht auf 1,000 summieren | **0** |
+| Ereignisse, in denen JEDE Wahl bedingt ist (kein Ausweg) | **0** |
+| Auswahl ganz ohne Wirkung | 16, alle „Ablehnen“/„Später mal“ — Absicht |
+
+Besonders die erste Null ist etwas wert: ein vertippter `fx`-Schlüssel wäre
+von `applyFx` wortlos verschluckt worden, und die Wahl hätte nichts getan,
+ohne dass irgendwo etwas rot wird.
+
+### Der Befund: `drawEvents` prüft die Bedingungen nur EINMAL
+Die vier Bindenereignisse sind **alle** korrekt mit `!p.flags.kapitaen`
+abgesichert. Der Fehler sitzt eine Ebene tiefer:
+
+> `drawEvents` baut den Kandidatenpool einmal und prüft alle `cond` gegen den
+> Zustand **vor** der ersten Entscheidung. Dann zieht es n Ereignisse daraus.
+
+Wer in Ereignis 1 die Binde annimmt, bekommt sie in Ereignis 2 desselben
+Jahres noch einmal angeboten — beide waren beim Ziehen zulässig. Die Sperre
+`usedTags` verhindert nur zwei Ereignisse mit **demselben** tag:
+
+| Ereignis | tag | Bedingung |
+|---|---|---|
+| `kapitaen` | Führung | `!p.flags.kapitaen` |
+| `v_kapitaenswahl` | Verein | `!p.flags.kapitaen` |
+| `pt_kapitaenbinde` | Position | `!p.flags.kapitaen` |
+
+Drei verschiedene tags — die Sperre greift nicht. Kevins zweites Beispiel ist
+derselbe Mechanismus: `familie` gibt `life.kids`, `kinderwunsch` [Privat] fragt
+im selben Zug, ob man Kinder will.
+
+**Statisch gefunden: 49 solcher Paare. Gemessen: 95 Fälle in 28.181 gespielten
+Jahren, 0,34 %.** Selten — aber es ist der Fehler, den man sofort bemerkt,
+weil er das Spiel dumm aussehen lässt.
+
+### Der Fix: eine Stelle statt 49 Einzelbedingungen
+Bevor das nächste Ereignis gezeigt wird, wird seine Bedingung gegen den
+**jetzigen** Zustand geprüft:
+
+```js
+let k = ei + 1;
+while (k < queue.length && !nochGueltig(p, queue[k])) k++;
+```
+
+Dasselbe im Schnelldurchlauf. Drei Entscheidungen dabei:
+
+* **`nochGueltig` steht auf Modulebene**, nicht in der Komponente — sonst
+  liesse sie sich nicht prüfen.
+* **Dasselbe Probeobjekt wie `drawEvents`** (`{ ...q, rival: evCtx(q).rival }`),
+  sonst scheitern Ereignisse, die auf `rival` zugreifen, an sich selbst.
+* **Wirft die Bedingung, wird das Ereignis GEZEIGT.** Ein stiller Ausfall wäre
+  schlimmer als ein unpassendes Ereignis.
+
+Gemessen mit demselben Werkzeug, vorher gegen nachher:
+
+| | unpassend gezeigt | übersprungen |
+|---|---|---|
+| ohne Zweitprüfung | **95** (0,337 % der Jahre) | 0 |
+| mit Zweitprüfung | **0** | 70 |
+
+### Die Textproben: 11 Verdachtsfälle, 1 echter
+Elf Stellen, an denen ein Text einen Zustand nennt, den die Bedingung nicht
+absichert. **Zehn davon sind falsche Treffer** — alle einzeln nachgelesen und
+mit Begründung in `AUSNAHMEN` eingetragen, nicht durch Aufweichen der Suche
+beseitigt:
+
+| Ereignis | scheinbar | tatsächlich |
+|---|---|---|
+| `a2_ausland` | Partnerin | „ihr beide“ = du und der junge Zugang |
+| `pt_nummerzwei` | Trennung | das Torhüterduell |
+| `schiedsrichter` | Binde angeboten | „Du gehst zum Kapitän“ — Richtung |
+| `b_mitspielerverletzt` | deine Reha | die des Mitspielers |
+| `me_mentor3` | Nationalelf | **er** spielt dort, der Schützling |
+| `as_golf` | Nationalelf | das Ereignis verschafft den Pass erst |
+| `hk_hymnedebatte` | Karriereende | bildlich |
+| `tr_fuenf` | aufhören | „hier aufhören wollen“ = Treuebekenntnis |
+| `r_kaumgespielt` | Leihe | „Leihe fordern“ ist die Wahl |
+| `al_reisekader` | Binde angeboten | du sprichst mit dem, der sie trägt |
+
+**Der eine echte:** `n_abschied` (Abschiedsspiel aus der Nationalmannschaft)
+schrieb *„deine Kinder laufen mit ein“* — ohne jede Bedingung auf
+`life.kids`. Ein kinderloser Spieler bekam Kinder angedichtet. Der Text sagt
+jetzt „Blumen, Ehrenrunde“ und behauptet nichts mehr.
+
+### Zwei eigene Fehler, beide berichtigt
+**Das Suchmuster verkehrte Bedingungen ins Gegenteil.** `!p.flags.x` heisst
+FEHLT, `!!p.flags.x` heisst VORHANDEN — mein Muster erwischte das erste
+Ausrufezeichen von `!!` und meldete `kp_ansprache` als „setzt voraus, dass die
+Binde fehlt“, obwohl es sie verlangt. Mit Rückblick (`(?<!!)`) blieben von 49
+Treffern 38 übrig.
+
+**Ich habe `ARBEIT=/tmp/ps` gesetzt.** `pruefen.sh` kopiert die Baudateien nach
+`$ARBEIT` — damit lag die `package.json` des Spiels mit `"type":"module"` neben
+`motor.js`. Von da an war das Bündel für node ESM, `module.exports`
+wirkungslos, und **jedes** Werkzeug, das den Motor lädt, warf einen Fehler tief
+in einer erzeugten Datei. Das sieht nach kaputtem Werkzeug aus und ist ein
+Pfadfehler — dieselbe Familie wie `MODULE_NOT_FOUND` aus 35.14. Dagegen steht
+jetzt eine Wache in `pruefen.sh`, die abbricht, wenn ARBEIT und BAU
+zusammenfallen.
+
+### Und ein dritter, der die alte Stolperfalle wiederholt
+Nach der Textberichtigung meldete `stimmigkeit.cjs` den Treffer **weiter** —
+weil es den Motor liest und der von vor der Änderung stammte. **Ein altes
+Bündel gemessen**, genau wie in 34.5 und 35.8. Das Werkzeug meldet jetzt bei
+jedem Lauf, woraus es gemessen hat, und **bricht hart ab**, wenn `ereignisse.js`
+neuer ist als das Bündel. Gegengeprüft mit `touch ereignisse.js`.
+
+### Die Prüfung, die erst nichts prüfte
+Mein erster Entwurf prüfte nur die Ereignisbedingungen — und blieb **grün**,
+als ich das Überspringen aus `nextEvent` wieder herausnahm. Eine Prüfung, die
+den entfernten Fix nicht bemerkt, prüft ihn nicht. Jetzt dreiteilig:
+
+| Was | Wie |
+|---|---|
+| `nochGueltig` selbst | direkt gerufen: ohne Binde durchlassen, mit Binde sperren |
+| Randfälle | Ereignis ohne Bedingung → durch; Bedingung wirft → durch |
+| Verdrahtung | Textabgleich in `stimmigkeit.cjs`, drei Stellen |
+
+Der Textabgleich ist ein schwaches Mittel und wird als solches benannt: er
+fängt das Herausnehmen, nicht das Umbauen.
+
+### Gegenproben
+| Eingriff | Ergebnis |
+|---|---|
+| Überspringlogik aus `nextEvent` entfernt | ✗ `fehlt: nextEvent überspringt ungueltig gewordene Ereignisse`, 1 harter Fehler |
+| `nochGueltig` gibt immer `true` | ✗ „lässt das Bindenereignis MIT Binde durch“ |
+| `!p.flags.kapitaen` aus `pt_kapitaenbinde` entfernt | ✗ „mit Binde gelten immer noch 1 Bindenereignisse“ |
+| `ereignisse.js` angefasst ohne Neubau | ✗ `ereignisse.js ist NEUER als das Bündel` |
+
+### Geprüft
+Prüfstand gesamt: **523 Ansichten** (vorher 517), 0 Fehler, alle vier
+Zielbänder, 6 × 63 Ansichten rückwärts, 11 Ereignisprüfungen,
+56 Vereinsprüfungen.
+Neue Phase `stimmig` in `pruefen.sh`: 7 Proben ohne Befund, 0 harte Fehler.
+Im Lauf ausgegeben: `Binde: 4 Ereignisse zulässig → nach Annahme 0` und
+`Kind: 2 → nach Geburt 0`.
+Kollisionen: **95 → 0** bei 28.181 gespielten Jahren.
+Bündel **1.204,27 kB** / 440,17 kB gepackt, vorher 1.204,12 / 440,10 —
+**+0,15 kB**.
+
+## 35.38 · Der Kapitän spricht nicht mehr mit sich selbst
+
+Offener Punkt 18, und Kevins Auftrag dazu: **alle** Texte durchgehen, in denen
+so etwas vorkommt. Also nicht die eine Stelle flicken, sondern die Klasse
+finden.
+
+### Die Klasse
+Ein Text nennt eine Rolle **in der dritten Person**, die der Spieler selbst
+innehaben kann. Kein Mechanikfehler — ein Riss in der Erzählung, und davon
+merkt der Spieler jeden einzelnen.
+
+Gesucht in **jedem** Text jedes Ereignisses: Titel, Beschreibung,
+Wahlbeschriftungen, Hinweise und alle Ausgänge. 19 Kandidaten, alle einzeln
+gelesen. **Zwei echte:**
+
+**`al_reisekader`** — die Wahl trug bereits eine Bedingung, aber die falsche:
+`!!p.flags.vize || !!p.flags.exkapitaen || p.trust>=62`. Ein Kapitän hat fast
+immer über 62 Vertrauen und bekam die Option „Über den Kapitän gehen“ also
+**gerade dann**. Der Ausgang lautete „Du sprichst mit dem, der die Binde
+trägt“ — Selbstgespräch.
+
+**`r_pokalsieg`** — Wahl „Die Älteren vorlassen“, Ausgang „Du drückst dem
+Kapitän das Mikrofon in die Hand“. Bist du der Kapitän, drückst du es dir
+selbst in die Hand.
+
+### Zwei verschiedene Lösungen, mit Absicht
+`evText` lässt Texte **Funktionen** sein (`typeof v === "function" ? v(ctx)`),
+und `ctx.p` ist der Spieler. Auch Wahlbeschriftungen laufen dort durch —
+nachgesehen in Zeile 12943. Damit war die bessere Lösung möglich:
+
+* **`al_reisekader`**: Beschriftung UND Ausgang richten sich jetzt nach der
+  Lage. Als Kapitän heißt die Wahl „Als Kapitän vorstellig werden“ und der
+  Ausgang „Du gehst als Kapitän hin, nicht als Betroffener“. Die Bedingung
+  nimmt `!!p.flags.kapitaen` mit auf — vorher fiel der Kapitän zufällig über
+  die Vertrauensschwelle hinein, jetzt ausdrücklich.
+* **`r_pokalsieg`**: nur umformuliert, „einem der Älteren“. Das stimmt immer
+  und passt zur Beschriftung „Die Älteren vorlassen“. Eine Fallunterscheidung
+  wäre hier Aufwand ohne Gewinn.
+
+**Dem Kapitän wurde nichts weggenommen.** Der einfache Weg wäre gewesen, die
+Option für Kapitäne zu sperren — dann hätte ausgerechnet der mit der Binde
+weniger Handlungsmöglichkeiten als ein Ersatzspieler.
+
+### Die 17 anderen — warum sie sauber sind
+| Ereignis | schien | ist |
+|---|---|---|
+| `a2_dialekt` | „Über den Kapitän“ | `age<=21` — **unter 23 kann niemand Kapitän sein** |
+| `a_schulsorgen` | „der Älteste“ | in der Schulklasse, nicht im Team |
+| `v_kapitaenswahl` | „den Kapitän“ | `!p.flags.kapitaen` in der Bedingung |
+| `b_wunderkind` | „der Beste“ | der junge Zugang, `${c.young.name}` |
+| `v_insolvenz` | „als Legende“ | bildlich, „hier“ — nicht die Flagge |
+| `r_aufstieg` | „als Stammspieler“ | das ist das ERGEBNIS der Wahl |
+| `flitter`, `sorgerecht` | Frau, Kinder | über `life.status` / `life.kids` abgesichert |
+| Eltern, Bruder, Schwester | Familie | nicht modelliert — jeder hat einen Vater gehabt |
+
+Die Altersgrenze ist **nachgesehen, nicht geraten**: die vier Bindenereignisse
+verlangen `age>=24, 25, 26, 27`, die automatische Vergabe in `simulateSeason`
+verlangt `age>=23`. Unter 23 gibt es keinen Kapitän. Diese Zahl steht in
+`stimmigkeit.cjs` mit ihrer Herkunft daneben — verschiebt sich eine der
+Grenzen, stimmt sie nicht mehr.
+
+### Vier eigene Fehler in einer Fassung
+Diese Suche zu bauen hat mich viermal auf die Nase gelegt. Alle vier stehen
+hier, weil jeder davon **stumm grün** war:
+
+1. **`\u00e4` in einem Python-Rohstring.** In `r'...'` bleibt das ein
+   Backslash-u, kein ä. Die Suche fand nichts und meldete „sauber“.
+2. **Naives Anführungszeichen-Paaren.** `"([^"]{3,320})"` über eine Datei
+   laufen zu lassen paart das 1. mit dem 2., das 3. mit dem 4. — bei ungerader
+   Anzahl verrutscht alles. `r_pokalsieg` fiel heraus. Seitdem wird direkt im
+   Ereignisblock gesucht.
+3. **`hatFunktion` je Ereignis statt je Text.** Ich übersprang ein ganzes
+   Ereignis, sobald IRGENDEIN Text darin eine Funktion war — also genau die
+   zwei Fälle, für die die Suche gebaut wurde. Beide Gegenproben blieben grün.
+4. **Die Gegenprobe hat den Motor überschrieben.** `BAU` steht fest auf
+   `/tmp/ps`. Eine Gegenprobe mit `ARBEIT=/tmp/gp2` baut trotzdem nach
+   `/tmp/ps` — danach misst jedes Werkzeug die **sabotierte** Quelle. Deshalb
+   zeigte `al_reisekader` noch feste Texte, obwohl die Quelle längst
+   Funktionen trug. **Nach jeder Gegenprobe neu bauen.**
+
+Dazu ein fünfter, der nichts kaputt machte, aber alles wertlos: eine
+Gegenprobe, deren Ersetzung **nicht passte** (`AssertionError: 0`). Das Skript
+schrieb nichts, der Lauf meldete „nichts gefunden“ — und das sah aus wie ein
+Ergebnis. Gegenproben brechen jetzt sichtbar ab, wenn die Bearbeitung nicht
+greift.
+
+### Die Suche prüft sich selbst
+In `stimmigkeit.cjs` steht eine **Kontrollprobe**: ein Satz, von dem feststeht,
+dass die Suche ihn finden muss. Findet sie ihn nicht, meldet sie einen harten
+Fehler statt „nichts gefunden“. Nach drei kaputten Suchen an einem Tag ist das
+keine Vorsicht, sondern Notwehr.
+
+| Eingriff | Ergebnis |
+|---|---|
+| `r_pokalsieg` zurück auf „dem Kapitän“ | ✗ `Wahl 2 Ausgang 1: „dem Kapitän“` |
+| `al_reisekader` zurück auf feste Beschriftung | ✗ `Wahl 1 Beschriftung: „den Kapitän“` |
+| `a2_dialekt` von `age<=21` auf `age<=25` | ✗ `Wahl 2 Hinweis: „den Kapitän“` |
+| Suchmuster der Kontrollprobe sabotiert | ✗ `KONTROLLPROBE GESCHEITERT`, harter Fehler |
+
+Die dritte ist die feinste: sie beweist, dass der Altersdeckel wirklich als
+Schutz gelesen wird und nicht bloss zufällig nichts meldet.
+
+### Geprüft
+Prüfstand gesamt: **523 Ansichten**, 0 Fehler, alle vier Zielbänder,
+6 × 63 rückwärts, 11 Ereignisprüfungen, 56 Vereinsprüfungen.
+Stimmigkeit: **16 Proben ohne Befund**, 0 harte Fehler.
+520 Ereignisse · 1.136 Auswahlmöglichkeiten · 1.439 Ausgänge.
+Bündel **1.204,51 kB** / 440,22 kB gepackt, vorher 1.204,27 / 440,17 —
+**+0,24 kB**. Das sind die zwei Fallunterscheidungen.
+
+## 35.39 · Die Akademie zahlt früher — und sagt es
+
+Offener Punkt 17. Der Punkt lautete „bis Ruhm 35 gibt es nichts“. Gemessen war
+es schlimmer.
+
+### Der Befund
+40 Läufe je Ausbaustufe, Median, gegen die Kosten gehalten:
+
+| Ausbau | Kosten | erste Gabe | Anlage +1 | Ansehen n. 25 J. |
+|---|---|---|---|---|
+| Stufe 1 | 0 VC | **nie** | nie | 6 |
+| Stufe 2 | 181 VC | **nie** | nie | 12 |
+| Stufe 3 | 519 VC | **18. Jahr** | 28. Jahr | 42 |
+| Stufe 4 | 1.061 VC | 7. Jahr | 11. Jahr | 119 |
+| Stufe 6 | 2.912 VC | 4. Jahr | 5. Jahr | 330 |
+
+**Stufe 1 und 2 warfen nie etwas ab, auch nach 30 Jahren nicht.** Stufe 3 kostet
+519 VC und brauchte 18 Jahre bis zur ersten Gabe. Wer die ersten Stufen kaufte,
+bekam über ein Dutzend Laufbahnen hinweg null zurück — und seit 35.32 zeigt der
+Rückblick dann korrekt gar keine Zeile.
+
+Zum Vergleich: **Stufe 6 kostet 2.912 VC, also genau eine Laufbahn** (das
+VC-Zielband). Der Vollausbau war nie das Problem, der Einstieg war es.
+
+### Und niemand konnte es wissen
+Kevins Frage beim Vorlegen war die richtige: **wo steht das überhaupt?**
+Nachgesehen — „Ansehen“ erscheint an **genau einer** Stelle: als sechste Kachel
+in der Statistikreihe des Akademiebildschirms. Eine nackte Zahl.
+
+Der goldene Kasten „Was die Nächsten davon haben“ erschien nur bei
+`bt.length > 0` — also **ausgerechnet in der toten Frühphase nicht**, in der man
+wissen will, wofür man zahlt. Darunter stand „Irgendwann ist aber Schluss mit
+dem Bonus“: angekündigt wurde der **Deckel**, nicht der Einstieg.
+
+### Gebaut: Weg A und B zusammen (Kevins Entscheidung)
+**A — Schwellen gesenkt, Deckel unangetastet:**
+
+| | alt | neu |
+|---|---|---|
+| Startkapital | Ansehen / 25 | / 12 |
+| Bekanntheit | / 35 | / 18 |
+| Anlage | / 45 | / 28 |
+| Entwicklung | / 70 | / 45 |
+
+**B — Grundgabe:** wer eine Akademie **gegründet** hat, bekommt +1 Bekanntheit,
+auch bei Ansehen 0. Ohne Gründung weiterhin nichts — die erste Laufbahn erbt
+keinen Bonus.
+
+**`akaRuhm` bleibt unangetastet.** Die Errungenschaft „Ansehen von 150“ und jedes
+Zielband der Kalibrierung hängen an der Ruhmskala; geändert hat sich nur, was man
+dafür bekommt. Das war der Grund, A gegenüber „Ruhm schneller wachsen lassen“
+vorzuziehen.
+
+### Wirkung, gemessen statt gehofft
+| Ausbau | erste Gabe vorher | nachher | Anlage +1 vorher | nachher |
+|---|---|---|---|---|
+| Stufe 1 | nie | **1. Jahr** | nie | nie |
+| Stufe 2 | nie | **1. Jahr** | nie | nie |
+| Stufe 3 | 18. | **1. Jahr** | 28. | **15.** |
+| Stufe 4 | 7. | **1. Jahr** | 11. | **7.** |
+| Stufe 6 | 4. | **1. Jahr** | 5. | **4.** |
+
+### Die Gegenprobe in die ANDERE Richtung
+Aus „gibt nichts“ darf kein „gibt zu viel“ werden. 700 Laufbahnen je Bedingung:
+
+| | Spitzenstärke Median | Mittel |
+|---|---|---|
+| ohne Akademie | 77 | 76,1 |
+| ALT bei Ansehen 119 | 79 | 77,0 |
+| **NEU bei Ansehen 119** | 80 | **78,1** |
+| Deckel (unverändert) | 80 | 78,4 |
+
+Der größte Sprung trägt **+1,1 Punkte** Spitzenstärke aus, und der Deckel liegt
+weiterhin nur **+2,3** über „gar keine Akademie“. Die mittlere Ausbaustufe rückt
+also näher an die Decke — genau die Absicht — während die Decke steht.
+
+### Die Anzeige: eine Quelle, keine zweite Liste
+Der Kasten steht jetzt, sobald eine Akademie gegründet ist, und nennt die
+nächste Schwelle: *„Noch 12 Ansehen bis Startkapital +10 Tsd. €.“*
+
+Die Zahl kommt aus `akaNaechsteGabe`, und die rechnet mit **`akaBonus` selbst**
+— sie zählt Ansehen hoch, bis sich etwas ändert. Eine zweite, von Hand
+gepflegte Schwellenliste in der Anzeige wäre beim nächsten Zahlendreh stumm
+falsch geworden, und der Spieler hätte einer Zahl geglaubt, die nicht stimmt.
+Dieselbe Regel wie bei `akaBonusText` in 35.32 und der Ablaufliste in 35.29.
+
+Ist alles ausgereizt, steht dort „Mehr geht nicht“ statt einer Zahl.
+
+### Gegenproben
+| Eingriff | Ergebnis |
+|---|---|
+| Deckel für Anlage von 4 auf 6 angehoben | ✗ „Deckel verschoben: pot = 6 statt 4“ |
+| Grundgabe auch OHNE Gründung | ✗ „ohne gegründete Akademie gibt es etwas“ (2 Fehler) |
+| Ankündigung von der Rechnung entkoppelt | ✗ „4 Ansehenstände, bei denen die Ankündigung nicht stimmt“ |
+
+Die dritte ist die, auf die es ankommt: sie beweist, dass Anzeige und Rechnung
+**dieselbe Quelle** benutzen. Ohne sie könnte die Anzeige beliebig danebenliegen,
+ohne dass etwas rot wird.
+
+Dazu zwei stille Proben: die Gabe muss **monoton** sein (mehr Ansehen darf nie
+weniger geben, über 400 Ansehensstände geprüft), und die Grundgabe darf **nur**
+Bekanntheit sein, nicht heimlich mehr.
+
+### Geprüft
+Prüfstand gesamt: **532 Ansichten** (vorher 523 — neun neue), 0 Fehler,
+**alle vier Zielbänder unverändert im Band**, 6 × 63 rückwärts,
+11 Ereignisprüfungen, 56 Vereinsprüfungen, Stimmigkeit 16 Proben ohne Befund.
+Im Lauf ausgegeben: `frisch gegründet: Bekanntheit +1 · nächste Gabe in 12
+Ansehen` und `Deckel: Anlage +4 · Bekanntheit +6 · Startkapital +100 Tsd. € ·
+Entwicklung +6 %`.
+Bündel **1.205,23 kB** / 440,39 kB gepackt, vorher 1.204,51 / 440,22 —
+**+0,72 kB**.
+
+## 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe
+
+Offener Punkt 2. Er lautete „10 bzw. 14 Frisuren gegen 12 bzw. 16“ — also eine
+Frage der Anzahl. **Gemessen war es keine Frage der Anzahl, sondern eine
+kaputte Freischaltung.**
+
+### Nicht gezählt, sondern gerendert
+Die fertige Ausgabe von `<Avatar>` bei 62 px, Bild gegen Bild verglichen:
+
+| | wählbar | **unterscheidbar** |
+|---|---|---|
+| Männer | 16 | **16** |
+| Frauen | 14 | **9** |
+
+* `6` („lang mit Scheitel“) teilte sich die Zeichnung mit `1` — im Code steht
+  `z.frisur === 1 || z.frisur === 6` auf demselben Pfad. Zwei Namen, ein Bild.
+* **`10`, `11`, `12`, `13` hatten überhaupt keine Zeichnung** und sahen alle aus
+  wie `0`. Das sind genau die vier Formen hinter der Freischaltung `mk_haar`.
+  **Wer als Frau dafür bezahlt hat, bekam vier gleiche Einträge.**
+
+Bei den Männern ist einzig `11` ohne Zeichnung — das ist die Glatze, das gehört
+so.
+
+### Gebaut
+* **`6`** bekommt vorn einen schmalen hellen Scheitel. Dieselbe Haarmasse wie
+  `1`, aber der Unterschied, den der Name behauptet.
+* **`10` Pferdeschwanz**, hoch angesetzt, schwingt nach rechts aus
+* **`11` zwei Zöpfe**, beidseitig, mit drei Abbindungen je Zopf
+* **`12` lange Wellen**, breiter als `1` und mit Schwung nach aussen
+* **`13` Lockenkranz**, Kreise entlang des Umrisses
+
+**Die zweite Hälfte des offenen Punktes war die wichtigere:** „die langen
+Haarformen liegen hinter dem Kopf, wo sie bei 62 px kaum wirken“. Deshalb hat
+jede der vier neuen Formen **auch vorn** etwas — Kappe, Scheitel oder Locken über
+der Stirn. Allein hinter dem Kopf wäre die Unterscheidung im Kreuzbogen bei
+kleinen Kopfformen wieder verschwunden, wie schon beim Vokuhila in 34.9.
+
+Bei `13` musste zusätzlich der Kopf noch einmal über die Haarmasse gelegt
+werden, sonst deckt der Lockenkranz das Gesicht ab — dieselbe Zeile, die `2`
+schon brauchte.
+
+### Ergebnis
+**14 von 14 unterscheidbar, bei jeder der fünf Kopfformen.** Nicht nur bei
+einer geprüft: eine einzige Kopfform zu messen hatte in 35.10 schon einmal
+einen Fehler verdeckt.
+
+### Zwei eigene Fehler
+**Der erste Messaufbau meldete, alle 16 männlichen Frisuren sähen gleich aus.**
+Ich hatte `Avatar` mit `{ z, g }` gerufen, die Eigenschaft heisst aber `zuege`.
+Ein unbekanntes Attribut wirft nicht — React ignoriert es, `Avatar` würfelt
+die Züge selbst aus dem `seed`, und alle Bilder wurden identisch. **Ein
+Messfehler, der wie der größte Befund des Tages aussah.** Deshalb steht in der
+Dauerprüfung jetzt eine Kontrollprobe: zwei sicher verschiedene Frisuren
+müssen verschiedene Ausgaben geben, sonst meldet sie sich selbst als kaputt.
+
+**Der zweite war ein Doppelimport.** `Avatar` und `zuegeAusKennung` standen
+schon in der Importliste von `ansichten.jsx`; mein zweiter Eintrag brach die
+Übersetzung. Gefangen vom Aufbauabbruch aus 34.5 — ohne den hätte der Lauf ein
+altes Bündel geprüft und grün gemeldet.
+
+### Gegenproben
+| Eingriff | Ergebnis |
+|---|---|
+| Scheitel von `6` entfernt | ✗ `weiblich, Kopfform 0-4: 6=1` |
+| **beide** Ebenen von `12` stillgelegt | ✗ `weiblich, Kopfform 0-4: 12=0` |
+| `Avatar` ignoriert die Frisur | ✗ `KONTROLLPROBE: zwei verschiedene Frisuren geben dieselbe Ausgabe` |
+
+Die zweite ist die ehrliche: mein **erster** Versuch legte nur die hintere
+Ebene still — und blieb grün, weil die vordere die Unterscheidung allein
+trägt. Das war kein Fehler der Prüfung, sondern eine Gegenprobe, die zu wenig
+kaputt gemacht hat. Erst mit beiden Ebenen beweist sie etwas.
+
+### Geprüft
+Prüfstand gesamt: **543 Ansichten** (vorher 532 — elf neue: eine Kontrollprobe
+und zehn Kopfform-Durchgänge), 0 Fehler, alle vier Zielbänder,
+6 × 63 rückwärts, 11 Ereignisprüfungen, 56 Vereinsprüfungen,
+Stimmigkeit 16 Proben ohne Befund.
+Im Lauf ausgegeben: `16 männliche und 14 weibliche · alle 5 Kopfformen · jede
+Form unterscheidbar`.
+Bündel **1.207,10 kB** / 440,81 kB gepackt, vorher 1.205,23 / 440,39 —
+**+1,87 kB**. Das sind die vier neuen Formen mit beiden Ebenen.
+
+## 35.41 · Werkzeugkasten aufgeräumt
+
+Drei offene Punkte auf einmal: 12 (Argumentreihenfolge), 16 (`storage.js`) und
+6 (Voreinstellung gegen Spielstand). **Am Spiel selbst ändert sich nichts** —
+`App.jsx` unterscheidet sich in der Fassungszeile und in nichts weiter, das
+Bündel ist in der Rundung gleich gross.
+
+### Punkt 12 — und was dabei herauskam
+Der Punkt las sich nach Kosmetik: `uebersicht.cjs <Ziel>` gegen
+`vorschau.py <Quelle> <Ziel>` gegen `verzeichnis.cjs <Datei>`. **Der
+gefährliche Teil waren die Rückfallwerte.**
+
+In `ereignispruefung.cjs` stand:
+
+```js
+const QUELLE = process.argv[2] || process.env.QUELLE || "/mnt/project/App.jsx";
+```
+
+Ohne Argument las das Werkzeug also die **schreibgeschützte
+Projektwissen-Kopie**. Nachgemessen am 24.8.2026, derselbe Motor, einmal mit
+und einmal ohne Argument:
+
+| Aufruf | Ergebnis |
+|---|---|
+| ohne Argument | ✗ **7 tote Flaggen**, Grundlinie 0 |
+| mit `--quelle=` | ✓ **0 tote Flaggen** |
+
+Die Kopie stand auf 35.30 und kannte die Anschlüsse aus 35.35/35.36 nicht.
+Kein Absturz, keine Warnung, nur eine falsche Antwort. Hier war es zufällig
+**rot** und wäre aufgefallen — umgekehrt hätte dieselbe Mechanik eine
+Verschlechterung in der aktuellen Datei **verdeckt**.
+
+Dieselbe Sorte in `texttreue.cjs` (`|| "App.jsx"`, relativ zum
+Arbeitsverzeichnis) und in `vereinpruefung.cjs`.
+
+**Gebaut:** ein gemeinsamer Leser `argumente.cjs` mit `--quelle=`, `--ziel=`,
+`--anzahl=`. Drei Entscheidungen darin:
+
+* **Fehlt die Quelle, wird abgebrochen.** Kein Rückfallwert. Ein Werkzeug, das
+  nicht weiss, was es misst, darf kein Ergebnis melden.
+* **Beim Ziel ist ein Standardwert erlaubt** — ein falsches Ziel fällt auf
+  (die Datei liegt woanders), eine falsche Quelle nicht.
+* **Die alten Positionsformen bleiben gültig**, damit nicht jede Zeile in
+  `pruefen.sh` und `sicht.sh` zugleich umgestellt werden muss. Aber nur als
+  Position — nie als stiller Ersatz für eine fehlende Angabe.
+
+Umgestellt: `ereignispruefung`, `texttreue`, `stimmigkeit`, `kalibrierung`,
+`verlauf40`, `verzeichnis`, `uebersicht`, `vereinpruefung` — und die fünf
+Aufrufstellen in `pruefen.sh`. `uebersicht.cjs` behält seine Riegel aus 35.4
+(genau ein Argument, muss auf `.md` enden); die haben damals echten Schaden
+verhindert.
+
+### Punkt 16 — `storage.js` angeglichen
+`value ? … : null` gegen `value == null ? … : null`. Der Unterschied betrifft
+genau einen Fall:
+
+| Wert | vorher | nachher |
+|---|---|---|
+| `""` | **null** („nicht vorhanden“) | `{ key, value: "" }` |
+| `"0"` | vorhanden | vorhanden |
+| `null` | null | null |
+
+Praktisch folgenlos — alle Aufrufe schreiben `JSON.stringify(…)` oder
+`String(n)`, nie einen Leerstring. Aber zwei Fassungen derselben Schnittstelle,
+die sich am Rand verschieden verhalten, sind eine Falle für den Tag, an dem
+doch einmal einer geschrieben wird. Jetzt gleich mit der Browsertest-Fassung.
+
+### Punkt 6 — aus einer Beobachtungsnotiz wird eine Prüfung
+Der Punkt lautete: *„Alte Spielstände tragen `speed` und `mode` weiter am
+Spieler; die Voreinstellung greift nur bei neuen Laufbahnen. So gewollt, sollte
+aber im Blick bleiben.“*
+
+**Im Blick behalten heisst nicht: daran denken.** `SPEEDMODUS` und
+`SCHWIERIGKEIT` sind Modulvariablen; `createPlayer` liest sie **nicht** selbst,
+sondern bekommt sie über `cfg`. Dreht das jemand um — etwa weil es einfacher
+aussieht —, ändert sich rückwirkend die Schwierigkeit **jeder laufenden
+Karriere**, und zwar still.
+
+Fünf Proben nageln das fest: eine neue Laufbahn folgt der Übergabe (beide
+Richtungen), ein bestehender Stand behält `speed` und `mode`, und — die
+wichtigste — bei Voreinstellung `true` und Übergabe `false` muss `false`
+gewinnen.
+
+### Ein eigener Fehler
+Mein erster Testaufbau schrieb `mode: "arcade"`. **Den Grad gibt es nicht** —
+sie heissen `aufstieg`, `realismus`, `knochen`. `createPlayer` fiel korrekt auf
+`realismus` zurück, und die Probe meldete einen Fehler, den es nicht gab. Ein
+falscher Versuchsaufbau sieht genauso rot aus wie ein echter Befund; erst das
+Nachsehen in `MODES` hat es geschieden. Steht als Warnung im Prücode.
+
+### Gegenproben
+| Eingriff | Ergebnis |
+|---|---|
+| `ereignispruefung.cjs` ohne Argument | ✗ `ABBRUCH: weiss nicht, welche Datei es pruefen soll` |
+| `speed: SPEEDMODUS \|\| !!cfg.speed` | ✗ `createPlayer liest SPEEDMODUS selbst — die Übergabe wird überstimmt` |
+| alte Positionsform `ereignispruefung.cjs <App.jsx>` | ✓ läuft weiter, 11 Prüfungen in Ordnung |
+
+Die dritte ist keine Fehlerprobe, sondern der Nachweis, dass die Umstellung
+nichts zerschlagen hat.
+
+### Geprüft
+Prüfstand gesamt: **548 Ansichten** (vorher 543 — fünf neue), 0 Fehler, alle
+vier Zielbänder, 6 × 63 rückwärts, 11 Ereignisprüfungen, 56 Vereinsprüfungen,
+Stimmigkeit 16 Proben ohne Befund.
+Bündel **1.207,10 kB** / 440,80 kB gepackt — roh unverändert gegenüber 35.40,
+gepackt 0,01 kB weniger. Am Spielcode wurde ausser der Fassungszeile und den
+zehn Zeichen in `storage.js` nichts angefasst.
+
+## 35.42 · Der Abschlussbildschirm wird übersichtlich
+
+Zwei Wünsche von Kevin. Der zweite zuerst, weil er der größere war.
+
+### Der Abschlussbildschirm
+Er hängte alles untereinander: Urteil, Wildcard, Errungenschaften,
+Akademiejahr, Vereinsbericht, Zahlenblock, Stationen, `StatsView`,
+`NationalView`, `TrophyView`, Teilen-Text — und **ganz unten** die Knöpfe. Bei
+einer langen Laufbahn scrollt man an sehr viel vorbei, bevor „Neue Laufbahn
+beginnen“ auftaucht.
+
+Jetzt: oben bleibt, was den Abschluss ausmacht. Alles Nachschlagbare geht in
+**fünf Reiter, beim Öffnen keiner gewählt**. Ein zweites Tippen auf denselben
+Reiter klappt wieder zu — ohne das gäbe es keinen Weg zurück zur Übersicht,
+und genau die war der Wunsch.
+
+Die Knöpfe stehen in einer angehefteten Leiste (`position:fixed`, nicht
+`sticky`: die Shell scrollt selbst, ein klebendes Element hätte sich am Ende
+des Inhalts wieder gelöst). Darunter `env(safe-area-inset-bottom)` wegen der
+Gestensteuerung auf dem S24.
+
+### Was das Nachmessen gebracht hat
+`sicht.sh` war grün — aber die Knopfzahl stand unverändert bei **124**. Der
+Abschlussbildschirm kam im Knopfbogen überhaupt nicht vor. Eine angeheftete
+Leiste, die `position:fixed` über dem Inhalt liegt, von keiner Prüfung gesehen:
+das musste zuerst geradegezogen werden. Mit dem Bildschirm im Bogen sind es
+**164 Knöpfe** — und die Messung meldete sofort einen echten Fehler:
+
+> `✗ Zum Teilen  breit 83 · braucht 81 · rechte Kante 424  AUSSERHALB DES BILDES`
+
+Der fünfte Reiter stand bei 412 px **zwölf Pixel** über dem Rand. Zwei
+Berichtigungen daraus:
+
+* **Beschriftungen gekürzt**: „Nationalelf“ → „Land“, „Zum Teilen“ →
+  „Teilen“. Bei 412 px passen jetzt alle fünf ohne Wischen.
+* **Die Knopfmessung kennt jetzt scrollbare Zeilen.** `.tabs` trägt
+  `overflow-x:auto` — dort über den Rand zu ragen ist Absicht, der Farbverlauf
+  rechts zeigt es an. Solche Knöpfe als „außerhalb des Bildes“ zu melden war
+  ein falscher Treffer. Sie werden aber **nicht verschwiegen**: der Bericht
+  zählt sie und schreibt „davon 5 erst nach seitlichem Wischen sichtbar“. Bei
+  360 px sind es fünf, bei 412 px keiner.
+
+### Verdeckt die Leiste den Inhalt?
+Das kann jsdom nicht sehen. In echtem Chromium gemessen:
+
+| Breite | Leiste | Platzhalter | Hauptknopf |
+|---|---|---|---|
+| 412 px | 120,0 px | 132 px | 380 px, Kanten 16–396 |
+| 360 px | 120,0 px | 132 px | 328 px, Kanten 16–344 |
+| 320 px | 120,0 px | 132 px | 288 px, Kanten 16–304 |
+
+**12 px Luft bei allen drei Breiten.** Der Platzhalter im `EndScreen` und die
+Höhe der Leiste im CSS sind zwei Zahlen, die zusammengehören und in
+verschiedenen Dateien stehen — genau die Sorte, die auseinanderläuft. Die
+jsdom-Probe prüft deshalb ausdrücklich, dass der Platzhalter da ist.
+
+### Der Posten gegen Verletzungen
+Kevins Entscheidung: **Weg A, Preis 30 VC.** Vorher `dauer: 0`, 18 VC — er
+heilte einmal und war weg, konnte also gar nicht halten.
+
+Jetzt `dauer: 1`: die laufende Verletzung ist sofort auskuriert, und **die
+ganze Saison über kommt keine neue dazu**. Das Risiko, das damit wegfällt,
+gemessen aus der Formel in `simulateSeason`:
+
+| Alter | Anfälligkeit | Fitness | Verletzung je Saison |
+|---|---|---|---|
+| 20 | 30 | 80 | 15,2 % |
+| 28 | 45 | 70 | 19,8 % |
+| 32 | 55 | 65 | 31,6 % |
+| 35 | 65 | 60 | **41,2 %** |
+
+Deshalb der Preis von 18 auf 30 — damit steht er über `form` (28) und unter
+`ueber99` (70). Sperren bleiben unberührt: der Physio heilt, er redet nicht mit
+dem Schiedsrichter.
+
+### Die Wechselwirkung, die der Prüfstand gefunden hat
+Mit `dauer: 1` wurde eine Prüfung rot:
+
+> `✗ Kaufmodell — Sofortwirkung: kaufbar=false, erwartet true`
+
+Sie benutzte `physio` **namentlich** als Beispiel für „wirkt sofort, bleibt
+immer kaufbar“. Nicht das Kaufmodell war kaputt, sondern das Beispiel passte
+nicht mehr. Die Prüfung holt ihre Beispiele jetzt **aus `VCLADEN`**
+(`find(a => !a.vorrat && !a.dauer)`) statt sie auswendig zu kennen — und
+prüft den Physio zusätzlich namentlich in seiner neuen Art: eine Saison
+gesperrt, danach wieder zu haben. 10 von 10 Lagen richtig.
+
+### Gegenproben
+| Eingriff | Ergebnis |
+|---|---|
+| Reiter beim Öffnen vorgewählt | ✗ „beim Öffnen ist schon ein Reiter gewählt“ |
+| Platzhalter auf 0 gesetzt | ✗ „der Platzhalter fehlt — die Leiste verdeckt den letzten Eintrag“ |
+| Leiste ganz entfernt | ✗ „die angeheftete Leiste fehlt“ |
+| Zuklappen ausgebaut | ✗ „zweites Tippen klappt nicht wieder zu“ |
+| `physio` zurück auf `dauer: 0` | ✗ „Physio läuft: kaufbar=true, erwartet false“ |
+
+**Die vierte ist nachgetragen, und das gehört gesagt.** Beim ersten Anlauf
+blieb sie **grün**: der Kommentar behauptete, ein zweites Tippen klappe wieder
+zu, geprüft wurde es nicht. Eine Behauptung im Kommentar ist keine Prüfung.
+Jetzt wird das Auf- und Zuklappen wirklich durchgeklickt.
+
+### Ein eigener Fehler
+Nach dem Kürzen der Beschriftungen habe ich nur `sicht.sh` gefahren, nicht den
+Prüfstand — die jsdom-Probe erwartete noch „Nationalelf“/„Zum Teilen“ und war
+rot. Aufgefallen ist es erst in einer Gegenprobe, die aus ganz anderem Grund
+lief. **Beide Läufe gehören nach jeder Änderung an der Anzeige**, nicht der,
+den man gerade im Sinn hat.
+
+### Geprüft
+Prüfstand gesamt: **563 Ansichten** (vorher 548), 0 Fehler, alle vier
+Zielbänder, 6 × 63 rückwärts, 11 Ereignisprüfungen, 56 Vereinsprüfungen,
+Stimmigkeit 16 Proben ohne Befund.
+Im Lauf ausgegeben: `Abschluss 5 Reiter, beim Öffnen keiner gewählt · auf und
+wieder zu · Leiste mit 3 Knöpfen · Platzhalter 132 px` und
+`Kaufmodell 10 von 10 Lagen richtig`.
+`sicht.sh`: **164 Knöpfe** (vorher 124 — der Abschlussbildschirm ist neu im
+Bogen), bei 412 px keiner zum Wischen, bei 360 px fünf.
+Leistenmessung in Chromium: 120,0 px gegen 132 px Platzhalter, alle drei
+Breiten.
+Bündel **1.208,89 kB** / 441,37 kB gepackt, vorher 1.207,10 / 440,80 —
+**+1,79 kB**.
+
+## Offene Punkte (Stand 35.42)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
    im Zufallsbogen wirkt rund ein Fünftel der Gesichter kahl. Rechnerisch richtig,
    gestalterisch vielleicht zu viel — das ist Kevins Entscheidung, keine Aufgabe
    für den Prüfstand.
-2. **Weibliche Porträts sind weniger weit** als die männlichen: 10 bzw. 14 Frisuren
+2. ~~**Weibliche Porträts sind weniger weit.**~~ **Erledigt in 35.40** — gemessen
+   waren es nicht 10 gegen 12, sondern **9 unterscheidbare von 14 wählbaren**:
+   die vier Formen hinter `mk_haar` hatten gar keine Zeichnung. Jetzt 14 von 14
+   bei allen fünf Kopfformen, als Dauerprüfung abgesichert. Alter Wortlaut:
+   **Weibliche Porträts sind weniger weit** als die männlichen: 10 bzw. 14 Frisuren
    gegen 12 bzw. 16, und die langen Haarformen liegen hinter dem Kopf, wo sie bei
    62 px kaum wirken. Nachziehen, sobald die männlichen stehen.
 3. **Farbe gegen Bedeutungsfarbe** ist noch offen. Die Form trennt die beiden
@@ -5268,44 +6770,70 @@ Prüfstand unverändert: 478 Ansichten, 56 Vereinsprüfungen, 0 Fehler.
    **ΔE 4,6** zu `--mu` (#8A9690) und `hsv` bei **ΔE 18,8** zu `--tx`. Erst prüfen,
    ob sie überhaupt je in derselben Zeile stehen — wenn nicht, ist es folgenlos.
    **Nicht blind verschieben.**
-4. **`zahlenPruefen` greift in der Ruhmeshalle nicht**, weil die Werte in `.zellen`
-   dort als reine Textknoten neben der Beschriftung stehen. In der Ehrentafel schon
-   berichtigt. Nachziehen, wenn ohnehin an der Ruhmeshalle gearbeitet wird.
+4. ~~**`zahlenPruefen` greift in der Ruhmeshalle nicht.**~~ **Erledigt in 35.33** —
+   das Werkzeug liest den Wert jetzt als Geschwisterkette statt über
+   `nextElementSibling` und sieht damit auch nackte Textknoten. Dabei kam
+   heraus, dass `HallScreen` überhaupt nur mit leerer Halle gezeichnet wurde.
 5. **Das Symbol ist bei 48 dp nicht mehr lesbar.** Wer Lesbarkeit will, braucht ein
    reduziertes Zeichen (Ball und XI), keine Szene. Gestalterische Entscheidung.
-6. **Alte Spielstände** tragen `speed` und `mode` weiter am Spieler; die Voreinstellung
+6. ~~**Alte Spielstände tragen `speed` und `mode` weiter.**~~ **Erledigt in 35.41**
+   — das Verhalten bleibt wie es war, ist aber jetzt mit fünf Proben
+   festgenagelt statt nur notiert. Alter Wortlaut:
+   **Alte Spielstände** tragen `speed` und `mode` weiter am Spieler; die Voreinstellung
    greift nur bei neuen Laufbahnen. So gewollt, sollte aber im Blick bleiben.
-7. **Aus Abschnitt 7 weiterhin offen:** Akademie im Karriere-Rückblick erwähnen,
-   Jugendturniere mit Namen und Gegner sichtbar machen.
+7. ~~**Aus Abschnitt 7 weiterhin offen.**~~ **Ganz erledigt:** Akademie im
+   Karriere-Rückblick in 35.32, Jugendturniere mit Namen und Gegner in 35.34.
 8. ~~**Spielerpass wächst weiter (gemeldet 15.8.).**~~ **Erledigt in 35.23.**
    Die hier genannte Vermutung (`.zellen` bricht um) war **falsch** — der Block
    bricht nie, weil die Beschriftung über der Zahl steht und breiter ist als
    jede Zahl. Es waren zwei andere Stellen: +72 px bei der ersten Saison und
-   +17 px ab der sechsten Station, beide aus 34.16. Der Pass steht jetzt fest
-   auf 328,9 px, `sicht.sh` prüft es mit 1 px Toleranz. Der Satz „vor der
-   Änderung messen“ hat hier eine Änderung an sieben Stellen verhindert.
-9. **„Moral“ umbenennen?** Als sichtbare Beschriftung nur zwei Stellen (Meter im
+   +17 px ab der sechsten Station, beide aus 34.16. Der Pass steht jetzt fest,
+   `sicht.sh` prüft es mit 1 px Toleranz. Der Satz „vor der Änderung messen“ hat
+   hier eine Änderung an sieben Stellen verhindert.
+
+   **Achtung, hier stand bis 35.29 „328,9 px".** Diese Zahl stammt aus der
+   Messumgebung, die **35.25 ausdrücklich verworfen hat** — sie baute den Pass
+   in einem eigenen Rahmen nach statt in der echten Kette `Shell` → `.main` →
+   `.a-pass`. Durch die echten Komponenten gemessen sind es **348,1 px** bei
+   412 und 360 px Breite und **385,9 px** bei 320 px (dort bricht der
+   Zellenblock durchgehend um, was zulässig ist, weil es über alle Stände
+   gleich passiert). Nachzulesen in 35.25, Tabelle „Was die echte Messung dafür
+   zeigt". Dass eine widerlegte Zahl vier Fassungen lang in dem Punkt
+   stehenblieb, der vom Messen handelt, ist der Witz an der Sache — und der
+   Grund, warum absolute Pixelwerte in offene Punkte gehören wie ein
+   Verfallsdatum: **verlässlich ist die Aussage „konstant", nicht die Zahl.**
+9. ~~**„Moral“ umbenennen?**~~ **Beantwortet in 35.31** — bleibt bei „Moral“
+   (910 Vorkommen von `morale`, ein umbenanntes Feld bräche jeden Spielstand),
+   und der eigentliche Mangel — Moral fehlte in der Kurzanleitung — ist behoben.
+   Alter Wortlaut: **„Moral“ umbenennen?** Als sichtbare Beschriftung nur zwei Stellen (Meter im
    Zustand, Wirkungstabelle); das Feld `morale` mit 910 Vorkommen bleibt
    unangetastet, sonst brechen alte Spielstände. Empfehlung: „Moral“ ist im
    Fußball das etablierte Wort, „Motivation“ trifft es nicht — der Wert ist
    Stimmung, nicht Antrieb. Der eigentliche Mangel: **in der Kurzanleitung fehlt
    Moral komplett**, obwohl Form, Fitness, Vertrauen und Bekanntheit dort stehen.
-10. **`App.jsx` hat 12.829 Zeilen** (gemessen 21.8.2026; hier stand bis 35.22
-   „12.041“ — das war der Stand von 35.11, also 788 Zeilen zu wenig. Vor 35.6
-   waren es 14.271, dann fielen die Ereignisse heraus, seither wächst es
-   wieder). Das ist KEINE Anforderung
+10. **`App.jsx` hat 13.198 Zeilen** (gemessen 23.8.2026). Der Zähler ist jetzt
+   zweimal hintereinander veraltet: bis 35.22 stand hier „12.041“ (Stand 35.11,
+   788 zu wenig), bis 35.29 dann „12.829“ (Stand 35.25, 369 zu wenig — das
+   Tutorial und drei Fassungen). Vor 35.6 waren es 14.271, dann fielen die
+   Ereignisse heraus, seither wächst es wieder. Das ist KEINE Anforderung
    der APK — `schriften.js` und `storage.js` sind bereits eigene Dateien, Vite
    bündelt Importe problemlos. Eine Aufteilung in acht bis zwölf Bausteine würde
    jede Sitzung schneller machen, berührt aber `exporte.txt`, den
    Prüfstandaufbau und jede Stelle, an der mit Zeilennummern gearbeitet wird.
    **Auf Kevins Wunsch vertagt.** Nur mit Ruhe, in kleinen Schritten, und
    niemals kurz vor einem Test.
-11. **Noch 5 folgenlose Flaggen** (seit 35.7, vorher 13): `attest`,
-   `beidseitig`, `manipuliert`, `pendeln`, `treugeblieben`. Sie brauchen
+11. ~~**Folgenlose Flaggen.**~~ **Erledigt in 35.35 und 35.36** — von 13 (35.7)
+   über 5 und 2 auf **0**. `beidseitig`, `manipuliert` und `pendeln` sind an
+   Rechenwege angeschlossen, `attest` und `treugeblieben` haben eigene
+   Folgeereignisse. Die Grundlinie `toteFlaggen` steht auf 0 und ist damit
+   erstmals eine Sperre statt eines Schuldenstands. Sie brauchen
    eigenen Inhalt, nicht nur einen Anschluss an ein vorhandenes Ereignis —
    das gehört in den Inhaltsausbau. `treugeblieben` wirkt immerhin über
    `loyalBonus` mit.
-12. **Argumentreihenfolge der Schreibwerkzeuge ist uneinheitlich.**
+12. ~~**Argumentreihenfolge der Schreibwerkzeuge.**~~ **Erledigt in 35.41** —
+    `argumente.cjs` mit `--quelle=` / `--ziel=` / `--anzahl=`; fehlt die Quelle,
+    wird abgebrochen statt still auf `/mnt/project/App.jsx` zurückzufallen.
+    Alter Wortlaut: **Argumentreihenfolge der Schreibwerkzeuge ist uneinheitlich.**
    `uebersicht.cjs <Ziel>` gegen `vorschau.py <Quelle> <Ziel>` gegen
    `verzeichnis.cjs <Datei>` — dreimal etwas anderes. Ein einheitliches Muster
    (Quelle zuerst, Ziel zuletzt, beide benannt) würde die Sorte Fehler aus 35.4
@@ -5325,13 +6853,33 @@ Prüfstand unverändert: 478 Ansichten, 56 Vereinsprüfungen, 0 Fehler.
    erst nachstellen, dann erst ändern" stand ausdrücklich darin.
 15. ~~**`wachstum` ist ein toter Parameter.**~~ **Erledigt in 35.25**, entfernt.
 
-16. **`storage.js` behandelt den Leerwert anders als die Browsertest-Fassung**
+18. ~~**`al_reisekader` redet mit dir selbst.**~~ **Erledigt in 35.38**, samt
+    der ganzen Klasse: 19 Kandidaten geprüft, zwei berichtigt, die Suche liegt
+    als Dauerprobe in `stimmigkeit.cjs`. Alter Wortlaut: Der Ausgang lautet „Du sprichst
+    mit dem, der die Binde trägt“ — trägst du sie, ist das ein Selbstgespräch.
+    Kein Fehler in der Mechanik, ein Riss in der Erzählung. Zwei Wege: eine
+    Bedingung `!p.flags.kapitaen` an dieser einen Wahl, oder ein zweiter Text
+    für Kapitäne. Gefunden von `stimmigkeit.cjs` (35.37), zurückgestellt weil
+    es Textarbeit ist und nicht in dieselbe Fassung gehört.
+17. ~~**Die Akademie gibt bis Ruhm 35 gar nichts mit.**~~ **Erledigt in 35.39**
+    — Schwellen gesenkt, Grundgabe ab Gründung, und der Akademiebildschirm
+    nennt jetzt die nächste Schwelle. Alter Wortlaut: (gemessen 23.8.2026,
+    35.32). Stufe 3 über fünfzehn Jahre kommt auf Ruhm 18 — Anlage +0,
+    Bekanntheit +0, Startkapital +0, Entwicklung +0. `akaBonus` teilt durch 45,
+    35, 25 und 70; unterhalb der ersten Schwelle ist die Akademie für die
+    Laufbahn folgenlos. Ob das gewollt ist (Ausbau muss sich erst lohnen) oder
+    zu spät greift, ist eine Kalibrierfrage und gehört gemessen, nicht geraten.
+16. ~~**`storage.js` behandelt den Leerwert anders.**~~ **Erledigt in 35.41** —
+    `value == null` wie im Browsertest. Alter Wortlaut:
+    **`storage.js` behandelt den Leerwert anders als die Browsertest-Fassung**
    (gefunden 35.24). Produktiv `value ? { key, value } : null` — ein
    gespeicherter Leerstring käme als „nicht vorhanden“ zurück. `browsertest.sh`
    unterscheidet sauber (`value == null`). **Praktisch folgenlos:** alle
    Aufrufe schreiben `JSON.stringify(…)` oder `String(n)`, nie einen
    Leerstring. Bewusst nicht geändert — `storage.js` sitzt zwischen App und
    Gerät. Wenn dort ohnehin gearbeitet wird, angleichen.
+
+**Seit 35.29 erledigt:** sechs in `LIESMICH.md` fehlende Dateien nachgetragen, darunter `ereignisse.js` und `verein.js`; `pruefen.sh` rechnet die Liste jetzt nach; Wegweiser und sechs weitere Stellen berichtigt.
 
 **Seit 35.28 erledigt:** die Knopfprüfung blättert jetzt durch und erfasst den Vereinsabschluss — 24 statt 22, dann 124 statt 24 Knöpfe.
 

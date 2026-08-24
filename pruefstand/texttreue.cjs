@@ -23,7 +23,10 @@
    ========================================================================== */
 const fs = require("fs");
 
-const quelle = fs.readFileSync(process.argv[2] || "App.jsx", "utf8");
+/* 35.41: `|| "App.jsx"` war ein Rueckfall auf das Arbeitsverzeichnis —
+   je nachdem, von wo man startete, eine andere Datei. */
+const quelle = fs.readFileSync(
+  require("./argumente.cjs").quelle("texttreue.cjs", /App\.jsx$/), "utf8");
 
 const WORT = {
   "eine": 1, "einen": 1, "einem": 1, "zwei": 2, "drei": 3, "vier": 4, "fünf": 5,

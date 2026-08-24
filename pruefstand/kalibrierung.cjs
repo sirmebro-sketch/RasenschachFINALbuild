@@ -90,7 +90,7 @@ const stat = (arr) => {
 const z = (x, k = 1) => (Math.round(x * Math.pow(10, k)) / Math.pow(10, k)).toFixed(k);
 
 /* ============ 1. Vermächtnis-Coins je Laufbahn ============ */
-const N = +(process.argv[2] || 250);
+const N = require("./argumente.cjs").anzahl(250);   // --anzahl=  oder reine Zahl
 console.log("=== Vermächtnis-Coins über " + N + " Laufbahnen (ohne Akademiebonus) ===");
 const vcs = [], scores = [], jahre = [];
 for (let i = 0; i < N; i++) {

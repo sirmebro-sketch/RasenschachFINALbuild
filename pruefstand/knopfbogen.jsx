@@ -19,9 +19,24 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import {
-  Shell, Willkommen, VereinGruenden, VereinAbschluss,
+  Shell, Willkommen, VereinGruenden, VereinAbschluss, EndScreen,
   leereAkademie, akaGruenden, VEREIN, CSS,
+  createPlayer, develop, simulateSeason, marketValue, verdict,
+  TYPES, MODES, POS, NATIONS, pick, makeSquad, CLUBS,
 } from "./probe.jsx";
+
+/* Eine kurze, abgeschlossene Laufbahn. Reicht fuer den Abschlussbildschirm —
+   er braucht `verdict`, `tot`, `seasons` und `nt`, nicht eine echte Karriere. */
+function laufbahn() {
+  const q = createPlayer({ name: "Messfall", nation: "GER", pos: "ST", foot: "rechts",
+    number: 9, type: TYPES[0].id, mode: MODES[1].id, gender: "m", statur: "normal", aka: null });
+  q.club = CLUBS.find((c) => c.g === "m") || CLUBS[0];
+  q.squad = makeSquad(q.club, q.g);
+  for (let i = 0; i < 12; i++) {
+    develop(q); q.mv = marketValue(q); simulateSeason(q); q.age += 1; q.year += 1;
+  }
+  return q;
+}
 
 const stil = document.createElement("style");
 stil.textContent = CSS;
@@ -54,6 +69,32 @@ const ab = abschlussFall();
 if (ab) {
   BILDSCHIRME.push(["Vereinsabschluss", () => React.createElement(VereinAbschluss,
     { v: ab.v, ergebnis: ab.ergebnis, onNeu: () => {}, onZurueck: () => {} })]);
+}
+
+/* Der Abschlussbildschirm (35.42). Er kam bis hierher im Knopfbogen NICHT vor
+   — die Zahl stand unveraendert bei 124, obwohl der Bildschirm drei Knoepfe
+   und seit 35.42 eine angeheftete Leiste hat. Genau die Leiste ist der Grund,
+   sie jetzt aufzunehmen: sie liegt `position:fixed` ueber dem Inhalt, und ob
+   sie etwas verdeckt, sieht kein jsdom-Test.
+
+   Der Spieler wird mit `laufbahn()` erzeugt und dann abgeschlossen, damit
+   `verdict` und `tot` gesetzt sind. Fehlt eines davon, bleibt der Bildschirm
+   leer und der Bogen meldete brav „Abschluss" ohne einen Knopf — derselbe
+   Fehler wie beim Vereinsabschluss oben. Deshalb wird unten geprueft, dass
+   wirklich Knoepfe da sind. */
+function abschlussSpieler() {
+  try {
+    const q = laufbahn();
+    q.retired = true;
+    q.verdict = verdict(q);
+    q.neueErfolge = [];
+    return q;
+  } catch (e) { return null; }
+}
+const abs = abschlussSpieler();
+if (abs && abs.verdict) {
+  BILDSCHIRME.push(["Abschluss der Laufbahn", () => React.createElement(EndScreen,
+    { p: abs, onNew: () => {}, onHall: () => {}, onAka: () => {} })]);
 }
 
 const wurzel = document.getElementById("bogen");

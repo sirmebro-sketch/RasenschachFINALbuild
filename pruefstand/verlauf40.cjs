@@ -93,7 +93,7 @@ function ausbauen(a) {
   }
 }
 
-const N_DURCHGAENGE = +(process.argv[2] || 30);
+const N_DURCHGAENGE = require("./argumente.cjs").anzahl(30);   // --anzahl=
 const LAUFBAHNEN = 40;
 
 const erg = { profis: [], weltklasse: [], ruhm: [], stufen: [], vollausbau: 0 };

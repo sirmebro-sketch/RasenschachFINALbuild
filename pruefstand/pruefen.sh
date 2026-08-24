@@ -22,7 +22,7 @@ QUELLDIR="$(cd "$(dirname "$QUELLE")" && pwd)"
 ARBEIT="${ARBEIT:-/home/claude/rs}"
 LAEUFE="${LAEUFE:-6}"
 LAUFBAHNEN="${LAUFBAHNEN:-300}"
-TEILE="${TEILE:-aufbau,kalib,ansicht,ereignis,verein,rueck,bau}"
+TEILE="${TEILE:-aufbau,kalib,ansicht,ereignis,stimmig,verein,rueck,bau}"
 hat() { case ",$TEILE," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
 titel() { echo; echo "########## $1 ##########"; }
 FEHLER=0
@@ -51,6 +51,21 @@ EOF
 
 # EINE Prüfdatei mit allen Ausfuhren — so kann keine Liste auseinanderlaufen.
 sed 's#from "./storage.js"#from "./stubstore.js"#' "$ARBEIT/App.jsx" > "$BAU/probe.jsx"
+
+# ---- Wache: ARBEIT darf nicht das Bauverzeichnis sein ----------------------
+# Am 24.8.2026 einmal ARBEIT=/tmp/ps gesetzt. Dadurch landete die package.json
+# des Spiels — mit "type":"module" — neben /tmp/ps/motor.js. Von da an war das
+# Buendel fuer node ESM, `module.exports` wirkungslos, und JEDES Werkzeug, das
+# den Motor laedt, warf einen Fehler tief in einer erzeugten Datei. Das sieht
+# nach kaputtem Werkzeug aus und ist ein Pfadfehler. Eine Zeile spart die
+# halbe Stunde Suche.
+if [ "$(cd "$ARBEIT" 2>/dev/null && pwd -P)" = "$(cd "$BAU" 2>/dev/null && pwd -P)" ]; then
+  echo "ABBRUCH: ARBEIT und BAU zeigen beide auf $BAU."
+  echo "         Dann wird die package.json des Spiels neben motor.js gelegt;"
+  echo "         mit \"type\":\"module\" ist das Buendel danach nicht mehr ladbar."
+  echo "         ARBEIT weglassen oder auf ein anderes Verzeichnis setzen."
+  exit 2
+fi
 
 # Baudateien aus dem Quellverzeichnis mitnehmen. Liegen sie dort, laeuft der
 # Produktionsbau; fehlen sie, meldet der Bauschritt das ausdruecklich.
@@ -117,7 +132,7 @@ cat "$PS/exporte.txt" >> "$BAU/probe.jsx"
 #    danebenzeigt, ist schlimmer als keins — man glaubt ihm.
 #    Diese Pruefung gibt es, weil die Alternative war, es sich zu merken.
 if [ -f "$QUELLDIR/STAND.md" ] && [ -f "$PS/verzeichnis.cjs" ]; then
-  if ! node "$PS/verzeichnis.cjs" "$QUELLDIR/STAND.md" --pruefen >/dev/null 2>&1; then
+  if ! node "$PS/verzeichnis.cjs" --quelle="$QUELLDIR/STAND.md" --pruefen >/dev/null 2>&1; then
     echo "  WARNUNG: das Verzeichnis in STAND.md ist veraltet."
     echo "           node pruefstand/verzeichnis.cjs STAND.md"
     FEHLER=$((FEHLER+1))
@@ -204,6 +219,44 @@ if [ -f "$QUELLDIR/STAND.md" ]; then
   fi
 fi
 
+# 6) Nennt LIESMICH.md noch jede Datei, die es gibt? Die Liste dort ist die
+#    Bauanleitung fuer das Projektwissen — wer danach neu aufbaut, bekommt
+#    genau die Dateien, die dort stehen, und keine andere.
+#    Am 23.8.2026 fehlten SECHS. Zwei davon waren ereignisse.js und verein.js:
+#    ohne sie meldet esbuild "Could not resolve", und man sucht in App.jsx.
+#    Die anderen vier kamen aus 35.28/35.29 (knoepfe.sh, knopfbogen.jsx,
+#    knopfmessung.cjs, werkstatt.js) — ohne werkstatt.js bricht browsertest.sh
+#    wegen `set -eu` ab, und sicht.sh laeuft gar nicht erst an.
+#    Gemerkt hat das niemand, weil die Liste nur von Hand gepflegt wurde. Nach
+#    der Regel aus 35.2 gehoert sie damit hierher: eine Anweisung, die man
+#    befolgen MUSS, aber nicht befolgen KANN, ohne daran zu denken, ist keine.
+#
+#    Geprueft werden die beiden Mengen, die wirklich wachsen: die Werkzeuge im
+#    Pruefstandverzeichnis und die eigenen Importe der App. Die Importe werden
+#    aus App.jsx ausgelesen, nicht aufgezaehlt — kommt ein sechster dazu, faellt
+#    er hier von selbst auf. Die sechs Baudateien zaehlt der Aufbau oben schon ab.
+if [ -f "$QUELLDIR/LIESMICH.md" ]; then
+  UNGENANNT=""
+  for W in "$PS"/*; do
+    [ -f "$W" ] || continue
+    N="$(basename "$W")"
+    grep -qF -- "$N" "$QUELLDIR/LIESMICH.md" || UNGENANNT="$UNGENANNT $N"
+  done
+  for N in $(sed -n 's|^import .*from "\./\([^"]*\)".*|\1|p' "$ARBEIT/App.jsx"); do
+    grep -qF -- "$N" "$QUELLDIR/LIESMICH.md" || UNGENANNT="$UNGENANNT $N"
+  done
+  if [ -n "$UNGENANNT" ]; then
+    echo "  WARNUNG: LIESMICH.md nennt diese Dateien nicht:$UNGENANNT"
+    echo "           Wer das Projektwissen nach dieser Liste neu aufbaut, baut es"
+    echo "           unvollstaendig auf. Nachtragen, wo sie hingehoert."
+    FEHLER=$((FEHLER+1))
+  fi
+else
+  echo "  WARNUNG: LIESMICH.md liegt nicht neben App.jsx — Liste NICHT geprueft."
+  echo "           Das ist kein bestandener Lauf, nur ein fehlender."
+  FEHLER=$((FEHLER+1))
+fi
+
 # Rueckwaerts-Anfuehrungszeichen im CSS-Block. Der Block ist eine
 # Schablonenzeichenkette (const CSS = SCHRIFTEN + `...`) — ein einzelnes ` in
 # einem Kommentar darin beendet sie vorzeitig. esbuild meldet dann irgendetwas
@@ -252,7 +305,7 @@ fi
 # --------------------------------------------------------------------------
 if hat kalib; then
 titel "KALIBRIERUNG ($LAUFBAHNEN Laufbahnen)"
-( cd "$BAU" && timeout 290 node "$PS/kalibrierung.cjs" "$LAUFBAHNEN" ) || FEHLER=1
+( cd "$BAU" && timeout 290 node "$PS/kalibrierung.cjs" --anzahl="$LAUFBAHNEN" ) || FEHLER=1
 fi
 
 # --------------------------------------------------------------------------
@@ -268,8 +321,24 @@ titel "EREIGNISSE"
 # hier — zehn von achtzehn Werkzeugen liefen bis 35.1 nur von Hand und wurden
 # deshalb vergessen (siehe sicht.sh).
 if [ -f "$BAU/motor.js" ]; then
-  ( cd "$BAU" && node "$PS/ereignispruefung.cjs" "$ARBEIT/App.jsx" ) || FEHLER=1
+  ( cd "$BAU" && node "$PS/ereignispruefung.cjs" --quelle="$ARBEIT/App.jsx" ) || FEHLER=1
 else
+  echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
+  FEHLER=1
+fi
+fi
+
+# --------------------------------------------------------------------------
+# Stimmigkeit (35.37): wirkt jede Wahl, ist jede erreichbar, passt das
+# Ereignis zum Moment. Braucht den Pfad zur Quelle — ohne ihn kann es die
+# Verdrahtung der Zweitpruefung nicht nachsehen und meldet das ausdruecklich.
+# --------------------------------------------------------------------------
+if hat stimmig; then
+echo
+if [ -f "$BAU/motor.js" ]; then
+  ( cd "$BAU" && node "$PS/stimmigkeit.cjs" --quelle="$ARBEIT/App.jsx" ) || FEHLER=1
+else
+  echo "########## STIMMIGKEIT ##########"
   echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
   FEHLER=1
 fi
@@ -279,13 +348,7 @@ fi
 if hat verein; then
 titel "VEREIN"
 if [ -f "$BAU/motor.js" ]; then
-  # QUELLE_APP absolut machen: das Skript laeuft aus $BAU, ein relativer Pfad
-  # zeigt dort ins Leere. Aufgefallen beim Bauen aus einem Repository-Ordner
-  # (`pruefen.sh ./App.jsx`) — die Quelltextpruefung meldete "nicht gefunden,
-  # NICHT geprueft". Sie hat sich damit richtig verhalten, aber eine Pruefung,
-  # die je nach Aufrufform ausfaellt, ist nur eine halbe Pruefung.
-  QA="$(cd "$(dirname "$QUELLE")" && pwd)/$(basename "$QUELLE")"
-  ( cd "$BAU" && QUELLE_APP="$QA" node "$PS/vereinpruefung.cjs" ) || FEHLER=1
+  ( cd "$BAU" && node "$PS/vereinpruefung.cjs" --quelle="$QUELLE" ) || FEHLER=1
 else
   echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
   FEHLER=1

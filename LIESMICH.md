@@ -5,12 +5,22 @@
 **Die App selbst**
 
     App.jsx                 das ganze Spiel
+    ereignisse.js           die 518 Ereignisse, ausgelagert seit 35.6
+    verein.js               der eigene Verein, ausgelagert seit 35.17
     schriften.js            Anton und Archivo als Base64, 128 KB
     schriften-lizenz.txt    SIL OFL — muss mit der App ausgeliefert werden
 
-`schriften.js` gehört im Verzeichnis **neben** `App.jsx` und `storage.js`.
-Ohne sie bricht der Prüfstand mit einer klaren Meldung ab, und die App fällt
-stumm auf die Gerätefonts zurück.
+Alle vier gehören im Verzeichnis **flach neben `App.jsx`**, zusammen mit
+`storage.js` — nicht in `pruefstand/`, nicht in einem `src`-Ordner. Sie stehen
+in den `import`-Zeilen 2 bis 5 der `App.jsx`; wer wissen will, was dazugehört,
+zählt dort nach.
+
+Fehlt `schriften.js`, bricht der Prüfstand mit einer klaren Meldung ab, und die
+App fällt stumm auf die Gerätefonts zurück. Fehlen `ereignisse.js` oder
+`verein.js`, meldet esbuild nur „Could not resolve" — und man sucht in
+`App.jsx`, wo nichts ist. **Bis 35.29 standen die beiden hier gar nicht:**
+wer das Projektwissen nach dieser Liste neu aufgebaut hat, bekam ein Spiel, das
+sich nicht bauen liess. Seit 35.30 rechnet `pruefen.sh` die Liste nach.
 
 **Der Prüfstand**
 
@@ -46,6 +56,16 @@ automatisch — die Übrigen beantworten Fragen, die er strukturell nicht kann:
     seitenanfang.cjs  prüft, dass jeder Seitenwechsel oben beginnt
     passhoehe.sh      prüft, dass der Spielerpass immer gleich hoch bleibt
                       (mit passbogen.jsx und passmessung.cjs)
+    knoepfe.sh        prüft, dass Knöpfe lesbar sind und im Bild bleiben,
+                      bei 412 und 360 px, über alle blätterbaren Tafeln
+                      (mit knopfbogen.jsx und knopfmessung.cjs)
+    werkstatt.js      Abkürzungen im Browsertest: Laufbahnen, Coins, Ausbau,
+                      Einschreiben. Nur bei ERSTSTART=1, nie in der APK
+    argumente.cjs     ein Muster für alle Werkzeuge: --quelle= --ziel=
+                      --anzahl=; fehlt die Quelle, wird abgebrochen
+    stimmigkeit.cjs   prüft alle Ereignisse: wirkt jede Wahl, ist jede
+                      erreichbar, passt das Ereignis zum Moment
+                      node pruefstand/stimmigkeit.cjs [--alle]
     portraetbogen.cjs Porträts als Bildtafel (auch: frau …)
     bindenbogen.cjs   alle 212 Kapitänsbinden als Tafel
     grosstest.cjs     Belastungslauf: Merkmale, Spieler, ganze Laufbahnen
@@ -104,17 +124,28 @@ sauber, Wachsperre greift, Impressum ohne „SCHRIFT FEHLT", kein Ruckeln in den
 Errungenschaften. **Nach jeder Änderung an Schriften, Pass oder Wachsperre
 wiederholen** — der Prüfstand kann diese drei Dinge strukturell nicht sehen.
 
-**Seither nicht wiederholt, obwohl fällig:** der Pass hat sich in 35.23
-geändert (feste Höhe), und der Vereinsmodus aus 35.17–35.20 war noch nie auf
-einem Telefon. Ein Datum, das stehen bleibt, während sich die Sache ändert,
-ist keine Bestätigung mehr.
+**Seither auf dem Gerät gewesen:** die Vereinsgründung (35.27, zwei Layoutfehler
+gemeldet) und der Vereinsmodus im Spiel (35.28, ein konzeptioneller Fehler
+gemeldet). Beide Male hat Kevin gefunden, was der Prüfstand strukturell nicht
+findet.
+
+**Weiterhin fällig und nie auf einem Telefon gewesen:** die feste Passhöhe aus
+35.23, der Willkommensschirm aus 35.26, das Einschreiben statt des Saisonknopfs
+aus 35.28 und die berichtigten Knopfzeilen aus 35.29. Ein Datum, das stehen
+bleibt, während sich die Sache ändert, ist keine Bestätigung mehr.
 
 ## Prüfen
 
-Claude legt sich die Prüfstanddateien zu Beginn einer Sitzung nach
-`/home/claude/pruefstand/` und ruft auf:
+Claude legt sich zu Beginn einer Sitzung **alle** Dateien aus dem Projektwissen
+in ein beschreibbares Verzeichnis — die Werkzeuge nach `pruefstand/`, die App-
+und Baudateien **flach daneben** (siehe STAND.md Abschnitt 8) — und ruft auf:
 
-    bash pruefstand/pruefen.sh App.jsx
+    bash pruefstand/pruefen.sh /pfad/zu/App.jsx
+
+Hier stand bis 35.29 nur „nach `/home/claude/pruefstand/`". Wer das wörtlich
+nimmt, legt auch `main.jsx` und `package.json` dorthin — dann meldet der
+Aufbau weniger als `Baudateien: 6 von 6` und der Produktionsbau wird
+übersprungen. Genau diese Falle beschreibt Abschnitt 8 der STAND.md.
 
 Das dauert etwa drei Minuten und prüft: Kalibrierung gegen hinterlegte
 Zielbänder, alle Ansichten in einer Browserumgebung, einen Durchklicktest,

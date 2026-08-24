@@ -9,8 +9,8 @@ import { machVerein } from "./verein.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "35.29";
-const VERSION_INFO = "Alle Knöpfe sind jetzt maschinell nachgemessen — keiner ist mehr abgeschnitten oder außerhalb des Bildes.";
+const VERSION = "35.42";
+const VERSION_INFO = "Der Abschluss ist aufgeräumt: Zahlen in Reitern, der Knopf immer in Reichweite.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -2808,6 +2808,10 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
         {!w && z.frisur === 8 && <g fill={haar}>
           {[0, 1, 2, 3].map((i) => <rect key={i} x={50 - kopf.b + 4 + i * ((kopf.b * 2 - 12) / 3)}
             y="34" width="4" height={20 + (i % 2) * 6} rx="2" />)}</g>}
+        {/* 35.40: `6` teilte sich bis hierher die Zeichnung mit `1` und war
+            im Pixelvergleich nicht davon zu unterscheiden. Es bleibt dieselbe
+            Haarmasse — `6` bekommt vorn einen Scheitel dazu, das ist der
+            Unterschied, den der Name behauptet. */}
         {w && (z.frisur === 1 || z.frisur === 6) && <path d={"M" + (hl - 2) + ",36 C" + (hl - 4) + ",62 "
           + (hl + 1) + ",82 " + (hl + 7) + ",84 C" + (hl + 4) + ",64 " + (hl + 3) + ",48 " + (hl + 4) + ",38 Z"
           + " M" + (hr + 2) + ",36 C" + (hr + 4) + ",62 " + (hr - 1) + ",82 " + (hr - 7) + ",84 C"
@@ -2817,8 +2821,52 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
         {w && z.frisur === 5 && <path d={"M" + (hr - 4) + ",24 C" + (hr + 10) + ",32 " + (hr + 11) + ",56 "
           + (hr + 4) + ",72 C" + (hr + 4) + ",52 " + (hr - 1) + ",34 " + (hr - 8) + ",28 Z"} fill={haar} />}
 
+        {/* ---- 35.40: die vier Formen hinter `mk_haar` (10-13) --------------
+            Gemessen war: Frauen hatten 14 waehlbare Frisuren und nur NEUN
+            unterscheidbare Bilder. 10 bis 13 hatten ueberhaupt keine
+            Zeichnung und sahen alle aus wie `0`. Wer die Freischaltung
+            kaufte, bekam vier gleiche Eintraege.
+
+            Die Formen liegen bewusst SEITLICH und OBEN, nicht nur hinten:
+            bei 62 px verschwindet alles hinter dem Kopf. Das war die zweite
+            Haelfte des offenen Punktes. */}
+        {w && z.frisur === 10 && <g fill={haar}>
+          {/* Pferdeschwanz: sitzt hoch und schwingt nach rechts aus. */}
+          <path d={"M" + (hr - 6) + ",22 C" + (hr + 12) + ",26 " + (hr + 14) + ",50 "
+            + (hr + 6) + ",70 C" + (hr + 10) + ",48 " + (hr + 5) + ",30 " + (hr - 8) + ",27 Z"} />
+          <ellipse cx={hr - 3} cy="24" rx="4.5" ry="3.4" />
+        </g>}
+        {w && z.frisur === 11 && <g fill={haar}>
+          {/* Zwei Zoepfe, beide seitlich sichtbar. */}
+          <path d={"M" + (hl + 1) + ",34 C" + (hl - 9) + ",44 " + (hl - 8) + ",60 "
+            + (hl - 3) + ",70 C" + (hl - 1) + ",56 " + (hl + 3) + ",44 " + (hl + 5) + ",38 Z"} />
+          <path d={"M" + (hr - 1) + ",34 C" + (hr + 9) + ",44 " + (hr + 8) + ",60 "
+            + (hr + 3) + ",70 C" + (hr + 1) + ",56 " + (hr - 3) + ",44 " + (hr - 5) + ",38 Z"} />
+          {[0, 1, 2].map((i) => <g key={i}>
+            <ellipse cx={hl - 1 - i} cy={44 + i * 9} rx="3.6" ry="2.4" fill={haarHell} opacity=".45" />
+            <ellipse cx={hr + 1 + i} cy={44 + i * 9} rx="3.6" ry="2.4" fill={haarHell} opacity=".45" />
+          </g>)}
+        </g>}
+        {w && z.frisur === 12 && <g fill={haar}>
+          {/* Lange Wellen, breiter als `1` und mit Schwung nach aussen. */}
+          <path d={"M" + (hl - 3) + ",34 C" + (hl - 12) + ",56 " + (hl - 7) + ",76 "
+            + (hl + 2) + ",82 C" + (hl - 2) + ",62 " + (hl + 2) + ",46 " + (hl + 5) + ",38 Z"} />
+          <path d={"M" + (hr + 3) + ",34 C" + (hr + 12) + ",56 " + (hr + 7) + ",76 "
+            + (hr - 2) + ",82 C" + (hr + 2) + ",62 " + (hr - 2) + ",46 " + (hr - 5) + ",38 Z"} />
+        </g>}
+        {w && z.frisur === 13 && <g fill={haar}>
+          {/* Lockenkranz: Kreise am Umriss, damit die Form auch klein wirkt. */}
+          {[0, 1, 2, 3, 4, 5, 6].map((i) => {
+            const t = Math.PI * (0.08 + i * (0.84 / 6));
+            return <circle key={i} cx={50 - Math.cos(t) * (kopf.b + 4)}
+              cy={30 - Math.sin(t) * 16} r="8" />; })}
+          {[0, 1, 2].map((i) => <g key={"s" + i}>
+            <circle cx={hl - 3} cy={40 + i * 11} r="7" />
+            <circle cx={hr + 3} cy={40 + i * 11} r="7" /></g>)}
+        </g>}
+
         {/* Kopf noch einmal über die Haarmasse, damit das Gesicht frei bleibt */}
-        {((!w && (z.frisur === 5 || z.frisur === 8)) || (w && z.frisur === 2))
+        {((!w && (z.frisur === 5 || z.frisur === 8)) || (w && (z.frisur === 2 || z.frisur === 13)))
           && <path d={kopfD} fill={haut} />}
         {/* Knoten sitzt OBEN, nicht hinter dem Kopf — hinten war er unsichtbar
             und die Frisur sah aus wie eine Glatze. */}
@@ -2903,6 +2951,18 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
           {z.frisur === 8 && <g fill={haar}>{[0, 1, 2, 3].map((i) =>
             <circle key={i} cx={50 - kopf.b + 5 + i * ((kopf.b * 2 - 10) / 3)} cy="20" r="8" />)}</g>}
           {z.frisur === 9 && <path d={"M" + (50 - 6) + ",12 q6,-6 12,0 q-6,4 -12,0 Z"} fill={haarHell} />}
+          {/* 35.40: der Scheitel, der `6` von `1` unterscheidet. Eine schmale
+              helle Linie mittig ueber der Kappe — klein, aber im Pixelvergleich
+              eindeutig, und bei 62 px noch als heller Strich erkennbar. */}
+          {z.frisur === 6 && <path d="M48.6,10 L51.4,10 L50.8,33 L49.2,33 Z" fill={haarHell} opacity=".75" />}
+          {/* Die vier freigeschalteten Formen brauchen auch vorn etwas, sonst
+              traegt allein die Masse hinter dem Kopf die Unterscheidung. */}
+          {z.frisur === 10 && <path d={dach(2) + " C" + (hr - 4) + ",24 " + (hl + 4) + ",24 " + hl + ",38 Z"} fill={haar} />}
+          {z.frisur === 11 && <path d="M48.8,9 L51.2,9 L50.7,30 L49.3,30 Z" fill={haut} opacity=".30" />}
+          {z.frisur === 12 && <path d={dach(1) + " C" + (hr - 4) + ",25 " + (hl + 4) + ",25 " + hl + ",39 Z"}
+            fill={haarHell} opacity=".38" transform="translate(0,-2) scale(1,0.95)" />}
+          {z.frisur === 13 && <g fill={haar}>{[0, 1, 2, 3].map((i) =>
+            <circle key={i} cx={50 - kopf.b + 5 + i * ((kopf.b * 2 - 10) / 3)} cy="17" r="7" />)}</g>}
         </>}
 
         {/* ---- Augenbrauen ---- */}
@@ -3127,9 +3187,25 @@ function marketValue(p) {
   return Math.max(.02, base * (AGEMV[clamp(p.age, 16, 40)] ?? .02) * (.88 + p.rep / 420) * (.9 + p.form / 500) * ligaInfo(p.club.l).mv);
 }
 const ovrOf = (a, pos) => Math.round(AK.reduce((s, k) => s + a[k] * POS[pos].w[k], 0));
-function roleFor(ovr, clubS, trust, rivalOvr) {
+/* `beidfuessig` (35.35) ist der Anschluss der Flagge `beidseitig`. Sie wurde
+   seit jeher gesetzt — vom Wildcard `wp_beidseitig` und vom Ereignis
+   `pa_seitenwechsel`, beide nur für Außenverteidiger — und blieb folgenlos.
+   Der Ereignistext versprach dabei ausdrücklich: „Das macht dich für jeden
+   Trainer wertvoller.“
+
+   Angeschlossen wird genau dort, wo es sachlich hingehört: am Zweikampf um den
+   Stammplatz. Wer beide Außenbahnen spielt, wird von EINEM starken Nebenmann
+   nicht aus der Elf gedrängt — er weicht auf die andere Seite aus. Der Abzug
+   fällt deshalb milder aus (.55 → .30) und ist tiefer gedeckelt (7 → 4).
+
+   NICHT angeschlossen: die Angebotszahl. Das Wildcard gibt dafür bereits
+   `offers:1`; ein zweiter Aufschlag auf dieselbe Sache hätte Wildcardträgern
+   doppelt gutgeschrieben, ohne dass irgendwo stünde warum. */
+function roleFor(ovr, clubS, trust, rivalOvr, beidfuessig) {
   let d = ovr - clubS + (trust - 50) * .06;
-  if (rivalOvr != null) d -= clamp((rivalOvr - ovr) * .55, -2, 7);
+  if (rivalOvr != null) d -= beidfuessig
+    ? clamp((rivalOvr - ovr) * .30, -2, 4)
+    : clamp((rivalOvr - ovr) * .55, -2, 7);
   if (d >= 4) return { key:"star", label:"Leistungsträger", f:.94 };
   if (d >= -2) return { key:"start", label:"Stammspieler", f:.82 };
   if (d >= -7) return { key:"rot", label:"Rotationsspieler", f:.58 };
@@ -4313,6 +4389,18 @@ function evCtx(p) {
     prev: p.prevClub || "deinem alten Verein",
     land: p.club.c, liga: p.club.l };
 }
+/* Gilt dieses Ereignis JETZT noch? Steht auf Modulebene und nicht in der
+   Komponente, damit der Pruefstand sie unmittelbar aufrufen kann — eine
+   Pruefung, die nur die Ereignisbedingungen nachrechnet, bliebe gruen, wenn
+   das Ueberspringen aus `nextEvent` verschwindet. Genau das ist mir beim
+   ersten Entwurf passiert.
+
+   Wirft die Bedingung, gilt das Ereignis als gueltig: ein stiller Ausfall
+   waere schlimmer als ein unpassendes Ereignis. */
+function nochGueltig(q, e) {
+  if (!e || !e.cond) return true;
+  try { return !!e.cond({ ...q, rival: evCtx(q).rival }); } catch { return true; }
+}
 function drawEvents(p, n) {
   const ctx = evCtx(p);
   const si = p.seasons.length;
@@ -4643,11 +4731,20 @@ function simulateSeason(p) {
   const europe = p.europeNext || null;
   const total = lg + 4 + (europe ? (europe === "Champions League" ? 10 : 8) : 0);
   const rival = rivalOf(p.squad, p.pos);
-  const ro = roleFor(p.ovr, club.s, p.trust, rival ? rival.ovr : null);
+  const ro = roleFor(p.ovr, club.s, p.trust, rival ? rival.ovr : null, p.flags.beidseitig);
   p.role = ro.key;
 
+  /* 35.42: laeuft der Physio, kommt in dieser Saison keine Verletzung dazu —
+     auch keine aus einem Ereignis vorgemerkte (`pendingInjury`). Der Vormerker
+     wird trotzdem geloescht, sonst schlaegt er in der naechsten Saison zu und
+     der Spieler haette den Posten fuer nichts gekauft.
+
+     Sperren bleiben unberuehrt: der Physio heilt, er redet nicht mit dem
+     Schiedsrichter. */
+  const physio = (p.laden && p.laden.physio) > 0;
   let injury = null;
-  if (p.pendingInjury) { injury = { sev: p.pendingInjury }; p.pendingInjury = null; }
+  if (physio) { p.pendingInjury = null; }
+  else if (p.pendingInjury) { injury = { sev: p.pendingInjury }; p.pendingInjury = null; }
   else if (chance(clamp((.13 + p.injuryProne / 380 + Math.max(0, p.age - 28) * .022 - p.fitness / 1400) * (1 + (p.wcMod ? p.wcMod.injMod : 0)), .02, .65))) {
     const r = Math.random();
     injury = { sev: r < .55 ? "leicht" : r < .86 ? "mittel" : "schwer" };
@@ -4862,6 +4959,17 @@ function simulateSeason(p) {
     + (TOP5.includes(club.l) ? 2 : 0) - 1 + (loy ? loy.rep : 0), 0, 100);
   hsvHalten(p);              // zuletzt: die Rautekarte hält alles oben
   if (loy) { p.morale = clamp(p.morale + loy.mo, 5, 100); p.trust = Math.max(p.trust, 40 + loy.y); }
+  /* 35.35: `pendeln`. Bis hierher kostete die Entscheidung einmalig acht
+     Punkte Fitness und war danach vergessen — dabei pendelt man ja weiter.
+     Jetzt zieht sie jede Saison zwei Punkte ab, SOLANGE die Beziehung hält.
+     Das Ende ist eingebaut und braucht keinen Zeitzähler: geht die Beziehung
+     auseinander, gibt es nichts mehr zu pendeln, und die Flagge fällt weg.
+     Zwei Punkte, nicht mehr: über fünfzehn Saisons wären vier Punkte je Jahr
+     eine zweite Karriere-Ende-Bedingung, und das war nie die Absicht. */
+  if (p.flags.pendeln) {
+    if (["beziehung", "verlobt", "verheiratet"].includes(p.life.status)) p.fitness -= 2;
+    else p.flags.pendeln = false;
+  }
   p.fitness = clamp(p.fitness - apps * .22 + 8 - (injury ? 8 : 0), 20, 100);
   p.ban = 0;
   /* Gekauftes laeuft ab. Welche Artikel laufen, steht in VCLADEN (`dauer`) —
@@ -5215,7 +5323,7 @@ function makeOffers(p) {
     p.flags.wantLoan = false;
   }
 
-  const r0 = roleFor(p.ovr, p.club.s, p.trust, rivalOf(p.squad, p.pos)?.ovr);
+  const r0 = roleFor(p.ovr, p.club.s, p.trust, rivalOf(p.squad, p.pos)?.ovr, p.flags.beidseitig);
   const base = [];
   const mussWeg = p.flags.mussWegBis === p.seasons.length;
   if (p.contract > 0 && !push && !mussWeg) {
@@ -5604,8 +5712,16 @@ const VCLADEN = [
     t: "Eine Saison lang deutlich mehr Fortschritt im Training." },
   { id: "form", n: "Lauf der Saison", bild: "stern", preis: 28, wann: "saison", dauer: 1,
     t: "Eine Saison in Bestform: bessere Noten, mehr Tore, mehr Vorlagen." },
-  { id: "physio", n: "Der beste Physio", bild: "kreuz", preis: 18, wann: "saison", dauer: 0,
-    t: "Eine laufende Verletzung ist sofort auskuriert." },
+  /* 35.42: stand auf `dauer: 0` — er heilte einmal und war weg. Kevins
+     Wunsch: eine ganze Saison halten. Jetzt `dauer: 1`, und in der
+     laufenden Saison kommt gar keine Verletzung dazu. Preis von 18 auf 30:
+     gemessen liegt das Verletzungsrisiko je nach Alter zwischen 15 % (mit
+     20) und 41 % (mit 35), und 14 % davon sind schwere Verletzungen mit
+     dauerhaftem Schaden. Fuer 18 VC waere der Posten besser gewesen als
+     `form` fuer 28. */
+  { id: "physio", n: "Der beste Physio", bild: "kreuz", preis: 30, wann: "saison", dauer: 1,
+    t: "Eine laufende Verletzung ist sofort auskuriert \u2014 und die ganze Saison "
+      + "\u00fcber kommt keine neue dazu." },
   { id: "berater", n: "Ein Berater, der zieht", bild: "vertrag", preis: 26, wann: "saison", dauer: 1,
     t: "Die nächsten Angebote kommen von stärkeren Vereinen." },
   { id: "trainer", n: "Der Trainer hört zu", bild: "pfeife", preis: 20, wann: "saison", dauer: 0,
@@ -5751,6 +5867,28 @@ function talentBauen(a, jahr, wunschPos) {
    liefert nur ein grobes Band. */
 const akaSpanne = (a) => Math.max(1, 9 - akaStufe(a, "scouting") * 1.4) | 0;
 
+/* Turniere, bei denen Jugendmannschaften antreten. Erfunden, nicht abgeschrieben
+   — echte Turniernamen sind geschützt, und ein Spiel, das offline laeuft und
+   niemandem gehoert, braucht das nicht. Zehn Stück: genug, dass sich in
+   25 Jahren nichts aufdraengt, wenig genug, dass die Chronik nicht beliebig
+   wirkt. Ton wie der Rest des Spiels: so, wie ein Zeugwart es sagen würde. */
+const JUGENDTURNIERE = [
+  "Blauen Band der Jugend",
+  "Internationalen Pfingstturnier",
+  "Nachwuchspokal der Landesverbände",
+  "Turnier der acht Akademien",
+  "Wintercup der Leistungszentren",
+  "Hallenmasters der A-Jugend",
+  "Sichtungsturnier am Deich",
+  "Juniorenpokal der Hafenstädte",
+  "Osterturnier der Talentschmieden",
+  "Grenzlandcup der U19",
+];
+/* In welcher Runde es zu Ende ging. Steht getrennt, damit derselbe Gegner in
+   verschiedenen Jahren verschieden weit kommt. */
+const TURNIER_AUS = ["im Endspiel", "im Halbfinale", "im Viertelfinale",
+  "in der Vorrunde", "im Elfmeterschießen"];
+
 /* Ein Jahr in der Akademie. Gibt den neuen Zustand und die Ereignisse
    zurück, damit man beim nächsten Besuch nachlesen kann, was war. */
 function akaJahr(a0, weltjahr) {
@@ -5848,12 +5986,37 @@ function akaJahr(a0, weltjahr) {
   }
   E.push({ art: "neu", txt: anzahl + " neue Talente aufgenommen." });
 
-  /* 4. Jugendturnier */
+  /* 4. Jugendturnier (Namen und Gegner seit 35.34)
+     -------------------------------------------------------------------------
+     Bis 35.33 stand hier EIN Satz: "Sieg beim internationalen Jugendturnier."
+     Bei vollem Ausbau erscheint der 14-mal in 25 Chronikeintraegen (gemessen),
+     immer wortgleich, ohne Turnier und ohne Gegner.
+
+     WAS SICH NICHT AENDERT: die Siegwahrscheinlichkeit. Sie steht Zeichen fuer
+     Zeichen wie vorher da. `bilanz.turniere` zaehlt weiter nur Siege und geht
+     mit Faktor 6 in `akaRuhm` ein — ruehrte ich daran, verschoebe ich die
+     Zielbaender in `kalibrierung.cjs` und damit die halbe Akademie. Sichtbar
+     machen heisst hier: sichtbar machen, nicht neu ausbalancieren.
+
+     WAS DAZUKOMMT: in Jahren OHNE Sieg wird ausgespielt, ob die Akademie
+     ueberhaupt dabei war. Das haengt allein an `buehne` — der Abteilung, die
+     "Turniere, Sichtungsspiele" verspricht und bis jetzt nichts zeigte, solange
+     man nicht gewann. Diese Teilnahme zaehlt NIRGENDS mit: kein Zaehler, kein
+     Ruhm, keine Bilanz. Sie steht in der Chronik und sonst nirgends.
+
+     Der Gegner kommt aus CLUBS, nicht aus einer zweiten Liste. Eine eigene
+     Gegnerliste waere beim naechsten neuen Verein stumm veraltet. */
   const staerke = bleibenNach.length
     ? bleibenNach.reduce((s, t) => s + t.ovr, 0) / bleibenNach.length : 0;
+  const turnier = pick(JUGENDTURNIERE);
+  const gegner = pick(CLUBS.filter((c) => c.g === "m" && c.s >= 78)) || CLUBS[0];
   if (chance(clamp((staerke - 44) * .035 + S.buehne * .05, .02, .72))) {
     a.bilanz.turniere++;
-    E.push({ art: "titel", txt: "Sieg beim internationalen Jugendturnier." });
+    E.push({ art: "titel", txt: "Sieg beim " + turnier + " — im Endspiel gegen "
+      + gegner.n + " U19." });
+  } else if (chance(clamp(S.buehne * .13, 0, .78))) {
+    E.push({ art: "turnier", txt: "Beim " + turnier + " " + pick(TURNIER_AUS)
+      + " an " + gegner.n + " U19 gescheitert." });
   }
 
   a.talente = bleibenNach.sort((x, y) => y.ovr - x.ovr);
@@ -5872,16 +6035,56 @@ const akaRuhm = (a) => {
 };
 
 /* Was die Akademie einer neuen Laufbahn mitgibt. Absichtlich gedeckelt:
-   Es soll sich lohnen, aber das Spiel nicht zerlegen. */
+   Es soll sich lohnen, aber das Spiel nicht zerlegen.
+
+   35.39: die DECKEL sind unveraendert (+4 / +6 / +100 Tsd. / +6 %), die
+   SCHWELLEN sind gesenkt. Gemessen (40 Laeufe je Ausbaustufe, Median):
+
+     Stufe 1  (     0 VC)  gab NIE etwas, auch nach 30 Jahren nicht
+     Stufe 2  (   181 VC)  gab NIE etwas
+     Stufe 3  (   519 VC)  erste Gabe im 18. Jahr, Anlage +1 im 28.
+     Stufe 4  ( 1.061 VC)  erste Gabe im  7. Jahr
+     Stufe 6  ( 2.912 VC)  erste Gabe im  4. Jahr
+
+   Wer die ersten Ausbaustufen kauft, bekam ueber ein Dutzend Laufbahnen
+   hinweg NULL zurueck — und seit 35.32 zeigt der Rueckblick dann korrekt gar
+   keine Zeile. Die Rueckkopplung, die den Ausbau lohnend anfuehlen laesst,
+   setzte erst bei Stufe 4 bis 5 ein.
+
+   `akaRuhm` bleibt UNANGETASTET. Die Errungenschaft „Ansehen von 150" und
+   jedes Zielband der Kalibrierung haengen an der Ruhmskala; nur was man dafuer
+   bekommt, aendert sich. Das ist der chirurgische Schnitt.
+
+   GRUNDGABE: wer eine Akademie GEGRUENDET hat, bekommt +1 Bekanntheit, auch
+   bei Ansehen 0. Nicht viel — aber die Zeile im Rueckblick erscheint ab dem
+   ersten Tag, und der Spieler sieht, dass die Sache ueberhaupt wirkt. */
+const AKA_SCHWELLE = { pot: 28, rep: 18, money: 12, dev: 45 };
 function akaBonus(a) {
   const r = (a && a.ruhm) || 0;
+  const gegruendet = !!(a && a.gegruendet);
   return {
-    pot:   Math.min(4, Math.floor(r / 45)),
-    rep:   Math.min(6, Math.floor(r / 35)),
-    money: Math.min(.10, Math.floor(r / 25) * .01),
-    dev:   Math.min(.06, Math.floor(r / 70) * .02),
+    pot:   Math.min(4, Math.floor(r / AKA_SCHWELLE.pot)),
+    rep:   Math.min(6, (gegruendet ? 1 : 0) + Math.floor(r / AKA_SCHWELLE.rep)),
+    money: Math.min(.10, Math.floor(r / AKA_SCHWELLE.money) * .01),
+    dev:   Math.min(.06, Math.floor(r / AKA_SCHWELLE.dev) * .02),
     ruhm:  r,
   };
+}
+/* Wieviel Ansehen fehlt bis zur naechsten Gabe? Gibt null zurueck, wenn alles
+   ausgereizt ist. EINE Quelle mit akaBonus — eine zweite, von Hand gepflegte
+   Schwellenliste in der Anzeige waere beim naechsten Zahlendreh stumm falsch
+   geworden, und der Spieler haette einer Zahl geglaubt, die nicht stimmt. */
+function akaNaechsteGabe(a) {
+  const jetzt = akaBonus(a);
+  const r = (a && a.ruhm) || 0;
+  for (let x = r + 1; x <= r + 400; x++) {
+    const b = akaBonus({ ...(a || {}), ruhm: x });
+    if (b.pot > jetzt.pot)   return { fehlt: x - r, was: "Anlage +" + b.pot };
+    if (b.rep > jetzt.rep)   return { fehlt: x - r, was: "Bekanntheit +" + b.rep };
+    if (b.money > jetzt.money) return { fehlt: x - r, was: "Startkapital +" + (b.money * 1000).toFixed(0) + " Tsd. €" };
+    if (b.dev > jetzt.dev)   return { fehlt: x - r, was: "Entwicklung +" + Math.round(b.dev * 100) + " %" };
+  }
+  return null;
 }
 const akaBonusText = (b) => {
   const L = [];
@@ -5947,7 +6150,11 @@ const akaLeistbar = (a) => ABTEILUNGEN.filter((x) => {
 
 /* ---------------- Ansicht ---------------- */
 const AKA_FARBE = { neu:"var(--ac)", profi:"var(--ok)", gross:"var(--go)",
-  titel:"var(--go)", weg:"var(--mu)", pech:"var(--bad)" };
+  titel:"var(--go)", weg:"var(--mu)", pech:"var(--bad)",
+  /* 35.34: das ausgeschiedene Jugendturnier. Gedämpft und nicht im Blau der
+     Neuzugänge — in jedem Jahr steht schon eine blaue Zeile, und zwei davon
+     nebeneinander lesen sich wie zwei gleich wichtige Nachrichten. */
+  turnier:"var(--mu)" };
 
 /* Rang eines Absolventen auf der Ehrentafel. Die Schwellen sind DIESELBEN,
    mit denen `akaJahr` die Bilanz führt (85 = Weltklasse, Auswahl über `ns`) —
@@ -6030,6 +6237,7 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
     chronik: (aka && aka.chronik) || [] };
   const b = akaBonus(a);
   const bt = akaBonusText(b);
+  const naechste = akaNaechsteGabe(a);
 
   if (!a.gegruendet) return (
     <Shell blatt="akademie">
@@ -6139,12 +6347,28 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
           <Stat k="Ansehen" v={<Zahl v={a.ruhm} dauer={1500} />} acc />
         </div>
 
-        {bt.length > 0 && (
+        {/* 35.39: der Kasten erschien BISHER nur, wenn schon etwas da war
+            (`bt.length > 0`) — also ausgerechnet in der Phase nicht, in der man
+            wissen will, wofuer man zahlt. Jetzt steht er immer, sobald eine
+            Akademie gegruendet ist, und nennt die naechste Schwelle. Die kommt
+            aus `akaNaechsteGabe`, also aus derselben Rechnung wie der Bonus
+            selbst — keine zweite Zahlenliste, die auseinanderlaufen kann. */}
+        {a.gegruendet && (
           <div className="pan pad" style={{ marginTop: 12, borderColor: "var(--go)" }}>
             <div className="eb" style={{ color: "var(--go)" }}>Was die Nächsten davon haben</div>
-            <div style={{ fontSize: 13, marginTop: 4 }}>{bt.join(" · ")}</div>
+            <div style={{ fontSize: 13, marginTop: 4 }}>
+              {bt.length ? bt.join(" · ") : "Noch nichts."}
+            </div>
+            {naechste ? (
+              <div className="m" style={{ fontSize: 10.5, color: "var(--ac)", marginTop: 5 }}>
+                Noch {naechste.fehlt} Ansehen bis {naechste.was}.
+              </div>
+            ) : (
+              <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 5 }}>
+                Mehr geht nicht — alles ausgereizt.
+              </div>)}
             <div className="m" style={{ fontSize: 10, color: "var(--mu)", marginTop: 4 }}>
-              Gilt ab der nächsten Laufbahn. Irgendwann ist aber Schluss mit dem Bonus.
+              Gilt ab der nächsten Laufbahn.
             </div>
           </div>)}
 
@@ -6726,6 +6950,25 @@ html,body{overscroll-behavior:none;}
 .bar i{transition:transform 1.45s cubic-bezier(.18,.86,.28,1);transform-origin:left center;}
 .rs-still .rs-auf,.rs-still .rs-rein{animation:none!important;}
 .rs-still .bar i{transition:none!important;}
+/* Angeheftete Leiste am Ende der Laufbahn (35.42).
+   position:fixed statt sticky: die Shell scrollt selbst, ein klebendes
+   Element haette sich am Ende des Inhalts wieder geloest. Der Platzhalter im
+   EndScreen ist genau so hoch wie diese Leiste — beides muss zusammen
+   geaendert werden, sonst verdeckt sie den letzten Eintrag.
+   env(safe-area-inset-bottom) wegen der Gestensteuerung auf dem S24.
+   KEINE Rueckwaerts-Anfuehrungszeichen hier: der CSS-Block ist eine
+   Schablonenzeichenkette, sie wuerde vorzeitig enden. Der Pruefstand hat mir
+   das prompt gemeldet — 6 Stueck beim ersten Versuch. */
+.rs-abschlussleiste{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  background:linear-gradient(to top, var(--bg) 62%, rgba(0,0,0,0));
+  padding:14px 0 calc(12px + env(safe-area-inset-bottom,0px));
+  pointer-events:none;
+}
+.rs-abschlussleiste-in{
+  max-width:760px;margin:0 auto;padding:0 16px;pointer-events:auto;
+}
+.rs-abschlussleiste .btn.pri{width:100%;}
 .rs-schleier{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:14px;background:rgba(4,5,10,.72);backdrop-filter:blur(7px);
   -webkit-backdrop-filter:blur(7px);}
@@ -6833,7 +7076,14 @@ function bilanzErgaenzen(G, p) {
   g.abstiege += p.seasons.filter((s) => s.move && s.move.dir === "ab").length;
   g[p.g === "w" ? "frauen" : "maenner"] += 1;
   if (p.endReason && /Rücktritt/.test(p.endReason)) g.ruecktritte += 1;
-  const dreckig = p.flags.wetten || p.flags.maulwurf || p.flags.altersluege || p.flags.steuermodell;
+  /* 35.35: `manipuliert` steht seit jeher hier NICHT, obwohl es die schwerste
+     der Verfehlungen ist — ein verschobenes Spiel. Der Grund war ein Versehen,
+     kein Vorsatz: die Flagge wird nur im Erfolgszweig gesetzt („Es merkt
+     niemand“), und wer sie trägt, ist öffentlich unbescholten. Genau deshalb
+     gehört sie HIER hin und nicht in die Beliebtheitsrechnung: die Weltbilanz
+     führt Buch über das, was war, nicht über das, was die Leute wissen. */
+  const dreckig = p.flags.wetten || p.flags.maulwurf || p.flags.altersluege
+    || p.flags.steuermodell || p.flags.manipuliert;
   if (dreckig) g.skandale += 1; else if (p.seasons.length >= 10) g.sauber += 1;
   g.verletzungen += p.seasons.filter((s) => s.injury).length;
   g.u21 += (p.nt.uCaps || 0) > 0 ? 1 : 0;
@@ -8694,6 +8944,18 @@ function KarriereRueckblick({ p, onFertig }) {
       </div>
     </div>), "var(--go)");
 
+  /* Was die Akademie DIESEM Spieler mitgegeben hat (35.32). Steht auf dieser
+     Karte und nicht auf einer eigenen: hier steht die Anlage, auf die es sich
+     bezieht, und der Rückblick hat schon bis zu zehn Seiten.
+
+     `akaBonusText` ist DIESELBE Quelle wie im Akademiebildschirm. Eine zweite,
+     hier von Hand gepflegte Liste würde beim nächsten neuen Posten stumm
+     auseinanderlaufen — dasselbe Muster wie die zweite Ablaufliste in 35.29.
+
+     Defensiv gelesen: die erste Laufbahn hat keine Akademie, und ein Spielstand
+     aus einer Fassung vor `p.aka` hat das Feld gar nicht. In beiden Fällen ist
+     die Liste leer und die Zeile erscheint nicht — lieber nichts als "+0". */
+  const akaMit = akaBonusText(p.aka || {});
   K("Deine Stärke", "Was am Ende dabei herauskam", (
     <div style={{ textAlign: "center" }}>
       <Zahl v={p.peakOvr} className="d" style={{ ...GZ, color: ueber99(p.peakOvr) ? "var(--go)" : "var(--ac)" }} />
@@ -8701,6 +8963,10 @@ function KarriereRueckblick({ p, onFertig }) {
       <div className="m" style={{ fontSize: 12.5, color: "var(--mu)", marginTop: 14 }}>
         Anlage {p.potential} · beste Saisonnote {S.length ? Math.min(...S.map((x) => x.note)).toFixed(1) : "—"}
       </div>
+      {akaMit.length > 0 && (
+        <div className="m" style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 7, lineHeight: 1.35 }}>
+          aus {p.akaName || "deiner Akademie"}: {akaMit.join(" · ")}
+        </div>)}
     </div>), "var(--ac)");
 
   const laender = [...new Set(S.map((x) => x.land))];
@@ -9425,6 +9691,7 @@ const ANLEITUNG = [
   ["Deine Werte", [
     ["Stärke", "Der Schnitt aus deinen sechs Werten. Da schauen Vereine zuerst hin."],
     ["Form und Fitness", "Form schwankt von Jahr zu Jahr. Fitness geht runter, wenn du älter wirst oder dich hinlegst."],
+    ["Moral", "Wie es dir geht. Oben entwickelst du dich etwas schneller, unten kommt Ärger in die Kabine, den du nicht bestellt hast."],
     ["Vertrauen", "Was der Trainer von dir hält. Traut er dir nichts zu, sitzt du draußen — egal wie stark du bist."],
     ["Bekanntheit", "Entscheidet, wer anruft. Vereine, Nationaltrainer, Sponsoren."]]],
   ["Wildcards", [
@@ -11721,6 +11988,21 @@ function HallScreen({ hall, onBack }) {
 }
 
 function EndScreen({ p, onNew, onHall, onAka }) {
+  /* 35.42: der Bildschirm haengte alles untereinander — Urteil, Wildcard,
+     Errungenschaften, Akademiejahr, Zahlenblock, Stationen, drei
+     Auswertungsansichten, Teilen-Text, und GANZ unten die Knoepfe. Bei einer
+     langen Laufbahn scrollt man an sehr viel vorbei, bevor „Neue Laufbahn
+     beginnen" auftaucht.
+
+     Jetzt: oben bleibt, was den Abschluss ausmacht. Alles Nachschlagbare geht
+     in Reiter, und zwar EINGEKLAPPT — `null` als Anfangswert, kein Reiter ist
+     gewaehlt. Wer die Zahlen will, tippt drauf.
+
+     Die Knoepfe stehen in einer angehefteten Leiste am unteren Rand. Damit sie
+     den letzten Eintrag nicht verdecken, traegt der Inhalt unten Platz in
+     genau der Hoehe der Leiste — in Chromium nachgemessen, nicht geschaetzt. */
+  const [tab, setTab] = useState(null);
+  const reiterRef = useRef(null);
   /* Ein Weltklassespieler aus dem eigenen Haus ist das seltenste Ereignis
      der Akademie — das darf man auch sehen und spüren. */
   const grossesJahr = (p.akaEreignisse || []).some((e) => e.art === "gross");
@@ -11911,31 +12193,58 @@ function EndScreen({ p, onNew, onHall, onAka }) {
             <Stat k="Punkte" v={v.score} acc />
           </div>
         </div>
-        <div className="pan pad" style={{ marginTop: 12 }}>
-          <div className="eb" style={{ marginBottom: 7 }}>Stationen ({new Set(p.seasons.map((s) => s.club)).size})</div>
-          <div className="g1">{clubs.map((s, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Crest club={s.clubRef} size={20} />
-              <span style={{ fontSize: 12.5 }}>{s.club}</span>
-              <span className="m" style={{ fontSize: 10, color: "var(--mu)" }}>ab {s.year} · {s.league}</span>
-            </div>))}</div>
-        </div>
-        <div style={{ marginTop: 12 }}><Guard><StatsView p={p} /></Guard></div>
-        <div className="pan pad" style={{ marginTop: 12 }}><Guard><NationalView p={p} /></Guard></div>
-        <div className="pan pad" style={{ marginTop: 12 }}><Guard><TrophyView p={p} /></Guard></div>
-        <div className="pan pad" style={{ marginTop: 12 }}>
-          <div className="eb" style={{ marginBottom: 6 }}>Zum Teilen</div>
-          <pre className="m" style={{ fontSize: 11.5, whiteSpace: "pre-wrap", margin: 0, lineHeight: 1.65 }}>{share}</pre>
-        </div>
-        <div className="g1" style={{ marginTop: 18 }}>
-          <button className="btn pri rs-pochen" onClick={onNew} style={{ padding: "16px 18px" }}>
-            <span className="d" style={{ fontSize: 21, letterSpacing: ".02em" }}>Neue Laufbahn beginnen</span>
-            <span className="m" style={{ fontSize: 11, color: "#04050A", opacity: .82, display: "block", marginTop: 3 }}>
-              Zurück ins Hauptmenü, dann von vorn</span>
+        {/* ---- Ausführliche Statistik, eingeklappt (35.42) ------------------
+            Ein zweites Tippen auf denselben Reiter klappt wieder zu. Ohne das
+            gäbe es keinen Weg zurück zur Übersicht, ausser den Bildschirm zu
+            verlassen — und genau die Übersicht war der Wunsch. */}
+        <div className="tabhuelle" ref={reiterRef}><div className="tabs" style={{ marginTop: 14 }}>
+          {/* Kurze Beschriftungen: mit „Nationalelf" und „Zum Teilen" ragte der
+              fuenfte Reiter bei 412 px 12 px ueber den Rand. Die Zeile scrollt
+              zwar (`.tabs` traegt overflow-x), aber wischen zu muessen ist das
+              Gegenteil von Uebersicht — und darum ging es hier. */}
+          {[["stationen", "Stationen"], ["zahlen", "Statistik"],
+            ["land", "Land"], ["titel", "Titel"], ["teilen", "Teilen"]].map(([k, l]) => (
+            <button key={k} className={"btn sm" + (tab === k ? " on" : "")} style={{ flexShrink: 0 }}
+              onClick={() => { setTab(tab === k ? null : k); zumAnfang(reiterRef.current); }}>
+              <span className="d" style={{ fontSize: 13, color: tab === k ? "var(--ac)" : "var(--mu)" }}>{l}</span>
+            </button>))}
+        </div></div>
+        {tab === null && (
+          <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 7 }}>
+            Tippe einen Reiter an, wenn du die Zahlen im Einzelnen sehen willst.
+          </div>)}
+
+        {tab === "stationen" && (
+          <div className="pan pad" style={{ marginTop: 12 }}>
+            <div className="eb" style={{ marginBottom: 7 }}>Stationen ({new Set(p.seasons.map((s) => s.club)).size})</div>
+            <div className="g1">{clubs.map((s, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Crest club={s.clubRef} size={20} />
+                <span style={{ fontSize: 12.5 }}>{s.club}</span>
+                <span className="m" style={{ fontSize: 10, color: "var(--mu)" }}>ab {s.year} · {s.league}</span>
+              </div>))}</div>
+          </div>)}
+        {tab === "zahlen" && <div style={{ marginTop: 12 }}><Guard><StatsView p={p} /></Guard></div>}
+        {tab === "land" && <div className="pan pad" style={{ marginTop: 12 }}><Guard><NationalView p={p} /></Guard></div>}
+        {tab === "titel" && <div className="pan pad" style={{ marginTop: 12 }}><Guard><TrophyView p={p} /></Guard></div>}
+        {tab === "teilen" && (
+          <div className="pan pad" style={{ marginTop: 12 }}>
+            <div className="eb" style={{ marginBottom: 6 }}>Zum Teilen</div>
+            <pre className="m" style={{ fontSize: 11.5, whiteSpace: "pre-wrap", margin: 0, lineHeight: 1.65 }}>{share}</pre>
+          </div>)}
+
+        {/* Platzhalter in Höhe der angehefteten Leiste. Ohne ihn liegt der
+            letzte Eintrag darunter und ist nicht mehr lesbar. */}
+        <div aria-hidden style={{ height: 132 }} />
+      </div>
+      <div className="rs-abschlussleiste">
+        <div className="rs-abschlussleiste-in">
+          <button className="btn pri rs-pochen" onClick={onNew} style={{ padding: "12px 16px" }}>
+            <span className="d" style={{ fontSize: 18, letterSpacing: ".02em" }}>Neue Laufbahn beginnen</span>
           </button>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button className="btn" style={{ flex: "1 1 150px" }} onClick={onHall}>Ruhmeshalle</button>
-            <button className="btn" style={{ flex: "1 1 150px" }} onClick={onAka}>Jugendakademie</button>
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <button className="btn sm" style={{ flex: "1 1 0" }} onClick={onHall}>Ruhmeshalle</button>
+            <button className="btn sm" style={{ flex: "1 1 0" }} onClick={onAka}>Jugendakademie</button>
           </div>
         </div>
       </div>
@@ -12352,9 +12661,31 @@ function FlutlichtApp() {
     setP(q);
     setEr({ text: evText(out.text, queue[ei] ? queue[ei]._ctx : {}), extra });
   };
+  /* 35.37: Ereignisse, die im selben Zug ungueltig geworden sind, ueberspringen.
+     -------------------------------------------------------------------------
+     `drawEvents` baut den Pool EINMAL und prueft alle Bedingungen gegen den
+     Zustand VOR der ersten Entscheidung. Wer in Ereignis 1 die Binde annimmt,
+     bekam sie in Ereignis 2 desselben Jahres noch einmal angeboten — beide
+     waren beim Ziehen zulaessig. Die Sperre `usedTags` verhindert nur zwei
+     Ereignisse mit DEMSELBEN tag; `kapitaen` traegt „Fuehrung",
+     `pt_kapitaenbinde` traegt „Position", also griff sie nicht.
+
+     Gemessen (1200 Laufbahnen, 28.117 Jahre): 60 Faelle, 0,21 % der Jahre.
+     Selten — aber es ist der Fehler, den man sofort bemerkt, weil er das Spiel
+     dumm aussehen laesst.
+
+     Behoben wird an EINER Stelle statt in 38 Einzelbedingungen: bevor das
+     naechste Ereignis gezeigt wird, wird seine Bedingung gegen den JETZIGEN
+     Zustand geprueft. Dasselbe Probeobjekt wie in `drawEvents`, sonst
+     scheitern Ereignisse, die auf `rival` zugreifen, an sich selbst.
+
+     Wirft die Bedingung, wird das Ereignis GEZEIGT, nicht verschluckt: ein
+     stiller Ausfall waere schlimmer als ein unpassendes Ereignis. */
   const nextEvent = () => {
     if (p.endNow) { finish(clone(p)); return; }
-    if (ei + 1 < queue.length) { setEi(ei + 1); setEr(null); }
+    let k = ei + 1;
+    while (k < queue.length && !nochGueltig(p, queue[k])) k++;
+    if (k < queue.length) { setEi(k); setEr(null); }
     else if (p.flags.winterMove) {
       const q = clone(p);
       setEr(null); setOffers(makeOffers(q)); setStep("winter");
@@ -12457,6 +12788,15 @@ function FlutlichtApp() {
       const evs = drawEvents(q, 2);
       evs.forEach((e) => {
         q.evLog[e.id] = q.seasons.length;
+        /* 35.37: auch hier — was im selben Zug ungueltig wurde, wird nicht
+           mehr ausgespielt. Der Schnelldurchlauf traf sonst Entscheidungen zu
+           Lagen, die es nicht mehr gab. Der Eintrag in evLog bleibt: das
+           Ereignis WAR faellig, es soll nicht naechstes Jahr nachruecken. */
+        if (e.cond) {
+          let gilt = true;
+          try { gilt = !!e.cond({ ...q, rival: evCtx(q).rival }); } catch { gilt = true; }
+          if (!gilt) return;
+        }
         /* Auch das Vorspulen muss die Bedingungen kennen. Wuerfelte es
            weiter ueber alle Optionen, waehlte der Schnelldurchlauf Dinge, die
            der Spieler von Hand nie haette anklicken koennen. */
@@ -12627,7 +12967,7 @@ function FlutlichtApp() {
     onHall={() => setPhase("hall")} />;
 
   const rival = rivalOf(p.squad, p.pos);
-  const role = roleFor(p.ovr, p.club.s, p.trust, rival ? rival.ovr : null);
+  const role = roleFor(p.ovr, p.club.s, p.trust, rival ? rival.ovr : null, p.flags.beidseitig);
   const steps = ["training", "event", "result"];
   const stepLbl = step === "winter" ? "event" : step;
   const si = Math.max(0, steps.indexOf(stepLbl === "retire" ? "result" : stepLbl));

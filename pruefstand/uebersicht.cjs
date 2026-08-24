@@ -18,7 +18,10 @@ const {
    deshalb am 16.8.2026 wortlos die App.jsx ueberschrieben: 14.304 Zeilen
    Spiel gegen 3.001 Zeilen Uebersicht, ohne eine einzige Rueckfrage. Zwei
    Riegel, beide haetten genau das verhindert. */
-const args = process.argv.slice(2);
+/* 35.41: `--ziel=` ist die neue, einheitliche Form. Die Riegel darunter
+   bleiben, sie haben in 35.4 einen echten Schaden verhindert. */
+const ZIELBENANNT = require("./argumente.cjs").benannt("ziel");
+const args = ZIELBENANNT !== undefined ? [ZIELBENANNT] : process.argv.slice(2);
 if (args.length > 1) {
   console.error("FEHLER: uebersicht.cjs nimmt GENAU ein Argument — die Zieldatei.");
   console.error("        Die Quelle kommt aus /tmp/ps/motor.js und wird nicht uebergeben.");

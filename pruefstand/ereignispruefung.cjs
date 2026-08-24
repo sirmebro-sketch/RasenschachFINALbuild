@@ -22,7 +22,11 @@
 const fs = require("fs");
 const App = require("/tmp/ps/motor.js");
 const EV = App.EVENTS;
-const QUELLE = process.argv[2] || process.env.QUELLE || "/mnt/project/App.jsx";
+/* 35.41: hier stand `|| "/mnt/project/App.jsx"`. Ohne Argument las das
+   Werkzeug die schreibgeschuetzte Projektwissen-Kopie und meldete den Stand
+   von DORT — gemessen 24.8.2026: 7 tote Flaggen statt 0, weil die Kopie auf
+   35.30 stand. Kein Absturz, keine Warnung. Jetzt bricht es ab. */
+const QUELLE = require("./argumente.cjs").quelle("ereignispruefung.cjs", /App\.jsx$/);
 /* Gelesen wird der Quelltext BEIDER Dateien. Seit 35.6 liegen die Ereignisse in
    ereignisse.js — die Pruefung auf folgenlose Flaggen sucht die Lesestellen im
    Text, und die Bedingungen sind mit umgezogen. Nur App.jsx zu lesen meldete
@@ -65,7 +69,9 @@ const GRUNDLINIE = {
      jetzt as_golf). Die restlichen fuenf — attest · beidseitig · manipuliert ·
      pendeln · treugeblieben — brauchen eigenen Inhalt und warten auf den
      Inhaltsausbau. treugeblieben wirkt immerhin ueber loyalBonus mit. */
-  toteFlaggen: 5,
+  toteFlaggen: 0,   /* 35.35: von 5 auf 2 (beidseitig, manipuliert, pendeln angeschlossen).
+                        35.36: auf 0 — attest und treugeblieben haben eigene Folgeereignisse.
+                        Steigt die Zahl wieder, ist eine neue Flagge ohne Folgen gesetzt worden. */
 };
 /* Schwelle fuer "aehnlich". An den Daten kalibriert, nicht geraten:
    ab 50 % gibt es 0 Paare, ab 40 % zwei, ab 25 % dreizehn, ab 20 % dreissig.

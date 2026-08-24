@@ -358,7 +358,13 @@ console.log("=== Vereinsprüfung ===\n");
      Findet sie die Datei nicht, MELDET sie das — eine uebersprungene Pruefung
      ist kein bestandener Lauf. */
   const fs = require("fs");
-  const kandidaten = [process.env.QUELLE_APP, "App.jsx", "../App.jsx"].filter(Boolean);
+  /* 35.41: `--quelle=` zuerst, dann die alte Umgebungsvariable, dann die
+     Verzeichnisrueckfaelle. Die bleiben hier bewusst stehen, weil dieses
+     Werkzeug einen FEHLENDEN Fund ausdruecklich meldet statt still zu
+     bestehen — der gefaehrliche Fall ist damit schon abgedeckt. */
+  const ARG = require("./argumente.cjs");
+  const kandidaten = [ARG.benannt("quelle"), process.env.QUELLE_APP,
+    "App.jsx", "../App.jsx"].filter(Boolean);
   const gefunden = kandidaten.find((k) => { try { return fs.statSync(k).isFile(); } catch (e) { return false; } });
   if (!gefunden) {
     pr("Verein: kein Knopf 'Saison spielen' mehr im Programm", false,

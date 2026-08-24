@@ -3,7 +3,7 @@
 > Diese Datei wird aus dem Quelltext erzeugt, nicht von Hand gepflegt.
 > Jede Zahl stammt aus den Daten des laufenden Spiels.
 
-**Fassung 35.24** · erzeugt am 21. August 2026
+**Fassung 35.42** · erzeugt am 24. August 2026
 
 ## Inhalt auf einen Blick
 
@@ -17,7 +17,7 @@
 | Spielweisen | 3 |
 | Wildcards | 128 |
 | Seltenheitsstufen | 7 |
-| Ereignisse | 518 |
+| Ereignisse | 520 |
 | Errungenschaften | 162 |
 | Freischaltungen | 48 |
 | Anlageformen | 5 |
@@ -1588,11 +1588,11 @@ der nach jeder abgeschlossenen Laufbahn ohne sie steigt.
 Je Saison werden zwei bis drei Ereignisse gezogen. Bereits Erlebtes wird
 seltener nachgezogen, damit sich nichts wiederholt.
 
-- Ereignisse insgesamt: **518**
-- davon mit echter Wahl: **518**
-- davon mit ungewissem Ausgang: **270**
+- Ereignisse insgesamt: **520**
+- davon mit echter Wahl: **519**
+- davon mit ungewissem Ausgang: **271**
 
-- an eine Bedingung geknüpft (Alter, Lage, Verein): **512**
+- an eine Bedingung geknüpft (Alter, Lage, Verein): **514**
 - jederzeit möglich: **6**
 
 | Ziehungsgewicht | Ereignisse |
@@ -1605,10 +1605,10 @@ seltener nachgezogen, damit sich nichts wiederholt.
 | 9 | 18 |
 | 8 | 20 |
 | 7 | 39 |
-| 6 | 91 |
+| 6 | 92 |
 | 5 | 97 |
 | 4 | 73 |
-| 3 | 84 |
+| 3 | 85 |
 | 2 | 77 |
 
 Ein höheres Gewicht heißt: kommt öfter. Bereits Erlebtes wird zusätzlich
@@ -1616,7 +1616,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 
 | Bereich | Ereignisse |
 |---|---|
-| Zwielichtig | 31 |
+| Zwielichtig | 32 |
 | Privat | 30 |
 | Position | 27 |
 | Verein | 26 |
@@ -1633,9 +1633,9 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Führung | 14 |
 | Körper | 13 |
 | Transfer | 13 |
+| Wunschverein | 13 |
 | Kurios | 12 |
 | Nachwuchs | 12 |
-| Wunschverein | 12 |
 | Alltag | 11 |
 | Familie | 10 |
 | Zukunft | 9 |
@@ -2358,7 +2358,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Dein alter Trainer will dich zurück | 3 | nein | 6 | ja |
 | Ultimatum an den Trainer | 2 | ja | 6 | ja |
 
-**Wunschverein** (12)
+**Wunschverein** (13)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
@@ -2373,6 +2373,7 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Du bist Teil der Vereinsgeschichte | 2 | nein | 8 | ja |
 | Die Jugend deines Vereins | 2 | nein | 7 | ja |
 | Dein Verein steht am Abgrund | 2 | ja | 8 | ja |
+| Sie erinnern sich | 1 | nein | 6 | ja |
 | Zurück zum Verein deines Lebens? | 2 | nein | 8 | ja |
 
 **Zukunft** (9)
@@ -2389,13 +2390,14 @@ heruntergewichtet, damit sich nichts wiederholt.
 | Man erinnert sich an dich | 2 | nein | 6 | ja |
 | Die Vitrine der Familie | 2 | nein | 6 | ja |
 
-**Zwielichtig** (31)
+**Zwielichtig** (32)
 
 | Ereignis | Wahl | Ungewiss | Gewicht | Bedingung |
 |---|---|---|---|---|
 | Ein Angebot im Hotelflur | 3 | ja | 2 | ja |
 | Handgeld an der Steuer vorbei | 2 | ja | 2 | ja |
 | Post vom Finanzamt | 2 | ja | 4 | ja |
+| Der Arzt meldet sich | 3 | ja | 3 | ja |
 | Ein Investor will Anteile an dir | 2 | ja | 2 | ja |
 | Ein alter Bekannter fragt nach der Aufstellung | 2 | ja | 2 | ja |
 | Ein Attest, das eigentlich keins sein dürfte | 2 | ja | 2 | ja |
@@ -3029,10 +3031,10 @@ Die Stärke bestimmt, wie schwer der Weg in die Nationalmannschaft ist.
 | Ansehen | Anlage | Bekanntheit | Startkapital | Entwicklung |
 |---|---|---|---|---|
 | 0 | +0 | +0 | +0 Tsd. € | +0 % |
-| 50 | +1 | +1 | +20 Tsd. € | +0 % |
-| 100 | +2 | +2 | +40 Tsd. € | +2 % |
-| 150 | +3 | +4 | +60 Tsd. € | +4 % |
-| 200 | +4 | +5 | +80 Tsd. € | +4 % |
+| 50 | +1 | +2 | +40 Tsd. € | +2 % |
+| 100 | +3 | +5 | +80 Tsd. € | +4 % |
+| 150 | +4 | +6 | +100 Tsd. € | +6 % |
+| 200 | +4 | +6 | +100 Tsd. € | +6 % |
 | 250 | +4 | +6 | +100 Tsd. € | +6 % |
 | 300 | +4 | +6 | +100 Tsd. € | +6 % |
 

@@ -20,7 +20,12 @@ const fs = require("fs");
    Verzeichnis noch stimmt. So kann `pruefen.sh` das mitpruefen, statt sich
    darauf zu verlassen, dass jemand daran denkt. */
 const NURPRUEFEN = process.argv.includes("--pruefen");
-const DATEI = process.argv.find((a, i) => i >= 2 && !a.startsWith("--")) || "STAND.md";
+/* 35.41: einheitlich `--quelle=`, Position bleibt gueltig. Der Rueckfall auf
+   "STAND.md" haengt am Arbeitsverzeichnis — deshalb wird sein Fehlen unten
+   laut gemeldet statt still uebersprungen. */
+const ARGV = require("./argumente.cjs");
+const DATEI = ARGV.benannt("quelle")
+  || process.argv.find((a, i) => i >= 2 && !a.startsWith("--")) || "STAND.md";
 const AUF = "<!-- VERZEICHNIS -->";
 const ZU = "<!-- ENDE VERZEICHNIS -->";
 

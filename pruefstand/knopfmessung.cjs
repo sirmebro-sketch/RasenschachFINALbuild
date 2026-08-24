@@ -30,12 +30,23 @@ const { chromium } = require("playwright");
       titel: f.dataset.titel,
       knoepfe: [...f.querySelectorAll("button.btn")].map((e) => {
         const b = e.getBoundingClientRect();
+        /* 35.42: Knoepfe in einer seitlich scrollbaren Zeile (`.tabs` traegt
+           `overflow-x:auto`) duerfen ueber den Rand hinausragen — man wischt
+           sie herein, der Farbverlauf rechts zeigt das an. Sie als "ausserhalb
+           des Bildes" zu melden waere ein falscher Treffer.
+
+           ABER: still uebergehen darf man sie nicht. Sie werden gezaehlt und
+           mit `wischbar` gekennzeichnet, damit im Bericht steht, wie viele es
+           sind. Verschwindet ein Knopf ganz aus einer scrollbaren Zeile, faellt
+           das nur auf, wenn jemand die Zahl im Blick hat. */
+        const wischbar = !!e.closest(".tabs");
         return {
           text: (e.textContent || "").trim().slice(0, 18) || "(ohne Text)",
           breite: r0(b.width), rechts: r0(b.right), links: r0(b.left),
           noetig: e.scrollWidth,
           eng: e.scrollWidth > Math.ceil(b.width) + 1,
-          raus: b.right > BREITE + 1 || b.left < -1,
+          raus: !wischbar && (b.right > BREITE + 1 || b.left < -1),
+          wischbar,
         };
       }),
     }));
@@ -86,7 +97,12 @@ const { chromium } = require("playwright");
     console.log("  ✗ " + schlecht + " von " + gesamt + " Knöpfen sind nicht benutzbar.");
     process.exitCode = 1;
   } else {
-    console.log("  ✓ Alle " + gesamt + " Knöpfe lesbar und im Bild.");
+    /* Die wischbaren werden mitgezaehlt und genannt. Sonst verschwaende ein
+       Knopf, der aus einer scrollbaren Zeile faellt, spurlos im Wort "alle". */
+    const gewischt = mass.reduce((n, f) => n + f.knoepfe.filter((k) => k.wischbar
+      && (k.rechts > BREITE + 1 || k.links < -1)).length, 0);
+    console.log("  ✓ Alle " + gesamt + " Knöpfe lesbar und im Bild"
+      + (gewischt ? " — davon " + gewischt + " erst nach seitlichem Wischen sichtbar" : "") + ".");
   }
   if (fehler.length) { console.log("  SEITENFEHLER: " + fehler[0]); process.exitCode = 1; }
   await browser.close();

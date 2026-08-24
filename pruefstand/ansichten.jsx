@@ -15,10 +15,11 @@ import App, {
   ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich, AKA_MAX, leereBilanz,
   Wappen, Trikot, VereinGruenden, VereinScreen, VereinAbschluss,
   WAPPEN_FORMEN, WAPPEN_ZEICHEN, TRIKOT_MUSTER, VEREIN,
-  hsvChance, akaStufe, akaSumme, akaRestkosten, leereAkademie, akaGruenden, akaJahr,
-  akaVerbuchen, vcFuer, vcPosten, akaBonus, ABTEILUNGEN, createPlayer, develop,
+  hsvChance, roleFor, bilanzErgaenzen, nochGueltig, akaNaechsteGabe,
+  setSpeedmodus, setSchwierigkeit, akaStufe, akaSumme, akaRestkosten, leereAkademie, akaGruenden, akaJahr, AKA_FARBE,
+  akaVerbuchen, vcFuer, vcPosten, akaBonus, akaBonusText, ABTEILUNGEN, createPlayer, develop,
   simulateSeason, makeOffers, marketValue, verdict, NATIONS, TYPES, MODES, POS, pick, CSS,
-  tauschMax, SaisonRueckblick, FLAGGENART, stufeSchrift
+  tauschMax, SaisonRueckblick, KarriereRueckblick, FLAGGENART, stufeSchrift
 } from "./probe.jsx";
 
 let fehler = 0, ok = 0;
@@ -47,13 +48,29 @@ function mach(name, el, minLaenge = 5) {
 /* Zu jeder Beschriftung muss auch eine Zahl stehen. Fängt Fälle ab, in denen
    ein Feld schlicht fehlt — React zeigt undefined als Leerstelle an, das
    sieht man einem Absturztest nicht an. */
+/* 35.33: liest den Wert jetzt als ALLES, was hinter der Beschriftung im selben
+   Kasten steht — Elemente wie nackte Textknoten.
+
+   Vorher stand hier `feld.nextElementSibling`. Das sieht nur Elemente. In der
+   Akademie und auf der Ehrentafel steht der Wert in einem eigenen `<span>` und
+   wurde gefunden; in der Ruhmeshalle steht er als blanker Textknoten
+   (`<div><span class="eb">Peak</span>{h.peak}</div>`), und dort lieferte
+   `nextElementSibling` schlicht `null`. Die Prüfung war deshalb auf sieben von
+   acht Zellen der Ruhmeshalle blind — nicht rot, sondern gar nicht angewandt,
+   weil niemand sie dort aufgerufen hat.
+
+   Das ist die richtige Reihenfolge: erst das Werkzeug so bauen, dass es beide
+   Schreibweisen sieht, DANN dort anwenden. Die Markierung im Spiel umzubauen,
+   nur damit ein Prüfwerkzeug sie findet, wäre der Schwanz, der mit dem Hund
+   wedelt — und hätte sieben Stellen angefasst statt einer. */
 function zahlenPruefen(div, marken, name) {
   const eb = [...div.querySelectorAll(".eb")];
   marken.forEach((m) => {
     const feld = eb.find((x) => (x.textContent || "").trim() === m);
     if (!feld) { zeige(name, "Beschriftung „" + m + "\u201C fehlt"); return; }
-    const wert = feld.nextElementSibling;
-    const t = wert ? (wert.textContent || "").trim() : "";
+    let t = "";
+    for (let n = feld.nextSibling; n; n = n.nextSibling) t += n.textContent || "";
+    t = t.trim();
     if (!/^-?[\d.,]+/.test(t)) zeige(name, "„" + m + "\u201C zeigt keine Zahl, sondern „" + t + "\u201C");
     else ok++;
   });
@@ -100,6 +117,600 @@ const ZAHLEN = ["Jahrgänge", "Profis", "Weltklasse", "Nationalspieler", "Jugend
   const r = mach("Zahlen · " + n, <AkademieScreen aka={a} onKauf={()=>{}} onGruenden={()=>{}} onBack={()=>{}} />);
   if (r) zahlenPruefen(r.div, ZAHLEN, "Zahlen · " + n);
 });
+
+/* ---- Der Physio haelt eine Saison (35.42) -------------------------------
+   Bis 35.41 hatte `physio` `dauer: 0` — er heilte einmal und war weg. Jetzt
+   `dauer: 1` und in der laufenden Saison kommt gar keine Verletzung dazu.
+
+   Gepruefte Richtungen: mit laufendem Posten NIE eine Verletzung, ohne ihn
+   welche (sonst prueft die erste Haelfte nichts), und ein vorgemerkter
+   Ereignisschaden wird geschluckt statt in die naechste Saison verschoben. */
+{
+  const saison = (mitPhysio, n) => {
+    let verletzt = 0;
+    for (let i = 0; i < n; i++) {
+      const q = laufbahn(null);
+      q.age = 33; q.injuryProne = 70; q.fitness = 55;   // hohes Risiko, damit es beisst
+      q.laden = mitPhysio ? { physio: 1 } : {};
+      simulateSeason(q);
+      const s = q.seasons[q.seasons.length - 1];
+      if (s && s.injury) verletzt++;
+    }
+    return verletzt;
+  };
+  const ohne = saison(false, 60), mit = saison(true, 60);
+  if (ohne === 0)
+    zeige("Physio", "ohne Physio gab es in 60 Saisons keine Verletzung — die Probe prüft nichts");
+  else ok++;
+  if (mit !== 0)
+    zeige("Physio", "mit laufendem Physio gab es " + mit + " Verletzungen in 60 Saisons");
+  else ok++;
+
+  /* Vorgemerkter Schaden aus einem Ereignis: muss verfallen, nicht warten. */
+  const q = laufbahn(null);
+  q.age = 30; q.laden = { physio: 1 }; q.pendingInjury = "schwer";
+  simulateSeason(q);
+  const s1 = q.seasons[q.seasons.length - 1];
+  if (s1 && s1.injury) zeige("Physio", "eine vorgemerkte Verletzung kommt trotz Physio durch");
+  else ok++;
+  if (q.pendingInjury) zeige("Physio", "die Vormerkung bleibt stehen und trifft die nächste Saison");
+  else ok++;
+
+  /* Der Posten selbst: Dauer und Preis stehen in VCLADEN, nicht hier. */
+  const posten = VCLADEN.find((a) => a.id === "physio");
+  if (!posten) zeige("Physio", "den Ladenposten gibt es nicht mehr");
+  else {
+    if (posten.dauer !== 1) zeige("Physio", "Dauer ist " + posten.dauer + " statt 1");
+    else ok++;
+    if (!/ganze Saison/.test(posten.t))
+      zeige("Physio", "der Ladentext verspricht die Saison nicht: „" + posten.t + "“");
+    else ok++;
+  }
+  console.log("  Physio          ohne: " + ohne + "/60 Saisons verletzt · mit: " + mit
+    + "/60 · Preis " + (posten ? posten.preis : "?") + " VC · Dauer " + (posten ? posten.dauer : "?"));
+}
+
+/* ---- Abschluss: Reiter eingeklappt, Leiste angeheftet (35.42) -----------
+   Bis 35.41 hing alles untereinander: bei 412 px war die Seite 5.125 px lang
+   und „Neue Laufbahn beginnen" begann erst bei 4.952 px. Man scrollte an
+   Stationen, drei Auswertungsansichten und dem Teilen-Text vorbei, bevor der
+   Knopf kam.
+
+   Was jsdom hier pruefen kann, ist die STRUKTUR: sind die Reiter da, ist beim
+   Oeffnen keiner gewaehlt, klappt ein zweites Tippen wieder zu, und steht der
+   Platzhalter unter dem Inhalt. Ob die Leiste den letzten Eintrag verdeckt,
+   kann jsdom NICHT sehen — das misst `endmessung` in Chromium (Zahlen im
+   Messblock von 35.42). Diese Trennung wird hier ausdruecklich benannt, damit
+   niemand die jsdom-Probe fuer eine Layoutpruefung haelt. */
+{
+  const q = laufbahn(null);
+  q.verdict = verdict(q); q.retired = true;
+  const r = mach("Abschluss · Reiter eingeklappt", <EndScreen p={q} onNew={()=>{}} onHall={()=>{}} onAka={()=>{}} />);
+  if (r) {
+    const reiter = [...r.div.querySelectorAll(".tabs .btn")];
+    /* 35.42: gekuerzt von „Nationalelf"/„Zum Teilen" auf „Land"/„Teilen".
+       Mit den langen Beschriftungen ragte der fuenfte Reiter bei 412 px
+       zwoelf Pixel ueber den Rand — die Zeile scrollt zwar, aber wischen
+       zu muessen ist das Gegenteil von Uebersicht. Die Knopfmessung hat
+       das gemeldet, sobald der Abschlussbildschirm im Bogen lag. */
+    const SOLL = ["Stationen", "Statistik", "Land", "Titel", "Teilen"];
+    const haben = reiter.map((x) => (x.textContent || "").trim());
+    if (haben.length !== SOLL.length || SOLL.some((n, i) => haben[i] !== n))
+      zeige("Abschluss", "Reiter stimmen nicht: " + haben.join("/"));
+    else ok++;
+
+    /* Eingeklappt heisst: KEIN Reiter gewaehlt und keiner der Inhalte da. */
+    if (r.div.querySelectorAll(".tabs .btn.on").length !== 0)
+      zeige("Abschluss", "beim Öffnen ist schon ein Reiter gewählt");
+    else ok++;
+    const txt = r.div.textContent || "";
+    if (/Zum Teilen[\s\S]{0,40}\n/.test(txt) && txt.indexOf("Stationen (") >= 0)
+      zeige("Abschluss", "ein Reiterinhalt steht trotz eingeklapptem Zustand da");
+    else ok++;
+
+    /* Der Platzhalter muss so hoch sein wie die Leiste im CSS. Zwei Zahlen,
+       die zusammengehoeren und in verschiedenen Dateien stehen — genau die
+       Sorte, die auseinanderlaeuft. */
+    const platz = [...r.div.querySelectorAll("[aria-hidden]")]
+      .find((x) => /height:\s*132px/.test(x.getAttribute("style") || ""));
+    if (!platz) zeige("Abschluss", "der Platzhalter unter dem Inhalt fehlt — die Leiste verdeckt den letzten Eintrag");
+    else ok++;
+
+    const leiste = r.div.querySelector(".rs-abschlussleiste");
+    if (!leiste) zeige("Abschluss", "die angeheftete Leiste fehlt");
+    else if (leiste.querySelectorAll(".btn").length !== 3)
+      zeige("Abschluss", "die Leiste hat " + leiste.querySelectorAll(".btn").length + " Knöpfe statt 3");
+    else ok++;
+
+    /* 35.42, nachgetragen: das Auf- UND Zuklappen wirklich durchspielen.
+       Der Kommentar oben behauptete schon, ein zweites Tippen klappe wieder
+       zu — geprueft wurde es nicht. Als ich das Zuklappen zur Gegenprobe
+       ausbaute, blieb der Lauf gruen. Eine Behauptung im Kommentar ist keine
+       Pruefung, und ohne das Zuklappen kommt man nicht zur Uebersicht
+       zurueck — genau darum ging es bei diesem Umbau. */
+    if (reiter.length) {
+      const erster = reiter[0];
+      act(() => { erster.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+      const aufAn = r.div.querySelectorAll(".tabs .btn.on").length;
+      const aufInhalt = (r.div.textContent || "").indexOf("Stationen (") >= 0;
+      act(() => { r.div.querySelectorAll(".tabs .btn")[0]
+        .dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+      const zuAn = r.div.querySelectorAll(".tabs .btn.on").length;
+      const zuInhalt = (r.div.textContent || "").indexOf("Stationen (") >= 0;
+      if (aufAn !== 1 || !aufInhalt)
+        zeige("Abschluss", "erstes Tippen klappt nicht auf (gewählt=" + aufAn + ", Inhalt=" + aufInhalt + ")");
+      else if (zuAn !== 0 || zuInhalt)
+        zeige("Abschluss", "zweites Tippen klappt nicht wieder zu — kein Weg zurück zur Übersicht");
+      else ok++;
+    }
+
+    console.log("  Abschluss       " + haben.length + " Reiter, beim Öffnen keiner gewählt · "
+      + "auf und wieder zu · Leiste mit 3 Knöpfen · Platzhalter 132 px");
+  }
+}
+
+/* ---- Voreinstellung gegen mitgeschleppten Spielstand (35.41) ------------
+   Offener Punkt 6 lautete: „Alte Spielstaende tragen `speed` und `mode`
+   weiter am Spieler; die Voreinstellung greift nur bei neuen Laufbahnen.
+   So gewollt, sollte aber im Blick bleiben."
+
+   Im Blick behalten heisst nicht: daran denken. `SPEEDMODUS` und
+   `SCHWIERIGKEIT` sind Modulvariablen, die der Optionsbildschirm setzt;
+   `createPlayer` liest sie NICHT selbst, sondern bekommt sie ueber `cfg`.
+   Dreht jemand das um — etwa weil es „einfacher" aussieht —, aendert sich
+   rueckwirkend die Schwierigkeit jeder laufenden Karriere, und zwar still.
+
+   Deshalb hier festgenagelt, in beide Richtungen. */
+{
+  const bau = (cfg) => createPlayer({ name: "V", nation: "GER", pos: "ST", foot: "rechts",
+    number: 9, type: TYPES[0].id, mode: MODES[1].id, gender: "m", statur: "normal",
+    aka: null, ...cfg });
+
+  /* Die Grade heissen aufstieg / realismus / knochen. Mein erster Entwurf
+     schrieb "arcade" — das gibt es nicht, `createPlayer` fiel korrekt auf
+     realismus zurueck, und die Probe meldete einen Fehler, den es nicht gab.
+     Ein falscher Versuchsaufbau sieht genauso rot aus wie ein echter Befund. */
+  setSpeedmodus(true); setSchwierigkeit("knochen");
+  const neuA = bau({ speed: true, mode: "knochen" });
+  setSpeedmodus(false); setSchwierigkeit("realismus");
+  const neuB = bau({ speed: false, mode: "realismus" });
+
+  /* 1. Eine NEUE Laufbahn nimmt, was ihr uebergeben wird. */
+  if (neuA.speed !== true) zeige("Voreinstellung", "neue Laufbahn nimmt speed nicht an");
+  else ok++;
+  if (neuB.speed !== false) zeige("Voreinstellung", "neue Laufbahn nimmt speed=false nicht an");
+  else ok++;
+
+  /* 2. Ein BESTEHENDER Spieler behaelt seine Einstellung, auch wenn die
+        Voreinstellung inzwischen anders steht. Das ist der eigentliche Punkt. */
+  const alt = bau({ speed: true, mode: "knochen" });
+  setSpeedmodus(false); setSchwierigkeit("realismus");
+  if (alt.speed !== true)
+    zeige("Voreinstellung", "ein bestehender Spielstand verliert seinen Speedmodus");
+  else ok++;
+  if (!alt.mode || alt.mode.id !== "knochen")
+    zeige("Voreinstellung", "ein bestehender Spielstand verliert seine Schwierigkeit: "
+      + (alt.mode ? alt.mode.id : "keine"));
+  else ok++;
+
+  /* 3. `createPlayer` darf die Modulvariable NICHT selbst lesen — sonst
+        entstuende genau die stille Rueckwirkung. Gegenprobe: Voreinstellung
+        auf true, uebergeben wird false. */
+  setSpeedmodus(true);
+  const misch = bau({ speed: false, mode: "realismus" });
+  if (misch.speed !== false)
+    zeige("Voreinstellung", "createPlayer liest SPEEDMODUS selbst — die Übergabe wird überstimmt");
+  else ok++;
+  setSpeedmodus(false); setSchwierigkeit("realismus");
+
+  console.log("  Voreinstellung  neu folgt der Übergabe · bestehender Stand bleibt "
+    + "unberührt · keine stille Rückwirkung");
+}
+
+/* ---- Frisuren muessen unterscheidbar sein (35.40) -----------------------
+   Gemessen war: Frauen hatten 14 waehlbare Frisuren und nur NEUN
+   unterscheidbare Bilder. `6` teilte sich die Zeichnung mit `1`, und
+   10 bis 13 — genau die vier hinter der Freischaltung `mk_haar` — hatten
+   ueberhaupt keine und sahen alle aus wie `0`. Wer bezahlte, bekam vier
+   gleiche Eintraege.
+
+   Gemessen wird, was der Spieler sieht: die fertige Ausgabe von <Avatar>,
+   ueber ALLE fuenf Kopfformen. Eine einzige Kopfform zu pruefen hatte in
+   35.10 schon einmal einen Fehler verdeckt.
+
+   KONTROLLPROBE: zwei sicher verschiedene Frisuren muessen verschiedene
+   Ausgaben geben. Sonst ist der Aufruf falsch und die Probe schweigt aus
+   dem falschen Grund — genau so hat mir dieselbe Messung erst gemeldet,
+   alle 16 maennlichen Frisuren saehen gleich aus. */
+{
+  const roh = (g, frisur, kopf) => {
+    const basis = zuegeAusKennung(4242, g, null, { mk_haar: true });
+    const el = React.createElement(Avatar,
+      { zuege: { ...basis, frisur, kopf }, g, size: 62, club: null, meta: { mk_haar: true } });
+    const d = document.createElement("div");
+    act(() => { createRoot(d).render(el); });
+    return d.innerHTML;
+  };
+  if (roh("m", 0, 2) === roh("m", 4, 2)) {
+    zeige("Frisuren", "KONTROLLPROBE: zwei verschiedene Frisuren geben dieselbe Ausgabe — "
+      + "der Aufruf stimmt nicht, das Ergebnis unten ist wertlos");
+  } else {
+    ok++;
+    [["m", 16], ["w", 14]].forEach(([g, max]) => {
+      for (let kopf = 0; kopf < 5; kopf++) {
+        const gesehen = {}; const doppelt = [];
+        for (let f = 0; f < max; f++) {
+          const h = roh(g, f, kopf);
+          if (gesehen[h] !== undefined) doppelt.push(f + "=" + gesehen[h]); else gesehen[h] = f;
+        }
+        if (doppelt.length)
+          zeige("Frisuren", (g === "w" ? "weiblich" : "männlich") + ", Kopfform " + kopf
+            + ": nicht unterscheidbar — " + doppelt.join(", "));
+        else ok++;
+      }
+    });
+    console.log("  Frisuren        16 männliche und 14 weibliche · alle 5 Kopfformen · "
+      + "jede Form unterscheidbar");
+  }
+}
+
+/* ---- Akademiegabe: Schwellen, Grundgabe, Deckel (35.39) ----------------
+   Bis 35.38 gab eine Akademie der Stufen 1 und 2 NIE etwas, auch nach 30
+   Jahren nicht, und Stufe 3 erst im 18. Jahr. Die Schwellen sind gesenkt und
+   es gibt eine Grundgabe ab Gruendung.
+
+   Der Deckel ist die empfindliche Stelle: er darf sich NICHT bewegt haben.
+   Deshalb wird er hier ausdruecklich nachgerechnet und nicht bloss die
+   Untergrenze geprueft. */
+{
+  const B = (r, gegr) => akaBonus(gegr ? { ruhm: r, gegruendet: 2026 } : { ruhm: r });
+
+  /* 1. Ohne Akademie bleibt es bei nichts — sonst bekaeme die erste Laufbahn
+        einen Bonus, den sie sich nicht verdient hat. */
+  const o = B(0, false);
+  if (o.pot || o.rep || o.money || o.dev)
+    zeige("Akademiegabe", "ohne gegründete Akademie gibt es etwas: " + akaBonusText(o).join(", "));
+  else ok++;
+
+  /* 2. Grundgabe ab Gruendung, auch bei Ansehen 0. */
+  const g = B(0, true);
+  if (g.rep !== 1) zeige("Akademiegabe", "frisch gegründet gibt Bekanntheit +" + g.rep + " statt +1");
+  else ok++;
+  if (g.pot || g.money || g.dev)
+    zeige("Akademiegabe", "die Grundgabe gibt mehr als Bekanntheit: " + akaBonusText(g).join(", "));
+  else ok++;
+
+  /* 3. Der Deckel steht, wo er stand. */
+  const d = B(5000, true);
+  const soll = { pot: 4, rep: 6, money: .10, dev: .06 };
+  Object.keys(soll).forEach((k) => {
+    if (Math.abs(d[k] - soll[k]) > 1e-9)
+      zeige("Akademiegabe", "Deckel verschoben: " + k + " = " + d[k] + " statt " + soll[k]);
+    else ok++;
+  });
+
+  /* 4. Es muss monoton sein — mehr Ansehen darf nie WENIGER geben. */
+  let letzt = B(0, true), bruch = null;
+  for (let r = 1; r <= 400 && !bruch; r++) {
+    const b = B(r, true);
+    ["pot", "rep", "money", "dev"].forEach((k) => { if (!bruch && b[k] < letzt[k]) bruch = k + " bei Ansehen " + r; });
+    letzt = b;
+  }
+  if (bruch) zeige("Akademiegabe", "die Gabe fällt wieder: " + bruch);
+  else ok++;
+
+  /* 5. `akaNaechsteGabe` MUSS mit `akaBonus` uebereinstimmen. Waere das eine
+        zweite, von Hand gepflegte Schwellenliste, liefe sie beim naechsten
+        Zahlendreh stumm auseinander — und der Spieler glaubte einer falschen
+        Zahl. Deshalb wird sie hier gegen die Rechnung selbst gehalten. */
+  let falsch = 0;
+  for (let r = 0; r <= 300; r += 7) {
+    const n = akaNaechsteGabe({ ruhm: r, gegruendet: 2026 });
+    if (!n) continue;
+    const jetzt = B(r, true), dann = B(r + n.fehlt, true);
+    const einSchrittFrueher = B(r + n.fehlt - 1, true);
+    const wuchs = ["pot", "rep", "money", "dev"].some((k) => dann[k] > jetzt[k]);
+    const zuFrueh = ["pot", "rep", "money", "dev"].some((k) => einSchrittFrueher[k] > jetzt[k]);
+    if (!wuchs || zuFrueh) falsch++;
+  }
+  if (falsch) zeige("Akademiegabe", falsch + " Ansehensstände, bei denen die Ankündigung nicht stimmt");
+  else ok++;
+
+  const n0 = akaNaechsteGabe({ ruhm: 0, gegruendet: 2026 });
+  console.log("  Akademiegabe    frisch gegründet: " + akaBonusText(g).join(" · ")
+    + " · nächste Gabe in " + (n0 ? n0.fehlt + " Ansehen (" + n0.was + ")" : "—"));
+  console.log("  Akademiegabe    Deckel: " + akaBonusText(d).join(" · "));
+}
+
+/* ---- Ungueltig gewordene Ereignisse werden uebersprungen (35.37) --------
+   `drawEvents` prueft die Bedingungen EINMAL beim Ziehen. Wer in Ereignis 1
+   die Binde annimmt, bekam sie in Ereignis 2 desselben Jahres noch einmal
+   angeboten. Seit 35.37 wird jede Bedingung unmittelbar vor dem Zeigen noch
+   einmal gegen den JETZIGEN Zustand geprueft.
+
+   Geprueft wird die Regel, nicht der Zufall: ein Durchlauf trifft den Fall in
+   0,3 % der Jahre und bewiese damit nichts. Hier wird die Lage GESTELLT —
+   Spieler ohne Binde, beide Ereignisse zulaessig, dann die Binde vergeben. */
+{
+  const finde = (id) => EVENTS.find((e) => e.id === id);
+  const gilt = (e, q) => { try { return !!e.cond({ ...q, rival: null }); } catch { return true; } };
+
+  const kapiEreignisse = ["kapitaen", "v_kapitaenswahl", "pt_kapitaenbinde", "sf_binde"]
+    .map(finde).filter(Boolean);
+  if (kapiEreignisse.length !== 4)
+    zeige("Zugpruefung", "die vier Bindenereignisse heissen nicht mehr so — Probe prüft nichts");
+  else {
+    const q = laufbahn(null);
+    q.age = 30; q.trust = 75; q.flags.kapitaen = false;
+    const vorher = kapiEreignisse.filter((e) => gilt(e, q));
+    q.flags.kapitaen = true;               // Ereignis 1 wurde angenommen
+    const nachher = kapiEreignisse.filter((e) => gilt(e, q));
+    if (vorher.length < 2)
+      zeige("Zugpruefung", "ohne Binde sind nur " + vorher.length
+        + " Bindenereignisse zulässig — die Lage lässt sich nicht stellen");
+    else if (nachher.length !== 0)
+      zeige("Zugpruefung", "mit Binde gelten immer noch " + nachher.length
+        + " Bindenereignisse: " + nachher.map((e) => e.id).join(", "));
+    else ok++;
+    console.log("  Zugpruefung     Binde: " + vorher.length + " Ereignisse zulässig → nach Annahme "
+      + nachher.length);
+
+    /* Verschiedene tags: usedTags sperrt sie NICHT gegeneinander. Genau das
+       ist der Grund, warum die Zweitpruefung noetig ist. */
+    const tags = new Set(kapiEreignisse.map((e) => e.tag));
+    if (tags.size < 2)
+      zeige("Zugpruefung", "alle Bindenereignisse teilen einen tag — dann hätte usedTags gereicht");
+    else ok++;
+  }
+
+  /* DIE EIGENTLICHE PRUEFUNG: `nochGueltig` ist die Funktion, die `nextEvent`
+     benutzt. Mein erster Entwurf prueft nur die Ereignisbedingungen — und
+     blieb gruen, als ich das Ueberspringen aus `nextEvent` wieder herausnahm.
+     Eine Pruefung, die den entfernten Fix nicht bemerkt, prueft ihn nicht. */
+  {
+    const kapi = finde("kapitaen");
+    const q = laufbahn(null); q.age = 30; q.trust = 75; q.flags.kapitaen = false;
+    if (!kapi) zeige("Zugpruefung", "Ereignis kapitaen gibt es nicht");
+    else if (!nochGueltig(q, kapi))
+      zeige("Zugpruefung", "nochGueltig sperrt die Binde schon OHNE Binde");
+    else {
+      q.flags.kapitaen = true;
+      if (nochGueltig(q, kapi))
+        zeige("Zugpruefung", "nochGueltig laesst das Bindenereignis MIT Binde durch");
+      else ok++;
+    }
+    /* Ohne Bedingung und bei einer werfenden Bedingung muss sie durchlassen —
+       lieber ein unpassendes Ereignis als ein stiller Ausfall. */
+    if (!nochGueltig(q, { id: "ohne" })) zeige("Zugpruefung", "nochGueltig sperrt ein Ereignis ohne Bedingung");
+    else ok++;
+    if (!nochGueltig(q, { id: "wirft", cond: () => { throw new Error("x"); } }))
+      zeige("Zugpruefung", "nochGueltig verschluckt ein Ereignis, dessen Bedingung wirft");
+    else ok++;
+  }
+
+  /* Die Verdrahtung (benutzt `nextEvent` die Funktion ueberhaupt?) laesst
+     sich hier nicht pruefen: ansichten.jsx bekommt den Quellpfad nicht. Sie
+     steht in stimmigkeit.cjs, das die Quelle ohnehin liest. */
+
+  /* Zweiter Fall, Kevins anderes Beispiel: ein Kind bekommen und im selben
+     Zug gefragt werden, ob man Kinder will. */
+  const familie = finde("familie"), wunsch = finde("kinderwunsch");
+  if (!familie || !wunsch) zeige("Zugpruefung", "familie/kinderwunsch gibt es nicht mehr");
+  else {
+    const q = laufbahn(null);
+    q.age = 28; q.life = { ...q.life, status: "verheiratet", kids: 0 };
+    q.flags.familie = false; q.flags.kinderwunsch = false;
+    const vorher = [familie, wunsch].filter((e) => gilt(e, q));
+    q.life = { ...q.life, kids: 1 };       // Ereignis 1 brachte ein Kind
+    const nachher = [familie, wunsch].filter((e) => gilt(e, q));
+    if (vorher.length !== 2)
+      zeige("Zugpruefung", "kinderlos sind nur " + vorher.length + " von 2 Kinderereignissen zulässig");
+    else if (nachher.length !== 0)
+      zeige("Zugpruefung", "mit Kind gelten immer noch " + nachher.length + " Kinderereignisse");
+    else ok++;
+    console.log("  Zugpruefung     Kind: " + vorher.length + " Ereignisse zulässig → nach Geburt "
+      + nachher.length);
+  }
+}
+
+/* ---- Die zwei neuen Folgeereignisse (35.36) -----------------------------
+   `attest_zurueck` und `tv_bannerbleibt` haengen an Flaggen, die in 0,2 %
+   bzw. kaum messbar vielen Laufbahnen gesetzt werden. Ein Ereignis, das nie
+   erscheint, ist so folgenlos wie die Flagge vorher — nur schwerer zu
+   bemerken. Geprueft wird deshalb die Bedingung selbst, in beide Richtungen:
+   sie muss mit der Flagge greifen UND ohne sie schweigen. Und sie muss
+   wieder zugehen, sonst kommt dasselbe Ereignis jedes Jahr.              */
+{
+  const evt = (id) => EVENTS.find((e) => e.id === id);
+  const spieler = (flags, saisons) => {
+    const q = laufbahn(null);
+    q.flags = { ...q.flags, ...flags };
+    q.seasons = Array.from({ length: saisons }, (_, i) => ({ y: 2030 + i, club: "X" }));
+    return q;
+  };
+  const probe = (id, faelle) => {
+    const e = evt(id);
+    if (!e) { zeige("Folgeereignis", "Ereignis \u201e" + id + "\u201c gibt es nicht"); return; }
+    if (typeof e.cond !== "function") { zeige("Folgeereignis", id + " hat keine Bedingung"); return; }
+    faelle.forEach(([was, flags, saisons, soll]) => {
+      const ist = !!e.cond(spieler(flags, saisons));
+      if (ist !== soll) zeige("Folgeereignis", id + " · " + was + ": erwartet "
+        + (soll ? "greift" : "schweigt") + ", war " + (ist ? "greift" : "schweigt"));
+      else ok++;
+    });
+  };
+
+  probe("attest_zurueck", [
+    ["mit attest",              { attest: true },  5, true],
+    ["ohne attest",             {},                5, false],
+    ["nach reinem Tisch",       { attest: true, attestErledigt: true }, 5, false],
+  ]);
+  probe("tv_bannerbleibt", [
+    ["treu, 8 Saisons",         { treugeblieben: true }, 8, true],
+    ["treu, erst 7 Saisons",    { treugeblieben: true }, 7, false],
+    ["nicht treu, 12 Saisons",  {},                      12, false],
+    ["schon gesehen",           { treugeblieben: true, bannergesehen: true }, 12, false],
+  ]);
+
+  /* Der Erinnerungsmoment hat bewusst nur EINE Wahl — er ist kein Dilemma.
+     Steht das eines Tages anders da, soll es auffallen. */
+  const b = evt("tv_bannerbleibt");
+  if (b && b.choices && b.choices.length !== 1)
+    zeige("Folgeereignis", "tv_bannerbleibt hat " + b.choices.length + " Wahlen, gedacht war eine");
+  else ok++;
+
+  console.log("  Folgeereignis   attest_zurueck 3 Fälle · tv_bannerbleibt 4 Fälle · je beide Richtungen");
+}
+
+/* ---- Die drei angeschlossenen Flaggen (35.35) ---------------------------
+   `beidseitig`, `manipuliert` und `pendeln` wurden gesetzt und gelesen hat sie
+   niemand. Jede Prüfung hier vergleicht ZWEI Spieler, die sich nur in der
+   Flagge unterscheiden — alles andere Zeichen für Zeichen gleich. Anders
+   liesse sich nicht sagen, ob die Flagge wirkt oder der Zufall.            */
+{
+  /* 1. beidseitig: derselbe Außenverteidiger, derselbe starke Nebenmann.
+        Ohne die Flagge muss eine schlechtere Rolle herauskommen. */
+  const r1 = roleFor(76, 80, 50, 86, false);
+  const r2 = roleFor(76, 80, 50, 86, true);
+  if (r1.key === r2.key)
+    zeige("Flaggen", "beidseitig ändert die Rolle nicht: beide " + r1.key);
+  else if (r2.f <= r1.f)
+    zeige("Flaggen", "beidseitig macht die Rolle schlechter statt besser: "
+      + r1.key + " → " + r2.key);
+  else ok++;
+
+  /* Gegenrichtung: OHNE Nebenmann darf die Flagge gar nichts tun. Sonst
+     hängt sie nicht am Zweikampf, sondern gibt einfach überall Rabatt. */
+  const o1 = roleFor(76, 80, 50, null, false), o2 = roleFor(76, 80, 50, null, true);
+  if (o1.key !== o2.key || o1.f !== o2.f)
+    zeige("Flaggen", "beidseitig wirkt auch ohne Nebenmann — das ist zu viel");
+  else ok++;
+
+  /* Und schwächerer Nebenmann: der Abzug ist dort negativ (ein Bonus),
+     und milder darf ihn NICHT verschlucken. */
+  const s1 = roleFor(86, 80, 50, 76, false), s2 = roleFor(86, 80, 50, 76, true);
+  if (s2.f < s1.f) zeige("Flaggen", "beidseitig schadet gegen schwächere Nebenleute");
+  else ok++;
+
+  console.log("  Flaggen         beidseitig gegen starken Nebenmann: "
+    + r1.key + " → " + r2.key + " · ohne Nebenmann: " + o1.key + " = " + o2.key);
+}
+{
+  /* 2. manipuliert zählt zur Weltbilanz als Skandal — wie die vier anderen.
+        Geprüft über die Liste selbst, damit ein fünfter Eintrag nicht
+        vergessen wird. Die Flagge ist NICHT öffentlich, deshalb darf sie die
+        Beliebtheit nicht berühren: auch das wird gegengeprüft. */
+  const bau = (flags) => { const q = laufbahn(null); q.flags = { ...q.flags, ...flags };
+    q.seasons = q.seasons.length ? q.seasons : [{ y: 2030, club: "X" }]; return q; };
+  /* `bilanzErgaenzen` VERAENDERT die uebergebene Bilanz nicht, sondern gibt
+     eine neue zurueck. Mein erster Versuch las danach das Eingabeobjekt und
+     sah zweimal null — rot, aber aus dem falschen Grund. Signatur nachgesehen
+     statt geraten: (G, p) => neue Bilanz. */
+  const g0 = bilanzErgaenzen({}, bau({}));
+  const gM = bilanzErgaenzen({}, bau({ manipuliert: true }));
+  if (gM.skandale !== g0.skandale + 1)
+    zeige("Flaggen", "manipuliert zählt nicht als Skandal (" + g0.skandale + " → " + gM.skandale + ")");
+  else ok++;
+  console.log("  Flaggen         manipuliert in der Weltbilanz: Skandale "
+    + g0.skandale + " → " + gM.skandale);
+}
+
+/* ---- Jugendturniere in der Chronik (35.34) ------------------------------
+   Geprüft wird dreierlei, und zwar in beide Richtungen:
+
+   1. Sieg und Niederlage tragen Turniername UND Gegner. Vorher stand dort ein
+      einziger fester Satz; eine Prüfung auf "kommt überhaupt vor" wäre auch
+      damit grün gewesen.
+   2. Ohne die Abteilung `buehne` darf KEINE Niederlagenzeile erscheinen —
+      sonst hängt sie an nichts und die Abteilung verspricht wieder umsonst.
+   3. Die Chronikfarbe der Niederlage ist eine andere als die der Neuzugänge.
+      Zwei blaue Zeilen nebeneinander lesen sich als zwei gleich wichtige
+      Nachrichten — genau das sollte 35.34 vermeiden.                       */
+{
+  const jahre = (stufen, n) => {
+    let a = { ...leereAkademie(), stufen: { ...leereAkademie().stufen, ...stufen } };
+    a = akaGruenden(a, "Turnierhaus", 2026);
+    const alle = [];
+    for (let i = 0; i < n; i++) { const r = akaJahr(a, a.jahr + 1); a = r.a; alle.push(...r.ereignisse); }
+    return { a, alle };
+  };
+  const voll = Object.fromEntries(ABTEILUNGEN.map((x) => [x.id, AKA_MAX]));
+  const { alle } = jahre(voll, 60);
+  const siege = alle.filter((e) => /^Sieg beim /.test(e.txt));
+  const raus  = alle.filter((e) => e.art === "turnier");
+
+  if (!siege.length) zeige("Jugendturnier", "in 60 Jahren voll ausgebaut kein einziger Sieg");
+  else if (siege.some((e) => !/ U19\.$/.test(e.txt)))
+    zeige("Jugendturnier", "ein Siegtext nennt keinen Gegner: " + siege.find((e) => !/ U19\.$/.test(e.txt)).txt);
+  else ok++;
+
+  if (!raus.length) zeige("Jugendturnier", "voll ausgebaut kein einziges Ausscheiden");
+  else if (raus.some((e) => !/ U19 gescheitert\.$/.test(e.txt)))
+    zeige("Jugendturnier", "ein Ausscheidungstext nennt keinen Gegner");
+  else ok++;
+
+  /* Mehr als ein Turniername muss vorkommen — sonst ist die Liste zwar da,
+     wird aber nicht benutzt. */
+  const namen = new Set();
+  [...siege, ...raus].forEach((e) => {
+    const m = e.txt.match(/^(?:Sieg beim|Beim) (.+?)(?: — im Endspiel gegen | im | in der )/);
+    if (m) namen.add(m[1]);
+  });
+  if (namen.size < 5) zeige("Jugendturnier", "nur " + namen.size + " verschiedene Turniernamen in 60 Jahren");
+  else ok++;
+
+  /* Gegenprobe: ohne `buehne` keine Niederlagenzeile. */
+  const ohne = jahre({ ...voll, buehne: 0 }, 60);
+  if (ohne.alle.some((e) => e.art === "turnier"))
+    zeige("Jugendturnier", "ohne die Abteilung Wettbewerbe erscheint trotzdem eine Turnierzeile");
+  else ok++;
+
+  /* Farbe: die Niederlage darf nicht dieselbe tragen wie ein Neuzugang. */
+  if (AKA_FARBE.turnier === AKA_FARBE.neu)
+    zeige("Jugendturnier", "Ausscheiden und Neuzugang haben dieselbe Chronikfarbe");
+  else ok++;
+
+  console.log("  Jugendturnier   60 Jahre voll ausgebaut: " + siege.length + " Siege · "
+    + raus.length + " Ausscheiden · " + namen.size + " Turniernamen · ohne Wettbewerbe: "
+    + ohne.alle.filter((e) => e.art === "turnier").length + " Zeilen");
+}
+
+/* ---- Ruhmeshalle mit Inhalt (35.33) -------------------------------------
+   Bis 35.32 wurde `HallScreen` NUR mit `hall={[]}` gezeichnet — die Halle mit
+   Einträgen kam in keiner Ansichtsprüfung vor. Ein fehlendes Feld in einer
+   Zelle wäre als Leerstelle erschienen, und keine Prüfung hätte gemuckt.
+
+   Die Felder sind NACHGESEHEN, nicht geraten: `saveHall` schreibt name, pos,
+   nat, age, score, tier, peak, titles, caps, goals, worth, apps, assists,
+   saisons, heimat, heimatSpiele, von, bis. Ein erfundener Feldname wäre
+   `undefined` geworden — und `mach()` fängt genau das ab.               */
+const HALLZAHLEN = ["Punkte", "Peak", "Spiele", "Tore", "Vorlagen", "Titel",
+  "Länderspiele", "Vermögen"];
+const halleintrag = (i, extra) => ({
+  name: "Prüfling " + i, pos: "ST", nat: "\u{1F1E9}\u{1F1EA}", natId: "GER", age: 34 + i,
+  score: 1200 - i * 90, tier: "Legende", peak: 91 - i, titles: 7 - i, caps: 80 - i * 5,
+  goals: 300 - i * 20, assists: 150 - i * 10, apps: 600 - i * 30, worth: 42000000 - i * 3e6,
+  saisons: 18, von: 2027, bis: 2045, heimat: "Prüfverein", heimatSpiele: 300 - i * 20,
+  wc: "Sympathieträger", wr: "normal", speed: false, g: "m", avatar: i, zuege: null,
+  ...extra });
+
+{
+  const voll = [0, 1, 2].map((i) => halleintrag(i));
+  const r = mach("Ruhmeshalle · drei Einträge", <HallScreen hall={voll} onBack={() => {}} />);
+  if (r) {
+    zahlenPruefen(r.div, HALLZAHLEN, "Ruhmeshalle");
+    console.log("  Ruhmeshalle     " + HALLZAHLEN.length + " Zellen geprüft · "
+      + r.div.querySelectorAll(".zellen").length + " Zellenreihen gezeichnet");
+  }
+  /* Altbestand: Einträge von vor 33.10 haben apps und assists nicht. Die
+     beiden Zellen entfallen dann bewusst — geprüft wird, dass die übrigen
+     sechs weiter stehen und nichts "undefined" zeigt. */
+  const alt = [0, 1].map((i) => { const h = halleintrag(i); delete h.apps; delete h.assists;
+    delete h.heimat; delete h.heimatSpiele; return h; });
+  const r2 = mach("Ruhmeshalle · Altbestand ohne apps/assists", <HallScreen hall={alt} onBack={() => {}} />);
+  if (r2) zahlenPruefen(r2.div, ["Punkte", "Peak", "Tore", "Titel", "Länderspiele", "Vermögen"],
+    "Ruhmeshalle Altbestand");
+}
 
 const menuProps = { hall: [], onNew:()=>{}, onHall:()=>{}, save:null, onResume:()=>{}, onAch:()=>{},
   achN:3, metaN:1, onBackup:()=>{}, ruhe:false, setRuhe:()=>{}, setRuheState:()=>{}, onAka:()=>{} };
@@ -457,16 +1068,35 @@ console.log("\n=== Vermächtnis-Laden ===");
      Artikel WIEDER kaufbar ist. */
   {
     const art = (id) => VCLADEN.find((a) => a.id === id);
+    /* 35.42: die Beispiele kommen jetzt AUS VCLADEN statt aus dem Gedaechtnis.
+       Vorher stand hier `art("physio")` als Beispiel fuer „wirkt sofort". Als
+       der Physio in 35.42 ein Dauerposten wurde, war die Pruefung rot — nicht
+       weil das Kaufmodell kaputt war, sondern weil ihr Beispiel nicht mehr
+       passte. Eine Pruefung, die Artikelnamen auswendig kennt, bricht bei
+       jeder Umstellung, ohne dass etwas Echtes falsch waere. */
+    const bspSofort = VCLADEN.find((a) => !a.vorrat && !a.dauer);
+    const bspDauernd = VCLADEN.find((a) => !a.vorrat && a.dauer === 1);
+    const bspVorrat = VCLADEN.find((a) => a.vorrat);
+    if (!bspSofort || !bspDauernd || !bspVorrat)
+      zeige("Kaufmodell", "im Laden fehlt eine der drei Arten — die Pruefung deckt sie nicht mehr ab: "
+        + (bspSofort ? "" : "sofort ") + (bspDauernd ? "" : "dauernd ") + (bspVorrat ? "" : "vorrat"));
     const faelle = [
       /* Artikel, Bestand, kaufbar?, warum */
-      ["läuft gerade",        art("training"), { training: 1 }, false],
-      ["abgelaufen",          art("training"), { training: 0 }, true],
-      ["nie gekauft",         art("training"), {},              true],
-      ["Sofortwirkung",       art("physio"),   { physio: 1 },   true],
-      ["Sofortwirkung zwei",  art("trainer"),  {},              true],
-      ["Vorrat stapelt",      art("reroll"),   { reroll: 3 },   true],
+      ["läuft gerade",        bspDauernd, { [bspDauernd.id]: 1 }, false],
+      ["abgelaufen",          bspDauernd, { [bspDauernd.id]: 0 }, true],
+      ["nie gekauft",         bspDauernd, {},                     true],
+      ["Sofortwirkung",       bspSofort,  {},                     true],
+      /* Ein Sofortartikel bleibt auch dann kaufbar, wenn aus einer alten
+         Sicherung noch ein Zaehler danebensteht. Genau das war der Fehler
+         aus 34.21, nur andersherum. */
+      ["Sofortwirkung mit Altwert", bspSofort, { [bspSofort.id]: 1 }, true],
+      ["Vorrat stapelt",      bspVorrat,  { [bspVorrat.id]: 3 },   true],
       ["lange Dauer läuft",   art("ueber99"),  { ueber99: 2 },  false],
       ["lange Dauer vorbei",  art("ueber99"),  { ueber99: 0 },  true],
+      /* Der Physio namentlich, weil sich seine Art in 35.42 geaendert hat:
+         eine Saison lang gesperrt, danach wieder zu haben. */
+      ["Physio läuft",        art("physio"),   { physio: 1 },   false],
+      ["Physio abgelaufen",   art("physio"),   { physio: 0 },   true],
     ];
     let stimmt = 0;
     faelle.forEach(([n, a, L, soll]) => {
@@ -480,7 +1110,7 @@ console.log("\n=== Vermächtnis-Laden ===");
     /* Sofortwirkungen dürfen NICHTS hinterlassen — sonst blockieren sie sich
        selbst, obwohl sie längst gewirkt haben. */
     const sofort = VCLADEN.filter((a) => !a.vorrat && !a.dauer).map((a) => a.id);
-    if (!sofort.length) zeige("Kaufmodell", "kein Artikel wirkt sofort — physio und trainer fehlen");
+    if (!sofort.length) zeige("Kaufmodell", "kein Artikel im Laden wirkt sofort");
     else ok++;
 
     /* Jeder Artikel muss genau EINE Art haben. Ein Artikel ohne Dauer und
@@ -1173,6 +1803,71 @@ console.log("\n=== Vier gemeldete Fehler ===");
     const zweit = Object.keys(STUFEN).filter((k) => STUFEN[k].colK !== undefined);
     if (zweit.length) zeige("Ränge", "zweite Farbe colK ist zurück: " + zweit.join(", "));
     else ok++;
+  }
+
+  /* ---- Akademie-Herkunft im Karriere-Rückblick (35.32) -----------------
+     Die Karte "Deine Stärke" nennt seit 35.32, was die Akademie diesem
+     Spieler mitgegeben hat. Geprüft wird in BEIDE Richtungen: mit reifer
+     Akademie MUSS die Zeile stehen, ohne Akademie darf sie NICHT stehen.
+
+     Warum beides: eine Prüfung, die nur das Vorhandensein zeigt, bliebe auch
+     dann grün, wenn die Bedingung wegfällt und die Zeile immer gezeichnet
+     wird. Dann stünde bei jeder ERSTEN Laufbahn "aus deiner Akademie:" mit
+     nichts dahinter — und genau das fällt einem Absturztest nie auf.
+
+     Die dritte Probe ist der alte Spielstand: `p.aka` gab es nicht immer.
+     Fehlt das Feld, muss die Karte trotzdem zeichnen. */
+  {
+    const bisStaerke = (r) => {
+      for (let k = 0; k < 12; k++) {
+        const alle = [...r.div.querySelectorAll(".karteikarte")]
+          .filter((x) => x.getAttribute("aria-hidden") !== "true");
+        const karte = alle[alle.length - 1];
+        if (karte && /Deine Stärke/.test(karte.textContent || "")) return karte;
+        const sch = r.div.querySelector(".rs-schleier");
+        if (!sch) return null;
+        act(() => { sch.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+      }
+      return null;
+    };
+    const staerkeText = (name, q) => {
+      const r = mach(name, <KarriereRueckblick p={q} onFertig={() => {}} />);
+      if (!r) return null;
+      const karte = bisStaerke(r);
+      if (!karte) { zeige("Rückblick", name + ": die Karte „Deine Stärke“ war nicht erreichbar"); return null; }
+      return karte.textContent || "";
+    };
+
+    const mitAka = laufbahn(reif);
+    const AKm = akaVerbuchen(reif, vcFuer(mitAka));
+    mitAka.akaName = AKm.a.name;
+    const t1 = staerkeText("Rückblick mit Akademie", mitAka);
+    if (t1 !== null) {
+      const posten = akaBonusText(mitAka.aka || {});
+      if (!posten.length) zeige("Rückblick", "die reife Prüfakademie gibt gar nichts mit — die Probe prüft nichts");
+      else if (t1.indexOf("aus " + AKm.a.name) < 0)
+        zeige("Rückblick", "mit Akademie fehlt die Herkunftszeile auf „Deine Stärke“");
+      else if (posten.some((x) => t1.indexOf(x) < 0))
+        zeige("Rückblick", "die Herkunftszeile lässt Posten aus: " + posten.filter((x) => t1.indexOf(x) < 0).join(", "));
+      else ok++;
+      console.log("  Rückblick       Akademieherkunft: " + posten.join(" · "));
+    }
+
+    const ohneAka = laufbahn(null);
+    const t2 = staerkeText("Rückblick ohne Akademie", ohneAka);
+    if (t2 !== null) {
+      if (/aus .*Anlage \+/.test(t2) || t2.indexOf("aus deiner Akademie") >= 0)
+        zeige("Rückblick", "ohne Akademie steht die Herkunftszeile trotzdem da");
+      else ok++;
+    }
+
+    const alterStand = laufbahn(null); delete alterStand.aka;
+    const t3 = staerkeText("Rückblick ohne Feld p.aka", alterStand);
+    if (t3 !== null) {
+      if (t3.indexOf("aus deiner Akademie") >= 0)
+        zeige("Rückblick", "ohne das Feld p.aka wird die Herkunftszeile trotzdem gezeichnet");
+      else ok++;
+    }
   }
 
   /* ---- Rückblick als Karteikarte (34.26) -------------------------------
