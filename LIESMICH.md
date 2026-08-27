@@ -7,6 +7,7 @@
     App.jsx                 das ganze Spiel
     ereignisse.js           die 518 Ereignisse, ausgelagert seit 35.6
     verein.js               der eigene Verein, ausgelagert seit 35.17
+    namen.js          die Namenskartei, ein Eintrag je Land (seit 35.43)
     schriften.js            Anton und Archivo als Base64, 128 KB
     schriften-lizenz.txt    SIL OFL — muss mit der App ausgeliefert werden
 
@@ -63,6 +64,8 @@ automatisch — die Übrigen beantworten Fragen, die er strukturell nicht kann:
                       Einschreiben. Nur bei ERSTSTART=1, nie in der APK
     argumente.cjs     ein Muster für alle Werkzeuge: --quelle= --ziel=
                       --anzahl=; fehlt die Quelle, wird abgebrochen
+    namenpruefung.cjs Abdeckung und Herkunft der Namenskartei
+                      node pruefstand/namenpruefung.cjs --quelle=App.jsx
     stimmigkeit.cjs   prüft alle Ereignisse: wirkt jede Wahl, ist jede
                       erreichbar, passt das Ereignis zum Moment
                       node pruefstand/stimmigkeit.cjs [--alle]

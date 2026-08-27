@@ -3,14 +3,15 @@ import { store } from "./storage.js";
 import { SCHRIFTEN } from "./schriften.js";
 import { machEreignisse } from "./ereignisse.js";
 import { machVerein } from "./verein.js";
+import { machNamen } from "./namen.js";
 
 /* ================================================================
    FLUTLICHT v4 — Karriere-Simulator
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "35.42";
-const VERSION_INFO = "Der Abschluss ist aufgeräumt: Zahlen in Reitern, der Knopf immer in Reichweite.";
+const VERSION = "35.43";
+const VERSION_INFO = "Namen nach Land statt nach Sprachraum — kein Chinese heißt mehr Lukas.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -3162,7 +3163,105 @@ NP.tk = [["Eldor","Jaloliddin","Otabek","Azizbek","Sardor","Islom","Rustam","Bek
 NP.oc = [["Roy","Tevita","Sione","Jale","Nickel","Bill","Kaltack","Tomasi","Alvin","Emmanuel","Raymond","Micah","Joses","Manasa","Setareki","Ratu"],
   ["Krishna","Fifita","Tuiloma","Naicker","Chichirua","Kaltack","Gete","Cama","Singh","Kaiko","Hughes","Nawo","Tass","Radrodro","Bale","Vodo"]];
 
+/* Die Laenderkartei aus namen.js. Wer dort einen Eintrag hat, bekommt seine
+   eigenen Namen; wer nicht, faellt auf den Sprachraum in NP zurueck — wie
+   bisher. So wachsen die Laender einzeln herein, ohne dass zwischendurch
+   irgendwo ein leerer Name entsteht. */
+const KARTEI = machNamen();
+
+/* Baut einen Namen nach der Ordnung des Landes. Ostasien setzt den
+   Familiennamen VORAN, Spanien und Portugal haengen zwei Nachnamen an,
+   Malaysia schiebt `bin` dazwischen. Ein einziges "Vorname Nachname" fuer
+   alle waere fuer die Haelfte der Welt falsch. */
+function nameAus(e, g) {
+  /* Vielvoelkerstaaten haben mehrere Namenswelten NEBENEINANDER, nicht
+     durcheinander. Wuerfelt man Vor- und Nachnamen frei aus einem Topf, kommt
+     „Siyabonga van Wyk" heraus — ein Zulu-Vorname mit afrikaansem
+     Familiennamen. Das gibt es, aber nicht in jedem zweiten Fall.
+
+     `gruppen` haelt die Welten getrennt: erst eine Gruppe ziehen, dann darin
+     Vor- UND Nachname. Suedafrika hat vier, Nigeria drei, Trinidad zwei.
+     Wer keine Gruppen hat, benutzt wie bisher die flachen Listen. */
+  const q = (e.gruppen && e.gruppen.length) ? pick(e.gruppen) : e;
+  const vor = pick((g === "w" ? q.w : q.v) || q.v || (g === "w" ? e.w : e.v) || e.v || [""]) || "";
+  let nach = pick(q.n || e.n || [""]) || "";
+  /* Slawische Nachnamen haben eine weibliche Form, und zwar je Sprache eine
+     ANDERE. Mein erster Entwurf kannte nur die russische und lieferte
+     „Anna Kowalski" und „Petra Cerny" — beides gibt es nicht.
+
+       nw:"a"    russisch, bulgarisch, ukrainisch, zentralasiatisch
+                 Smirnov -> Smirnova; nur bei -ov/-ev/-in
+       nw:"ski"  polnisch: die Endung ist ein Adjektiv und wird gebeugt
+                 Kowalski -> Kowalska, Nowak bleibt Nowak
+       nw:"ova"  tschechisch und slowakisch
+                 Novak -> Novakova, aber Cerny -> Cerna (Adjektiv)
+
+     Im Suedslawischen (Kovacevic, Modric) aendert sich nichts — deshalb
+     tragen Serbien, Kroatien, Bosnien und Slowenien kein `nw`. */
+  if (g === "w" && e.nw) {
+    if (e.nw === "a") {
+      /* -ov/-ev/-in bekommen ein -a. Dazu die adjektivischen Endungen des
+         Ukrainischen und Russischen: Zabarnyi -> Zabarna. */
+      if (/(yi|iy|yy)$/.test(nach)) nach = nach.replace(/(yi|iy|yy)$/, "a");
+      else if (/(ov|ev|in)$/.test(nach)) nach += "a";
+    } else if (e.nw === "ski") {
+      nach = nach.replace(/ski$/, "ska").replace(/cki$/, "cka").replace(/dzki$/, "dzka");
+    } else if (e.nw === "lv") {
+      /* Lettisch: -s wird zu -a, -is zu -e. Berzins -> Berzina,
+         Kalnins -> Kalnina. Ohne die Regel trugen lettische Frauen die
+         maennliche Form — und meine erste Fassung gab Lettland die
+         russische, die auf -s gar nicht greift. */
+      if (/is$/.test(nach)) nach = nach.replace(/is$/, "e");
+      else if (/s$/.test(nach)) nach = nach.replace(/s$/, "a");
+    } else if (e.nw === "ova") {
+      /* Adjektivische Namen werden gebeugt (Cerny -> Cerna), alle anderen
+         bekommen -ova. Endet der Name auf -a oder -o, faellt die Endung
+         vorher weg: Kucera -> Kucerova, Hancko -> Hanckova. Mein erster
+         Entwurf haengte stumpf an und lieferte „Kuceraova". */
+      if (/(y|ý)$/.test(nach)) nach = nach.replace(/(y|ý)$/, "a");
+      else nach = nach.replace(/[ao]$/, "") + "ova";
+    }
+  }
+  switch (e.bau) {
+    case "V":   return vor;                       // Myanmar kennt keine Familiennamen
+    case "NV":  return (nach + " " + vor).trim();
+    case "VNN": { const z = pick(e.n || [""]);
+                  return (vor + " " + nach + (z && z !== nach ? " " + z : "")).trim(); }
+    case "VMN": return (vor + " " + pick(e.m || [""]) + " " + nach).trim();
+    /* Die Partikel ist geschlechtsabhaengig, und das ist keine Feinheit:
+       malaiisch `bin` heisst "Sohn des", `binti` "Tochter des". Mein erster
+       Entwurf gab Frauen `bin` und obendrein das indischmalaysische `a/l`,
+       das nur fuer Maenner gilt (weiblich waere `a/p`). "Alia a/l Yusof" gibt
+       es nicht. */
+    case "VpN": {
+      /* Die Partikel darf LEER sein — im Niederlaendischen heisst nur ein Teil
+         der Namen „van" oder „de", der Rest gar nichts. Ein Leereintrag in der
+         Liste bildet das ab, hinterliess aber einen doppelten Abstand
+         („Jurrien  Blind"). Deshalb wird hier gefiltert statt stumpf
+         zusammengesetzt. */
+      const par = pick((g === "w" && e.mw) ? e.mw : e.m || [""]) || "";
+      /* Island haengt das Patronym OHNE Abstand an: Sigurds + son =
+         Sigurdsson. `anhang` unterscheidet das vom niederlaendischen „van",
+         das getrennt steht. */
+      if (e.anhang) return (vor + " " + nach + par).trim();
+      return [vor, par, nach].filter(Boolean).join(" ");
+    }
+    default:    return (vor + " " + nach).trim();
+  }
+}
+
 const genName = (cc, g) => {
+  const e = KARTEI[cc];
+  /* Die Weiche prueft `n` ODER `gruppen`. Mein erster Entwurf fragte nur nach
+     `e.n` — Eintraege mit Gruppen haben aber keine flache Nachnamenliste, und
+     Suedafrika, Nigeria und Neuseeland fielen still auf den englischen
+     Sprachraum zurueck. „Siyabonga van Wyk" war behoben, dafuer hiess der
+     Suedafrikaner wieder Nathan Doyle. Eine Weiche, die den halben Fall
+     vergisst, ist schlimmer als keine. */
+  if (e && ((e.n && e.n.length) || (e.gruppen && e.gruppen.length))) {
+    const n = nameAus(e, g);
+    if (n) return n;
+  }
   const r = NP[REGION[cc] || "de"] || NP.de;
   if (g === "w") { const fw = PARTNER_F[REGION[cc] || "de"] || PARTNER_F.de; return pick(fw) + " " + pick(r[1]); }
   return pick(r[0]) + " " + pick(r[1]);
@@ -3170,9 +3269,21 @@ const genName = (cc, g) => {
 
 const SQUAD_SHAPE = ["TW","TW","IV","IV","IV","AV","AV","ZDM","ZM","ZM","ZOM","AF","AF","ST","ST"];
 function makeSquad(club, g) {
+  /* 35.43: doppelte Namen im selben Kader vermeiden. Gemessen ueber 3.000
+     Kader hatte jeder vierzehnte zwei Spieler mit demselben Namen — bei 15
+     Mann aus meist einem Land ist das Geburtstagsparadoxon, kein Mangel der
+     Kartei. Auffallen tut es trotzdem, und zwar sofort.
+
+     Bis zu acht Versuche je Spieler, dann wird genommen was kommt: eine
+     Endlosschleife waere schlimmer als ein doppelter Name, und bei Myanmar
+     mit vierzig moeglichen Namen kann ein Kader schlicht nicht anders. */
+  const vergeben = new Set();
   return SQUAD_SHAPE.map((pos) => {
     const cc = chance(.4) ? pick(REGION_KEYS) : club.c;
-    return { name: genName(cc, g), pos, cc, ovr: clamp(Math.round(club.s + gauss(-1.5, 5)), 40, 96), age: ri(19, 34) };
+    let name = genName(cc, g);
+    for (let i = 0; i < 8 && vergeben.has(name); i++) name = genName(cc, g);
+    vergeben.add(name);
+    return { name, pos, cc, ovr: clamp(Math.round(club.s + gauss(-1.5, 5)), 40, 96), age: ri(19, 34) };
   }).sort((a, b) => b.ovr - a.ovr);
 }
 const rivalOf = (sq, pos) => sq.filter((x) => x.pos === pos).sort((a, b) => b.ovr - a.ovr)[0] || null;
@@ -3502,11 +3613,36 @@ const NACH = {
 };
 /* Der Vorschlag hängt AN DER KENNUNG, nicht am Zufall: dieselbe Kennung
    liefert denselben Namen, sonst wechselte er bei jedem Tastendruck. */
+/* 35.43: die Erstellung zog ihre Vorschlaege aus VOR_M/VOR_W/NACH — einer
+   ZWEITEN Namensliste mit den alten vierzehn Sprachraeumen. Waehrend Kader
+   und Akademie laengst die Laenderkartei benutzten, hiess der eigene Spieler
+   aus China weiter „Leon Brandt". Ausgerechnet an der sichtbarsten Stelle.
+
+   Jetzt kommt der Vorschlag aus derselben Kartei wie alles andere. Die alten
+   Listen bleiben als Rueckfall stehen: sie decken die vierzehn Raeume ab und
+   springen ein, falls ein Land einmal keine Kartei hat.
+
+   Der Vorschlag muss REPRODUZIERBAR sein — dieselbe Kennung ergibt denselben
+   Namen, sonst wechselte er bei jedem Neuzeichnen der Ansicht. `genName`
+   wuerfelt frei, deshalb wird hier ueber die Kennung indiziert statt gezogen. */
 const namensVorschlag = (natId, g, kennung) => {
+  const h = Math.abs(kennung | 0);
+  const e = KARTEI[natId];
+  if (e) {
+    const gr = (e.gruppen && e.gruppen.length) ? e.gruppen[h % e.gruppen.length] : e;
+    const vl = (g === "w" ? gr.w : gr.v) || gr.v || (g === "w" ? e.w : e.v) || e.v || [];
+    const nl = gr.n || e.n || [];
+    if (vl.length) {
+      const nimm = { ...e, gruppen: null,
+        v: [vl[h % vl.length]], w: [vl[h % vl.length]],
+        n: nl.length ? [nl[(h >> 5) % nl.length]] : [""] };
+      const fertig = nameAus(nimm, g);
+      if (fertig) return fertig;
+    }
+  }
   const r = REGION[natId] || "de";
   const v = (g === "w" ? VOR_W : VOR_M)[r] || (g === "w" ? VOR_W : VOR_M).de;
   const n = NACH[r] || NACH.de;
-  const h = Math.abs(kennung | 0);
   return v[h % v.length] + " " + n[(h >> 5) % n.length];
 };
 

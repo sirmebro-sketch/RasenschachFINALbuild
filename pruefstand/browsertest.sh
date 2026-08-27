@@ -20,7 +20,19 @@ ARBEIT="${ARBEIT:-/tmp/bt}"
 
 rm -rf "$ARBEIT"; mkdir -p "$ARBEIT"; cd "$ARBEIT"
 cp "$QUELLE" App.jsx
-for D in schriften.js ereignisse.js verein.js main.jsx index.html package.json; do
+# 35.43: die Liste der Beidateien wird AUS App.jsx GELESEN, nicht von Hand
+# gepflegt. Als `namen.js` dazukam, stand sie hier nicht drin — der Browsertest
+# baute nicht mehr, und der Fehler kam zwanzig Zeilen spaeter als
+# "ENOENT: dist/index.html", was nach allem aussieht ausser nach einer
+# fehlenden Quelldatei.
+#
+# `storage.js` steht bewusst NICHT in der Liste: der Browsertest ersetzt sie
+# weiter unten durch die localStorage-Fassung. Alles andere, was App.jsx
+# importiert, wird mitgenommen — auch das naechste Modul, das noch niemand
+# geschrieben hat.
+BEIDATEIEN="$(grep -oE 'from "\./[a-zA-Z0-9_]+\.js"' App.jsx | sed 's|from "\./||; s|"$||' | grep -v '^storage\.js$' | sort -u | tr '\n' ' ')"
+echo "Beidateien aus App.jsx: $BEIDATEIEN"
+for D in $BEIDATEIEN main.jsx index.html package.json; do
   [ -f "$QUELLDIR/$D" ] || { echo "FEHLER: $D fehlt neben $QUELLE"; exit 1; }
   cp "$QUELLDIR/$D" .
 done

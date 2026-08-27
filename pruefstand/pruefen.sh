@@ -22,7 +22,7 @@ QUELLDIR="$(cd "$(dirname "$QUELLE")" && pwd)"
 ARBEIT="${ARBEIT:-/home/claude/rs}"
 LAEUFE="${LAEUFE:-6}"
 LAUFBAHNEN="${LAUFBAHNEN:-300}"
-TEILE="${TEILE:-aufbau,kalib,ansicht,ereignis,stimmig,verein,rueck,bau}"
+TEILE="${TEILE:-aufbau,kalib,ansicht,ereignis,stimmig,namen,verein,rueck,bau}"
 hat() { case ",$TEILE," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
 titel() { echo; echo "########## $1 ##########"; }
 FEHLER=0
@@ -93,6 +93,14 @@ if [ -f "$VEREINQUELLE" ]; then
   cp "$VEREINQUELLE" "$BAU/verein.js"; cp "$VEREINQUELLE" "$ARBEIT/verein.js"
 else
   echo "FEHLER: verein.js nicht gefunden neben $QUELLE"; FEHLER=$((FEHLER+1))
+fi
+# namen.js (35.43): die Laenderkartei. Fehlt sie, meldet esbuild nur
+# "Could not resolve" — dieselbe Falle wie bei verein.js und ereignisse.js.
+NAMENQUELLE="$(dirname "$(readlink -f "$QUELLE")")/namen.js"
+if [ -f "$NAMENQUELLE" ]; then
+  cp "$NAMENQUELLE" "$BAU/namen.js"; cp "$NAMENQUELLE" "$ARBEIT/namen.js"
+else
+  echo "FEHLER: namen.js nicht gefunden neben $QUELLE"; FEHLER=$((FEHLER+1))
 fi
 EREIGNISQUELLE="$(dirname "$(readlink -f "$QUELLE")")/ereignisse.js"
 if [ -f "$EREIGNISQUELLE" ]; then
@@ -340,6 +348,22 @@ if [ -f "$BAU/motor.js" ]; then
 else
   echo "########## STIMMIGKEIT ##########"
   echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
+  FEHLER=1
+fi
+fi
+
+# --------------------------------------------------------------------------
+# Namenskartei (35.43): Abdeckung, Herkunftsmarken, brauchbare Namen.
+# Waechst Land fuer Land — ein fehlendes Land ist kein Fehler, ein kaputter
+# Name schon.
+# --------------------------------------------------------------------------
+if hat namen; then
+echo
+if [ -f "$BAU/motor.js" ]; then
+  ( cd "$BAU" && node "$PS/namenpruefung.cjs" --quelle="$ARBEIT/App.jsx" ) || FEHLER=1
+else
+  echo "########## NAMENSKARTEI ##########"
+  echo "ÜBERSPRUNGEN — kein Bündel."
   FEHLER=1
 fi
 fi

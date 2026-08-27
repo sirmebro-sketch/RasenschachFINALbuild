@@ -39,7 +39,7 @@
 > Danach: Langzeitbeobachtung (offener Punkt 13) und die Gestaltungsfragen
 > 1 bis 3 und 5, die alle Augen brauchen statt Messungen.
 
-**Fassung 35.42** · Stand 24. August 2026
+**Fassung 35.43** · Stand 24. August 2026
 
 <!-- VERZEICHNIS -->
 
@@ -49,94 +49,95 @@
 
 | Zeile | Abschnitt |
 |---:|---|
-| 151 | 1. Was das Projekt ist |
-| 223 | 2. Zusammenarbeit |
-| 239 | 3. Was drin ist (Grobüberblick) |
-| 352 | 4. Kalibrierung — worauf eingestellt wurde |
-| 391 | 5. Prüfstand |
-| 460 | 6. Stolperfallen — teuer gelernt |
-| 499 | 7. Was offen ist |
-| 520 | 8. Wie ein neuer Chat anfangen sollte |
-| 596 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
-| 920 | Auf dem Gerät geprüft — 10.8.2026 |
-| 1027 | 34.0 · Die Spielerporträts |
-| 1144 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
-| 1392 | 34.8 · Vier gemeldete Punkte |
-| 1444 | 34.9 · Block A — fünf Fehler im Spielfluss |
-| 1509 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
-| 1564 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
-| 1612 | 34.12 · Block C — Frauenfußball |
-| 1667 | 34.13 · Block D, erster Teil |
-| 1716 | 34.14 · Die Wachstumskurve |
-| 1770 | 34.15 · Die Rückblick-Karten |
-| 1809 | 34.16 · Zwei Fehler aus Kevins Test |
-| 1869 | 34.17 · Die Freischaltungen |
-| 1904 | 34.18 · Der Vermächtnis-Laden |
-| 1972 | 34.19 · Der gekaufte Kartentausch wirkt |
-| 2018 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
-| 2050 | 34.21 · Laden und Zahnrad lagen aufeinander |
-| 2131 | 34.22 · Der Laden rechnet ab, und zwei Texte |
-| 2218 | 34.23 · Jede neue Seite beginnt oben |
-| 2275 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
-| 2347 | 34.25 · Die Ränge der Errungenschaften |
-| 2410 | 34.26 · Der Rückblick liegt auf Karteikarten |
-| 2480 | 34.27 · Drei wirklich runde Kopfformen |
-| 2549 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
-| 2585 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
-| 2652 | 34.30 · Aufräumen nach dem Belastungstest |
-| 2714 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
-| 2760 | 34.32 · Die Wildcard auf hellem Papier |
-| 2798 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
-| 2835 | 34.34 · Drei Meldungen aus dem Spiel |
-| 2890 | 34.35 · Bärte bleiben in der Kopfform |
-| 2923 | Kevins Testprotokoll zu 34.33 — Ergebnis |
-| 2948 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
-| 2996 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
-| 3043 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
-| 3094 | 35.1 · Werkzeugpflege |
-| 3149 | 35.2 · STAND.md hat ein Verzeichnis |
-| 3184 | 35.3 · Eine Regel weniger zum Merken |
-| 3221 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
-| 3329 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
-| 3458 | 35.6 · Die Ereignisse ziehen aus |
-| 3534 | 35.7 · Entscheidungen mit Folgen |
-| 3600 | 35.8 · Deine Werte öffnen Türen |
-| 3676 | 35.9 · Storystränge |
-| 3742 | 35.10 · Der Anfang war die engste Stelle |
-| 3815 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
-| 3879 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
-| 3946 | 35.13 · Die Akademie wird größer |
-| 4032 | 35.14 · Antworten, die nur manchmal da sind |
-| 4102 | 35.15 · Vier Geschichten statt einer |
-| 4154 | 35.16 · Vierundzwanzig weitere Male anders |
-| 4219 | 35.17 · Der eigene Verein — Durchstich |
-| 4313 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
-| 4375 | 35.19 · Die Akademie wird zeitlos |
-| 4420 | 35.20 · Der Verein bekommt ein Gesicht |
-| 4484 | 35.21 · Der Verein ist erreichbar |
-| 4534 | 35.22 · Was hier stand, stimmte nicht mehr |
-| 4620 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
-| 4726 | 35.24 · Durchsicht des ganzen Projektwissens |
-| 4837 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
-| 4908 | 35.26 · Das Tutorial |
-| 5010 | 35.27 · Erster Gerätetest des Vereinsmodus |
-| 5093 | 35.28 · Der Verein läuft nebenher |
-| 5209 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
-| 5287 | 35.30 · Die Bauanleitung war unvollständig |
-| 5446 | 35.31 · Die Moral steht in der Anleitung — und liefert ande… |
-| 5536 | 35.32 · Die Akademie steht im Rückblick |
-| 5641 | 35.33 · Die Ruhmeshalle war nie geprüft |
-| 5720 | 35.34 · Jugendturniere bekommen Namen und Gegner |
-| 5858 | 35.35 · Drei Flaggen bekommen Folgen |
-| 5973 | 35.36 · Die letzten zwei Flaggen bekommen Inhalt |
-| 6067 | 35.37 · Ereignisse, die zum falschen Moment kommen |
-| 6219 | 35.38 · Der Kapitän spricht nicht mehr mit sich selbst |
-| 6329 | 35.39 · Die Akademie zahlt früher — und sagt es |
-| 6442 | 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe |
-| 6524 | 35.41 · Werkzeugkasten aufgeräumt |
-| 6632 | 35.42 · Der Abschlussbildschirm wird übersichtlich |
-| 6754 | Offene Punkte (Stand 35.42) |
-| 6978 | Zusätzliche Stolperfallen |
+| 152 | 1. Was das Projekt ist |
+| 224 | 2. Zusammenarbeit |
+| 240 | 3. Was drin ist (Grobüberblick) |
+| 353 | 4. Kalibrierung — worauf eingestellt wurde |
+| 392 | 5. Prüfstand |
+| 461 | 6. Stolperfallen — teuer gelernt |
+| 500 | 7. Was offen ist |
+| 521 | 8. Wie ein neuer Chat anfangen sollte |
+| 597 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
+| 921 | Auf dem Gerät geprüft — 10.8.2026 |
+| 1028 | 34.0 · Die Spielerporträts |
+| 1145 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
+| 1393 | 34.8 · Vier gemeldete Punkte |
+| 1445 | 34.9 · Block A — fünf Fehler im Spielfluss |
+| 1510 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
+| 1565 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
+| 1613 | 34.12 · Block C — Frauenfußball |
+| 1668 | 34.13 · Block D, erster Teil |
+| 1717 | 34.14 · Die Wachstumskurve |
+| 1771 | 34.15 · Die Rückblick-Karten |
+| 1810 | 34.16 · Zwei Fehler aus Kevins Test |
+| 1870 | 34.17 · Die Freischaltungen |
+| 1905 | 34.18 · Der Vermächtnis-Laden |
+| 1973 | 34.19 · Der gekaufte Kartentausch wirkt |
+| 2019 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
+| 2051 | 34.21 · Laden und Zahnrad lagen aufeinander |
+| 2132 | 34.22 · Der Laden rechnet ab, und zwei Texte |
+| 2219 | 34.23 · Jede neue Seite beginnt oben |
+| 2276 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
+| 2348 | 34.25 · Die Ränge der Errungenschaften |
+| 2411 | 34.26 · Der Rückblick liegt auf Karteikarten |
+| 2481 | 34.27 · Drei wirklich runde Kopfformen |
+| 2550 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
+| 2586 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
+| 2653 | 34.30 · Aufräumen nach dem Belastungstest |
+| 2715 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
+| 2761 | 34.32 · Die Wildcard auf hellem Papier |
+| 2799 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
+| 2836 | 34.34 · Drei Meldungen aus dem Spiel |
+| 2891 | 34.35 · Bärte bleiben in der Kopfform |
+| 2924 | Kevins Testprotokoll zu 34.33 — Ergebnis |
+| 2949 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
+| 2997 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
+| 3044 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
+| 3095 | 35.1 · Werkzeugpflege |
+| 3150 | 35.2 · STAND.md hat ein Verzeichnis |
+| 3185 | 35.3 · Eine Regel weniger zum Merken |
+| 3222 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
+| 3330 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
+| 3459 | 35.6 · Die Ereignisse ziehen aus |
+| 3535 | 35.7 · Entscheidungen mit Folgen |
+| 3601 | 35.8 · Deine Werte öffnen Türen |
+| 3677 | 35.9 · Storystränge |
+| 3743 | 35.10 · Der Anfang war die engste Stelle |
+| 3816 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
+| 3880 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
+| 3947 | 35.13 · Die Akademie wird größer |
+| 4033 | 35.14 · Antworten, die nur manchmal da sind |
+| 4103 | 35.15 · Vier Geschichten statt einer |
+| 4155 | 35.16 · Vierundzwanzig weitere Male anders |
+| 4220 | 35.17 · Der eigene Verein — Durchstich |
+| 4314 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
+| 4376 | 35.19 · Die Akademie wird zeitlos |
+| 4421 | 35.20 · Der Verein bekommt ein Gesicht |
+| 4485 | 35.21 · Der Verein ist erreichbar |
+| 4535 | 35.22 · Was hier stand, stimmte nicht mehr |
+| 4621 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
+| 4727 | 35.24 · Durchsicht des ganzen Projektwissens |
+| 4838 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
+| 4909 | 35.26 · Das Tutorial |
+| 5011 | 35.27 · Erster Gerätetest des Vereinsmodus |
+| 5094 | 35.28 · Der Verein läuft nebenher |
+| 5210 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
+| 5288 | 35.30 · Die Bauanleitung war unvollständig |
+| 5447 | 35.31 · Die Moral steht in der Anleitung — und liefert ande… |
+| 5537 | 35.32 · Die Akademie steht im Rückblick |
+| 5642 | 35.33 · Die Ruhmeshalle war nie geprüft |
+| 5721 | 35.34 · Jugendturniere bekommen Namen und Gegner |
+| 5859 | 35.35 · Drei Flaggen bekommen Folgen |
+| 5974 | 35.36 · Die letzten zwei Flaggen bekommen Inhalt |
+| 6068 | 35.37 · Ereignisse, die zum falschen Moment kommen |
+| 6220 | 35.38 · Der Kapitän spricht nicht mehr mit sich selbst |
+| 6330 | 35.39 · Die Akademie zahlt früher — und sagt es |
+| 6443 | 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe |
+| 6525 | 35.41 · Werkzeugkasten aufgeräumt |
+| 6633 | 35.42 · Der Abschlussbildschirm wird übersichtlich |
+| 6755 | 35.43 · Namen nach Land statt nach Sprachraum |
+| 6960 | Offene Punkte (Stand 35.43) |
+| 7184 | Zusätzliche Stolperfallen |
 
 <!-- ENDE VERZEICHNIS -->
 
@@ -6751,7 +6752,212 @@ Breiten.
 Bündel **1.208,89 kB** / 441,37 kB gepackt, vorher 1.207,10 / 440,80 —
 **+1,79 kB**.
 
-## Offene Punkte (Stand 35.42)
+## 35.43 · Namen nach Land statt nach Sprachraum
+
+Kevins Wunsch: **jedes Land im Spiel bekommt eine eigene Namenskartei**, nach
+den dort häufigsten Vor- und Nachnamen. Seine drei Beispiele stimmten alle
+drei — und der gemessene Zustand war schlimmer als der Wunsch vermuten liess.
+
+### Der Ausgangszustand
+212 Nationen hingen an **21 Sprachräumen**, von denen **sieben leer waren**.
+46 Nationen fielen auf die deutsche Liste zurück:
+
+| Raum | Nationen | Betroffen |
+|---|---|---|
+| `oc` | 15 | Fidschi, Papua-Neuguinea, Samoa, Tonga |
+| `se` | 10 | Indonesien, Thailand, Vietnam, Philippinen |
+| `in` | 7 | Indien, Bangladesch, Nepal, Sri Lanka |
+| `tk` | 6 | Kasachstan, Usbekistan, Aserbaidschan |
+| `cn` | 5 | China, Hongkong, Taipeh, Macau |
+| `fa` | 2 | Iran, Afghanistan |
+| `he` | 1 | Israel |
+
+**Ein Chinese hiess Lukas Brandt.** Dazu drei Schnitte, die sachlich falsch
+waren: Korea lag mit Japan in einem Raum (ein Südkoreaner hiess *Sota
+Nakagawa*), Finnland und Estland mit Skandinavien (nicht einmal verwandte
+Sprachfamilien), und das anglophone wie frankophone Afrika trug die
+Kolonialsprache statt eigener Namen — ein Nigerianer hiess *Harry Whitmore*,
+ein Senegalese *Théo Delaunay*.
+
+### Gebaut: `namen.js`
+Eine eigene Datei neben `ereignisse.js` und `verein.js`, ein Eintrag je Land.
+**212 von 212, 10.012 Namen.** Länder, die sich eine Namenskultur wirklich
+teilen, zeigen mit `erbt` auf eine gemeinsame Grundmenge — Antigua und Barbados
+teilen sich das anglokaribische Erbe, das ist die Sache selbst und keine
+Nachlässigkeit. Erfundene Unterschiede wären schlimmer als ehrlich geteilte
+Listen.
+
+### Die Ordnung folgt dem Land, nicht der Vorgabe
+| Regel | Wo | Beispiel |
+|---|---|---|
+| `NV` | Ostasien, Ungarn | Kato Shunsuke, Szoboszlai Dominik |
+| `VNN` | Spanisch, Portugiesisch, Philippinen | Alejandro Martin Moreno |
+| `VMN` | Somalia, Südsudan | Yusuf Ali Dahir |
+| `VpN` | Malaysia, Golf, Island | Ali Al Dawsari, Faisal bin Rasid |
+| `V` | Myanmar, Brasilien | Aung Thu, Neymar |
+| `gruppen` | Vielvölkerstaaten | siehe unten |
+| `nw` | slawisch und baltisch | vier Beugungen |
+
+**Island** haengt das Patronym ohne Abstand an und ist geschlechtsabhängig:
+`Sigurds` + `son` bzw. `dottir`. **Myanmar** kennt keine Familiennamen — der
+ganze Name ist EIN Eintrag.
+
+### Namensgruppen: die wichtigste Einsicht der Fassung
+Beim Durchsehen der ersten Ergebnisse stand da **„Siyabonga van Wyk“** — ein
+Zulu-Vorname mit afrikaansem Familiennamen. Frei aus einem Topf gewürfelt kommt
+so etwas in jedem zweiten Fall heraus.
+
+`gruppen` hält die Namenswelten getrennt: erst eine Gruppe ziehen, **dann darin
+Vor- UND Nachname**. Südafrika hat vier (Nguni, Sotho, Afrikaans,
+Englisch/Coloured), Nigeria vier (Yoruba, Igbo, Hausa, landesweit), dazu
+Belgien, Schweiz, Trinidad, Neuseeland, Angola, Mauritius, Fidschi.
+
+### Die Herkunftsmarke — und warum sie da ist
+Ich kenne die häufigsten Namen von Deutschland, Brasilien, Japan und Nigeria
+belastbar. Von Tuvalu, Nauru, Bhutan und den Komoren nicht. **Wer dort
+plausibel klingende Namen erfindet, baut etwas, das authentisch AUSSIEHT und
+es nicht ist — und das fällt danach niemandem mehr auf.**
+
+Jeder Eintrag trägt deshalb `q`:
+
+| | | |
+|---|---|---|
+| **87** | `q:3` | gesichert |
+| **85** | `q:2` | regional abgeleitet — Sprachfamilie stimmt, Häufigkeit ungeprüft |
+| **40** | `q:1` | **dünn** — namentlich im Prüfbericht |
+
+Die 40 stehen als Luecke da, bis jemand mit besserer Quelle sie schliesst. Eine
+Kartei ohne Marke meldet `namenpruefung.cjs` als **harten Fehler**: eine
+Behauptung ohne Angabe, woher sie kommt.
+
+### Alle vier Einsatzorte — und der, der fehlte
+| Stelle | Was |
+|---|---|
+| `makeSquad` | 15 Mitspieler bei jedem Vereinswechsel |
+| Zeile 5138 | Nachrücker während der Saison |
+| `talentBauen` | jeder Akademiejahrgang |
+| `namensVorschlag` | **die Erstellung — hing an einer ZWEITEN Liste** |
+
+Kevins Nachfrage hat den letzten aufgedeckt. `VOR_M`/`VOR_W`/`NACH` waren eine
+getrennte Namensliste mit den alten vierzehn Räumen; während Kader und
+Akademie längst die Kartei benutzten, hiess der eigene Spieler aus China weiter
+„Leon Brandt“ — **ausgerechnet an der sichtbarsten Stelle**. Der Vorschlag muss
+dabei reproduzierbar bleiben (sonst wechselte er bei jedem Neuzeichnen), deshalb
+wird über die Kennung indiziert statt gezogen.
+
+### Genug Kombinationen?
+| | vorher | nachher |
+|---|---|---|
+| Kader mit doppeltem Namen (3.000 Kader) | **7,30 %** | **0,00 %** |
+| Akademie, verschiedene Namen | — | **99,4 %** (155 von 156) |
+| Myanmar, mögliche Namen | 16 | **40** |
+
+`makeSquad` versucht bis zu achtmal, einen freien Namen zu ziehen. Nicht öfter:
+eine Endlosschleife wäre schlimmer als ein doppelter Name, und bei Myanmar mit
+vierzig möglichen Namen kann ein Kader schlicht nicht anders.
+
+### ZEHN eigene Fehler, alle beim Durchsehen gefunden
+Keinen davon hat der Prüfstand gemeldet — sie kamen alle vom Lesen der
+erzeugten Namen.
+
+| | Fehler |
+|---|---|
+| 1 | „Alia **a/l** Yusof“ — die Partikel ist männlich, Frauen tragen `binti` |
+| 2 | „Malika **Toshmatov**“ — zentralasiatische Nachnamen haben eine weibliche Form |
+| 3 | **Gruppeneinträge fielen still auf Englisch zurück** — die Weiche prüfte nur `e.n` |
+| 4 | „Anna **Kowalski**“ — nur die russische Beugung gekannt |
+| 5 | „**Kuceraova**“ — bei `-a`/`-o` fällt die Endung weg |
+| 6 | „Jurrien**··**Blind“ — leere Partikel hinterliess doppelten Abstand |
+| 7 | „**Xavi van Jong**“ — die Partikel gehört zum konkreten Namen, nicht zufällig davor |
+| 8 | Polen trug die **russische** Regel, die auf `-ski` gar nicht greift |
+| 9 | Lettisch fehlte ganz (`Berzins` → `Berzina`) |
+| 10 | doppelter Export brach den Bau ab — **und ich habe die Ausgabe unterdrückt** |
+
+**Nummer 3 ist die lehrreichste.** Die Probe „liefert jedes Land einen Namen?“
+blieb **grün**, weil einer herauskam — nur der falsche. Sie prüft jetzt, ob der
+Name **aus der eigenen Kartei** stammt. Gegenprobe: Weiche zurückgedreht → drei
+harte Fehler.
+
+**Nummer 10 ist die peinlichste**, weil sie seit 35.37 dokumentiert ist: ich
+habe `TEILE=aufbau … >/dev/null` gefahren, den Abbruch nicht gesehen und
+zwanzig Minuten gegen ein altes Bündel gemessen. **Zweimal an einem Tag.**
+
+### Zwei Messfehler in meinen eigenen Zahlen
+Meine erste Akademiezahl lautete **27,9 % verschiedene Namen** — ich hatte
+dieselben Talente in jedem Jahrgang neu gezählt. Richtig gemessen, nur neue
+Aufnahmen: **99,4 %**. Und die erste Prüfung meldete Myanmar als kaputt, weil
+sie nach einem Nachnamen suchte, den es dort nicht gibt — und weil sie
+„Aung Thu“ in zwei Wörter zerlegte, die einzeln nirgends stehen.
+
+### Der Fehler, den erst `sicht.sh` gefunden hat
+Der Prüfstand war grün, `sicht.sh` brach mit Code 2 ab:
+
+```
+Error: ENOENT: no such file or directory, open '/tmp/…/dist/index.html'
+```
+
+Eine Meldung, die nach allem aussieht ausser nach der Ursache. Die war:
+**`browsertest.sh` kopierte `namen.js` nicht mit.** Seine Liste der Beidateien
+stand von Hand im Skript — `schriften.js ereignisse.js verein.js main.jsx
+index.html package.json` — und ein neues Modul steht dort nicht drin.
+
+Nur `namen.js` nachzutragen hätte den nächsten Fall nicht verhindert. Die Liste
+wird jetzt **aus `App.jsx` gelesen**:
+
+```sh
+BEIDATEIEN="$(grep -oE 'from "\./[a-zA-Z0-9_]+\.js"' App.jsx \
+  | sed 's|from "\./||; s|"$||' | grep -v '^storage\.js$' | sort -u | tr '\n' ' ')"
+```
+
+`storage.js` bleibt ausgenommen — der Browsertest ersetzt sie durch die
+localStorage-Fassung. Alles andere kommt mit, auch das nächste Modul, das noch
+niemand geschrieben hat.
+
+**Gegenprobe:** `namen.js` entfernt → `FEHLER: namen.js fehlt neben …` statt
+zwanzig Zeilen später ein ENOENT auf `dist/index.html`.
+
+### Zwei weitere eigene Fehler, beide beim Reparieren
+**Meine erste Ableitung lieferte eine leere Liste.** Die doppelten Rückstriche
+aus dem Bearbeitungsskript machten das `sed`-Muster unbrauchbar. Und `sicht.sh`
+lief trotzdem **grün** — weil `namen.js` aus einem früheren Lauf noch im
+Arbeitsverzeichnis lag. Ein grüner Lauf auf einem nicht aufgeräumten
+Verzeichnis beweist nichts; die Ableitung wurde erst danach einzeln geprüft
+und war leer.
+
+**Und noch eine Pfadkollision.** `sicht.sh` schreibt die Browsertestausgabe nach
+`"$ARBEIT.log"`. Ich hatte `ARBEIT=/tmp/sfin4` gesetzt und die Ausgabe von
+`sicht.sh` selbst nach `/tmp/sfin4.log` umgeleitet — dieselbe Datei. Heraus kam
+`grep: input file is also the output` mitten im Bericht. Dieselbe Familie wie
+ARBEIT gegen BAU in 35.37, nur eine Ebene tiefer.
+
+### Neues Werkzeug: `namenpruefung.cjs`
+Eigene Phase `namen` im Prüfstand. Vier Proben: Abdeckung, Herkunftsmarken,
+brauchbare Namen (männlich UND weiblich, ohne Leerstellen und doppelte
+Abstände), und ob zwei Länder versehentlich identisch sind.
+
+Ein fehlendes Land ist **kein** Fehler, solange die Kartei wächst — hart sind
+nur ein kaputter Name, ein Land das seine Kartei nicht benutzt, und eine Kartei
+ohne Herkunftsmarke.
+
+### Gegenproben
+| Eingriff | Ergebnis |
+|---|---|
+| Gruppenweiche zurück auf nur `e.n` | ✗ NZL, NGA, RSA: „nur 0 von 30 Namen aus der eigenen Kartei“ |
+| Namensgruppen ignoriert | ✗ dieselben drei |
+| Herkunftsmarke bei Nigeria entfernt | ✗ 1 harter Fehler |
+
+### Geprüft
+Namenskartei: **212 von 212 Nationen = 100 %**, 4 Proben ohne Befund, 0 harte
+Fehler. 10.012 Namen · 61.176 Kombinationen · 87 gesichert, 85 abgeleitet,
+40 dünn.
+Prüfstand gesamt: **563 Ansichten**, 0 Fehler, alle vier Zielbänder,
+6 × 63 rückwärts, 11 Ereignisprüfungen, 56 Vereinsprüfungen,
+Stimmigkeit 16 Proben ohne Befund.
+Kaderüberschneidung: **7,30 % → 0,00 %** bei 3.000 Kadern.
+Bündel **1.294,77 kB** / 477,18 kB gepackt, vorher 1.208,89 / 441,37 —
+**+85,88 kB**. Das sind die 10.012 Namen.
+
+## Offene Punkte (Stand 35.43)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
