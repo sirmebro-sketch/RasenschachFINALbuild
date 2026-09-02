@@ -6,14 +6,15 @@ import App, {
   kopfPfad,
   drawWildcard, LAUFBAHN_MAX,
   MenuScreen, EndScreen, AkademieScreen, TalentZeile, WildcardEnthuellung, Balken,
-  AusbauRing, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, WildcardCard,
+  AusbauRing, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, META, WildcardCard,
+  RAHMEN, grundAufhellen, kontrast, haarDunkelste, GRUND_MIN, mischFarbe, HAIRC,
   AchievementScreen, Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass,
   Willkommen, WILLKOMMEN, FreiHinweis, leerGesehen,
   VCLADEN, SHOP_BILD, shopFuer, ladenGesperrt, ladenKaufbar, VCLadenAnsicht, tauschRest,
   rerollWildcard, rahmenFuer, rahmenOffen, ZURUECK, namensVorschlag, ANLEITUNG, EVENTS,
   weiblichForm, evText, autoTraining, TRAINING, AK, zuegeAusKennung, zugDrehen,
   ZUEGE_ANZAHL, AUGENFARBE, KOPFFORM, hautBereich, haarBereich, AKA_MAX, leereBilanz,
-  Wappen, Trikot, VereinGruenden, VereinScreen, VereinAbschluss,
+  Wappen, Trikot, VereinGruenden, VereinScreen, VereinAbschluss, VereinDach,
   WAPPEN_FORMEN, WAPPEN_ZEICHEN, TRIKOT_MUSTER, VEREIN,
   hsvChance, roleFor, bilanzErgaenzen, nochGueltig, akaNaechsteGabe,
   setSpeedmodus, setSchwierigkeit, akaStufe, akaSumme, akaRestkosten, leereAkademie, akaGruenden, akaJahr, AKA_FARBE,
@@ -109,6 +110,96 @@ mach("Akademie · nur Name und Jahr", <AkademieScreen aka={{ name:"X", gegruende
 mach("Akademie · Bilanz halb", <AkademieScreen aka={{ name:"X", gegruendet:2026, jahr:2032, vc:12, bilanz:{ profis:3 } }} onKauf={()=>{}} onGruenden={()=>{}} onBack={()=>{}} />);
 mach("Akademie · Stufen halb", <AkademieScreen aka={{ name:"X", gegruendet:2026, jahr:2032, stufen:{ plaetze:4 } }} onKauf={()=>{}} onGruenden={()=>{}} onBack={()=>{}} />);
 
+/* Verwaltung im Jahrgang (35.61) — durchgeklickt, nicht nur gerendert.
+   Geprueft wird, dass die Zeile antippbar ist, der Kasten DIREKT darunter
+   steht (wie im Kader seit 35.59) und die Rueckfrage vor dem Aussortieren
+   wirklich kommt. */
+{
+  let stand3 = reif;
+  function HausHuelle() {
+    const [aa, setAa] = React.useState(stand3);
+    stand3 = aa;
+    return <AkademieScreen aka={aa} onKauf={()=>{}} onGruenden={()=>{}}
+      onBack={()=>{}} onAendern={setAa} />;
+  }
+  const r3 = mach("Akademie · Jahrgang verwalten", <HausHuelle />);
+  if (r3 && (reif.talente || []).length) {
+    if (!klick(r3.div, "Jahrgang", "Reiter Jahrgang")) { /* gemeldet */ }
+    else {
+      const zeilen = [...r3.div.querySelectorAll("button")]
+        .filter((b2) => /Anlage \d+–\d+/.test(b2.textContent || ""));
+      if (!zeilen.length) zeige("Jahrgang", "keine antippbare Talentzeile gefunden");
+      else {
+        ok++;
+        act(() => { zeilen[0].dispatchEvent(new window.MouseEvent("click", { bubbles: true })); });
+        const t3 = r3.div.textContent || "";
+        if (!/Vertrag auslaufen lassen/.test(t3)) zeige("Jahrgang", "der Kasten öffnet nicht");
+        else ok++;
+        if (!/Aussortieren …/.test(t3)) zeige("Jahrgang", "„Aussortieren“ fehlt");
+        else ok++;
+        /* Die Rueckfrage MUSS zwischen Tipp und Tat stehen. */
+        if (/Das lässt sich nicht zurücknehmen/.test(t3))
+          zeige("Jahrgang", "die Warnung steht schon vor der Rückfrage");
+        else ok++;
+        if (klick(r3.div, "Aussortieren …", "Rückfrage öffnen")) {
+          const t4 = r3.div.textContent || "";
+          if (!/Das lässt sich nicht zurücknehmen/.test(t4))
+            zeige("Jahrgang", "die Rückfrage kommt nicht");
+          else ok++;
+          if (!/Doch nicht/.test(t4)) zeige("Jahrgang", "„Doch nicht“ fehlt");
+          else ok++;
+        }
+        /* Und die Stellung: zwischen Zeile und Kasten darf keine zweite
+           Talentzeile liegen. */
+        let n3 = zeilen[0].nextElementSibling, dazwischen3 = 0, kasten3 = null;
+        while (n3) {
+          if (/Vertrag auslaufen lassen/.test(n3.textContent || "")) { kasten3 = n3; break; }
+          if (/Anlage \d+–\d+/.test(n3.textContent || "")) dazwischen3++;
+          n3 = n3.nextElementSibling;
+        }
+        if (!kasten3) zeige("Jahrgang", "der Kasten steht nicht in derselben Liste");
+        else if (dazwischen3 > 0) zeige("Jahrgang", dazwischen3 + " Talentzeile(n) dazwischen");
+        else ok++;
+      }
+    }
+  }
+}
+
+/* ---- Porträtgrund (35.63) ------------------------------------------------
+   Kevin auf dem Gerät: „einige Designs, vor allem bei dunklem Haar, erkennt
+   man nicht". Gemessen war der Grund ohne Rahmen genauso hell wie schwarzes
+   Haar — Kontrast 1,02, also praktisch kein Unterschied.
+
+   Geprüft wird für JEDEN Rahmen UND für den Fall ohne. Der Fall ohne ist der
+   wichtigste: so fängt jeder an, und ausgerechnet dort war es am schlimmsten. */
+{
+  const dunkel = haarDunkelste();
+  const grund = (c) => grundAufhellen(mischFarbe(c, "#2E3A2E", .35));
+  const faelle = [["ohne Rahmen", "#2A4433"],
+                  ...Object.keys(RAHMEN).map((k) => [RAHMEN[k].n, RAHMEN[k].c])];
+  const zuDunkel = faelle.filter(([, c]) => kontrast(grund(c), dunkel) < GRUND_MIN)
+    .map(([n, c]) => n + " (" + kontrast(grund(c), dunkel).toFixed(2) + ")");
+  if (zuDunkel.length)
+    zeige("Porträtgrund", "zu dunkel für dunkles Haar: " + zuDunkel.join(", "));
+  else { console.log("  Porträtgrund: " + faelle.length + " Fälle, alle über "
+    + GRUND_MIN + " Kontrast ✓"); ok++; }
+
+  /* Der dunkelste Haarton muss AUS DER PALETTE kommen. Stand er fest im
+     Code, bliebe die Grenze stehen, wenn jemand die Palette ändert — und die
+     Silhouette verschwände wieder, ohne dass etwas meldet. */
+  const echtDunkel = HAIRC.reduce((a2, b2) => {
+    const h = (x) => parseInt(x.slice(1), 16); return h(a2) <= h(b2) ? a2 : b2; });
+  if (dunkel !== echtDunkel)
+    zeige("Porträtgrund", "gemessen wird gegen " + dunkel
+      + ", dunkelster Ton der Palette ist aber " + echtDunkel);
+  else ok++;
+
+  /* GEGENPROBE DER MESSUNG: ein absichtlich zu dunkler Grund MUSS auffallen.
+     Ohne sie könnte die Prüfung für immer grün melden. */
+  if (kontrast("#101410", dunkel) < GRUND_MIN) ok++;
+  else zeige("Porträtgrund", "die Messung erkennt einen zu dunklen Grund nicht");
+}
+
 const ZAHLEN = ["Jahrgänge", "Profis", "Weltklasse", "Nationalspieler", "Jugendturniere", "Ansehen"];
 [["frisch gegründet", gegruendet], ["25 Jahre", reif], ["niemand im Haus", leerImHaus],
  ["Bilanz halb", { name:"X", gegruendet:2026, jahr:2032, vc:12, bilanz:{ profis:3 } }],
@@ -185,7 +276,7 @@ const ZAHLEN = ["Jahrgänge", "Profis", "Weltklasse", "Nationalspieler", "Jugend
 {
   const q = laufbahn(null);
   q.verdict = verdict(q); q.retired = true;
-  const r = mach("Abschluss · Reiter eingeklappt", <EndScreen p={q} onNew={()=>{}} onHall={()=>{}} onAka={()=>{}} />);
+  const r = mach("Abschluss · Reiter eingeklappt", <EndScreen p={q} onNew={()=>{}} />);
   if (r) {
     const reiter = [...r.div.querySelectorAll(".tabs .btn")];
     /* 35.42: gekuerzt von „Nationalelf"/„Zum Teilen" auf „Land"/„Teilen".
@@ -193,6 +284,31 @@ const ZAHLEN = ["Jahrgänge", "Profis", "Weltklasse", "Nationalspieler", "Jugend
        zwoelf Pixel ueber den Rand — die Zeile scrollt zwar, aber wischen
        zu muessen ist das Gegenteil von Uebersicht. Die Knopfmessung hat
        das gemeldet, sobald der Abschlussbildschirm im Bogen lag. */
+    /* 35.51: EIN Handlungsknopf in der Leiste, nicht drei. Bis 35.50 standen
+       dort „Ruhmeshalle" und „Dein Verein" — beide Ziele stehen im
+       Hauptmenue, und genau dorthin fuehrt der Knopf ohnehin. Und die
+       Beschriftung muss sagen, was passiert: der Knopf BEGANN nichts, er
+       schliesst ab. */
+    {
+      const leiste = r.div.querySelector(".rs-abschlussleiste");
+      const kn = leiste ? [...leiste.querySelectorAll("button")] : [];
+      if (kn.length !== 1) zeige("Abschluss", "Leiste hat " + kn.length + " Knöpfe statt einem");
+      else ok++;
+      const txt = kn.length ? (kn[0].textContent || "") : "";
+      if (!/abschließen/i.test(txt)) zeige("Abschluss", "Knopf sagt nicht, dass abgeschlossen wird: " + txt.slice(0, 40));
+      else ok++;
+      if (/Neue Laufbahn beginnen/.test(txt))
+        zeige("Abschluss", "die alte, unzutreffende Beschriftung ist zurück");
+      else ok++;
+      if (!/Hauptmenü/.test(txt)) zeige("Abschluss", "das Ziel Hauptmenü wird nicht genannt");
+      else ok++;
+      /* Kein Sprung aus dem Rueckblick heraus — weder in die Akademie noch
+         in die Ruhmeshalle, an KEINER Stelle des Bildschirms. */
+      const alle = [...r.div.querySelectorAll("button")].map((x) => (x.textContent || "").trim());
+      const sprung = alle.filter((t) => /Ruhmeshalle|Zur Jugendakademie|Jetzt ausbauen|^Dein Verein$/.test(t));
+      if (sprung.length) zeige("Abschluss", "Sprungknopf zurück: " + sprung.join(" | "));
+      else ok++;
+    }
     const SOLL = ["Stationen", "Statistik", "Land", "Titel", "Teilen"];
     const haben = reiter.map((x) => (x.textContent || "").trim());
     if (haben.length !== SOLL.length || SOLL.some((n, i) => haben[i] !== n))
@@ -218,8 +334,12 @@ const ZAHLEN = ["Jahrgänge", "Profis", "Weltklasse", "Nationalspieler", "Jugend
 
     const leiste = r.div.querySelector(".rs-abschlussleiste");
     if (!leiste) zeige("Abschluss", "die angeheftete Leiste fehlt");
-    else if (leiste.querySelectorAll(".btn").length !== 3)
-      zeige("Abschluss", "die Leiste hat " + leiste.querySelectorAll(".btn").length + " Knöpfe statt 3");
+    /* Seit 35.51 EIN Knopf statt drei — die Zahl steht hier UND oben in der
+       Knopfprobe. Zwei Stellen fuer dieselbe Zahl laufen auseinander; diese
+       hier prueft die Leiste als Bauteil (gibt es sie ueberhaupt), die obere
+       ihren Inhalt. */
+    else if (leiste.querySelectorAll(".btn").length !== 1)
+      zeige("Abschluss", "die Leiste hat " + leiste.querySelectorAll(".btn").length + " Knöpfe statt einem");
     else ok++;
 
     /* 35.42, nachgetragen: das Auf- UND Zuklappen wirklich durchspielen.
@@ -245,7 +365,7 @@ const ZAHLEN = ["Jahrgänge", "Profis", "Weltklasse", "Nationalspieler", "Jugend
     }
 
     console.log("  Abschluss       " + haben.length + " Reiter, beim Öffnen keiner gewählt · "
-      + "auf und wieder zu · Leiste mit 3 Knöpfen · Platzhalter 132 px");
+      + "auf und wieder zu · Leiste mit 1 Knopf · Platzhalter 132 px");
   }
 }
 
@@ -710,6 +830,109 @@ const halleintrag = (i, extra) => ({
   const r2 = mach("Ruhmeshalle · Altbestand ohne apps/assists", <HallScreen hall={alt} onBack={() => {}} />);
   if (r2) zahlenPruefen(r2.div, ["Punkte", "Peak", "Tore", "Titel", "Länderspiele", "Vermögen"],
     "Ruhmeshalle Altbestand");
+
+  /* ---- Rahmen von damals und Rückseite (35.69, von Kevin gemeldet) -------
+     Die Halle zeichnete Porträts ganz OHNE meta — also ohne Rahmen, und seit
+     35.63 damit auch ohne die Kartenfarbe dahinter. Alle Einträge sahen
+     gleich aus, egal was man erreicht hatte. */
+  {
+    const mitRahmen = [
+      halleintrag(0, { rahmen: "mk_rahmen4", name: "Mit Legende" }),
+      halleintrag(1, { rahmen: "mk_rahmen2", name: "Mit Bronze" }),
+      halleintrag(2, { name: "Ohne Rahmen" }),          /* Eintrag vor 35.69 */
+    ];
+    const r3 = mach("Ruhmeshalle · Rahmen von damals", <HallScreen hall={mitRahmen} onBack={() => {}} />);
+    if (r3) {
+      /* DIE PORTRÄTGRÜNDE MÜSSEN SICH UNTERSCHEIDEN. „Ein Rahmen ist
+         gespeichert" beweist nichts — er muss auch ankommen. Gemessen wird
+         am gezeichneten Verlauf, nicht am Datenfeld. */
+      /* ÜBER DAS ATTRIBUT SUCHEN, nicht über den Elementnamen. In einem
+         HTML-Dokument schreibt der Selektor `linearGradient` klein — und
+         trifft das SVG-Element dann nie. Die Gegenprobe (Rahmen nicht mehr
+         übergeben) blieb deshalb grün: die Messung fand null Stopps und
+         meldete trotzdem nichts, weil auch der Normalfall null fand.
+         Zwei Zustände, dasselbe Ergebnis — das ist keine Messung. */
+      const gruende = [...r3.div.querySelectorAll("[stop-color]")]
+        .map((x) => x.getAttribute("stop-color"));
+      /* DEN ERSTEN STOPP JE PORTRÄT vergleichen, nicht alle. Jeder Verlauf
+         hat drei Stopps (hell, mitte, tief) — drei GLEICHE Porträts ergeben
+         also auch neun Farben, davon drei verschiedene. Meine erste Schwelle
+         („mindestens 3 verschiedene") war deshalb immer erfüllt, und die
+         Gegenprobe blieb grün, obwohl gar kein Rahmen ankam.
+         Eine Schwelle, die der Fehlerfall genauso erreicht wie der gute Fall,
+         ist keine Schwelle. */
+      const ersten = gruende.filter((_, k) => k % 3 === 0);
+      const verschieden = new Set(ersten).size;
+      if (process.env.LAUT === "1")
+        console.log("      [laut] " + gruende.length + " Stopps, erste je Porträt: "
+          + ersten.join(" "));
+      if (ersten.length < 3)
+        zeige("Ruhmeshalle", "nur " + ersten.length + " Porträtgründe gezeichnet");
+      else if (verschieden < 3)
+        zeige("Ruhmeshalle", "die Rahmen wirken nicht: " + verschieden
+          + " verschiedene Gründe bei 3 Einträgen (" + [...new Set(ersten)].join(" ") + ")");
+      else ok++;
+
+      /* WENDEN STATT UMSCHALTEN (35.75, Kevins Wunsch: „die gleiche Funktion
+         wie die Spielerpässe: Doppeltipp und dann die Umdreh-Animation").
+         Bis 35.74 wurde der Inhalt AUSGETAUSCHT — ein Einfachtipp, und die
+         Vorderseite verschwand aus dem Baum. Jetzt stehen beide Seiten
+         gleichzeitig da und werden gedreht.
+         Geprüft wird deshalb an der KLASSE, nicht am Text: „Rückseite ist
+         sichtbar" lässt sich in jsdom gar nicht messen — es rechnet keine
+         3D-Transformationen. Was es kann: die Klasse lesen, die den Zustand
+         trägt. */
+      const wender = r3.div.querySelector(".wender");
+      if (!wender) zeige("Ruhmeshalle", "keine Wendekarte — die Karte dreht sich nicht");
+      else {
+        ok++;
+        /* Beide Seiten müssen GLEICHZEITIG im Baum sein, sonst gibt es
+           nichts zu drehen. */
+        const t3 = r3.div.textContent || "";
+        if (!/Punkte/.test(t3) || !/Tore je Spiel/.test(t3))
+          zeige("Ruhmeshalle", "es liegt nicht beides gleichzeitig vor");
+        else ok++;
+        if (!r3.div.querySelector(".dreh > .rueckseite"))
+          zeige("Ruhmeshalle", "die Rückseite hängt nicht im Wender");
+        else ok++;
+        if (wender.className.indexOf("um") >= 0)
+          zeige("Ruhmeshalle", "die Karte liegt schon auf der Rückseite");
+        else ok++;
+
+        /* EIN Tipp darf nichts tun — genau wie beim Spielerpass. */
+        act(() => { wender.dispatchEvent(new window.MouseEvent("click", { bubbles: true })); });
+        if (r3.div.querySelector(".wender").className.indexOf("um") >= 0)
+          zeige("Ruhmeshalle", "ein einzelner Tipp dreht die Karte schon");
+        else ok++;
+        /* Zwei schnelle Tipps drehen. */
+        act(() => {
+          const w2 = r3.div.querySelector(".wender");
+          w2.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+          w2.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+        });
+        if (r3.div.querySelector(".wender").className.indexOf("um") < 0)
+          zeige("Ruhmeshalle", "der Doppeltipp dreht die Karte nicht");
+        else ok++;
+        /* Und wieder zurück. */
+        act(() => {
+          const w2 = r3.div.querySelector(".wender");
+          w2.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+          w2.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+        });
+        if (r3.div.querySelector(".wender").className.indexOf("um") >= 0)
+          zeige("Ruhmeshalle", "die Karte lässt sich nicht zurückdrehen");
+        else ok++;
+      }
+    }
+
+    /* Eine leere Zugliste darf nicht abstürzen — `{}` ist wahr, also greift
+       der Rückfall `zuege || zuegeAusKennung(...)` nicht. Beim Bauen dieser
+       Probe genau so passiert. */
+    const kaputt = [halleintrag(0, { zuege: {}, name: "Leere Züge" })];
+    const r5 = mach("Ruhmeshalle · leere Zugliste", <HallScreen hall={kaputt} onBack={() => {}} />);
+    if (r5 && /Leere Züge/.test(r5.div.textContent || "")) ok++;
+    else if (r5) zeige("Ruhmeshalle", "leere Zugliste wird nicht gezeichnet");
+  }
 }
 
 const menuProps = { hall: [], onNew:()=>{}, onHall:()=>{}, save:null, onResume:()=>{}, onAch:()=>{},
@@ -751,12 +974,107 @@ for (let i = 0; i < 4; i++) {
   const AK = akaVerbuchen(i % 2 ? reif : mitCoins, vc);
   q.vcGewinn = vc; q.vcPosten = vcPosten(q);
   q.akaEreignisse = AK.ereignisse; q.akaName = AK.a.name; q.akaAktiv = !!AK.a.gegruendet;
-  mach("Abschluss mit VC #" + (i + 1), <EndScreen p={q} onNew={()=>{}} onHall={()=>{}} onAka={()=>{}} />);
+  mach("Abschluss mit VC #" + (i + 1), <EndScreen p={q} onNew={()=>{}} />);
 }
 /* Abschluss ohne VC-Feld (alter Spielstand) */
 {
   const q = laufbahn(null); delete q.vcGewinn;
-  mach("Abschluss ohne VC-Feld", <EndScreen p={q} onNew={()=>{}} onHall={()=>{}} onAka={()=>{}} />);
+  mach("Abschluss ohne VC-Feld", <EndScreen p={q} onNew={()=>{}} />);
+}
+
+/* ---- Beide Berichte nebeneinander (35.51) -------------------------------
+   `p.vereinBericht` wurde bis 35.50 in KEINER Ansicht gesetzt — der
+   Vereinsbericht ist nie gezeichnet worden, obwohl er seit 35.28 im
+   Abschlussbildschirm steht. Aufgefallen, als er in 35.51 dem Akademiebericht
+   angeglichen werden sollte: die Gegenprobe zum Sprungknopf blieb gruen, weil
+   die geprueften Faelle die Berichte gar nicht enthielten.
+   Vier Lagen, weil sie verschieden aussehen: Meister, Abstieg, Mittelfeld,
+   ausgefallen. */
+{
+  const lagen = [
+    ["Meister",     { name: "FC Probe", jahr: 4, liga: "3. Liga", rang: 1, N: 20,
+                      tore: 71, gegentore: 22, punkte: 78, meister: true, aufstieg: true, abgaenge: 2 }],
+    ["Abstieg",     { name: "FC Probe", jahr: 7, liga: "2. Bundesliga", rang: 18, N: 18,
+                      tore: 21, gegentore: 74, punkte: 19, abstieg: true, abgaenge: 5, vorbei: false }],
+    ["Mittelfeld",  { name: "FC Probe", jahr: 9, liga: "Bundesliga", rang: 9, N: 18,
+                      tore: 44, gegentore: 47, punkte: 46 }],
+    ["ausgefallen", { ausgefallen: true, name: "FC Probe", jahr: 3 }],
+  ];
+  lagen.forEach(([n, b2]) => {
+    const q = laufbahn(reif);
+    const vc = vcFuer(q);
+    const AK = akaVerbuchen(reif, vc);
+    q.vcGewinn = vc; q.vcPosten = vcPosten(q);
+    q.akaEreignisse = AK.ereignisse; q.akaName = AK.a.name; q.akaAktiv = true;
+    q.vereinBericht = b2;
+    const r2 = mach("Abschluss · beide Berichte · " + n, <EndScreen p={q} onNew={()=>{}} />);
+    if (r2) {
+      const t = r2.div.textContent || "";
+      /* Beide Berichte muessen da sein und gleich ueberschrieben — das ist
+         der Punkt: bis 35.50 hiess der eine "Vermaechtnis-Coins verdient"
+         und der andere gar nicht, und einer war dreimal so laut. */
+      if (!t.includes("Ein Jahr Jugendakademie"))
+        zeige("Berichte " + n, "Akademiebericht fehlt oder heißt anders");
+      else ok++;
+      if (!t.includes("Ein Jahr Profimannschaft") && !b2.ausgefallen)
+        zeige("Berichte " + n, "Vereinsbericht fehlt oder heißt anders");
+      else ok++;
+
+      /* GLEICH LAUT, NICHT NUR GLEICH GEBAUT (35.72, von Kevin gemeldet:
+         „warum ist die Infokachel für die Profimannschaft immer noch so
+         unscheinbar?"). In 35.51 wurde der AUFBAU angeglichen, die
+         Auftrittsstärke nicht: Rahmen, Verlauf und Farbe gab es nur bei
+         Meister oder Aufstieg. Ein Platz 9 stand als graues Feld neben einem
+         Goldkasten, der IMMER leuchtet.
+         Geprüft wird deshalb an den gezeichneten Werten, nicht am Text: hat
+         der Vereinsbericht in JEDER Lage einen farbigen Rahmen, einen Verlauf
+         und eine Kennzahl in derselben Größe wie die Akademie? */
+      if (!b2.ausgefallen) {
+        const kaesten = [...r2.div.querySelectorAll(".pan.pad")];
+        const vk = kaesten.find((k) => /Ein Jahr Profimannschaft/.test(k.textContent || ""));
+        const ak = kaesten.find((k) => /Ein Jahr Jugendakademie/.test(k.textContent || ""));
+        if (!vk || !ak) zeige("Berichte " + n, "einer der beiden Kästen fehlt");
+        else {
+          /* DAS ROHE ATTRIBUT LESEN. jsdom lässt Verläufe in der
+             `background`-Kurzform fallen — `k.style.background` ist dann leer,
+             obwohl im Markup ein `linear-gradient` steht. Die Prüfung meldete
+             daraufhin für alle drei Lagen „kein Verlauf", obwohl er da ist:
+             ein Fehlalarm, der aus der Nachbildung stammt und nicht aus dem
+             Spiel. Das Attribut selbst wird unverändert durchgereicht. */
+          const roh = (k) => k.getAttribute("style") || "";
+          const rand = (k) => (k.style.borderColor || "").trim();
+          if (!rand(vk) || rand(vk) === "var(--ln2)")
+            zeige("Berichte " + n, "der Vereinsbericht hat keinen eigenen Rahmen ("
+              + (rand(vk) || "keiner") + ")");
+          else ok++;
+          /* DEN VERLAUF PRUEFT HIER NIEMAND. jsdom verwirft einen
+             `linear-gradient`, in dem `var()` vorkommt — er landet gar nicht
+             erst im Attribut, weder beim Verein noch bei der Akademie. Eine
+             Messung, die beide Seiten gleich falsch sieht, kann nichts
+             unterscheiden.
+             Der Verlauf wird stattdessen im QUELLTEXT geprueft
+             (vereinpruefung.cjs): dort steht, ob er unbedingt gesetzt wird
+             oder nur bei Erfolg. Jede Sache dort messen, wo sie messbar ist. */
+          /* Und die Kennzahl in derselben Größe. „Gleichrangig" heißt nicht
+             halb so groß. */
+          const gross = (k) => [...k.querySelectorAll(".d")]
+            .map((x) => parseFloat(x.style.fontSize) || 0).sort((p2, q2) => q2 - p2)[0] || 0;
+          if (gross(vk) < gross(ak))
+            zeige("Berichte " + n, "die Kennzahl des Vereins ist kleiner: "
+              + gross(vk) + " gegen " + gross(ak));
+          else ok++;
+        }
+      }
+      /* Und an KEINER Stelle des Abschlusses ein Sprung woandershin. Diese
+         Probe war vorher gegenstandslos, weil die Berichte nicht gezeichnet
+         wurden. */
+      const spr = [...r2.div.querySelectorAll("button")]
+        .map((x) => (x.textContent || "").trim())
+        .filter((x) => /Ruhmeshalle|Zur Jugendakademie|Jetzt ausbauen|^Dein Verein$/.test(x));
+      if (spr.length) zeige("Berichte " + n, "Sprungknopf im Abschluss: " + spr.join(" | "));
+      else ok++;
+    }
+  });
 }
 
 /* ---------- Durchklicktest ---------- */
@@ -791,23 +1109,123 @@ console.log("\n=== Durchklicktest ===");
   }
 }
 {
+  /* Aufstellung von Hand (35.49) — durchgeklickt, nicht nur gerendert.
+     Der Auswahlkasten erscheint NUR, wenn ein Platz angetippt ist. Ohne
+     diesen Durchgang waere er von den Ansichten gar nicht erfasst: er ist
+     erst der zweite Zustand des Reiters. Geprueft wird nicht "es kommt eine
+     Liste", sondern dass die Wahl in der Elf ANKOMMT. */
+  /* Eigener Testverein: `vollV` weiter oben liegt in einem eigenen Block und
+     ist hier nicht sichtbar. Beim ersten Entwurf brach der Durchklicktest mit
+     "vollV is not defined" ab — der Lauf hat es gemeldet, statt still zu
+     ueberspringen. Verschiedene Staerken, damit die Rangfolge in der
+     Auswahlliste ueberhaupt eine Aussage hat. */
+  const eV = VEREIN.gruenden(VEREIN.leererVerein(),
+    { name: "Elfprobe", land: "GER", liga: "3. Liga" }).v;
+  const eKader = ["TW","TW","IV","IV","IV","AV","AV","ZDM","ZDM","ZM","ZM","ZOM","AF","AF","ST","ST"]
+    .map((pz, i2) => ({ id: "e" + i2, name: "Elfspieler " + i2, pos: pz, ovr: 44 + i2,
+      pot: 78, alter: 19, flag: "🇩🇪", form: 50, fitness: 80, spiele: 0, tore: 0, jahreImVerein: 0 }));
+  const eAka = { vc: 500, talente: [] };
+  let stand = VEREIN.autoAufstellen({ ...eV, kader: eKader });
+  function ElfHuelle() {
+    const [v, setV] = React.useState(stand);
+    stand = v;
+    return <VereinScreen v={v} aka={eAka} onAendern={setV}
+      onAkaAendern={()=>{}} onZurueck={()=>{}} onAbschluss={()=>{}} />;
+  }
+  const r = mach("Aufstellung interaktiv", <ElfHuelle />);
+  if (r) {
+    if (klick(r.div, "Aufstellung", "Reiter Aufstellung")) {
+      /* Ein Platz mit mehreren Kandidaten. ZM steht in 4-4-2 an Stelle 5. */
+      const plaetze = [...r.div.querySelectorAll("button")]
+        .filter((b) => /^(TW|IV|AV|ZDM|ZM|ZOM|AF|ST)/.test((b.textContent || "").trim()));
+      if (plaetze.length < 11) zeige("Aufstellung", "nur " + plaetze.length + " Plätze antippbar");
+      else {
+        ok++;
+        const vorher = { ...stand.aufstellung };
+        act(() => { plaetze[5].dispatchEvent(new window.MouseEvent("click", { bubbles: true })); });
+        const txt = r.div.textContent || "";
+        if (!txt.includes("Wer spielt")) zeige("Aufstellung", "Auswahlliste öffnet nicht");
+        else if (!txt.includes("Eignung")) zeige("Aufstellung", "Eignung wird nicht angezeigt");
+        else if (!txt.includes("Platz leeren")) zeige("Aufstellung", "„Platz leeren“ fehlt");
+        else ok++;
+        /* Einen ANDEREN als den bereits stehenden waehlen und nachsehen, ob
+           sich die Elf wirklich aendert. Eine Liste, die nichts bewirkt,
+           waere Dekoration. */
+        /* WO steht der Kasten? (35.59) Kevins Einwand: er soll direkt unter
+           dem angetippten Platz erscheinen, nicht unter der ganzen Elf.
+           Geprueft wird die STELLUNG im Baum, nicht nur die Anwesenheit —
+           „ist da" war schon in 35.49 wahr und trotzdem falsch platziert.
+           Gemessen: zwischen der angetippten Zeile und dem Kasten darf keine
+           weitere Platzzeile liegen. */
+        {
+          const knopf = plaetze[5];
+          let n = knopf.nextElementSibling, dazwischen = 0, kasten = null;
+          while (n) {
+            if (/Wer spielt/.test(n.textContent || "")) { kasten = n; break; }
+            if (/^(TW|IV|AV|ZDM|ZM|ZOM|AF|ST)/.test((n.textContent || "").trim())) dazwischen++;
+            n = n.nextElementSibling;
+          }
+          if (!kasten) zeige("Aufstellung", "der Auswahlkasten steht nicht in derselben Liste");
+          else if (dazwischen > 0)
+            zeige("Aufstellung", dazwischen + " Platzzeile(n) zwischen Tipp und Kasten");
+          else ok++;
+        }
+        const wahl = [...r.div.querySelectorAll("button")]
+          .filter((b) => /Jahre/.test(b.textContent || "") && !/steht hier/.test(b.textContent || ""));
+        if (!wahl.length) zeige("Aufstellung", "keine wählbaren Kandidaten in der Liste");
+        else {
+          act(() => { wahl[0].dispatchEvent(new window.MouseEvent("click", { bubbles: true })); });
+          if (JSON.stringify(stand.aufstellung) === JSON.stringify(vorher))
+            zeige("Aufstellung", "die Wahl hat die Elf nicht verändert");
+          else ok++;
+          const ids = Object.values(stand.aufstellung);
+          if (ids.length !== new Set(ids).size)
+            zeige("Aufstellung", "nach der Wahl steht jemand doppelt");
+          else ok++;
+          if (!VEREIN.staerke(stand).spielbereit)
+            zeige("Aufstellung", "nach der Wahl nicht mehr spielbereit");
+          else ok++;
+        }
+      }
+    }
+  }
+}
+{
   /* Ganze App: Menü → Akademie → zurück */
   const r = mach("Gesamt-App", <App />);
   if (r) {
-    if (klick(r.div, "Jugendakademie", "App: Akademie öffnen")) {
-      const knoepfe = [...r.div.querySelectorAll("button")].map((b) => b.textContent || "");
-      if (!knoepfe.some((x) => x.includes("Akademie gründen")))
-        zeige("App: Akademie", "Gründungsansicht nicht erreicht — gefunden: " + knoepfe.slice(0, 4).join(" | "));
+    /* Seit 35.50 fuehrt der Weg ueber das Dach: Hauptmenue → Dein Verein →
+       Jugendakademie. Bei NULL Laufbahnen ist das Dach gesperrt — genau das
+       wird hier zuerst geprueft, denn bis 35.49 stand die Akademie sofort
+       offen. Ein frischer Start hat keine beendete Laufbahn. */
+    const knoepfe0 = [...r.div.querySelectorAll("button")];
+    const dach = knoepfe0.find((b2) => (b2.textContent || "").includes("Dein Verein"));
+    if (!dach) zeige("App: Menü", "Zeile „Dein Verein“ fehlt im Hauptmenü");
+    else if (!dach.disabled) zeige("App: Menü", "„Dein Verein“ ist bei 0 Laufbahnen NICHT gesperrt");
+    else ok++;
+    if (knoepfe0.some((b2) => /^Jugendakademie/.test((b2.textContent || "").trim())))
+      zeige("App: Menü", "eigene Menüzeile „Jugendakademie“ ist zurück");
+    else ok++;
+    /* Und der Weg selbst, mit einer Bilanz, die das Dach oeffnet. `App`
+       liest die Bilanz aus dem Speicher; hier wird stattdessen das Dach
+       direkt geprueft — der Weg dorthin steckt in der Quelltextprobe der
+       Vereinspruefung ("Menuezeile fragt die Freischaltung ab"). */
+    const offen = mach("App-Dach offen", <VereinDach aka={{ vc: 120, gegruendet: false }}
+      verein={null} gesamt={{ karrieren: 3 }}
+      onAka={() => {}} onProfi={() => {}} onZurueck={() => {}} />);
+    if (offen) {
+      const t3 = offen.div.textContent || "";
+      if (!t3.includes("Jugendakademie") || !t3.includes("Profimannschaft"))
+        zeige("App-Dach", "die beiden Einträge fehlen");
       else ok++;
-      if (klick(r.div, "Akademie gründen", "App: gründen")) {
-        const t2 = r.div.textContent || "";
-        if (!t2.includes("Jahrgang") || !t2.includes("Ehrentafel"))
-          zeige("App: nach Gründung", "Reiter fehlen");
-        else ok++;
-      }
-      klick(r.div, "Zurück", "App: zurück");
-      if (!(r.div.textContent || "").includes("KARRIERE-SIMULATION"))
-        zeige("App: zurück", "Hauptmenü nicht wieder erreicht");
+      const bt = [...offen.div.querySelectorAll("button")];
+      const profi = bt.find((b2) => (b2.textContent || "").includes("Profimannschaft"));
+      if (!profi || !profi.disabled)
+        zeige("App-Dach", "Profimannschaft ist bei 3 Laufbahnen NICHT gesperrt");
+      else ok++;
+      const jug = bt.find((b2) => (b2.textContent || "").includes("Jugendakademie"));
+      if (!jug || jug.disabled)
+        zeige("App-Dach", "Jugendakademie ist bei 3 Laufbahnen gesperrt — sie darf offen sein");
       else ok++;
     }
   }
@@ -844,7 +1262,7 @@ console.log("\n=== Punkte gegen Coins ===");
   const AK = akaVerbuchen(mitCoins, vc);
   q.vcGewinn = vc; q.vcPosten = posten;
   q.akaEreignisse = AK.ereignisse; q.akaName = AK.a.name; q.akaAktiv = !!AK.a.gegruendet;
-  const r = mach("Abschluss · Punkte/Coins", <EndScreen p={q} onNew={()=>{}} onHall={()=>{}} onAka={()=>{}} />);
+  const r = mach("Abschluss · Punkte/Coins", <EndScreen p={q} onNew={()=>{}} />);
   if (r) {
     const t = r.div.textContent || "";
     if (t.indexOf("Nicht dasselbe wie Vermächtnispunkte") < 0)
@@ -946,8 +1364,320 @@ mach("Verein · Gruendung", <VereinGruenden aka={null} onFertig={() => {}} onZur
     .map((pz, i2) => ({ id: "s" + i2, name: "Spieler " + i2, pos: pz, ovr: 50, pot: 78,
       alter: 19, form: 50, fitness: 80, spiele: 0, tore: 0, jahreImVerein: 0 }));
   const vollV = VEREIN.autoAufstellen({ ...leerV, kader: kaderV });
-  const akaV = { vc: 500, talente: [{ id: "t1", name: "Talent", pos: "ST", ovr: 48, pot: 80, alter: 17 }] };
+  /* GEGRUENDET, seit 35.60. Vorher war `gegruendet` nicht gesetzt — fuer die
+     alten Ansichten egal, aber die Dach-Kacheln zeigen ihre Kennzahlen nur
+     bei einer gegruendeten Akademie, und die Pruefung meldete sie deshalb als
+     leer. Ein Pruefstand, dessen Testdaten den Normalfall nicht abbilden,
+     prueft den Ausnahmefall. */
+  const akaV = { vc: 500, gegruendet: true, name: "Nachwuchszentrum", jahr: 2029,
+    stufen: {}, bilanz: { profis: 2, weltklasse: 0, nationalspieler: 0 },
+    talente: [{ id: "t1", name: "Talent", pos: "ST", ovr: 48, pot: 80, alter: 17 }] };
   const nix = () => {};
+  /* Das Dach (35.50) in allen drei Zustaenden. Der GESPERRTE ist der
+     wichtige: bis 35.49 gab es ihn nicht, weil die Akademie gar keine Sperre
+     hatte. Eine Ansicht, die nur im offenen Fall geprueft wird, laesst genau
+     den Fehler durch, um den es hier geht. */
+  const nixf = () => {};
+  mach("Dach · gesperrt (0 Laufbahnen)", <VereinDach aka={null} verein={null}
+    gesamt={{ karrieren: 0 }} onAka={nixf} onProfi={nixf} onZurueck={nixf} />);
+  mach("Dach · Akademie offen, Profis gesperrt", <VereinDach aka={akaV} verein={null}
+    gesamt={{ karrieren: 3 }} onAka={nixf} onProfi={nixf} onZurueck={nixf} />);
+  mach("Dach · beides offen", <VereinDach aka={akaV} verein={vollV}
+    gesamt={{ karrieren: 9 }} onAka={nixf} onProfi={nixf} onZurueck={nixf} />);
+  mach("Dach · ohne Übergaben", <VereinDach aka={null} verein={null}
+    gesamt={null} onAka={nixf} onProfi={nixf} onZurueck={nixf} />);
+
+  /* ---- Gehört der Bildschirm zum Magazin? (35.70, von Kevin gemeldet) ----
+     „Mein Verein sticht im Vergleich zum Hauptmenü, Einstellungen,
+     Ruhmeshalle raus." Ursache war `<Shell>` OHNE `blatt` — damit fehlten
+     Kolumnentitel und Folio, also genau der Rahmen, den jeder andere
+     Bildschirm hat.
+     Geprüft wird deshalb nicht „sieht gut aus", sondern ob die drei
+     Bestandteile des Satzspiegels da sind: Kolumnentitel oben, Seitenzahl,
+     Folio unten. Das ist prüfbar, Geschmack nicht. */
+  {
+    const r7 = mach("Dach · im Magazinsatz", <VereinDach aka={akaV} verein={vollV}
+      gesamt={{ karrieren: 9 }} onAka={nixf} onProfi={nixf} onZurueck={nixf}
+      onAendern={nixf} onVAendern={nixf} />);
+    if (r7) {
+      const t7 = r7.div.textContent || "";
+      if (!/DEIN VEREIN/i.test(t7)) zeige("Dach", "kein Kolumnentitel");
+      else ok++;
+      /* Seite 31 ist die Ressortnummer aus RESSORT.verein — sie steht im
+         Kolumnentitel UND im Folio. Fehlt sie, hängt der Bildschirm nicht
+         am Blatt. */
+      if (!/31/.test(t7)) zeige("Dach", "keine Seitenzahl — Shell ohne blatt?");
+      else ok++;
+      if (!/RASENSCHACH XI/i.test(t7)) zeige("Dach", "kein Folio am Seitenfuß");
+      else ok++;
+      /* Und der fette Balken darf NICHT zurückkommen: im Magazinsatz gehört
+         er den Kartenköpfen, nicht der Seite selbst. */
+      const baender = [...r7.div.querySelectorAll(".band")]
+        .filter((b2) => /Dein Verein/i.test(b2.textContent || ""));
+      if (baender.length) zeige("Dach", "der Seitentitel steckt wieder in einem Balken");
+      else ok++;
+    }
+
+    /* Zum Vergleich: die Ruhmeshalle war das Vorbild. Wenn eine der beiden
+       den Satzspiegel verliert, fällt es hier auf. */
+    const r8 = mach("Ruhmeshalle · Satzspiegel zum Vergleich",
+      <HallScreen hall={[]} onBack={nixf} />);
+    if (r8) {
+      const t8 = r8.div.textContent || "";
+      if (!/RUHMESHALLE/i.test(t8) || !/RASENSCHACH XI/i.test(t8))
+        zeige("Ruhmeshalle", "der Satzspiegel fehlt — dann taugt sie nicht als Vorbild");
+      else ok++;
+    }
+  }
+
+  /* ---- Die zwei Schritte der Gründung (35.67) ----------------------------
+     Kevin: Name und Wappen ans Dach, nur die Liga bleibt bei der
+     Profimannschaft. Geprüft wird, dass jeder Schritt GENAU seine Felder
+     zeigt — sonst hätte man die Maske nur verschoben und beide Male alles
+     abgefragt. */
+  {
+    const kv = { gekannt: true, name: "Hamburger Jungs", stadt: "Hamburg",
+      farben: { primaer: "#0a4", sekundaer: "#fff" },
+      wappen: { form: "rund", zeichen: "anker" } };
+
+    const s1 = mach("Gründung · Schritt Kennung",
+      <VereinGruenden art="kennung" aka={akaV} verein={null}
+        onFertig={nixf} onZurueck={nixf} />);
+    if (s1) {
+      const t = s1.div.textContent || "";
+      if (!/Name und Ort/.test(t)) zeige("Gründung", "Kennung fragt nicht nach dem Namen");
+      else ok++;
+      if (!/Wappen/.test(t)) zeige("Gründung", "Kennung zeigt keinen Wappeneditor");
+      else ok++;
+      /* Und sie darf NICHT nach der Liga fragen — das ist der ganze Punkt. */
+      if (/Startliga/.test(t)) zeige("Gründung", "Kennung fragt schon nach der Liga");
+      else ok++;
+      /* Kein Zurück: das Dach ist der einzige Weg hierher. */
+      const kn = [...s1.div.querySelectorAll("button")]
+        .map((b2) => (b2.textContent || "").trim());
+      if (kn.some((x) => x === "Zurück"))
+        zeige("Gründung", "Kennung hat einen Zurückknopf, obwohl sie zwingend ist");
+      else ok++;
+      if (!kn.some((x) => /Verein anlegen|Name fehlt/.test(x)))
+        zeige("Gründung", "der Abschlussknopf der Kennung fehlt");
+      else ok++;
+    }
+
+    const s2 = mach("Gründung · Schritt Spielbetrieb",
+      <VereinGruenden art="spielbetrieb" aka={akaV} verein={kv}
+        onFertig={nixf} onZurueck={nixf} />);
+    if (s2) {
+      const t = s2.div.textContent || "";
+      if (!/Startliga/.test(t)) zeige("Gründung", "Spielbetrieb fragt nicht nach der Liga");
+      else ok++;
+      if (/Name und Ort/.test(t)) zeige("Gründung", "Spielbetrieb fragt den Namen erneut ab");
+      else ok++;
+      if (/Wappen/.test(t)) zeige("Gründung", "Spielbetrieb zeigt den Wappeneditor erneut");
+      else ok++;
+      /* Der Name MUSS trotzdem sichtbar sein — man soll wissen, für wen man
+         die Liga wählt. */
+      if (!t.includes("Hamburger Jungs"))
+        zeige("Gründung", "der Vereinsname steht nicht in der Vorschau");
+      else ok++;
+    }
+
+    /* Der alte Weg in einem Zug — für Spielstände vor 35.67. */
+    const s3 = mach("Gründung · alter Weg in einem Zug",
+      <VereinGruenden aka={akaV} verein={null} onFertig={nixf} onZurueck={nixf} />);
+    if (s3) {
+      const t = s3.div.textContent || "";
+      if (!/Name und Ort/.test(t) || !/Startliga/.test(t))
+        zeige("Gründung", "der volle Weg fragt nicht mehr alles ab");
+      else ok++;
+    }
+  }
+
+  /* Der Postkorb (35.53). Er erscheint NUR bei offenen Fällen — der leere
+     Zustand ist genauso zu prüfen wie der volle, sonst fällt ein Postkorb,
+     der immer da ist, niemandem auf. */
+  {
+    const fall = { id: "f1", art: "profiangebot", talentId: "t1", name: "Probetalent",
+      flag: "🇩🇪", pos: "ST", alter: 19, ovr: 62, peak: 71, ns: false,
+      klub: "Testverein FC", klubLiga: "2. Bundesliga", gestellt: 2030, frist: 2031,
+      vertragBis: 2032 };
+    const akaF = { ...akaV, jahr: 2030, faelle: [fall] };
+    /* 35.60: das Postfach ist jetzt IMMER da — Kevins Entscheidung. Die
+       Prüfung dreht sich damit um: sie verlangt seine Anwesenheit, nicht mehr
+       seine Abwesenheit. Und sie prüft, dass es auch leer eine verständliche
+       Auskunft gibt statt einer nackten Null. */
+    /* ---- Kopf und Postfach (35.68, von Kevin gemeldet) -------------------
+       Zwei Dinge, die auf dem Gerät auffielen und in keiner Prüfung standen:
+       das Dach zeigte weder Wappen noch Vereinsnamen, und das Postfach
+       klappte bei offenen Fällen von selbst auf. */
+    {
+      const kennV = { ...vollV, gekannt: true, name: "Wappenprobe", stadt: "Testort",
+        farben: { primaer: "#1a4d8f", sekundaer: "#fff" },
+        wappen: { form: "rund", zeichen: "anker" } };
+      const r9 = mach("Dach · mit Wappen und Namen", <VereinDach aka={akaV} verein={kennV}
+        gesamt={{ karrieren: 9 }} onAka={nixf} onProfi={nixf} onZurueck={nixf}
+        onAendern={nixf} onVAendern={nixf} />);
+      if (r9) {
+        const t9 = r9.div.textContent || "";
+        if (!t9.includes("Wappenprobe")) zeige("Dach", "der Vereinsname steht nicht im Kopf");
+        else ok++;
+        if (!t9.includes("Testort")) zeige("Dach", "der Ort steht nicht im Kopf");
+        else ok++;
+        /* Das Wappen ist ein SVG — am Baum geprüft, nicht am Text, sonst
+           findet man es nie. */
+        if (!r9.div.querySelector("svg")) zeige("Dach", "kein Wappen gezeichnet");
+        else ok++;
+      }
+
+      /* DAS POSTFACH BLEIBT ZU. Bei offenen Fällen war es vorher von selbst
+         offen — und schob die beiden Kacheln aus dem Bild. */
+      const fall9 = { id: "f9", art: "profiangebot", talentId: "t9", name: "Zuklapp",
+        flag: "🇩🇪", pos: "ST", alter: 19, ovr: 60, peak: 70, ns: false,
+        klub: "FC Test", klubLiga: "3. Liga", gestellt: 2030, frist: 2031, vertragBis: 2032 };
+      const r10 = mach("Dach · Postfach zugeklappt trotz offener Fälle",
+        <VereinDach aka={{ ...akaV, jahr: 2030, faelle: [fall9] }} verein={kennV}
+          gesamt={{ karrieren: 9 }} onAka={nixf} onProfi={nixf} onZurueck={nixf}
+          onAendern={nixf} onVAendern={nixf} />);
+      if (r10) {
+        const t10 = r10.div.textContent || "";
+        if (!/1 offen/.test(t10)) zeige("Postfach", "der Zähler fehlt");
+        else ok++;
+        /* Der Fall darf NICHT schon sichtbar sein. */
+        if (t10.includes("Zuklapp"))
+          zeige("Postfach", "es ist von selbst aufgeklappt, obwohl es zubleiben soll");
+        else ok++;
+        if (!/antippen/i.test(t10))
+          zeige("Postfach", "es sagt nicht, dass man antippen kann");
+        else ok++;
+        /* Und nach dem Antippen MUSS der Fall erscheinen — sonst wäre es
+           zwar zu, aber auch nicht zu öffnen. */
+        if (klick(r10.div, "Postfach", "Postfach antippen")) {
+          if (!(r10.div.textContent || "").includes("Zuklapp"))
+            zeige("Postfach", "nach dem Antippen erscheint der Fall nicht");
+          else ok++;
+        }
+      }
+    }
+
+    const ohne = mach("Dach · Postfach leer", <VereinDach aka={akaV} verein={vollV}
+      gesamt={{ karrieren: 9 }} onAka={nixf} onProfi={nixf} onZurueck={nixf}
+      onAendern={nixf} onVAendern={nixf} />);
+    if (ohne) {
+      const t0 = ohne.div.textContent || "";
+      if (!/Postfach/.test(t0)) zeige("Postfach", "es fehlt, obwohl es immer da sein soll");
+      else ok++;
+      if (!/nichts offen/i.test(t0)) zeige("Postfach", "der leere Zustand wird nicht benannt");
+      else ok++;
+      /* Die Kacheln: sie sollen Zahlen tragen, nicht nur Namen. */
+      if (!/TALENTE|AUSBAU/i.test(t0)) zeige("Dach", "die Akademiekachel zeigt keine Kennzahlen");
+      else ok++;
+      if (!/KADER|STÄRKE/i.test(t0)) zeige("Dach", "die Mannschaftskachel zeigt keine Kennzahlen");
+      else ok++;
+      /* Und der Ausbau-Nenner muss der gemessene sein, nicht 54. */
+      if (/\/54/.test(t0)) zeige("Dach", "der Ausbau steht mit dem falschen Nenner 54 da");
+      else ok++;
+    }
+
+    const mitF = mach("Dach · Postkorb mit Fall", <VereinDach aka={akaF} verein={vollV}
+      gesamt={{ karrieren: 9 }} onAka={nixf} onProfi={nixf} onZurueck={nixf}
+      onAendern={nixf} onVAendern={nixf} />);
+    if (mitF) {
+      /* ERST ANTIPPEN. Seit 35.68 bleibt das Postfach zu — diese Prüfung
+         stammt aus 35.53 und ging davon aus, dass es von selbst offen ist.
+         Sie meldete danach fünf Fehler auf einmal, alle falsch: der Inhalt
+         war nicht weg, nur zugeklappt. Eine Prüfung, die eine Annahme über
+         den Anfangszustand trifft, muss sie mitziehen, wenn er sich ändert. */
+      klick(mitF.div, "Postfach", "Postfach aufklappen");
+      const t = mitF.div.textContent || "";
+      if (!/Postfach · 1 offen/.test(t)) zeige("Postfach", "Kopfzeile mit Zähler fehlt");
+      else ok++;
+      if (!t.includes("Probetalent") || !t.includes("Testverein FC"))
+        zeige("Postkorb", "Name oder Verein fehlen");
+      else ok++;
+      /* Die Frist muss LESBAR sein, nicht bloß gespeichert. 2031 − 2030 = 1. */
+      if (!/noch 1 Jahr/.test(t)) zeige("Postkorb", "die Restfrist wird nicht richtig angezeigt: "
+        + (t.match(/noch [^·]*/) || ["—"])[0]);
+      else ok++;
+      const kn = [...mitF.div.querySelectorAll("button")].map((b2) => (b2.textContent || "").trim());
+      if (!kn.some((x) => x === "Freigeben")) zeige("Postkorb", "„Freigeben“ fehlt");
+      else ok++;
+      if (!kn.some((x) => x === "Behalten")) zeige("Postkorb", "„Behalten“ fehlt");
+      else ok++;
+      /* Die Aussicht in Prozent — sie ist der ganze Witz an Kevins Wunsch,
+         dass zu gute Talente ablehnen können. Ohne Zahl wäre es Glücksspiel. */
+      if (!/% Aussicht/.test(t)) zeige("Postkorb", "die Aussicht in Prozent fehlt");
+      else ok++;
+    }
+  }
+  /* Rückblick (35.52): der Reiter erscheint nur, wenn die Chronik Tabellen
+     trägt. Beide Zustände werden geprüft — ein Reiter, der zu früh da ist,
+     wäre ein leeres Versprechen, einer der zu spät kommt, verstecktes
+     Ergebnis. Gespielt wird dafür eine echte Saison. */
+  {
+    const rv = VEREIN.gruenden(VEREIN.leererVerein(),
+      /* NICHT „Rückblickprobe" nennen: der Name stünde im Text und die Prüfung
+         „ist der Reiter schon da" fände ihr eigenes Suchwort im Vereinsnamen
+         wieder. Ist genau so passiert. */
+      { name: "Archivprobe", land: "GER", liga: "3. Liga" }).v;
+    const rk = ["TW","TW","IV","IV","IV","IV","AV","AV","AV","ZDM","ZDM","ZM","ZM",
+                "ZOM","ZOM","AF","AF","ST","ST","ST"]
+      .map((pz, i2) => ({ id: "r" + i2, name: "Rück " + i2, pos: pz, ovr: 46 + (i2 % 10),
+        pot: 76, alter: 22, flag: "🇩🇪", form: 50, fitness: 80,
+        spiele: 0, tore: 0, jahreImVerein: 0 }));
+    const vorher = VEREIN.autoAufstellen({ ...rv, kader: rk });
+
+    const r0 = mach("Verein · vor der ersten Saison", <VereinScreen v={vorher} aka={akaV}
+      onAendern={nix} onAkaAendern={nix} onZurueck={nix} onAbschluss={nix} />);
+    if (r0) {
+      /* Am KNOPF messen, nicht am Fliesstext. Der erste Entwurf suchte das
+         Wort im ganzen Bildschirm und fand es zweimal falsch: einmal im
+         Vereinsnamen der Probe, einmal in einem Hinweissatz weiter unten.
+         Ein Reiter ist ein Knopf — dann wird auch der Knopf gezaehlt. */
+      const reiterKn = (r00) => [...r00.div.querySelectorAll("button")]
+        .map((b2) => (b2.textContent || "").trim()).filter((t) => t === "Rückblick");
+      if (reiterKn(r0).length)
+        zeige("Rückblick", "der Reiter ist schon da, bevor eine Saison gespielt wurde");
+      else ok++;
+    }
+
+    const erg = VEREIN.vereinSaison(vorher);
+    if (erg.fehler) zeige("Rückblick", "Probesaison lief nicht: " + erg.fehler);
+    else {
+      let stand2 = erg.v;
+      function RueckHuelle() {
+        const [vv, setVv] = React.useState(stand2);
+        stand2 = vv;
+        return <VereinScreen v={vv} aka={akaV} onAendern={setVv}
+          onAkaAendern={nix} onZurueck={nix} onAbschluss={nix} />;
+      }
+      const r1 = mach("Verein · Rückblick nach einer Saison", <RueckHuelle />);
+      if (r1) {
+        const knRB = [...r1.div.querySelectorAll("button")]
+          .map((b2) => (b2.textContent || "").trim()).filter((t) => t === "Rückblick");
+        if (!knRB.length)
+          zeige("Rückblick", "der Reiter fehlt, obwohl eine Saison gespielt wurde");
+        else if (klick(r1.div, "Rückblick", "Reiter Rückblick")) {
+          const t = r1.div.textContent || "";
+          if (!/Abschlusstabelle/.test(t)) zeige("Rückblick", "Tabelle fehlt");
+          else ok++;
+          if (!/Leistungsdaten/.test(t)) zeige("Rückblick", "Leistungsdaten fehlen");
+          else ok++;
+          if (!/Alle 38 Spiele/.test(t)) zeige("Rückblick", "Spielliste fehlt oder hat nicht 38 Spiele");
+          else ok++;
+          /* Die eigene Mannschaft MUSS in der Tabelle auftauchen — eine
+             Tabelle ohne den eigenen Verein waere sinnlos, faellt aber beim
+             Rendern nicht auf. */
+          if (!t.includes("Archivprobe")) zeige("Rückblick", "der eigene Verein steht nicht in der Tabelle");
+          else ok++;
+          /* Und die Zahl unten muss zu den Daten passen, nicht bloss da sein. */
+          const c = erg.v.chronik[erg.v.chronik.length - 1];
+          if (!t.includes(String(c.tabelle[0].pkt)))
+            zeige("Rückblick", "die Punktzahl des Meisters steht nicht in der Anzeige");
+          else ok++;
+        }
+      }
+    }
+  }
+
   mach("Verein ohne Kader", <VereinScreen v={leerV} aka={akaV} onAendern={nix}
     onAkaAendern={nix} onZurueck={nix} onAbschluss={nix} />);
   mach("Verein spielbereit", <VereinScreen v={vollV} aka={akaV} onAendern={nix}
@@ -1177,8 +1907,15 @@ console.log("\n=== Freischaltungen ===");
     else ok++;
     if (!/Neue Wildcards/.test(t)) zeige("Freischaltungen", "die Übersicht nach Art fehlt");
     else ok++;
-    /* Der Zähler muss stimmen: zwei freigeschaltet von 48. */
-    if (!/2 von 48/.test(t)) zeige("Freischaltungen", "Zähler stimmt nicht: erwartet „2 von 48\u201C");
+    /* Der Zähler muss stimmen — die Gesamtzahl GEMESSEN, nicht abgeschrieben.
+       Hier stand fest „von 48". Als in 35.62 zwei Belohnungen dazukamen
+       (Meisterwappen, Fünfzehn Ringe), meldete die Prüfung rot, obwohl beide
+       richtig angelegt waren. Eine Prüfung, die eine wachsende Zahl fest
+       einträgt, meldet jedes Wachstum als Fehler — dieselbe Bauart wie die
+       518 Ereignisse in 35.45. */
+    const gesamtLohn = Object.keys(META).length;
+    if (!new RegExp("2 von " + gesamtLohn).test(t))
+      zeige("Freischaltungen", "Zähler stimmt nicht: erwartet „2 von " + gesamtLohn + "\u201C");
     else ok++;
     console.log("  Freischaltungen zugeklappt: Übersicht nach Art ✓ · Zähler 2 von 48 ✓");
   }

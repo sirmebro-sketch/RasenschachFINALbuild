@@ -5,16 +5,20 @@
 **Die App selbst**
 
     App.jsx                 das ganze Spiel
-    ereignisse.js           die 518 Ereignisse, ausgelagert seit 35.6
+    ereignisse.js           die Ereignisse, ausgelagert seit 35.6
     verein.js               der eigene Verein, ausgelagert seit 35.17
-    namen.js          die Namenskartei, ein Eintrag je Land (seit 35.43)
-    schriften.js            Anton und Archivo als Base64, 128 KB
+    namen.js                die Namenskartei, ein Eintrag je Land (seit 35.43)
+    akademie.js             die Jugendakademie, ausgelagert seit 35.48
+    schriften.js            Anton und Archivo als Base64
     schriften-lizenz.txt    SIL OFL — muss mit der App ausgeliefert werden
 
-Alle vier gehören im Verzeichnis **flach neben `App.jsx`**, zusammen mit
+Alle fünf gehören im Verzeichnis **flach neben `App.jsx`**, zusammen mit
 `storage.js` — nicht in `pruefstand/`, nicht in einem `src`-Ordner. Sie stehen
-in den `import`-Zeilen 2 bis 5 der `App.jsx`; wer wissen will, was dazugehört,
-zählt dort nach.
+mit `storage.js` in den `import`-Zeilen **2 bis 7** der `App.jsx`; wer wissen
+will, was dazugehört, zählt dort nach. (Bis 35.44 stand hier „2 bis 5" — die
+Angabe stammte aus der Zeit vor `namen.js` und hat den fünften Import
+unterschlagen. Größen standen hier auch; sie sind weg, der Prüfstand misst
+sie bei jedem Lauf.)
 
 Fehlt `schriften.js`, bricht der Prüfstand mit einer klaren Meldung ab, und die
 App fällt stumm auf die Gerätefonts zurück. Fehlen `ereignisse.js` oder
@@ -29,6 +33,27 @@ sich nicht bauen liess. Seit 35.30 rechnet `pruefen.sh` die Liste nach.
     rueckwaerts.jsx · jsdom.cjs · uebersicht.cjs · vorschau.py
     browsertest.sh · messwerkzeug.js · startprobe.cjs
     ereignispruefung.cjs · vereinpruefung.cjs · verzeichnis.cjs
+    stimmigkeit.cjs · namenpruefung.cjs · argumente.cjs
+    sicherheit-bekannt.txt · gleichheit.cjs · schriftabdeckung.cjs · kontrast.cjs · ruecktritt.cjs
+
+**Wer davon von allein läuft** (gemessen an den Aufrufen in den Skripten, nicht
+abgeschrieben):
+
+- **`pruefen.sh` fährt neun selbst:** `kalibrierung.cjs`, `ansichten.jsx`,
+  `rueckwaerts.jsx`, `ereignispruefung.cjs`, `stimmigkeit.cjs`,
+  `namenpruefung.cjs`, `vereinpruefung.cjs`, `verzeichnis.cjs`, `jsdom.cjs`.
+  `exporte.txt` wird angehängt, `argumente.cjs` von den Werkzeugen eingebunden.
+- **`sicht.sh` startet sieben:** `browsertest.sh` (darin `startprobe.cjs`),
+  `kopfleiste.cjs`, `seitenanfang.cjs`, `passhoehe.sh` (mit `passbogen.jsx`
+  und `passmessung.cjs`), `knoepfe.sh` (mit `knopfbogen.jsx` und
+  `knopfmessung.cjs`).
+- **Alles Übrige nur auf Abruf** — Bildtafeln, Belastungslauf, Vorschau,
+  Werkstatt, `uebersicht.cjs`, `messwerkzeug.js`.
+
+Bis 35.44 standen `stimmigkeit.cjs` und `namenpruefung.cjs` weiter unten unter
+„läuft nicht automatisch" — obwohl beide seit 35.37 bzw. 35.43 in **jedem** Lauf
+mitfahren (Teile `stimmig` und `namen`). Wer der Einordnung glaubte, hielt zwei
+laufende Prüfungen für ungeprüft und fuhr sie von Hand nach.
 
 **Die Dokumente**
 
@@ -38,8 +63,25 @@ sich nicht bauen liess. Seit 35.30 rechnet `pruefen.sh` die Liste nach.
 
 **Die Baudateien** — ohne sie überspringt der Prüfstand den Produktionsbau
 
-    package.json · vite.config.js · index.html · main.jsx
-    storage.js   · capacitor.config.json · apk.yml · .gitignore
+    package.json · package-lock.json · vite.config.js · index.html
+    main.jsx · storage.js · capacitor.config.json · apk.yml · .gitignore
+
+**Sicherheitsnachträge** (seit 35.46 nicht mehr von allein): alle paar Monate
+
+    npm audit --omit=dev     # betrifft es die App oder nur den Werkzeugkasten?
+    npm update               # holt die kleinen Nachträge, schreibt die Sperrdatei neu
+    bash pruefstand/pruefen.sh App.jsx
+
+danach die neue `package-lock.json` einchecken. Der Prüfstand sieht seit 35.47
+bei jedem Lauf selbst nach und meldet, sobald etwas im **Auslieferungspfad**
+auftaucht — nur zehn der 212 Pakete landen dort. Große Sprünge (`vite` 6,
+`capacitor` 8) holt `npm update` nicht; die sind eine eigene Sitzung mit
+Gerätetest.
+
+`package-lock.json` seit 35.46: sie nagelt alle 212 Bibliotheksfassungen fest.
+Ohne sie bauen APK, Prüfstand und Browsertest mit jeweils frisch aufgelösten
+Fassungen — dieselbe `App.jsx` kann dann drei verschiedene Bündel ergeben.
+Alle drei benutzen jetzt `npm ci` und melden es, wenn die Datei fehlt.
 
 Im Repository liegen sie **flach neben App.jsx**, nicht in einem `src`-Ordner.
 `apk.yml` gehört dort nach `.github/workflows/apk.yml`.
@@ -48,8 +90,9 @@ Im Repository liegen sie **flach neben App.jsx**, nicht in einem `src`-Ordner.
 
     appicon.py      App-Symbol erzeugen (im Repo unter symbol/)
 
-Alles Weitere liegt in `pruefstand/`. Der Prüfstand fährt davon nur einen Teil
-automatisch — die Übrigen beantworten Fragen, die er strukturell nicht kann:
+Die drei Klammern darunter — was `pruefen.sh` selbst fährt, was `sicht.sh`
+startet, was nur auf Abruf läuft — stehen oben beim Prüfstand. Einzeln
+aufrufen lässt sich alles davon:
 
     sicht.sh          alles, was jsdom nicht sieht, in einem Lauf:
                       bash pruefstand/sicht.sh App.jsx
@@ -64,11 +107,6 @@ automatisch — die Übrigen beantworten Fragen, die er strukturell nicht kann:
                       Einschreiben. Nur bei ERSTSTART=1, nie in der APK
     argumente.cjs     ein Muster für alle Werkzeuge: --quelle= --ziel=
                       --anzahl=; fehlt die Quelle, wird abgebrochen
-    namenpruefung.cjs Abdeckung und Herkunft der Namenskartei
-                      node pruefstand/namenpruefung.cjs --quelle=App.jsx
-    stimmigkeit.cjs   prüft alle Ereignisse: wirkt jede Wahl, ist jede
-                      erreichbar, passt das Ereignis zum Moment
-                      node pruefstand/stimmigkeit.cjs [--alle]
     portraetbogen.cjs Porträts als Bildtafel (auch: frau …)
     bindenbogen.cjs   alle 212 Kapitänsbinden als Tafel
     grosstest.cjs     Belastungslauf: Merkmale, Spieler, ganze Laufbahnen
@@ -147,7 +185,7 @@ und Baudateien **flach daneben** (siehe STAND.md Abschnitt 8) — und ruft auf:
 
 Hier stand bis 35.29 nur „nach `/home/claude/pruefstand/`". Wer das wörtlich
 nimmt, legt auch `main.jsx` und `package.json` dorthin — dann meldet der
-Aufbau weniger als `Baudateien: 6 von 6` und der Produktionsbau wird
+Aufbau weniger als `Baudateien: 7 von 7` und der Produktionsbau wird
 übersprungen. Genau diese Falle beschreibt Abschnitt 8 der STAND.md.
 
 Das dauert etwa drei Minuten und prüft: Kalibrierung gegen hinterlegte

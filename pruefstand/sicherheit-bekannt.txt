@@ -1,0 +1,26 @@
+# Bewusst abgenickte Sicherheitsfunde im Auslieferungspfad
+# =========================================================
+#
+# Der Pruefstand prueft bei jedem Lauf `npm audit --omit=dev`, also NUR die
+# Pakete, die wirklich in der APK landen. Findet er etwas, wird der Lauf rot.
+#
+# Warum es diese Datei gibt: irgendwann kommt ein Fund, der sich nicht schnell
+# beheben laesst — weil die Behebung einen grossen Fassungssprung braucht, oder
+# weil sie die App gar nicht betrifft. Ohne diesen Weg waere der Pruefstand
+# dann dauerhaft rot, und dauerhaft rot heisst nach zwei Wochen: jemand schaltet
+# die Pruefung ab. Das ist die schlechteste aller Moeglichkeiten.
+#
+# Deshalb: ein Fund darf abgenickt werden, aber nur SCHRIFTLICH und mit Grund.
+# Eine Zeile je Paket, Paketname zuerst, danach die Begruendung:
+#
+#     beispielpaket   # betrifft nur den Entwicklungsserver, 12.9.2026, Kevin
+#
+# Zwei Dinge macht der Pruefstand damit:
+#  * Ein abgenickter Fund faerbt nicht mehr rot, wird aber weiter GENANNT.
+#    Verschwiegen wird nichts.
+#  * Steht hier ein Paket, das gar nicht mehr gemeldet wird, sagt er das auch.
+#    Ein Freibrief, den niemand mehr braucht, gehoert geloescht — sonst deckt
+#    er beim naechsten Mal einen echten Fund mit ab.
+#
+# Stand 28.8.2026: `npm audit --omit=dev` meldet 0 Funde. Diese Liste ist leer,
+# und das ist der richtige Zustand.

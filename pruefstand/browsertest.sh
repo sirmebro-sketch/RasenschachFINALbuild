@@ -4,7 +4,21 @@
 #  --------------------------------------------------------------------------
 #      bash pruefstand/browsertest.sh                  # Quelle /mnt/project/App.jsx
 #      bash pruefstand/browsertest.sh /pfad/zu/App.jsx
+#      WERKSTATT=1 bash pruefstand/browsertest.sh       # ZUM SELBER SPIELEN
 #      ERSTSTART=1 bash pruefstand/browsertest.sh       # wie eine frische App
+#
+#  DREI FASSUNGEN, und der Unterschied ist wichtig:
+#    ohne Schalter   fuer den Pruefstand. KEINE Werkstatt (ihre dreizehn
+#                    Knoepfe wuerden in jeder Zaehlung mitlaufen), der
+#                    Willkommensschirm ist vorbelegt.
+#    WERKSTATT=1     zum Anschauen und Ausprobieren: Werkstatt drin, Schirm
+#                    vorbelegt — man landet sofort im Hauptmenue.
+#    ERSTSTART=1     wie eine frisch installierte App: Werkstatt drin, aber
+#                    der Willkommensschirm kommt bei JEDEM Neuladen.
+#
+#  Bis 35.55 gab es nur ERSTSTART, und daran hing beides. Wer die Werkstatt
+#  wollte, bekam den Schirm dazu; wer nur die Datei baute, bekam keine
+#  Werkstatt. Beides zusammen ging gar nicht.
 #
 #  Ergebnis: rasenschach-browsertest.html — das ECHTE Produktionsbuendel in
 #  einer Datei, ohne Nachladen. Unterschied zur APK: genau eine Datei,
@@ -32,7 +46,7 @@ cp "$QUELLE" App.jsx
 # geschrieben hat.
 BEIDATEIEN="$(grep -oE 'from "\./[a-zA-Z0-9_]+\.js"' App.jsx | sed 's|from "\./||; s|"$||' | grep -v '^storage\.js$' | sort -u | tr '\n' ' ')"
 echo "Beidateien aus App.jsx: $BEIDATEIEN"
-for D in $BEIDATEIEN main.jsx index.html package.json; do
+for D in $BEIDATEIEN main.jsx index.html package.json package-lock.json; do
   [ -f "$QUELLDIR/$D" ] || { echo "FEHLER: $D fehlt neben $QUELLE"; exit 1; }
   cp "$QUELLDIR/$D" .
 done
@@ -76,7 +90,16 @@ export default defineConfig({
 });
 EOF
 
-npm install --no-audit --no-fund --silent 2>&1 | tail -1
+# Seit 35.46 mit Sperrdatei: die Datei, die auf dem Telefon geprueft wird,
+# soll dieselben Bibliotheken enthalten wie die APK. Ohne sie waere ein
+# Geraetetest gegen ein anderes Buendel gelaufen als das ausgelieferte.
+if [ -f package-lock.json ]; then
+  npm ci --no-audit --no-fund --silent 2>&1 | tail -1
+else
+  echo "HINWEIS: keine package-lock.json — Browsertest baut mit anderen"
+  echo "         Bibliotheken als die APK. Siehe 35.46."
+  npm install --no-audit --no-fund --silent 2>&1 | tail -1
+fi
 npx vite build 2>&1 | grep -E "index-.*js|built in|error"
 
 # ---- einbetten -----------------------------------------------------------
@@ -97,7 +120,14 @@ const werkzeug = fs.readFileSync(path.join(process.cwd(), "messwerkzeug.js"), "u
    Knoepfe und suchen Text, und ein Werkzeugkasten mit dreizehn eigenen
    Knoepfen wuerde in jeder Zaehlung mitlaufen. Gemessen wuerde dann das
    Werkzeug statt des Spiels. */
-const werkstatt = process.env.ERSTSTART === "1"
+/* EIGENER SCHALTER seit 35.56. Bis dahin hing die Werkstatt allein an
+   ERSTSTART — und ERSTSTART schaltet zugleich den Willkommensschirm ein. Wer
+   die Werkstatt wollte, bekam also zwangslaeufig eine Datei, die nach jedem
+   Neuladen im Schirm steht; wer die Datei zum Anschauen baute, bekam gar
+   keine Werkstatt. Genau der Fall ist eingetreten (Kevin, 35.56: „das
+   Werkzeug hat nicht wirklich funktioniert" — es war schlicht nicht drin).
+   Zwei Beduerfnisse an einem Schalter sind einer zu wenig. */
+const werkstatt = (process.env.WERKSTATT === "1" || process.env.ERSTSTART === "1")
   ? fs.readFileSync(path.join(process.cwd(), "werkstatt.js"), "utf8") : "";
 /* Ersetzung IMMER als Funktion. Als Zeichenkette liest replace die Muster
    $& $' $` $1 — und React enthaelt "$&/". Beim ersten Versuch landeten
@@ -134,6 +164,19 @@ if (a !== b) { console.error("FEHLER: $& im Buendel " + a + ", in der Datei " + 
 const ziel = path.join(process.cwd(), "rasenschach-browsertest.html");
 fs.writeFileSync(ziel, html);
 console.log("Gegenprobe: 0 Verweise auf die Buenddatei, $& unveraendert (" + a + ")");
+/* SELBSTPRUEFUNG in BEIDE Richtungen (35.56). Ohne sie faellt es nicht auf,
+   wenn die Werkstatt fehlt — genau so ist sie unbemerkt aus der ausgelieferten
+   Datei verschwunden. Und die Gegenrichtung zaehlt genauso: waere sie in der
+   Pruefstandfassung drin, zaehlten alle Knopfpruefungen dreizehn Knoepfe zu
+   viel und niemand wuesste warum. */
+const drin = html.indexOf("WERKSTATT \u2014 nur im Browsertest") >= 0;
+const gewollt = !!werkstatt;
+if (drin !== gewollt) {
+  console.error("FEHLER: Werkstatt " + (drin ? "ist drin, sollte aber draussen sein"
+    : "fehlt, sollte aber drin sein") + ".");
+  process.exit(1);
+}
+console.log("Werkstatt: " + (drin ? "eingebaut" : "nicht eingebaut (Pruefstandfassung)"));
 console.log("geschrieben: " + ziel + "  " + (fs.statSync(ziel).size / 1024).toFixed(0) + " KB");
 EOF
 node einbetten.cjs

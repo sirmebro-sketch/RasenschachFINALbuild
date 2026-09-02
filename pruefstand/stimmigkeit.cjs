@@ -310,8 +310,29 @@ kopf("Zwei Ereignisse im selben Jahr");
       });
     }
   }
-  melde("Paare, die im selben Zug kollidieren k\u00f6nnen", paare, 30);
-  if (paare.length) verdacht += paare.length;
+  /* 35.44: seit 35.37 prueft `nextEvent` jede Bedingung ein zweites Mal,
+     unmittelbar bevor das Ereignis gezeigt wird. Diese Paare koennen also
+     zusammen GEZOGEN werden, aber das zweite wird uebersprungen statt
+     ausgespielt — der Fehler ist abgefangen.
+
+     Sie trotzdem als "Verdachtsfaelle zum Nachlesen" zu melden war falsch:
+     die Zahl stand seit 35.37 unveraendert bei 38 und bedeutete nichts mehr.
+     Eine Kennzahl, die sich nie bewegt, lehrt einen, sie zu ueberlesen — und
+     dann faellt auch nicht auf, wenn sie eines Tages auf 39 springt.
+
+     Jetzt wird sie als Bestand gemeldet, nicht als Befund. Steigt sie, ist
+     ein neues Paar dazugekommen; das ist an sich harmlos, sagt aber, dass die
+     Zweitpruefung weiter gebraucht wird. */
+  if (paare.length) {
+    console.log("    " + paare.length + " Paare koennen im selben Zug gezogen werden \u2014");
+    console.log("    seit 35.37 f\u00e4ngt die Zweitpr\u00fcfung in `nextEvent` sie ab.");
+    console.log("    Mit --alle stehen sie einzeln da.");
+    if (ZEIGE_ALLE) paare.forEach(zeile);
+    ok++;
+  } else {
+    console.log("    \u2713 keine Paare, die im selben Zug kollidieren k\u00f6nnten");
+    ok++;
+  }
 }
 
 /* ================== 5) Ist die Zweitpruefung noch verdrahtet? ============

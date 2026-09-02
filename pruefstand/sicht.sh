@@ -101,6 +101,35 @@ else
 fi
 
 echo
+echo "########## KONTRAST ##########"
+# Seit 35.58. Der Grund steht in kontrast.cjs: jsdom zeichnet nicht und kann
+# deshalb dunkel auf dunkel nicht sehen. Neun Fassungen lang war die
+# Kaderliste unlesbar und kein Lauf hat es gemeldet.
+if [ ! -f "$PS/kontrast.cjs" ]; then
+  echo "  kontrast.cjs fehlt — nicht geprueft."; NICHT=$((NICHT+1))
+elif [ ! -f "$ARBEIT/rasenschach-browsertest.html" ]; then
+  echo "  keine Browsertestdatei — nicht geprueft."; NICHT=$((NICHT+1))
+else
+  node "$PS/kontrast.cjs" "$ARBEIT/rasenschach-browsertest.html" 2>&1 | sed 's/^/  /'
+  [ "${PIPESTATUS[0]}" != "0" ] && FEHLER=$((FEHLER+1))
+fi
+
+echo
+echo "########## RUECKTRITT ##########"
+# Seit 35.66. Der Knopf „Schuhe an den Nagel haengen" hat vier Fassungen lang
+# nichts getan, wenn kein Verein mitspielte — und KEIN Lauf hat es gemeldet,
+# weil alle Vereinsproben MIT Verein laufen. Hier wird der haeufigste Fall
+# nachgestellt: erste Laufbahn, kein Verein, kein Konto.
+if [ ! -f "$PS/ruecktritt.cjs" ]; then
+  echo "  ruecktritt.cjs fehlt — nicht geprueft."; NICHT=$((NICHT+1))
+elif [ ! -f "$ARBEIT/rasenschach-browsertest.html" ]; then
+  echo "  keine Browsertestdatei — nicht geprueft."; NICHT=$((NICHT+1))
+else
+  node "$PS/ruecktritt.cjs" "$ARBEIT/rasenschach-browsertest.html" 2>&1 | sed 's/^/  /'
+  [ "${PIPESTATUS[0]}" != "0" ] && FEHLER=$((FEHLER+1))
+fi
+
+echo
 echo "########## ERGEBNIS ##########"
 if [ $FEHLER -gt 0 ]; then
   echo "$FEHLER Bereich(e) fehlgeschlagen."

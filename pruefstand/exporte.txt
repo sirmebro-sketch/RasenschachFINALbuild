@@ -8,7 +8,7 @@
 export {
   createPlayer, develop, drawEvents, applyFx, simulateSeason, makeOffers, marketValue,
   ovrOf, verdict, makeSquad, netWorth, loyalty, leereBilanz, pick, CONT, POS, NATIONS,
-  TYPES, MODES, CLUBS, leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, vcPosten,
+  TYPES, MODES, CLUBS, leereAkademie, akaGruenden, akaJahr, akaVerbuchen, freigeben, behalten, unterVertrag, talentAuslaufen, aussortieren, vcFuer, vcPosten,
   akaBonus, akaBonusText, akaNaechsteGabe, AKA_SCHWELLE, akaRuhm, AKA_FARBE, ABTEILUNGEN, akaStufe, akaPreis, akaRestkosten, akaSumme, akaSpanne,
   talentBauen, AKA_KEY, Shell, Pass, Guard, MenuScreen, CreateScreen, CompetitionView,
   Willkommen, WILLKOMMEN, FreiHinweis, leerGesehen,
@@ -22,7 +22,7 @@ export {
   WEIBLICH, autoTraining, TRAINING, AK, FLAGGENART, flaggenBild, Rueckblickkarte, noteColK,
   STUFEN, stufeDunkel, stufeSchrift, Rangblock, VCLADEN, SHOP_BILD, shopFuer,
   ladenGesperrt, ladenKaufbar, VCLadenAnsicht, tauschRest, tauschMax, rerollWildcard,
-  rahmenFuer, rahmenOffen, RAHMEN, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY,
+  rahmenFuer, rahmenOffen, RAHMEN, grundAufhellen, kontrast, haarDunkelste, GRUND_MIN, mischFarbe, shade, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY,
   AKA_MAX, bilanzErgaenzen, roleFor, evCtx, nochGueltig, setSpeedmodus, setSchwierigkeit,
   genName, KARTEI, hsvChance, EVENTS, META, LEAGUES, INVEST, WILDCARDS, VERSION,
   VERSION_INFO, CSS, drawWildcard, LAUFBAHN_MAX,
@@ -39,6 +39,6 @@ export {
   /* Relative Jahreszaehlung der Akademie (35.19) */
   akaJahrNr, akaJahrgang,
   /* Vereinsansicht (35.20) */
-  Wappen, Trikot, VereinGruenden, VereinScreen, VereinAbschluss,
+  Wappen, Trikot, VereinGruenden, VereinScreen, VereinAbschluss, VereinDach,
   WAPPEN_FORMEN, WAPPEN_ZEICHEN, TRIKOT_MUSTER,
 };

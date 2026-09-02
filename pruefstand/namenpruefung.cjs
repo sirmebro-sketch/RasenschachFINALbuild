@@ -163,6 +163,82 @@ console.log("  " + NATIONS.length + " Nationen \u00b7 " + Object.keys(KARTEI).le
   } else { console.log("    \u2713 keine ungewollten Kopien"); ok++; }
 }
 
+/* ---- Umfang der Namenstoepfe (35.56) -------------------------------------
+   Kevin: „Es sollten nicht nur Namen von Nationalspielern im Pool sein."
+   Bis 35.55 stammten beide Listen je Land erkennbar aus aktuellen
+   Nationalmannschaften — 20 x 20 = 400 Kombinationen, und wo Vorname und
+   Nachname desselben Spielers zusammentrafen, entstand der echte Name
+   (nachgewiesen im Browsertest: „Joshua Kimmich" auf dem ersten Bildschirm).
+
+   Geprueft wird der UMFANG, nicht die Herkunft — welcher Name von einem
+   Nationalspieler stammt, kann kein Skript wissen. Der Umfang ist aber der
+   Hebel: je groesser der Topf, desto seltener trifft eine Ziehung eine echte
+   Paarung. Die Zahl steht hier, damit sie nicht wieder schrumpft und damit
+   sichtbar bleibt, welche Laender noch klein sind. */
+{
+  console.log("\n  -- Umfang der Namenstoepfe --");
+  const gross = [], klein = [];
+  Object.keys(KARTEI).forEach((k) => {
+    const e = KARTEI[k];
+    if (!e || !e.v || !e.n) return;
+    /* DIE BAUART ENTSCHEIDET, was ueberhaupt kombiniert wird. Der erste
+       Entwurf rechnete stur `v x n` — und meldete Myanmar als Fehler
+       (40 Vornamen x 1 Nachname = 40). Dort ist `bau: "V"`: burmesische
+       Namen haben gar keinen Familiennamen, der eine Eintrag ist ein
+       Platzhalter, der nie benutzt wird. Der Topf ist also 40 Namen gross
+       und vollkommen in Ordnung. Eine Pruefung, die eine richtige Kartei
+       anmeckert, wird nach dem dritten Mal abgeschaltet. */
+    const bau = e.bau || "VN";
+    const kom = bau === "V" ? e.v.length
+      : bau === "VNN" ? e.v.length * e.n.length * e.n.length
+      : bau === "VMN" || bau === "VpN"
+        ? e.v.length * Math.max(1, (e.m || []).length) * e.n.length
+      : e.v.length * e.n.length;
+    (kom >= 400 ? gross : klein).push([k, kom, e.v.length, e.n.length]);
+  });
+  const alle = gross.concat(klein);
+  const summe = alle.reduce((a2, x) => a2 + x[1], 0);
+  alle.sort((a2, b2) => a2[1] - b2[1]);
+  console.log("    " + alle.length + " Laender mit eigenen Listen, im Mittel "
+    + Math.round(summe / Math.max(1, alle.length)) + " Kombinationen");
+  console.log("    kleinste: " + alle.slice(0, 3)
+    .map((x) => x[0] + " " + x[1] + " (" + x[2] + "x" + x[3] + ")").join(" \u00b7 "));
+  console.log("    groesste: " + alle.slice(-3).reverse()
+    .map((x) => x[0] + " " + x[1]).join(" \u00b7 "));
+
+  /* HARTE UNTERGRENZE, ABER NACH BAUART. Unter 100 Kombinationen wiederholen
+     sich die Namen so schnell, dass ein Jahrgang wie ein Kopierfehler
+     aussieht — das gilt aber nur, wo es ueberhaupt etwas zu kombinieren gibt.
+     Bei `bau: "V"` (Myanmar, burmesische Namen ohne Familiennamen) ist die
+     Listenlaenge der ganze Topf; 100 zu verlangen hiesse, eine Namenskultur
+     an einer Rechnung zu messen, die es dort nicht gibt. Dort zaehlt die
+     Zahl der Namen selbst, und 30 ist die Grenze.
+     Erst gleich behandelt, dann gemessen: die Pruefung meldete Myanmar als
+     harten Fehler, obwohl die Kartei richtig ist. */
+  const grenze = (k) => ((KARTEI[k] && KARTEI[k].bau) === "V" ? 30 : 100);
+  const zuKlein = alle.filter((x) => x[1] < grenze(x[0]));
+  if (zuKlein.length) {
+    console.log("    ! unter 100 Kombinationen: "
+      + zuKlein.map((x) => x[0] + " (" + x[1] + ")").join(", "));
+    hart++;
+  } else { console.log("    \u2713 kein Land unter 100 Kombinationen"); ok++; }
+
+  /* Die grossen Fussballnationen sind die, die ein Spieler fuer die eigene
+     Laufbahn waehlt — dort faellt eine Wiederholung am ehesten auf. Sie
+     wurden in 35.56 erweitert und duerfen nicht zurueckfallen. */
+  const ERWEITERT = ["GER","ENG","FRA","ESP","ITA","NED","POR","BRA","ARG","POL",
+                     "TUR","USA","MEX","SWE","JPN","KOR"];
+  const geschrumpft = ERWEITERT.filter((k) => KARTEI[k]
+    && KARTEI[k].v.length * KARTEI[k].n.length < 440);
+  if (geschrumpft.length) {
+    console.log("    ! seit 35.56 erweitert, jetzt wieder klein: " + geschrumpft.join(", "));
+    hart++;
+  } else {
+    console.log("    \u2713 die 16 erweiterten Nationen liegen alle ueber 440");
+    ok++;
+  }
+}
+
 console.log("\n  ----------------------------------------------------------");
 console.log("  " + ok + " Proben ohne Befund \u00b7 " + hart + " harte Fehler");
 process.exit(hart > 0 ? 1 : 0);

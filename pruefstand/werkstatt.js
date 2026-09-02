@@ -1,8 +1,22 @@
 /* ==========================================================================
    WERKSTATT — Abkürzungen zum Prüfen. GEHÖRT NICHT ZUM SPIEL.
    --------------------------------------------------------------------------
-   Wird nur von `browsertest.sh` in die Testseite gehängt und ist in der APK
-   nicht vorhanden. Zweck: alle Bildschirme erreichen, ohne dafür stundenlang
+   Wird von `browsertest.sh` in die Testseite gehängt — aber NUR mit einem der
+   beiden Schalter:
+
+       WERKSTATT=1 bash pruefstand/browsertest.sh    zum Anschauen, Menü sofort
+       ERSTSTART=1 bash pruefstand/browsertest.sh    wie eine frische App
+
+   Ohne Schalter ist sie NICHT dabei: das ist die Fassung für den Prüfstand,
+   und dort würden ihre dreizehn Knöpfe in jeder Zählung mitlaufen.
+
+   BIS 35.55 STAND HIER, sie werde von browsertest.sh eingehängt — ohne diese
+   Einschränkung. Wer die Datei normal baute, suchte danach vergeblich nach
+   einem Werkzeug, das laut dieser Zeile da sein sollte. Genau so ist es
+   passiert. Eine Datei, die über sich selbst etwas Falsches behauptet, kostet
+   mehr Zeit als eine, die gar nichts sagt.
+
+   In der APK ist sie nicht vorhanden. Zweck: alle Bildschirme erreichen, ohne dafür stundenlang
    spielen zu müssen — Akademie ab 2 Laufbahnen, Verein ab 5, Vollausbau nach
    rund 28. Wer das erspielt, prüft eine Woche lang.
 

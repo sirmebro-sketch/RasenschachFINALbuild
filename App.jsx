@@ -4,14 +4,15 @@ import { SCHRIFTEN } from "./schriften.js";
 import { machEreignisse } from "./ereignisse.js";
 import { machVerein } from "./verein.js";
 import { machNamen } from "./namen.js";
+import { machAkademie } from "./akademie.js";
 
 /* ================================================================
    FLUTLICHT v4 — Karriere-Simulator
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "35.43";
-const VERSION_INFO = "Namen nach Land statt nach Sprachraum — kein Chinese heißt mehr Lukas.";
+const VERSION = "35.75";
+const VERSION_INFO = "Die Karten der Ruhmeshalle wenden sich wie ein Spielerpass.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -53,6 +54,46 @@ const mischFarbe = (a, b, anteil) => {
     return "#" + h(m(A >> 16 & 255, B >> 16 & 255)) + h(m(A >> 8 & 255, B >> 8 & 255))
       + h(m(A & 255, B & 255));
   } catch (e) { return a; }
+};
+
+/* ---- Kontrastgrund fuer das Portraet (35.63) ---------------------------
+   Ein Portraet ist nur zu erkennen, wenn der Kopf sich vom Grund abhebt. Bei
+   schwarzem Haar auf sehr dunklem Grund tut er das nicht — von Kevin auf dem
+   Geraet gemeldet, gemessen mit Kontrast 1,02 (1,0 heisst: kein Unterschied).
+
+   HAAR_DUNKELSTE ist der dunkelste Ton, den die Haarpalette hergibt. Gegen
+   IHN wird gemessen, nicht gegen ein gedachtes Schwarz — sonst waere die
+   Grenze willkuerlich. GRUND_MIN ist bewusst 2,5 und nicht die 4,5 der
+   Textlesbarkeit: hier geht es um eine Silhouette, nicht um Buchstaben, und
+   ein zu heller Grund macht aus dem Portraet ein Passfoto. */
+/* AUS DER PALETTE, nicht abgeschrieben. Im ersten Entwurf stand hier fest
+   "#141414" — geraten. Der dunkelste Ton in HAIRC ist "#17120F", also etwas
+   anderes. Eine Grenze, die gegen einen erfundenen Wert misst, misst nichts:
+   aendert jemand die Palette, bleibt die Grenze stehen und die Silhouette
+   verschwindet wieder, ohne dass etwas meldet.
+   Als Funktion, weil HAIRC weiter unten steht — beim Aufruf zur Zeichenzeit
+   ist die Palette da, bei einer Konstante hier oben waere sie es nicht. */
+const haarDunkelste = () => (HAIRC || ["#17120F"]).reduce((a, b) =>
+  (helligkeit(a) <= helligkeit(b) ? a : b));
+const GRUND_MIN = 2.5;
+const helligkeit = (hex) => {
+  const n = parseInt(String(hex).slice(1), 16);
+  const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  return 0.2126 * f((n >> 16) & 255) + 0.7152 * f((n >> 8) & 255) + 0.0722 * f(n & 255);
+};
+const kontrast = (a, b) => {
+  const h = helligkeit(a), d = helligkeit(b);
+  return (Math.max(h, d) + 0.05) / (Math.min(h, d) + 0.05);
+};
+/* Schrittweise aufhellen, bis die Grenze erreicht ist. Der Deckel bei 40
+   Schritten ist eine Bremse, keine Erwartung: er greift nur, wenn jemand die
+   Palette so aendert, dass die Grenze unerreichbar wird — dann wird der Grund
+   hell, statt dass die Schleife stehenbleibt. */
+const grundAufhellen = (hex) => {
+  let c = hex;
+  const dunkel = haarDunkelste();
+  for (let i = 0; i < 40 && kontrast(c, dunkel) < GRUND_MIN; i++) c = shade(c, 6);
+  return c;
 };
 
 const shade = (hex, amt) => {
@@ -2715,18 +2756,54 @@ function zugDrehen(zuege, feld, richtung, g, nat, meta) {
 function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
   const K = meta || {};
   const w = g === "w";
-  const z = zuege || zuegeAusKennung(seed, g, nat, K);
+  /* EIN LEERES OBJEKT ZAEHLT WIE KEINES (35.69). `zuege || …` faengt `null`
+     ab, aber `{}` ist wahr — dann sind alle Felder undefined, und was daraus
+     entsteht, ist je nach Stelle eine Ersatzfarbe, ein NaN im SVG-Attribut
+     oder ein Absturz in `shade`. Beim Bauen der Ruhmeshallenprobe passiert,
+     und der erste Anlauf flickte nur `haut` und `haar` — die Pruefung meldete
+     danach weiter „Received NaN for the attribute". EINE Stelle flicken, wo
+     zehn betroffen sind, ist keine Behebung, sondern eine Verlagerung.
+     Im Spiel entsteht `{}` heute nicht. Ein beschaedigter Spielstand oder ein
+     aelteres Format reichen aber, und der Spieler saehe statt eines
+     Portraets einen Fehlerbildschirm. */
+  const z = (zuege && Object.keys(zuege).length) ? zuege
+    : zuegeAusKennung(seed, g, nat, K);
   const kennung = Math.abs((seed | 0)) % 999979;
 
   const kopf = KOPFFORM[z.kopf % KOPFFORM.length] || KOPFFORM[0];
-  const haut = SKIN[clamp(z.haut, 0, SKIN.length - 1)];
+  /* `|| 0` GEGEN LEERE ZUGLISTEN (35.69). `zuege || zuegeAusKennung(...)`
+     faengt `null` ab, aber NICHT ein leeres Objekt: `{}` ist wahr, also
+     greift der Rueckfall nicht, `z.haut` ist undefined, `clamp` liefert NaN,
+     `SKIN[NaN]` ist undefined — und `shade` stuerzt an einer Farbe ab, die es
+     nicht gibt. Beim Bauen der Ruhmeshallenprobe genau so passiert.
+     Im Spiel entsteht `{}` heute nicht. Aber ein beschaedigter Spielstand
+     oder ein aelteres Format reichen, und der Absturz waere fuer den Spieler
+     ein weisser Bildschirm statt eines Portraets. */
+  const haut = SKIN[clamp(z.haut || 0, 0, SKIN.length - 1)];
   const schatten = shade(haut, -26);      /* Flächenschatten, keine Verläufe */
   const tief = shade(haut, -46);
-  const haar = HAIRC[clamp(z.haar, 0, HAIRC.length - 1)];
+  const haar = HAIRC[clamp(z.haar || 0, 0, HAIRC.length - 1)];
   const haarHell = shade(haar, 26);
   const iris = (AUGENFARBE[z.augenfarbe % AUGENFARBE.length] || AUGENFARBE[0]).c;
   const [c1, c2] = clubColors(club);
   const R = rahmenFuer(K);
+  /* Die drei Töne des Kartengrunds (35.63). Sie kommen aus der Rahmenfarbe,
+     aber STARK abgedunkelt und entsättigt — eine Karte trägt ihre Farbe als
+     Ahnung, nicht als Anstrich. Ohne Rahmen bleibt es beim Rasenton.
+     `grundHell` ist der Ton hinter dem Kopf und muss hell genug bleiben, dass
+     schwarzes Haar dagegen steht; er ist deshalb nach unten begrenzt und
+     nicht einfach „Rahmenfarbe mal 0,3". */
+  const grundBasis = R ? R.c : "#2A4433";
+  /* UNTERGRENZE STATT AUGENMASS. Der erste Entwurf nahm die Rahmenfarbe,
+     dunkelte sie ab und sah gut aus — gemessen kam OHNE Rahmen ein Kontrast
+     von 1,02 gegen schwarzes Haar heraus, also genau Kevins Befund. Farben
+     nach Gefühl zu wählen löst ein Kontrastproblem nicht, es verschiebt es.
+     Der Ton hinter dem Kopf wird deshalb so lange aufgehellt, bis er gegen
+     das dunkelste Haar der Palette das Verhältnis GRUND_MIN erreicht — die
+     Silhouette ist damit garantiert, auch ganz ohne Rahmen. */
+  const grundHell  = grundAufhellen(mischFarbe(grundBasis, "#2E3A2E", .35));
+  const grundMitte = shade(grundHell, -26);
+  const grundTief  = shade(grundHell, -52);
 
   const augenY = 46 + (z.augen === 3 ? 1.5 : 0);
   const lidH = z.augen === 1 ? 2.6 : z.augen === 4 ? 4.2 : 3.4;   /* Lidspalt */
@@ -2762,10 +2839,35 @@ function Avatar({ seed = 1, zuege, club, size = 72, ring, g, nat, meta }) {
           vorn. Der Beschnitt erledigt es ein für alle Mal. */}
       <clipPath id={"kf" + kennung}><path d={kopfD} /></clipPath>
       <g clipPath={"url(#av" + kennung + ")"}>
-        {/* Grund: Rasen bei Nacht, nicht das alte Marineblau. Zwei flache
-            Töne statt eines Verlaufs — dieselbe Sprache wie der Rest. */}
-        <rect width="100" height="100" fill="#0B120E" />
-        <path d="M0,64 H100 V100 H0 Z" fill="#0E1712" />
+        {/* KARTENOPTIK (35.63), Kevins Wahl. Bis 35.62 standen hier zwei
+            flache, sehr dunkle Töne (#0B120E / #0E1712). Auf dem Gerät war
+            das Ergebnis: dunkles Haar verschwand im Hintergrund, der Kopf
+            hatte keine Silhouette mehr. Von Kevin gemeldet — „einige Designs,
+            vor allem bei dunklem Haar, erkennt man nicht".
+
+            Der Verlauf nimmt die Farbe des GEWÄHLTEN Rahmens auf, wie eine
+            Karte ihre Seltenheitsfarbe trägt. Ohne Rahmen bleibt es beim
+            Rasenton, nur heller — kein Spieler soll schlechter dastehen, weil
+            er noch nichts freigeschaltet hat.
+
+            DIE HELLIGKEIT IST DAS EIGENTLICHE. Der Verlauf geht oben hell,
+            unten dunkel: der Kopf sitzt oben und hebt sich damit auch mit
+            schwarzem Haar ab, die Schultern unten stehen gegen den dunklen
+            Fuß. Ein Verlauf andersherum hätte hübsch ausgesehen und das
+            Problem nicht gelöst. */}
+        <defs>
+          <linearGradient id={"bg" + kennung} x1="0" y1="0" x2="0.35" y2="1">
+            <stop offset="0" stopColor={grundHell} />
+            <stop offset="0.62" stopColor={grundMitte} />
+            <stop offset="1" stopColor={grundTief} />
+          </linearGradient>
+        </defs>
+        <rect width="100" height="100" fill={"url(#bg" + kennung + ")"} />
+        {/* Zwei Strahlen wie auf einer Karte — sehr schwach, damit sie das
+            Gesicht nicht stören. */}
+        <path d="M-10,74 L46,-8 L62,-8 L4,78 Z" fill="#FFFFFF" opacity=".045" />
+        <path d="M18,86 L74,-8 L82,-8 L28,88 Z" fill="#FFFFFF" opacity=".03" />
+        <path d="M0,72 H100 V100 H0 Z" fill={grundTief} opacity=".55" />
 
         {/* Schultern und Trikot */}
         <path d="M2,100 C4,82 22,74 50,74 C78,74 96,82 98,100 Z" fill={c1} />
@@ -3218,8 +3320,26 @@ function nameAus(e, g) {
          bekommen -ova. Endet der Name auf -a oder -o, faellt die Endung
          vorher weg: Kucera -> Kucerova, Hancko -> Hanckova. Mein erster
          Entwurf haengte stumpf an und lieferte „Kuceraova". */
-      if (/(y|ý)$/.test(nach)) nach = nach.replace(/(y|ý)$/, "a");
-      else nach = nach.replace(/[ao]$/, "") + "ova";
+      /* MIT ZEICHEN, seit 35.58: die tschechische Endung ist -ová und die
+         adjektivische Form -á. Bis dahin lieferte die Regel „Novotna" und
+         „Coufalova" — richtig gebeugt, aber ohne die Laengezeichen, die im
+         Tschechischen zur Endung gehoeren. Aufgefallen erst, als die Namen
+         in 35.57 ihre Zeichen zurueckbekamen: der Nachname eines Mannes hiess
+         „Novotný", der seiner Schwester „Novotna". */
+      if (/(y|ý)$/.test(nach)) nach = nach.replace(/(y|ý)$/, "á");
+      else nach = nach.replace(/[ao]$/, "") + "ová";
+    } else if (e.nw === "gr") {
+      /* GRIECHISCH (35.58, von Kevin gemeldet). Die weibliche Form ist der
+         Genitiv des maennlichen Namens:
+             -os  ->  -ou     Papadopoulos -> Papadopoulou
+             -as  ->  -a      Masouras     -> Masoura
+             -is  ->  -i      Giakoumakis  -> Giakoumaki
+         Bis 35.57 trug eine Griechin die maennliche Form („Maria Tsimikas"),
+         weil der Eintrag gar kein `nw` hatte — der Mechanismus war da, die
+         Regel fehlte. */
+      if (/os$/.test(nach)) nach = nach.replace(/os$/, "ou");
+      else if (/as$/.test(nach)) nach = nach.replace(/as$/, "a");
+      else if (/is$/.test(nach)) nach = nach.replace(/is$/, "i");
     }
   }
   switch (e.bau) {
@@ -4154,6 +4274,26 @@ const WILDCARDS = [
 { id:"mw_phoenix", r:"welt", req:"mw_phoenix", n:"Wiederauferstehung", t:"Nach jedem Rückschlag kommst du stärker zurück. Freigeschaltet mit 900 Vermächtnispunkten.", fx:()=>({ injMod:-.4, slowDecay:.4, dev:.16, morale:16, fitness:12 }) },
 { id:"mw_urgestein", r:"unfass", req:"mw_urgestein", n:"Urgestein", t:"Du spielst, bis andere längst Trainer sind. Freigeschaltet mit 600 Pflichtspielen.", fx:()=>({ slowDecay:.55, injuryProne:-22, fitness:14, loyalBonus:1 }) },
 { id:"mw_erbe", r:"goat", req:"mw_erbe", n:"Das Erbe", t:"Alles, was vor dir war, fließt in dich ein. Freigeschaltet mit zwanzig Titeln.", fx:()=>({ pot:20, dev:.26, rep:24, trust:16, legacy:24, note:.1 }) },
+
+/* ---- Karten aus der Fleissarbeit an Akademie und Verein (35.74) ----------
+   Bis 35.73 gab es vierzehn freischaltbare Karten, alle an Spielerlaufbahnen
+   gebunden. Akademie und Verein schalteten NICHTS frei, was das Spiel
+   veraendert — nur Rahmen. Das ist der Grund, warum sich die Muehe dort nicht
+   angefuehlt hat wie Muehe: sie zahlte in eine andere Waehrung.
+
+   DIE WIRKUNG PASST ZUR HERKUNFT, nicht zur Seltenheit allein: wer hundert
+   Profis ausgebildet hat, bekommt eine Karte ueber das Weitergeben; wer fuenf
+   Vereine gefuehrt hat, eine ueber Autoritaet; wer fuenfzig Jahrgaenge
+   durchgehalten hat, eine ueber Bestaendigkeit. */
+{ id:"mw_ziehvater", r:"welt", req:"mw_ziehvater", n:"Der Ziehvater",
+  t:"Du hast hundert Jungen groß gemacht. Jetzt macht dich einer von ihnen groß. Freigeschaltet mit 100 Profis aus dem eigenen Haus.",
+  fx:()=>({ pot:12, dev:.18, trust:20, rep:12, note:.08, legacy:16 }) },
+{ id:"mw_dynastie", r:"unfass", req:"mw_dynastie", n:"Dynastie",
+  t:"Dein Name steht schon an fünf Vereinen. Niemand fragt mehr, wer du bist. Freigeschaltet mit fünf geführten Vereinen.",
+  fx:()=>({ rep:22, trust:18, wageMult:.22, offers:2, legacy:14 }) },
+{ id:"mw_werkbank", r:"aussen", req:"mw_werkbank",  n:"Werkbank",
+  t:"Fünfzig Jahrgänge dieselbe Arbeit. Du weißt, wie lange etwas dauert. Freigeschaltet mit 50 Jahrgängen.",
+  fx:()=>({ dev:.14, fitness:10, injuryProne:-24, note:.06, treue:8 }) },
 
 /* ---------- Außer der Reihe ---------- */
 { id:"w_nurderhsv", r:"hsv", n:"NUR DER HSV",
@@ -5641,103 +5781,26 @@ const VER_KEY = "rasenschach:verein";
    Stufe 1 hat man von Anfang an, die Kosten stehen
    für den Sprung auf die jeweils nächste Stufe. Voller Ausbau kostet
    1.564 VC — das entspricht rund dreißig ordentlich gespielten Laufbahnen. */
-const ABTEILUNGEN = [
-  { id:"plaetze",  n:"Trainingsplätze",        kurz:"Plätze",
-    t:"Mehr Einheiten, bessere Böden, längere Abende unter Flutlicht.",
-    kosten:[0, 16, 30, 48, 70, 96],  wirkt:"Grundstärke der Talente" },
-  { id:"scouting", n:"Scouting",               kurz:"Scouting",
-    t:"Wer nicht sucht, findet auch nichts. Und wer schlecht sucht, findet das Falsche.",
-    kosten:[0, 18, 34, 54, 78, 106], wirkt:"Zahl der Talente · Einschätzung der Anlage" },
-  { id:"internat", n:"Internat",               kurz:"Internat",
-    t:"Ein Dach über dem Kopf, ein warmes Essen, jemand, der nachfragt.",
-    kosten:[0, 14, 27, 43, 63, 86],  wirkt:"Weniger Abbrecher" },
-  { id:"medizin",  n:"Medizinische Abteilung", kurz:"Medizin",
-    t:"Eine verschleppte Verletzung kostet einen ganzen Jahrgang.",
-    kosten:[0, 15, 28, 45, 66, 90],  wirkt:"Geringeres Verletzungsrisiko" },
-  { id:"lehre",    n:"Ausbildung",             kurz:"Ausbildung",
-    t:"Taktik, Schule, Umgang mit Druck und mit den eigenen Eltern.",
-    kosten:[0, 20, 37, 58, 84, 114], wirkt:"Höhere Anlage der Talente" },
-  { id:"buehne",   n:"Wettbewerbe",            kurz:"Wettbewerbe",
-    t:"Turniere, Sichtungsspiele, Aufmerksamkeit von außen.",
-    kosten:[0, 14, 26, 42, 60, 82],  wirkt:"Bessere Vermittlung · Jugendturniere" },
-  /* Drei weitere Abteilungen (35.13). Sie sind BEWUSST teurer als die sechs
-     alten: der Vollausbau soll ein Langzeitziel bleiben, und die vorhandenen
-     Kosten bleiben unangetastet, damit niemandem die schon bezahlte Arbeit
-     entwertet wird.
-     Jede greift an einer anderen Stelle an — und zwei davon wirken FRUEH,
-     weil die Messung in 35.12 gezeigt hat, dass die Stufen 1 bis 3 beim
-     Ergebnis, das den Spieler am meisten interessiert, fast nichts bewegen. */
-  { id:"mental",   n:"Mentaltraining",          kurz:"Mental",
-    t:"Der Kopf hält seltener durch als die Beine. Jemand, der zuhört, bevor es zu spät ist.",
-    kosten:[0, 26, 48, 78, 112, 152], wirkt:"Deutlich weniger Abbrecher · ruhiger im Sichtungsspiel" },
-  { id:"analyse",  n:"Videoanalyse",            kurz:"Analyse",
-    t:"Jede Einheit aufgezeichnet, jeder Fehler zweimal gesehen. Langweilig und wirksam.",
-    kosten:[0, 28, 52, 84, 120, 164], wirkt:"Schnellere Entwicklung der Talente" },
-  { id:"netzwerk", n:"Netzwerk zu Profivereinen", kurz:"Netzwerk",
-    t:"Wer angerufen wird, wird auch eingeladen. Der Rest schickt Bewerbungen.",
-    kosten:[0, 30, 56, 90, 130, 178], wirkt:"Direkt mehr Profiverträge" },
-];
-const AKA_MAX = 6;
-const abtById = (id) => ABTEILUNGEN.find((x) => x.id === id);
+/* Die Jugendakademie liegt seit 35.48 in akademie.js — dieselbe Bauart wie
+   verein.js seit 35.17. Hier stehen nur noch der Aufruf und das Auspacken.
+   AUSGEPACKT statt als `AKA.akaStufe(...)` benutzt: damit bleibt jede der
+   rund 200 Fundstellen im uebrigen App.jsx unveraendert. Der Unterschied
+   dieser Fassung ist deshalb genau zweierlei — 407 Zeilen weniger hier,
+   dieselben 407 Zeilen dort.
 
-const leereAkademie = () => ({
-  name: "", gegruendet: null, jahr: 2026,
-  vc: 0, verdient: 0, ausgegeben: 0, jahrgaenge: 0,
-  /* Aus ABTEILUNGEN abgeleitet statt aufgezaehlt (35.13). Vorher standen hier
-     sechs feste Namen — beim Hinzufuegen der drei neuen Abteilungen fehlten sie
-     im Grundzustand, `S.mental` war undefined, die Rechnung wurde NaN und
-     NIEMAND wurde mehr Profi. Der Pruefstand hat das als "25 Jahre: 0 Karton"
-     gemeldet. Betroffen waeren auch alle bestehenden Sicherungen gewesen: die
-     kennen nur sechs Schluessel, und akaJahr ergaenzt aus genau dieser Liste.
-     Wer kuenftig eine Abteilung ergaenzt, muss hier nichts mehr nachtragen. */
-  stufen: Object.fromEntries(ABTEILUNGEN.map((x) => [x.id, 1])),
-  talente: [], absolventen: [], chronik: [], ruhm: 0,
-  bilanz: { aufgenommen:0, profis:0, weltklasse:0, nationalspieler:0, turniere:0, abbrecher:0 },
-});
-
-/* ---- Jahreszaehlung der Akademie (35.19) --------------------------------
-   Bis 35.18 stand in der Akademie eine Weltjahreszahl: "Gegruendet 2026 ·
-   Jahr 2041", "Jahrgang 2032". Kevins Einwand: die Akademie soll zeitlos
-   bleiben, Jahreszahlen gehoeren in die Vereinsuebersicht.
-
-   Intern bleibt `a.jahr` als Zaehler stehen — er traegt die Reihenfolge, und
-   ihn zu entfernen haette jede bestehende Sicherung entwertet. Nach aussen
-   wird nur noch RELATIV gezaehlt: das wievielte Jahr, der wievielte Jahrgang.
-
-   `akaJahrNr(a)`     — das wievielte Jahr laeuft gerade
-   `akaJahrgang(a, j)` — aus einer gespeicherten Jahreszahl die Nummer machen
-   Beide vertragen alte Sicherungen: dort steht in `ein` eine Weltjahreszahl,
-   hier wird sie gegen `gegruendet` verrechnet. Fehlt `gegruendet`, wird die
-   Zahl unveraendert durchgereicht statt eine falsche zu erfinden. */
-const akaJahrNr = (a) => {
-  if (!a || !a.gegruendet) return 1;
-  return Math.max(1, (a.jahr || a.gegruendet) - a.gegruendet + 1);
-};
-const akaJahrgang = (a, j) => {
-  if (j == null) return null;
-  if (!a || !a.gegruendet) return j;
-  /* Kleine Zahlen sind bereits relativ (neue Sicherungen), grosse sind
-     Weltjahre (alte). Die Grenze bei 1900 ist grosszuegig: eine Akademie
-     mit 1900 Jahrgaengen wird es nicht geben. */
-  return j < 1900 ? j : Math.max(1, j - a.gegruendet + 1);
-};
-
-const akaStufe = (a, id) => clamp((a && a.stufen && a.stufen[id]) || 1, 1, AKA_MAX);
-const akaSumme = (a) => ABTEILUNGEN.reduce((s, x) => s + akaStufe(a, x.id), 0);
-/* Jede Abteilung STARTET auf Stufe 1. `akaSumme` ist deshalb direkt nach der
-   Gründung schon 6 von 36 — der Ring zeigte 17 %, obwohl noch nichts gebaut
-   ist. Fortschritt heisst hier: was ueber die Gruendung hinaus erreicht wurde.
-   `akaSumme` selbst bleibt unveraendert, weil die Errungenschaft „voller
-   Ausbau" darauf prueft. */
-const AKA_GRUND = ABTEILUNGEN.length;                  /* 6 · alles auf Stufe 1 */
-const AKA_VOLL = ABTEILUNGEN.length * AKA_MAX;         /* 54 seit 35.13 */
-const AKA_STUFEN = AKA_VOLL - AKA_GRUND;               /* 30 wirklich baubare Stufen */
-const akaAusbau = (a) => akaSumme(a) - AKA_GRUND;
-const akaPreis = (a, id) => { const st = akaStufe(a, id);
-  return st >= AKA_MAX ? null : abtById(id).kosten[st]; };
-/* Was der volle Ausbau ab dem jetzigen Stand noch kostet */
-const akaRestkosten = (a) => ABTEILUNGEN.reduce((s, x) => {
-  let n = 0; for (let st = akaStufe(a, x.id); st < AKA_MAX; st++) n += x.kosten[st]; return s + n; }, 0);
+   Der VC-Laden weiter unten stand bis 35.47 mitten in diesem Block. Er ist
+   bewusst NICHT mitgegangen: gemessen braucht er aus dem Akademiekern nichts,
+   und er haengt am Laufbahnende, nicht an der Akademie.                    */
+const AKA = machAkademie({ CLUBS, NATIONS, NAT_BY_ID, REGION_KEYS,
+                           chance, clamp, gauss, genName, pick, ri });
+const { ABTEILUNGEN, AKA_MAX, AKA_STUFEN,
+        leereAkademie, akaJahrNr, akaJahrgang, akaStufe, akaSumme, akaAusbau,
+        akaPreis, akaRestkosten, akaSpanne, akaLeistbar,
+        akaJahr, akaBonus, akaBonusText, akaNaechsteGabe, akaNaechster,
+        akaVerbuchen, akaGruenden,
+        AKA_SCHWELLE, akaRuhm, talentBauen,
+        freigeben, behalten, unterVertrag,
+        talentAuslaufen, aussortieren } = AKA;
 
 /* Vermächtnis-Coins für eine beendete Laufbahn. Bewusst so bemessen, dass
    ein guter Durchgang spürbar etwas bringt, ohne alles sofort zu kaufen. */
@@ -5973,316 +6036,6 @@ function VCLadenAnsicht({ wo, vc, laden, onKauf }) {
 }
 
 
-/* ---------------- Talente ---------------- */
-const AKA_POS = ["TW","IV","IV","AV","AV","ZDM","ZM","ZM","ZOM","AF","AF","ST"];
-
-/* Ein Talent tritt mit fünfzehn ein. Wie gut es ist und was in ihm steckt,
-   hängt an den Abteilungen — Plätze an der Grundstärke, Ausbildung an der
-   Anlage, Scouting an der Streuung (man findet auch mal einen Ausreißer). */
-/* `wunschPos` (35.17) erzwingt eine Position. Gebraucht wird das genau fuer
-   Torhueter: sie sind 8,3 % der Aufnahmen, und gemessen ueber 200 Akademien
-   hatten 14,5 % gar keinen. Solange die Absolventen zu fremden Vereinen
-   gingen, war das folgenlos. Seit man mit ihnen eine eigene Mannschaft
-   bildet, ist es eine Sackgasse: ohne Torwart keine Aufstellung, ohne
-   Aufstellung keine Saison. */
-function talentBauen(a, jahr, wunschPos) {
-  const S = { ...leereAkademie().stufen, ...((a && a.stufen) || {}) };
-  const natId = pick(REGION_KEYS);
-  const nat = NAT_BY_ID[natId] || NATIONS[0];
-  const pos = wunschPos || pick(AKA_POS);
-  const ovr = clamp(Math.round(34 + S.plaetze * 1.2 + gauss(0, 3)), 26, 56);
-  const pot = clamp(Math.round(ovr + 10 + S.lehre * 2.6 + gauss(0, 3.5 + S.scouting * .9)), ovr + 3, 97);
-  return {
-    id: "t" + jahr + "_" + Math.floor(Math.random() * 1e6).toString(36),
-    name: genName(natId, "m"), nat: natId, flag: nat.flag,
-    pos, alter: 15, ovr, pot, ein: jahr, verletzt: 0, ruf: 0,
-  };
-}
-
-/* Wie genau die Anlage eingeschätzt werden kann — schlechtes Scouting
-   liefert nur ein grobes Band. */
-const akaSpanne = (a) => Math.max(1, 9 - akaStufe(a, "scouting") * 1.4) | 0;
-
-/* Turniere, bei denen Jugendmannschaften antreten. Erfunden, nicht abgeschrieben
-   — echte Turniernamen sind geschützt, und ein Spiel, das offline laeuft und
-   niemandem gehoert, braucht das nicht. Zehn Stück: genug, dass sich in
-   25 Jahren nichts aufdraengt, wenig genug, dass die Chronik nicht beliebig
-   wirkt. Ton wie der Rest des Spiels: so, wie ein Zeugwart es sagen würde. */
-const JUGENDTURNIERE = [
-  "Blauen Band der Jugend",
-  "Internationalen Pfingstturnier",
-  "Nachwuchspokal der Landesverbände",
-  "Turnier der acht Akademien",
-  "Wintercup der Leistungszentren",
-  "Hallenmasters der A-Jugend",
-  "Sichtungsturnier am Deich",
-  "Juniorenpokal der Hafenstädte",
-  "Osterturnier der Talentschmieden",
-  "Grenzlandcup der U19",
-];
-/* In welcher Runde es zu Ende ging. Steht getrennt, damit derselbe Gegner in
-   verschiedenen Jahren verschieden weit kommt. */
-const TURNIER_AUS = ["im Endspiel", "im Halbfinale", "im Viertelfinale",
-  "in der Vorrunde", "im Elfmeterschießen"];
-
-/* Ein Jahr in der Akademie. Gibt den neuen Zustand und die Ereignisse
-   zurück, damit man beim nächsten Besuch nachlesen kann, was war. */
-function akaJahr(a0, weltjahr) {
-  const a = {
-    ...leereAkademie(), ...a0,
-    stufen: { ...leereAkademie().stufen, ...(a0.stufen || {}) },
-    talente: [...(a0.talente || [])],
-    absolventen: [...(a0.absolventen || [])],
-    chronik: [...(a0.chronik || [])],
-    bilanz: { ...leereAkademie().bilanz, ...(a0.bilanz || {}) },
-  };
-  const S = a.stufen;
-  const jahr = weltjahr || (a.jahr + 1);
-  const E = [];
-
-  /* 1. Vorhandene Talente: ein Jahr älter, Abbruch, Verletzung, Fortschritt */
-  const bleiben = [];
-  a.talente.forEach((t0) => {
-    const t = { ...t0 };
-    t.alter += 1;
-    /* Mentaltraining wirkt hier zusaetzlich zum Internat — und schon auf Stufe 1,
-   damit fruehe Ausbaustufen sichtbar etwas bringen (Befund aus 35.12). */
-      const abbruch = clamp(.15 - S.internat * .023 - S.mental * .008 - (t.ovr - 44) * .004, .008, .32);
-    if (chance(abbruch)) {
-      a.bilanz.abbrecher++;
-      E.push({ art: "weg", txt: t.name + " (" + t.alter + ") hört auf." });
-      return;
-    }
-    let mult = 1;
-    if (chance(clamp(.13 - S.medizin * .019, .008, .2))) {
-      mult = .3; t.verletzt++;
-      E.push({ art: "pech", txt: t.name + " fällt fast das ganze Jahr aus." });
-    }
-    /* Videoanalyse (35.13) wirkt hier mit — sie ist die dritte Quelle des
-         Zuwachses neben Plaetzen und Ausbildung. */
-      const zuwachs = (ri(1, 3) + S.plaetze * .35 + S.lehre * .2 + S.analyse * .26) * mult;
-    t.ovr = clamp(Math.round(t.ovr + zuwachs), t.ovr, t.pot);
-    bleiben.push(t);
-  });
-
-  /* 2. Wer neunzehn wird, verlässt die Akademie */
-  const bleibenNach = [];
-  bleiben.forEach((t) => {
-    if (t.alter < 19) { bleibenNach.push(t); return; }
-    /* Ob es für einen Profivertrag reicht, ist keine feste Schwelle: Es hängt
-       an der Stärke, an den Wettbewerben, in denen man gesehen wurde, und an
-       einer Portion Glück. Die allermeisten schaffen es nicht. */
-    /* 35.13: Bis dahin wirkte hier nur die Wettbewerbsabteilung, und die Quote
-         stieg von Stufe 1 bis 3 nur von 2 auf 3 Prozent — man zahlte zwei
-         Ausbaustufen und sah beim wichtigsten Ergebnis keinen Unterschied.
-         Das Netzwerk wirkt jetzt staerker als die Wettbewerbe und schon ab
-         der ersten Stufe; Mentaltraining hilft im Sichtungsspiel. */
-      const proChance = clamp(.07 + (t.ovr - 50) * .022 + S.buehne * .02
-        + S.netzwerk * .014 + S.mental * .005, .04, .5);
-    if (!chance(proChance)) {
-      a.bilanz.abbrecher++;
-      E.push({ art: "weg", txt: t.name + " bekommt keinen Profivertrag." });
-      return;
-    }
-    /* Der weitere Weg: Anlage plus Glück, minus dem, was im Profialltag
-       verloren geht. Die Wettbewerbsabteilung sorgt für bessere Vermittlung. */
-    const peak = clamp(Math.round(t.pot + gauss(0, 4) + S.buehne * 1.0 - ri(0, 6)), t.ovr, 99);
-    const natStr = (NAT_BY_ID[t.nat] || { str: 50 }).str;
-    const ns = peak >= 74 && chance(clamp((peak - 70) * .05 + (60 - natStr) * .003, .05, .7));
-    a.bilanz.profis++;
-    if (peak >= 85) a.bilanz.weltklasse++;
-    if (ns) a.bilanz.nationalspieler++;
-    /* Wohin er gegangen ist (35.12). Bis dahin stand auf der Ehrentafel nur,
-       DASS jemand Profi wurde — nicht wo. Der Verein wird nicht gewuerfelt,
-       sondern passt zur erreichten Staerke: wer auf 88 kommt, landet nicht in
-       der dritten Liga. Gesucht wird im Fenster um die Zielstaerke, mit Vorzug
-       fuer das Heimatland; findet sich dort nichts, entscheidet die Naehe. */
-    const zielS = clamp(peak - ri(2, 9), 30, 92);
-    const passend = CLUBS.filter((c) => Math.abs(c.s - zielS) <= 6);
-    const daheim = passend.filter((c) => c.c === t.nat);
-    const topf = (daheim.length && chance(.55)) ? daheim : passend;
-    const verein = topf.length ? pick(topf)
-      : CLUBS.reduce((b, c) => (Math.abs(c.s - zielS) < Math.abs(b.s - zielS) ? c : b), CLUBS[0]);
-    a.absolventen.push({ id: t.id, name: t.name, flag: t.flag, nat: t.nat, pos: t.pos,
-      ein: t.ein, raus: jahr, peak, ns, klub: verein.n, klubLiga: verein.l });
-    E.push({ art: peak >= 85 ? "gross" : "profi",
-      txt: t.name + " unterschreibt bei " + verein.n
-        + (peak >= 85 ? " — daraus wird ein Weltklassespieler." : ".") });
-  });
-
-  /* 3. Neuer Jahrgang */
-  const anzahl = Math.max(1, ri(1, 2) + Math.round(S.scouting * .7));
-  /* Erst der Regelfall, dann die Absicherung: ist im ganzen Haus kein
-     Torwart, wird der erste Neuzugang einer. Greift nur im Notfall und
-     verschiebt die Verteilung deshalb kaum. */
-  for (let i = 0; i < anzahl; i++) {
-    const keinTW = !bleibenNach.some((t) => t.pos === "TW");
-    bleibenNach.push(talentBauen(a, jahr, (i === 0 && keinTW) ? "TW" : null));
-    a.bilanz.aufgenommen++;
-  }
-  E.push({ art: "neu", txt: anzahl + " neue Talente aufgenommen." });
-
-  /* 4. Jugendturnier (Namen und Gegner seit 35.34)
-     -------------------------------------------------------------------------
-     Bis 35.33 stand hier EIN Satz: "Sieg beim internationalen Jugendturnier."
-     Bei vollem Ausbau erscheint der 14-mal in 25 Chronikeintraegen (gemessen),
-     immer wortgleich, ohne Turnier und ohne Gegner.
-
-     WAS SICH NICHT AENDERT: die Siegwahrscheinlichkeit. Sie steht Zeichen fuer
-     Zeichen wie vorher da. `bilanz.turniere` zaehlt weiter nur Siege und geht
-     mit Faktor 6 in `akaRuhm` ein — ruehrte ich daran, verschoebe ich die
-     Zielbaender in `kalibrierung.cjs` und damit die halbe Akademie. Sichtbar
-     machen heisst hier: sichtbar machen, nicht neu ausbalancieren.
-
-     WAS DAZUKOMMT: in Jahren OHNE Sieg wird ausgespielt, ob die Akademie
-     ueberhaupt dabei war. Das haengt allein an `buehne` — der Abteilung, die
-     "Turniere, Sichtungsspiele" verspricht und bis jetzt nichts zeigte, solange
-     man nicht gewann. Diese Teilnahme zaehlt NIRGENDS mit: kein Zaehler, kein
-     Ruhm, keine Bilanz. Sie steht in der Chronik und sonst nirgends.
-
-     Der Gegner kommt aus CLUBS, nicht aus einer zweiten Liste. Eine eigene
-     Gegnerliste waere beim naechsten neuen Verein stumm veraltet. */
-  const staerke = bleibenNach.length
-    ? bleibenNach.reduce((s, t) => s + t.ovr, 0) / bleibenNach.length : 0;
-  const turnier = pick(JUGENDTURNIERE);
-  const gegner = pick(CLUBS.filter((c) => c.g === "m" && c.s >= 78)) || CLUBS[0];
-  if (chance(clamp((staerke - 44) * .035 + S.buehne * .05, .02, .72))) {
-    a.bilanz.turniere++;
-    E.push({ art: "titel", txt: "Sieg beim " + turnier + " — im Endspiel gegen "
-      + gegner.n + " U19." });
-  } else if (chance(clamp(S.buehne * .13, 0, .78))) {
-    E.push({ art: "turnier", txt: "Beim " + turnier + " " + pick(TURNIER_AUS)
-      + " an " + gegner.n + " U19 gescheitert." });
-  }
-
-  a.talente = bleibenNach.sort((x, y) => y.ovr - x.ovr);
-  a.absolventen = a.absolventen.sort((x, y) => y.peak - x.peak).slice(0, 40);
-  a.jahrgaenge++;
-  a.jahr = jahr;
-  a.ruhm = akaRuhm(a);
-  a.chronik = [{ jahr, e: E }, ...a.chronik].slice(0, 25);
-  return { a, ereignisse: E };
-}
-
-const akaRuhm = (a) => {
-  const b = a.bilanz || {};
-  return Math.round((b.profis || 0) * 2 + (b.weltklasse || 0) * 14
-    + (b.nationalspieler || 0) * 5 + (b.turniere || 0) * 6);
-};
-
-/* Was die Akademie einer neuen Laufbahn mitgibt. Absichtlich gedeckelt:
-   Es soll sich lohnen, aber das Spiel nicht zerlegen.
-
-   35.39: die DECKEL sind unveraendert (+4 / +6 / +100 Tsd. / +6 %), die
-   SCHWELLEN sind gesenkt. Gemessen (40 Laeufe je Ausbaustufe, Median):
-
-     Stufe 1  (     0 VC)  gab NIE etwas, auch nach 30 Jahren nicht
-     Stufe 2  (   181 VC)  gab NIE etwas
-     Stufe 3  (   519 VC)  erste Gabe im 18. Jahr, Anlage +1 im 28.
-     Stufe 4  ( 1.061 VC)  erste Gabe im  7. Jahr
-     Stufe 6  ( 2.912 VC)  erste Gabe im  4. Jahr
-
-   Wer die ersten Ausbaustufen kauft, bekam ueber ein Dutzend Laufbahnen
-   hinweg NULL zurueck — und seit 35.32 zeigt der Rueckblick dann korrekt gar
-   keine Zeile. Die Rueckkopplung, die den Ausbau lohnend anfuehlen laesst,
-   setzte erst bei Stufe 4 bis 5 ein.
-
-   `akaRuhm` bleibt UNANGETASTET. Die Errungenschaft „Ansehen von 150" und
-   jedes Zielband der Kalibrierung haengen an der Ruhmskala; nur was man dafuer
-   bekommt, aendert sich. Das ist der chirurgische Schnitt.
-
-   GRUNDGABE: wer eine Akademie GEGRUENDET hat, bekommt +1 Bekanntheit, auch
-   bei Ansehen 0. Nicht viel — aber die Zeile im Rueckblick erscheint ab dem
-   ersten Tag, und der Spieler sieht, dass die Sache ueberhaupt wirkt. */
-const AKA_SCHWELLE = { pot: 28, rep: 18, money: 12, dev: 45 };
-function akaBonus(a) {
-  const r = (a && a.ruhm) || 0;
-  const gegruendet = !!(a && a.gegruendet);
-  return {
-    pot:   Math.min(4, Math.floor(r / AKA_SCHWELLE.pot)),
-    rep:   Math.min(6, (gegruendet ? 1 : 0) + Math.floor(r / AKA_SCHWELLE.rep)),
-    money: Math.min(.10, Math.floor(r / AKA_SCHWELLE.money) * .01),
-    dev:   Math.min(.06, Math.floor(r / AKA_SCHWELLE.dev) * .02),
-    ruhm:  r,
-  };
-}
-/* Wieviel Ansehen fehlt bis zur naechsten Gabe? Gibt null zurueck, wenn alles
-   ausgereizt ist. EINE Quelle mit akaBonus — eine zweite, von Hand gepflegte
-   Schwellenliste in der Anzeige waere beim naechsten Zahlendreh stumm falsch
-   geworden, und der Spieler haette einer Zahl geglaubt, die nicht stimmt. */
-function akaNaechsteGabe(a) {
-  const jetzt = akaBonus(a);
-  const r = (a && a.ruhm) || 0;
-  for (let x = r + 1; x <= r + 400; x++) {
-    const b = akaBonus({ ...(a || {}), ruhm: x });
-    if (b.pot > jetzt.pot)   return { fehlt: x - r, was: "Anlage +" + b.pot };
-    if (b.rep > jetzt.rep)   return { fehlt: x - r, was: "Bekanntheit +" + b.rep };
-    if (b.money > jetzt.money) return { fehlt: x - r, was: "Startkapital +" + (b.money * 1000).toFixed(0) + " Tsd. €" };
-    if (b.dev > jetzt.dev)   return { fehlt: x - r, was: "Entwicklung +" + Math.round(b.dev * 100) + " %" };
-  }
-  return null;
-}
-const akaBonusText = (b) => {
-  const L = [];
-  if (b.pot)   L.push("Anlage +" + b.pot);
-  if (b.rep)   L.push("Bekanntheit +" + b.rep);
-  if (b.money) L.push("Startkapital +" + (b.money * 1000).toFixed(0) + " Tsd. €");
-  if (b.dev)   L.push("Entwicklung +" + Math.round(b.dev * 100) + " %");
-  return L;
-};
-
-/* VC gutschreiben und — sofern gegründet — ein Jahr weiterlaufen lassen */
-function akaVerbuchen(a0, vc, weltjahr) {
-  const a = { ...leereAkademie(), ...(a0 || {}),
-    stufen: { ...leereAkademie().stufen, ...((a0 && a0.stufen) || {}) },
-    bilanz: { ...leereAkademie().bilanz, ...((a0 && a0.bilanz) || {}) } };
-  a.vc = (a.vc || 0) + vc;
-  a.verdient = (a.verdient || 0) + vc;
-  if (!a.gegruendet) return { a, ereignisse: [] };
-  return akaJahr(a, (a.jahr || 2026) + 1);
-}
-
-/* Gründung: drei Jahrgänge auf einmal, damit nicht vier Laufbahnen lang
-   nichts passiert. */
-function akaGruenden(a0, name, jahr) {
-  const a = { ...leereAkademie(), ...(a0 || {}) };
-  a.name = (name || "").trim() || "Nachwuchszentrum";
-  a.gegruendet = jahr || 2026;
-  a.jahr = jahr || 2026;
-  a.talente = [];
-  [17, 16, 15].forEach((alt) => {
-    const n = Math.max(1, ri(1, 2) + Math.round(a.stufen.scouting * .7));
-    for (let i = 0; i < n; i++) {
-      const t = talentBauen(a, a.jahr - (alt - 15));
-      t.alter = alt;
-      t.ovr = clamp(t.ovr + (alt - 15) * ri(2, 4), t.ovr, t.pot);
-      a.talente.push(t);
-      a.bilanz.aufgenommen++;
-    }
-  });
-  a.talente.sort((x, y) => y.ovr - x.ovr);
-  a.chronik = [{ jahr: a.jahr, e: [{ art: "titel", txt: a.name + " wird gegründet." }] }];
-  return a;
-}
-
-/* Was als Nächstes drin wäre — und wie weit es noch ist. Das ist der Faden,
-   an dem die ganze Motivation hängt: Es soll immer ein sichtbares nächstes
-   Ziel geben, das in greifbarer Nähe liegt. */
-function akaNaechster(a) {
-  let best = null;
-  ABTEILUNGEN.forEach((x) => {
-    const preis = akaPreis(a, x.id);
-    if (preis == null) return;
-    if (!best || preis < best.preis) best = { abt: x, preis, stufe: akaStufe(a, x.id) };
-  });
-  if (!best) return null;
-  const vc = (a && a.vc) || 0;
-  return { ...best, fehlt: Math.max(0, best.preis - vc), reicht: vc >= best.preis,
-    anteil: Math.min(1, vc / best.preis) };
-}
-/* Wie viele Abteilungen könnte man sich gerade leisten? */
-const akaLeistbar = (a) => ABTEILUNGEN.filter((x) => {
-  const pr = akaPreis(a, x.id); return pr != null && ((a && a.vc) || 0) >= pr; }).length;
 
 /* ---------------- Ansicht ---------------- */
 const AKA_FARBE = { neu:"var(--ac)", profi:"var(--ok)", gross:"var(--go)",
@@ -6337,28 +6090,47 @@ function AusbauRing({ von, bis, farbe }) {
   );
 }
 
-function TalentZeile({ t, spanne }) {
+/* Seit 35.61 antippbar. Der Kasten steht direkt darunter — dieselbe Bauart
+   wie im Kader (35.59), damit man nicht zweimal lernen muss. */
+function TalentZeile({ t, spanne, offen, onTipp, jahr }) {
   const lo = Math.max(t.ovr, t.pot - spanne), hi = Math.min(99, t.pot + spanne);
+  const bis = t.vertragBis;
+  const rest = bis != null && jahr ? bis - jahr : null;
   return (
-    <div className="up" style={{ padding: "9px 11px", display: "flex", alignItems: "center", gap: 10 }}>
+    <button className="up" onClick={onTipp}
+      style={{ padding: "9px 11px", display: "flex", alignItems: "center", gap: 10,
+        width: "100%", textAlign: "left", cursor: "pointer",
+        border: offen ? "1px solid var(--ac)"
+          : t.auslaufen ? "1px solid var(--bad)" : "1px solid var(--ln2)" }}>
       <span style={{ fontSize: 17 }}>{t.flag}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.name}</div>
-        <div className="m" style={{ fontSize: 9.5, color: "var(--mu)" }}>
+        <div className="m" style={{ fontSize: 9.5, color: t.auslaufen ? "var(--bad)" : "var(--mu)" }}>
           {POS[t.pos].short} · {t.alter} Jahre{t.verletzt ? " · verletzungsanfällig" : ""}
+          {t.auslaufen ? " · läuft aus" + (t.notiz ? ": " + t.notiz : "")
+            : rest != null ? " · Vertrag noch " + Math.max(0, rest)
+                + (rest === 1 ? " Jahr" : " Jahre") : ""}
         </div>
       </div>
       <div style={{ textAlign: "right" }}>
         <div className="m" style={{ fontSize: 13, color: "var(--ac)" }}>{t.ovr}</div>
         <div className="m" style={{ fontSize: 9.5, color: "var(--mu)" }}>Anlage {lo}–{hi}</div>
       </div>
-    </div>
+    </button>
   );
 }
 
-function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
+function AkademieScreen({ aka, verein, onKauf, onGruenden, onBack, onAendern }) {
+  /* Der Akademiename leitet sich seit 35.67 vom Verein ab. */
+  const akaName = (verein && verein.name)
+    ? "Nachwuchs des " + verein.name : "Nachwuchszentrum";
   useZurueck(onBack);
   const [name, setName] = useState("");
+  /* Verwaltung im Jahrgang (35.61): welches Talent aufgeklappt ist, ob die
+     Rückfrage steht, und die Notiz. Dieselben drei Zustände wie im Kader. */
+  const [offenT, setOffenT] = useState(null);
+  const [sicherT, setSicherT] = useState(null);
+  const [tnotiz, setTnotiz] = useState("");
   const [reiter, setReiter] = useState("ausbau");
   const [jubel, setJubel] = useState(null);      // zuletzt ausgebaute Abteilung
   const reiterRef = useRef(null);
@@ -6393,10 +6165,19 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
         <div className="pan pad" style={{ marginTop: 14 }}>
           <div className="eb">Guthaben</div>
           <div className="d" style={{ fontSize: 30, color: "var(--go)" }}>{a.vc} VC</div>
-          <div className="eb" style={{ marginTop: 12 }}>Name der Akademie</div>
-          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={34}
-            placeholder="Nachwuchszentrum" className="inp" style={{ marginTop: 4 }} />
-          <button className="btn pri" style={{ marginTop: 10 }} onClick={() => onGruenden(name)}>
+          {/* KEIN eigenes Namensfeld mehr (35.67). Kevins Entscheidung: der
+              Vereinsname gilt fuer beides, die Akademie heisst „Nachwuchs des
+              <Verein>". Zwei Namen fuer dasselbe Haus haben nur verwirrt —
+              man baut die Jugend EINES Vereins auf, nicht ein zweites
+              Unternehmen daneben.
+              Steht kein Verein bereit (alter Spielstand, der die Akademie vor
+              35.67 gegruendet hat), bleibt „Nachwuchszentrum" als Rueckfall.
+              Ohne den haetten alte Staende eine namenlose Akademie. */}
+          <div className="eb" style={{ marginTop: 12 }}>Name</div>
+          <div className="d" style={{ fontSize: 18, marginTop: 4 }}>{akaName}</div>
+          <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
+            Der Name kommt von deinem Verein — die Jugend gehört ihm.</div>
+          <button className="btn pri" style={{ marginTop: 10 }} onClick={() => onGruenden(akaName)}>
             <span className="d" style={{ fontSize: 16 }}>Akademie gründen</span>
             <span className="m" style={{ fontSize: 10.5, color: "#04050A", opacity: .8, display: "block" }}>
               kostenlos · drei Jahrgänge rücken sofort ein</span>
@@ -6567,7 +6348,57 @@ function AkademieScreen({ aka, onKauf, onGruenden, onBack }) {
             </div>
             {a.talente.length === 0
               ? <div className="pan pad" style={{ fontSize: 13, color: "var(--mu)" }}>Zurzeit ist niemand im Haus.</div>
-              : a.talente.map((t) => <TalentZeile key={t.id} t={t} spanne={spanne} />)}
+              : a.talente.map((t) => (
+                  <React.Fragment key={t.id}>
+                    <TalentZeile t={t} spanne={spanne} jahr={a.jahr}
+                      offen={offenT === t.id}
+                      onTipp={() => { setOffenT(offenT === t.id ? null : t.id);
+                        setSicherT(null); setTnotiz(""); }} />
+                    {offenT === t.id && (
+                      <div className="pan pad" style={{ marginTop: 6, borderColor: "var(--ac)" }}>
+                        <div className="eb">{t.name}</div>
+                        <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
+                          {POS[t.pos].short} · {t.alter} Jahre · seit {t.ein} im Haus
+                          {t.vertragBis != null
+                            ? " · Vertrag bis " + t.vertragBis : ""}
+                        </div>
+                        <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 5 }}>
+                          Verlängerungen laufen von selbst, solange er unter 19 ist.
+                          Bei einem Profiangebot entscheidest du im Postfach.
+                        </div>
+                        {!t.auslaufen && (
+                          <input className="feld" placeholder="Notiz (freiwillig)" value={tnotiz}
+                            onChange={(e) => setTnotiz(e.target.value)}
+                            style={{ width: "100%", marginTop: 8 }} />)}
+                        <button className={"btn sm" + (t.auslaufen ? "" : " pri")}
+                          style={{ marginTop: 8, width: "100%" }}
+                          onClick={() => { const r = talentAuslaufen(a, t.id, tnotiz);
+                            if (!r.fehler) { onAendern(r.a); setTnotiz(""); setOffenT(null); } }}>
+                          {t.auslaufen ? "Doch behalten" : "Vertrag auslaufen lassen"}</button>
+
+                        {/* Der harte Weg — wie im Kader hinter einer Rückfrage,
+                            weil er nicht umkehrbar ist. */}
+                        <div className="m" style={{ fontSize: 10, color: "var(--mu)",
+                          marginTop: 10, paddingTop: 8, borderTop: "1px solid var(--ln)" }}>
+                          Sofort und endgültig:</div>
+                        {sicherT !== t.id ? (
+                          <button className="btn sm" style={{ marginTop: 6, width: "100%" }}
+                            onClick={() => setSicherT(t.id)}>Aussortieren …</button>
+                        ) : (
+                          <div style={{ marginTop: 6 }}>
+                            <div className="m" style={{ fontSize: 11, color: "var(--bad)" }}>
+                              Das lässt sich nicht zurücknehmen. Er zählt als Abbrecher.</div>
+                            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                              <button className="btn sm" style={{ flex: "1 1 0" }}
+                                onClick={() => { const r = aussortieren(a, t.id, tnotiz);
+                                  if (!r.fehler) { onAendern(r.a); setTnotiz(""); setOffenT(null); setSicherT(null); } }}>
+                                Aussortieren</button>
+                              <button className="btn sm" style={{ flex: "1 1 0" }}
+                                onClick={() => setSicherT(null)}>Doch nicht</button>
+                            </div>
+                          </div>)}
+                      </div>)}
+                  </React.Fragment>))}
           </div>)}
 
         {reiter === "ehrentafel" && (
@@ -6735,8 +6566,38 @@ const CSS = SCHRIFTEN + `
 .d{font-family:'Rasen Anzeige','Roboto Condensed','Arial Narrow',sans-serif;font-weight:400;text-transform:uppercase;line-height:.9;letter-spacing:.015em;}
 .m{font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;}
 .eb{font-weight:700;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--mu);line-height:1.4;}
+/* EIN FUER ALLE MAL (35.64). Ein button erbt seine Schriftfarbe NICHT — er
+   nimmt ohne eigene Angabe die dunkle Systemfarbe. In 35.58 wurde das fuer
+   die Klasse up berichtigt, in 35.63 stand derselbe Fehler eine Klasse
+   weiter: die Dach-Kacheln sind button className="pan", und pan setzt keine
+   Farbe. Von Kevin zum ZWEITEN Mal gemeldet, mit Bild.
+   Klasse fuer Klasse nachzubessern heisst, beim naechsten Knopf wieder zu
+   warten, bis es jemand sieht. Der Wert inherit nimmt die Farbe des Umfelds —
+   auf dunklem Grund die helle Schrift, auf der Papierseite die Tinte. Regeln
+   mit Klasse (btn, up) gewinnen weiterhin, weil sie spezifischer sind.
+
+   ZUM ZWEITEN MAL: der erste Entwurf dieses Kommentars enthielt
+   Rueckwaerts-Anfuehrungszeichen. Der ganze CSS-Text ist ein Schablonentext;
+   eines davon beendet ihn mitten im Kommentar, und der Bau bricht ab. Genau
+   dieselbe Stelle, genau derselbe Fehler wie in 35.58 — dort steht die Lehre
+   sogar aufgeschrieben, sechzig Zeilen weiter unten. Aufgeschrieben ist nicht
+   befolgt. */
+button{color:inherit;}
 .pan{background:var(--pan);border:1px solid var(--ln2);position:relative;}
-.up{background:var(--up);border:1px solid var(--ln2);}
+/* FARBE MITGEBEN (35.58). Ein button erbt seine Schriftfarbe NICHT vom
+   Umfeld — ohne eigene Angabe nimmt er die dunkle Systemfarbe. Die Klasse btn
+   setzt sie, up bis 35.57 nicht. Als in 35.49 die Elfzeilen und in 35.54 die
+   Kaderzeilen von div auf button umgestellt wurden, sind sie damit dunkel auf
+   dunkel geworden. In jsdom faellt das nicht auf, weil dort nichts gezeichnet
+   wird; auf dem Geraet war die Kaderliste kaum lesbar (von Kevin gemeldet,
+   mit Bild). Die Papierseite behaelt ihre Tinte, weil laufzettel-up weiter
+   unten spezifischer ist.
+   ACHTUNG: in diesem Block stehen KEINE Rueckwaerts-Anfuehrungszeichen. Der
+   ganze CSS-Text ist ein Schablonentext; ein einziges davon beendet ihn
+   mitten im Kommentar. Genau das ist beim ersten Entwurf passiert — die App
+   startete nicht mehr, root blieb leer, und esbuild meldete nichts, weil der
+   Rest als gueltiger Code durchging. Gefunden hat es der Browsertest. */
+.up{background:var(--up);border:1px solid var(--ln2);color:var(--tx);}
 .pad{padding:15px 16px;}
 @media(min-width:640px){.pad{padding:17px 19px;}}
 .bar{height:7px;background:#0D1119;border:1px solid var(--ln);overflow:hidden;}
@@ -6765,7 +6626,15 @@ const CSS = SCHRIFTEN + `
 .btn.pri:hover{background:#F2F5FA;border-color:#F2F5FA;}
 .btn.pri:active{transform:translateY(2px);border-bottom-width:2px;background:var(--tx);}
 .btn.sm{min-height:38px;padding:8px 13px;width:auto;font-size:12.5px;}
-.chip{border:1px solid var(--ln2);color:var(--tx);font-size:10.5px;font-weight:600;padding:3px 9px;
+/* HINTERGRUND AUSDRUECKLICH (35.64). chip setzte eine helle Schrift, aber
+   keinen Grund — die Spielarten chip.g/.a/.r tun das, die schlichte nicht.
+   An einem div faellt das nicht auf (durchsichtig), an einem button schon:
+   der bekommt den hellgrauen Systemgrund, und helle Schrift darauf ergibt
+   Kontrast 1,03. Heute gibt es keinen button className="chip" — aber „gibt
+   es heute nicht" ist eine Tatsache mit kurzer Haltbarkeit, und die Regel
+   soll nicht davon abhaengen, an welche Elementart jemand sie haengt.
+   Gefunden von der erweiterten Kontrastprobe, bevor es jemand gebaut hat. */
+.chip{border:1px solid var(--ln2);color:var(--tx);background:transparent;font-size:10.5px;font-weight:600;padding:3px 9px;
  display:inline-block;white-space:nowrap;line-height:1.6;}
 .chip.g{background:var(--go);border-color:var(--go);color:var(--bg);}
 .chip.a{background:var(--ac);border-color:var(--ac);color:var(--bg);}
@@ -6848,6 +6717,15 @@ table.led td.r,table.led th.r{text-align:right;}
 /* Die Notizfläche nach einer Ereignisentscheidung war dunkel (--up wird nicht
    umgedeutet), die Schrift darin aber Tinte — dunkel auf dunkel, unlesbar.
    Auf Formularpapier wird daraus eine helle Fläche. */
+/* GEFUELLTE CHIPS AUF PAPIER (35.65). Die Karton-Akzente (ac-k, go-k, ok-k,
+   bad-k) sind DUNKEL — sie sind als Tinte auf hellem Papier gedacht. Als
+   Chip-Hintergrund verwendet, steht darauf die dunkle Grundfarbe des Spiels:
+   dunkel auf dunkel, gemessen 2,31 fuer chip.a. Auf Papier muss die Schrift
+   also hell sein, nicht dunkel.
+   Gefunden von der Kontrastprobe, nachdem sie in 35.65 auch die Papierwelt
+   pruefte — vorher hat NICHTS auf dieser Seite den Kontrast gemessen,
+   obwohl drei von vier Schritten der Laufbahn darauf stehen. */
+.laufzettel .chip.g,.laufzettel .chip.a,.laufzettel .chip.r{color:var(--karton);}
 .laufzettel .up{background:rgba(20,23,26,.06);color:var(--tinte);}
 /* Die Wildcard bleibt dunkel — auch ihre Knöpfe. Ohne diese Regel greift die
    allgemeine Knopfregel des Laufzettels und färbt die Schrift zu Tinte, also
@@ -7177,6 +7055,14 @@ const leereBilanz = () => ({
   legenden:0, kapitaen:0, ntKapitaen:0, statuen:0, aufstiege:0, abstiege:0,
   frauen:0, maenner:0, wm:0, ruecktritte:0, sauber:0, skandale:0, verletzungen:0,
   top5Saisons:0, u21:0, reroll:0, treueMax:0, altMax:0, ovrMax:0, toreSaisonMax:0,
+  /* EIGENE VEREINE, dauerhaft (35.74). Alles andere ueber den eigenen Verein
+     lebt AM Verein — und der wird nach fuenfzehn Jahren durch einen neuen
+     ersetzt. Fuer Errungenschaften, die ueber mehrere Durchlaeufe gehen
+     („zehn Vereine gefuehrt"), braucht es Zahlen, die den Wechsel ueberleben.
+     Sie werden EINMAL je Verein fortgeschrieben, beim Abschluss der fuenfzehn
+     Jahre — nicht bei jeder Saison. Sonst zaehlte ein Verein fuenfzehnmal. */
+  vereineFertig:0, vereinSaisons:0, vereinMeister:0, vereinAufstiege:0,
+  vereinTore:0, vereinPunkteBest:0, vereinPunkteSumme:0,
 });
 
 /* Eine beendete Laufbahn in die Gesamtbilanz einrechnen */
@@ -7327,6 +7213,30 @@ const META = {
   mr_4:  { n:"Glückssträhne IV", t:"Die höchsten Stufen so oft wie nie",         typ:"rar", wert:.52 },
   ms_start2: { n:"Vorsprung",    t:"Deutlich mehr Anlage und Startkapital",      typ:"start", wert:{ pot:4, money:.3 } },
   mx_ueber99:{ n:"Über das Maximum", t:"Deine Werte dürfen die 99 überschreiten", typ:"regel" },
+  /* Zwei Belohnungen fuer den eigenen Verein (35.62). Sie standen zuerst nur
+     als `lohn:"..."` an den neuen Errungenschaften — und zeigten damit ins
+     Leere: der Bildschirm haette „Belohnung: undefined" angezeigt. Gefunden
+     durch einen Abgleich aller `lohn`-Verweise gegen META, nicht beim Lesen.
+     Es gibt jetzt eine Pruefung dafuer. */
+  /* ---- Belohnungen für die Fleißarbeit (35.74) ---------------------------
+     Kevins Wunsch: „gerne auch schwer zu bekommende Errungenschaften, über
+     Fleiß, um das Spielinteresse zu halten. Dementsprechend auch mit passenden
+     Belohnungen." Und: freischaltbare Wildcards.
+
+     DIE BELOHNUNG MUSS ZUR MÜHE PASSEN. Ein Rahmen für zehn Vereinsdurchläufe
+     wäre Hohn — das sind über hundert Saisons. Die schweren Stufen schalten
+     deshalb KARTEN frei, die es sonst nicht gibt; das ändert das Spiel, nicht
+     nur den Rand des Porträts.
+     Die Karten selbst stehen bei den WILDCARDS und tragen `req` auf genau
+     diese Schlüssel — der Mechanismus dafür gibt es seit 34.x, er wurde hier
+     nur nie für Akademie und Verein benutzt. */
+  mw_ziehvater: { n:"Karte: Der Ziehvater",  t:"Aus der Jugend geholt und nie vergessen — freigeschaltet durch 100 Profis aus dem eigenen Haus", typ:"karte" },
+  mw_dynastie:  { n:"Karte: Dynastie",       t:"Der Name steht über allem — freigeschaltet durch fünf geführte Vereine",                          typ:"karte" },
+  mw_werkbank:  { n:"Karte: Werkbank",       t:"Zwanzig Jahrgänge lang dieselbe Arbeit — freigeschaltet durch fünfzig Jahrgänge",                  typ:"karte" },
+  mk_rahmen50:  { n:"Rahmen: Fünfzig Jahrgänge", t:"Ein Rand aus fünfzig feinen Strichen",                                                        typ:"kosmetik" },
+  mk_doppelwappen:{ n:"Rahmen: Doppelwappen",    t:"Zwei Wappen, für zwei Vereine, die beide Meister wurden",                                     typ:"kosmetik" },
+  mk_wappen:  { n:"Rahmen: Meisterwappen", t:"Ein Wappen um dein Porträt — für den ersten Titel mit dem eigenen Verein", typ:"kosmetik" },
+  mk_rahmen15:{ n:"Rahmen: Fünfzehn Jahre", t:"Rand aus fünfzehn Ringen, einer je Vereinsjahr", typ:"kosmetik" },
   mk_rahmen1:{ n:"Rahmen: Silber",  t:"Silberner Rand um dein Porträt",           typ:"kosmetik" },
   mk_rahmen2:{ n:"Rahmen: Bronze",  t:"Bronzener Rand um dein Porträt",           typ:"kosmetik" },
   mk_rahmen3:{ n:"Rahmen: Platin",  t:"Platinrand mit Schimmer",                  typ:"kosmetik" },
@@ -7353,6 +7263,15 @@ const BEINAMEN = {
 };
 /* Rahmen um das Porträt, freischaltbar */
 const RAHMEN = {
+  /* Zwei neue Rahmen fuer die Vereinserfolge aus 35.62. Sie standen dort als
+     Belohnung „Rahmen: Meisterwappen" und „Rahmen: Fuenfzehn Jahre" — aber
+     RAHMEN ist eine EIGENE Liste, und in der fehlten sie. Die Errungenschaft
+     haette einen Rahmen versprochen, den es nicht gibt: freigeschaltet ja,
+     auswaehlbar nein. Beim Bauen des Portraet-Hintergrunds aufgefallen. */
+  mk_doppelwappen:{ n:"Doppelwappen", c:"#8FA84F", w:3 },
+  mk_rahmen50:{ n:"Fünfzig Jahrgänge", c:"#7FB2C9", w:3 },
+  mk_wappen:  { n:"Meisterwappen", c:"#4E9A51", w:3 },
+  mk_rahmen15:{ n:"Fünfzehn Ringe", c:"#C98B3A", w:3 },
   mk_raute:   { n:"Raute",   c:"#4E96E0", w:3 },
   mk_rahmen4: { n:"Legende", c:"#F3E7BE", w:3 },
   mk_rahmen3: { n:"Platin",  c:"#B9C4D4", w:3 },
@@ -7375,6 +7294,120 @@ const rahmenFuer = (meta) => {
 };
 /* ---- 100 Errungenschaften. p = beendete Laufbahn, G = Gesamtbilanz ---- */
 const ACHIEVEMENTS = [
+/* ============ FLEISSARBEIT (18) ============
+   Kevin, 35.74: „gerne auch schwer zu bekommende Errungenschaften, ueber
+   Fleiss, um das Spielinteresse zu halten."
+
+   DIE VORHANDENEN 24 sind fast alle in einem Vereinsdurchlauf oder wenigen
+   Laufbahnen erreichbar — gemessen: von zwoelf Vereinserfolgen fielen acht im
+   ersten Jahr. Sie taugen als Wegweiser, nicht als Fernziel.
+
+   Diese hier gehen ueber viele Durchlaeufe. Die Zahlen dafuer stehen seit
+   35.74 in der Gesamtbilanz (`vereineFertig` und die uebrigen `verein*`) —
+   ohne sie waeren sie nicht formulierbar, denn der Verein selbst wird alle
+   fuenfzehn Jahre ersetzt.
+
+   ZUR EINORDNUNG, gemessen: ein Vereinsdurchlauf sind 15 Saisons, eine
+   Akademie nimmt rund 5 Talente je Jahr auf. „Fuenf Vereine" heisst also 75
+   Saisons, „hundert Profis" rund 25 Jahrgaenge. Das ist absichtlich weit.
+
+   DREI DAVON SCHALTEN KARTEN FREI, keine Rahmen. Wer hundert Profis
+   ausgebildet hat, soll etwas bekommen, das das Spiel veraendert. */
+
+/* -- Jugendakademie, die langen Wege -- */
+{ id:"a_akaF_50",   s:"gold",   n:"Fünfzig aus dem Haus",  t:"50 Absolventen werden Profi",
+  ok:(p,G,A)=>!!A&&A.bilanz.profis>=50 },
+{ id:"a_akaF_100",  s:"platin", n:"Der Ziehvater",         t:"100 Absolventen werden Profi",
+  ok:(p,G,A)=>!!A&&A.bilanz.profis>=100, lohn:"mw_ziehvater" },
+{ id:"a_akaF_wk10", s:"platin", n:"Zehn von Weltrang",     t:"Zehn Absolventen werden Weltklasse",
+  ok:(p,G,A)=>!!A&&A.bilanz.weltklasse>=10 },
+{ id:"a_akaF_ns20", s:"platin", n:"Zwanzig für ihr Land",  t:"20 Absolventen werden Nationalspieler",
+  ok:(p,G,A)=>!!A&&A.bilanz.nationalspieler>=20 },
+{ id:"a_akaF_tur10",s:"gold",   n:"Der Pokalschrank",      t:"Zehn Jugendturniere gewinnen",
+  ok:(p,G,A)=>!!A&&(A.bilanz.turniere||0)>=10 },
+{ id:"a_akaF_jg50", s:"legende",n:"Fünfzig Jahrgänge",     t:"Fünfzig Jahrgänge ausbilden",
+  ok:(p,G,A)=>!!A&&(A.chronik||[]).length>=50, lohn:"mw_werkbank" },
+{ id:"a_akaF_ruf",  s:"platin", n:"Weit über die Stadt",   t:"Ansehen von 400 erreichen",
+  ok:(p,G,A)=>!!A&&(A.ruhm||0)>=400, lohn:"mk_rahmen50" },
+{ id:"a_akaF_auf200",s:"gold",  n:"Zweihundert Jungen",    t:"200 Talente aufnehmen",
+  ok:(p,G,A)=>!!A&&(A.bilanz.aufgenommen||0)>=200 },
+
+/* -- Profimannschaft, ueber mehrere Vereine -- */
+{ id:"a_verF_2",    s:"gold",   n:"Der zweite Anlauf",     t:"Einen zweiten Verein über die vollen Jahre führen",
+  ok:(p,G)=>(G.vereineFertig||0)>=2 },
+{ id:"a_verF_5",    s:"platin", n:"Dynastie",              t:"Fünf Vereine über die vollen Jahre führen",
+  ok:(p,G)=>(G.vereineFertig||0)>=5, lohn:"mw_dynastie" },
+{ id:"a_verF_10",   s:"legende",n:"Ein halbes Leben",      t:"Zehn Vereine über die vollen Jahre führen",
+  ok:(p,G)=>(G.vereineFertig||0)>=10 },
+{ id:"a_verF_m5",   s:"gold",   n:"Fünf Schalen",          t:"Fünf Meistertitel mit eigenen Vereinen",
+  ok:(p,G)=>(G.vereinMeister||0)>=5 },
+{ id:"a_verF_m15",  s:"legende",n:"Serientäter",           t:"Fünfzehn Meistertitel mit eigenen Vereinen",
+  ok:(p,G)=>(G.vereinMeister||0)>=15 },
+{ id:"a_verF_auf10",s:"platin", n:"Zehn Etagen",           t:"Zehn Aufstiege mit eigenen Vereinen",
+  ok:(p,G)=>(G.vereinAufstiege||0)>=10 },
+{ id:"a_verF_tore",s:"platin",  n:"Tausend Tore",          t:"1000 Tore mit eigenen Vereinen",
+  ok:(p,G)=>(G.vereinTore||0)>=1000 },
+{ id:"a_verF_sais",s:"platin",  n:"Hundert Spielzeiten",   t:"100 Saisons mit eigenen Vereinen",
+  ok:(p,G)=>(G.vereinSaisons||0)>=100 },
+{ id:"a_verF_leg", s:"platin",  n:"Ein legendärer Abschluss", t:"Einen Verein mit 1100 Punkten abschließen",
+  ok:(p,G)=>(G.vereinPunkteBest||0)>=1100 },
+{ id:"a_verF_dopp",s:"legende", n:"Zwei Wappen",           t:"Zwei Vereine führen, die beide Meister wurden",
+  ok:(p,G)=>(G.vereineFertig||0)>=2&&(G.vereinMeister||0)>=2, lohn:"mk_doppelwappen" },
+
+/* ============ PROFIMANNSCHAFT (12) ============
+   Neu in 35.62. Bis dahin gab es KEINE einzige — nicht aus Nachlaessigkeit,
+   sondern weil `ok` den Verein gar nicht bekam (nur p, G, A). Eine Bedingung,
+   die man nicht formulieren kann, schreibt niemand auf.
+
+   Gemessen wird am Verein NACH der eben gespielten Saison. Die Chronik ist
+   dabei die verlaessliche Quelle: sie steht auch dann noch, wenn die
+   fuenfzehn Jahre vorbei sind und der Verein abgeschlossen wurde.
+
+   `V` kann null sein (kein Verein gegruendet) — jede Bedingung faengt das ab.
+   Ohne `!!V` waere jede Laufbahn ohne Verein ein stiller Absturz in der
+   Schleife, und `merkeErfolge` verschluckt Ausnahmen. */
+{ id:"a_ver_grund", s:"bronze", n:"Eigener Rasen",        t:"Einen eigenen Verein gründen",
+  ok:(p,G,A,V)=>!!(V&&V.gegruendet) },
+{ id:"a_ver_start", s:"bronze", n:"Angepfiffen",          t:"Die erste Saison mit dem eigenen Verein spielen",
+  ok:(p,G,A,V)=>!!V&&(V.chronik||[]).length>=1 },
+/* TEXT AN DIE BEDINGUNG angeglichen (35.62). Er sprach von „Absolventen",
+   geprüft wurde die Kadergröße. Näherungsweise stimmt das — der Kader entsteht
+   aus der Akademie —, aber ein Zugekaufter wäre mitgezählt worden. Wer eine
+   Zahl verspricht, die er nicht misst, hat ein Versprechen ohne Mechanik.
+   Gemessen wird die Kadergröße, also heißt es jetzt auch so. */
+{ id:"a_ver_elf",   s:"bronze", n:"Eine ganze Mannschaft", t:"Elf Spieler im eigenen Kader haben",
+  ok:(p,G,A,V)=>!!V&&(V.kader||[]).length>=11 },
+{ id:"a_ver_sieg",  s:"silber", n:"Oben angeklopft",      t:"Eine Saison unter den ersten drei beenden",
+  ok:(p,G,A,V)=>!!V&&(V.chronik||[]).some((c)=>c.rang<=3) },
+{ id:"a_ver_tor60", s:"silber", n:"Torfabrik",            t:"In einer Saison 60 Tore schießen",
+  ok:(p,G,A,V)=>!!V&&(V.chronik||[]).some((c)=>(c.tore||0)>=60) },
+{ id:"a_ver_auf1",  s:"silber", n:"Eine Etage höher",     t:"Zum ersten Mal aufsteigen",
+  ok:(p,G,A,V)=>!!V&&(V.chronik||[]).some((c)=>c.aufstieg) },
+{ id:"a_ver_meis",  s:"gold",   n:"Meisterschale",        t:"Eine Liga gewinnen",
+  ok:(p,G,A,V)=>!!V&&(V.chronik||[]).some((c)=>c.rang===1), lohn:"mk_wappen" },
+{ id:"a_ver_auf2",  s:"gold",   n:"Durchmarsch",          t:"Zweimal aufsteigen",
+  ok:(p,G,A,V)=>!!V&&(V.chronik||[]).filter((c)=>c.aufstieg).length>=2 },
+{ id:"a_ver_stark", s:"gold",   n:"Eine Wucht",           t:"Eine Mannschaftsstärke von 70 erreichen",
+  ok:(p,G,A,V)=>!!V&&(V.chronik||[]).some((c)=>(c.staerke||0)>=70) },
+/* WIRKLICH die höchste Liga, nicht „zweimal aufgestiegen" (35.62). Der erste
+   Entwurf zählte Aufstiege — das ist bequem und war falsch: wer in einem Land
+   mit vier Stufen zweimal aufsteigt, ist noch lange nicht oben, und wer in
+   der zweithöchsten startet, ist es nach einem Aufstieg. Der Text hätte etwas
+   versprochen, das die Bedingung nicht prüft.
+   `stufenVon` liefert die Ligakette des eigenen Zweigs, aufsteigend sortiert
+   (gemessen: GER Stufe 0 = 3. Liga → 2. Bundesliga → Bundesliga). Die letzte
+   ist die höchste. */
+{ id:"a_ver_oben",  s:"platin", n:"Ganz oben angekommen", t:"In der höchsten Liga des Landes spielen",
+  ok:(p,G,A,V)=>{ if(!V||!V.land) return false;
+    const kette=VEREIN.stufenVon(V.land, V.liga)||[];
+    if(!kette.length) return false;
+    const oben=kette[kette.length-1].liga;
+    return V.liga===oben||(V.chronik||[]).some((c)=>c.liga===oben); } },
+{ id:"a_ver_15",    s:"platin", n:"Fünfzehn Jahre",       t:"Den Verein über die vollen fünfzehn Jahre führen",
+  ok:(p,G,A,V)=>!!V&&(V.chronik||[]).length>=15, lohn:"mk_rahmen15" },
+{ id:"a_ver_dopp",  s:"legende", n:"Beide Häuser",         t:"Meister werden und 25 Profis ausgebildet haben",
+  ok:(p,G,A,V)=>!!V&&!!A&&(V.chronik||[]).some((c)=>c.rang===1)&&A.bilanz.profis>=25 },
+
 /* ============ JUGENDAKADEMIE (12) ============ */
 { id:"a_aka_grund", s:"bronze", n:"Das erste Tor auf",     t:"Eine Jugendakademie gründen",
   ok:(p,G,A)=>!!(A&&A.gegruendet) },
@@ -7876,7 +7909,17 @@ const FARBTOENE = ["#c0392b", "#1f5c9e", "#1e7d44", "#2b2b2b", "#e0a21c",
   "#6d3b8e", "#0f7a72", "#8c2f4a"];
 
 /* ------------------------------------------------------------ Gründung */
-function VereinGruenden({ aka, onFertig, onZurueck }) {
+/* ZWEI BETRIEBSARTEN seit 35.67 (Kevin). Derselbe Bildschirm, zwei Schritte:
+     art="kennung"      Name, Stadt, Wappen, Farben — beim ersten Betreten des
+                        Dachs, zwingend.
+     art="spielbetrieb" Land und Liga — erst bei der Profimannschaft.
+   Ein zweiter Bildschirm haette dieselben achtzig Zeilen Wappeneditor noch
+   einmal gebraucht; zwei Fassungen desselben Editors laufen garantiert
+   auseinander (siehe die Reiterzeilen in 35.59). Deshalb eine Datei mit einer
+   Weiche — und `art` entscheidet, welche Felder ueberhaupt erscheinen. */
+function VereinGruenden({ aka, verein, art = "voll", onFertig, onZurueck }) {
+  const nurKennung = art === "kennung";
+  const nurLiga = art === "spielbetrieb";
   const laender = React.useMemo(() => {
     const m = {};
     CLUBS.forEach((c) => { if (!m[c.c]) m[c.c] = 0; m[c.c]++; });
@@ -7891,19 +7934,29 @@ function VereinGruenden({ aka, onFertig, onZurueck }) {
   }, []);
   const [land, setLand] = React.useState(laender[0] ? laender[0].id : "GER");
   const [liga, setLiga] = React.useState("");
-  const [name, setName] = React.useState("");
-  const [stadt, setStadt] = React.useState("");
-  const [primaer, setPrimaer] = React.useState(FARBTOENE[0]);
-  const [sekundaer, setSekundaer] = React.useState("#f4f1ea");
-  const [form, setForm] = React.useState("schild");
-  const [zeichen, setZeichen] = React.useState("raute");
-  const [muster, setMuster] = React.useState("einfarbig");
+  /* VORBELEGT AUS DEM VEREIN, wenn er schon eine Kennung hat. Im Schritt
+     „spielbetrieb" stehen Name und Wappen laengst fest — sie werden angezeigt,
+     aber nicht mehr abgefragt. Ohne diese Vorbelegung stuende dort „Dein
+     Verein" in der Vorschau, obwohl der Verein einen Namen hat. */
+  const v0 = verein || {};
+  const [name, setName] = React.useState(v0.name || "");
+  const [stadt, setStadt] = React.useState(v0.stadt || "");
+  const [primaer, setPrimaer] = React.useState((v0.farben && v0.farben.primaer) || FARBTOENE[0]);
+  const [sekundaer, setSekundaer] = React.useState((v0.farben && v0.farben.sekundaer) || "#f4f1ea");
+  const [form, setForm] = React.useState((v0.wappen && v0.wappen.form) || "schild");
+  const [zeichen, setZeichen] = React.useState((v0.wappen && v0.wappen.zeichen) || "raute");
+  const [muster, setMuster] = React.useState((v0.wappen && v0.wappen.muster) || "einfarbig");
 
   const ligen = VEREIN.startligen(land);
   React.useEffect(() => { setLiga(ligen[0] || ""); }, [land]);   /* Land gewechselt: Liga nachziehen */
   const farben = { primaer, sekundaer };
   const wappen = { form, zeichen };
-  const bereit = name.trim().length >= 2 && !!liga;
+  /* Was „fertig" heisst, haengt vom Schritt ab: die Kennung braucht einen
+     Namen, der Spielbetrieb eine Liga. Beides zu verlangen waere die alte
+     Bedingung und wuerde den ersten Schritt blockieren. */
+  const bereit = nurKennung ? name.trim().length >= 2
+    : nurLiga ? !!liga
+    : (name.trim().length >= 2 && !!liga);
 
   const Wahl = ({ werte, ist, setz }) => (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
@@ -7914,8 +7967,15 @@ function VereinGruenden({ aka, onFertig, onZurueck }) {
   return (
     <Shell wide blatt="verein">
       <div className="fade">
-        <div className="eb">Neuer Verein</div>
-        <div className="d" style={{ fontSize: "clamp(26px,7vw,44px)", marginBottom: 10 }}>Gründung</div>
+        {/* Ueberschrift je Schritt — „Gruendung" ueber einer reinen Ligawahl
+            waere irrefuehrend, der Verein ist da laengst gegruendet. */}
+        <div className="eb">{nurLiga ? "Profimannschaft" : "Neuer Verein"}</div>
+        <div className="d" style={{ fontSize: "clamp(26px,7vw,44px)", marginBottom: 10 }}>
+          {nurKennung ? "Dein Verein" : nurLiga ? "In welcher Liga?" : "Gründung"}</div>
+        {nurKennung && (
+          <p className="m" style={{ fontSize: 12, color: "var(--mu)", margin: "-4px 0 10px" }}>
+            Name und Wappen gelten für alles: die Jugendakademie bildet für ihn
+            aus, die Profimannschaft spielt für ihn.</p>)}
 
         {/* Die Vorschau steht oben und nicht am Ende: man soll sehen, was man
             baut, während man es baut. UND SIE BLEIBT BEIM BLÄTTERN OBEN HÄNGEN —
@@ -7931,20 +7991,31 @@ function VereinGruenden({ aka, onFertig, onZurueck }) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="d" style={{ fontSize: 22, overflow: "hidden", textOverflow: "ellipsis" }}>
               {name.trim() || "Dein Verein"}</div>
+            {/* IM KENNUNGSSCHRITT KEINE LIGA. Sie steht als Vorgabe im
+                Zustand (erstes Land alphabetisch), und die Vorschau zeigte
+                deshalb „Premier League (EGY)" — eine Liga, die niemand
+                gewaehlt hat und die im naechsten Schritt eine andere wird.
+                Eine Vorschau, die etwas zeigt, das nicht entschieden ist,
+                ist keine Vorschau, sondern eine Falschaussage. Im Bild
+                gesehen, nicht im Code. */}
             <div className="m" style={{ fontSize: 12 }}>
-              {stadt.trim() ? stadt.trim() + " · " : ""}{liga || "—"}</div>
+              {nurKennung
+                ? (stadt.trim() || "Wo spielt er?")
+                : (stadt.trim() ? stadt.trim() + " · " : "") + (liga || "—")}</div>
           </div>
           <Trikot farben={farben} muster={muster} groesse={62} />
         </div>
 
+        {!nurLiga && (
         <div className="pan pad" style={{ marginTop: 10 }}>
           <div className="eb">Name und Ort</div>
           <input className="inp" value={name} maxLength={26} placeholder="Vereinsname"
             onChange={(e) => setName(e.target.value)} style={{ marginTop: 6 }} />
           <input className="inp" value={stadt} maxLength={22} placeholder="Stadt"
             onChange={(e) => setStadt(e.target.value)} style={{ marginTop: 6 }} />
-        </div>
+        </div>)}
 
+        {!nurKennung && (
         <div className="pan pad" style={{ marginTop: 10 }}>
           <div className="eb">Land</div>
           <select className="sel" value={land} onChange={(e) => setLand(e.target.value)}
@@ -7964,8 +8035,13 @@ function VereinGruenden({ aka, onFertig, onZurueck }) {
           </div>
           <div className="m" style={{ fontSize: 11.5, marginTop: 6 }}>
             Du startest ganz unten. Nach oben geht es über den Platz.</div>
-        </div>
+        </div>)}
 
+        {/* Farben, Trikot und Wappen gehoeren zusammen — sie sind die Kennung.
+            Zwei Kaesten in EINER Weiche, deshalb ein Fragment: der erste
+            Entwurf setzte die Klammer nur um den Farbkasten und liess den
+            Wappenkasten draussen stehen. */}
+        {!nurLiga && (<>
         <div className="pan pad" style={{ marginTop: 10 }}>
           <div className="eb">Farben</div>
           <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
@@ -7992,17 +8068,34 @@ function VereinGruenden({ aka, onFertig, onZurueck }) {
             setForm(pick(WAPPEN_FORMEN)); setZeichen(pick(WAPPEN_ZEICHEN));
             setPrimaer(pick(FARBTOENE)); setMuster(pick(TRIKOT_MUSTER)[0]);
           }}>Würfeln</button>
-        </div>
+        </div></>)}
 
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button className="btn schmal" onClick={onZurueck}>Zurück</button>
+          {!nurKennung && <button className="btn schmal" onClick={onZurueck}>Zurück</button>}
           <button className="btn on" disabled={!bereit} style={{ flex: "1 1 auto", minWidth: 0 }}
             onClick={() => {
-              const r = VEREIN.gruenden(VEREIN.leererVerein(),
-                { name, stadt, land, liga, farben });
-              if (!r.fehler) onFertig({ ...r.v, wappen, muster });
+              /* JE SCHRITT EIN ANDERER AUFRUF (35.67). Die Kennung setzt nur
+                 Name, Stadt und Wappen und laesst `gegruendet` auf false —
+                 der Verein hat dann einen Namen, ist aber noch nicht im
+                 Spielbetrieb. Der zweite Schritt baut auf dem vorhandenen
+                 Verein auf, NICHT auf einem leeren: sonst waeren Wappen und
+                 Farben aus dem ersten Schritt wieder weg. Genau das hat der
+                 erste Entwurf getan (`VEREIN.leererVerein()` als Grundlage),
+                 und es faellt erst auf, wenn beide Schritte auseinanderliegen. */
+              if (nurKennung) {
+                const r = VEREIN.kennungSetzen(verein || VEREIN.leererVerein(),
+                  { name, stadt, farben, wappen: { ...wappen, muster } });
+                if (!r.fehler) onFertig({ ...r.v, muster });
+                return;
+              }
+              const grund = verein && verein.gekannt ? verein : VEREIN.leererVerein();
+              const r = VEREIN.gruenden(grund,
+                nurLiga ? { land, liga } : { name, stadt, land, liga, farben });
+              if (!r.fehler) onFertig(nurLiga ? r.v : { ...r.v, wappen, muster });
             }}>
-            {bereit ? "Verein gründen" : "Name fehlt"}
+            {!bereit ? (nurLiga ? "Liga wählen" : "Name fehlt")
+              : nurKennung ? "Verein anlegen"
+              : nurLiga ? "In den Spielbetrieb" : "Verein gründen"}
           </button>
         </div>
       </div>
@@ -8018,12 +8111,149 @@ function VereinGruenden({ aka, onFertig, onZurueck }) {
 function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss }) {
   const [reiter, setReiter] = React.useState("kader");
   const [bericht, setBericht] = React.useState(null);
+  /* Welcher Platz gerade besetzt wird (35.49). `null` heisst: keiner offen.
+     Bewusst eine Zahl und kein Objekt — der Index ist der Schluessel, unter
+     dem die Aufstellung ohnehin gefuehrt wird. */
+  const [platzAuf, setPlatzAuf] = React.useState(null);
+  /* Welcher Kaderspieler gerade aufgeklappt ist (35.54), und die Notiz zum
+     Auslaufenlassen. */
+  const [offenSp, setOffen] = React.useState(null);
+  const [notiz, setNotiz] = React.useState("");
+  /* Rückfrage vor den endgültigen Wegen (35.55) und ihre Fehlermeldung. */
+  const [sicher, setSicher] = React.useState(null);
+  const [kfehler, setKfehler] = React.useState(null);
   const reiterRef = React.useRef(null);
   const st = VEREIN.staerke(v);
   const bd = VEREIN.bedarf(v);
   const form = VEREIN.FORMATIONEN.find((f) => f.id === v.formation) || VEREIN.FORMATIONEN[0];
   const nachId = {}; (v.kader || []).forEach((s) => { nachId[s.id] = s; });
-  const REITER = [["kader", "Kader"], ["elf", "Aufstellung"], ["ausbau", "Ausbau"], ["chronik", "Chronik"]];
+  /* „Rückblick" seit 35.52 — Tabelle und Leistungsdaten der gespielten Jahre.
+     Steht VOR der Chronik: die Chronik ist die Kurzfassung in einer Zeile je
+     Jahr, der Rückblick die Langfassung. Erscheint erst, wenn es etwas
+     zurückzublicken gibt; ein leerer Reiter ist ein Versprechen ohne Inhalt. */
+  const hatRueck = (v.chronik || []).some((c) => c.tabelle);
+  /* AUSWAHLKASTEN, seit 35.59 als Funktion — er wird jetzt MITTEN in der
+     Liste gezeichnet, direkt unter dem angetippten Platz. Bis 35.58 stand er
+     unter der ganzen Elf; wer den zweiten Platz besetzte, las über neun
+     Zeilen hinweg und suchte danach wieder hoch. Von Kevin gemeldet.
+     Drei Zahlen je Zeile, wie er sie genannt hat: Stärke AUF DIESEM PLATZ,
+     Allgemeinstärke, Eignung. Keine Überlagerung — auf 360 px verdeckt ein
+     Fenster genau die Elf, gegen die man vergleicht. */
+  /* SPIELERKASTEN, seit 35.59 als Funktion — er wird MITTEN in der Kaderliste
+     gezeichnet, direkt unter dem angetippten Spieler. Bis 35.58 stand er unter
+     dem ganzen Kader, bei zwanzig Spielern also zwanzig Zeilen weiter unten.
+     Von Kevin gemeldet, zusammen mit demselben Fall bei der Aufstellung. */
+  const spielerKasten = (s) => (
+    <div className="pan pad" style={{ marginTop: 8, borderColor: "var(--ac)" }}>
+                  <div className="eb">{s.name}</div>
+                  <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
+                    Form {s.form == null ? "—" : s.form} · Fitness {s.fitness == null ? "—" : s.fitness}
+                    {" · "}{s.jahreImVerein} Jahr{s.jahreImVerein === 1 ? "" : "e"} dabei
+                  </div>
+                  {!s.auslaufen && (
+                    <input className="feld" placeholder="Notiz (freiwillig)" value={notiz}
+                      onChange={(e) => setNotiz(e.target.value)}
+                      style={{ width: "100%", marginTop: 8 }} />)}
+                  <button className={"btn sm" + (s.auslaufen ? "" : " pri")}
+                    style={{ marginTop: 8, width: "100%" }}
+                    onClick={() => { const r = VEREIN.auslaufenLassen(v, s.id, notiz);
+                      if (!r.fehler) { onAendern(r.v); setNotiz(""); setOffen(null); setSicher(null); } }}>
+                    {s.auslaufen ? "Doch behalten" : "Vertrag auslaufen lassen"}</button>
+
+                  {/* Die harten Wege (35.55). Beide sind ENDGÜLTIG, deshalb
+                      steht eine Rückfrage davor — anders als beim
+                      Auslaufenlassen, das man zurücknehmen kann. */}
+                  <div className="m" style={{ fontSize: 10, color: "var(--mu)",
+                    marginTop: 10, paddingTop: 8, borderTop: "1px solid var(--ln)" }}>
+                    Sofort und endgültig:</div>
+                  {sicher !== s.id ? (
+                    <button className="btn sm" style={{ marginTop: 6, width: "100%" }}
+                      onClick={() => setSicher(s.id)}>Aus dem Kader nehmen …</button>
+                  ) : (
+                    <div style={{ marginTop: 6 }}>
+                      <div className="m" style={{ fontSize: 11, color: "var(--bad)" }}>
+                        Das lässt sich nicht zurücknehmen.</div>
+                      <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                        <button className="btn sm" style={{ flex: "1 1 0" }}
+                          onClick={() => { const r = VEREIN.entlassen(v, s.id, notiz);
+                            if (r.fehler) setKfehler(r.fehler);
+                            else { onAendern(r.v); setNotiz(""); setOffen(null); setSicher(null); setKfehler(null); } }}>
+                          Entlassen</button>
+                        {s.alter <= VEREIN.ZURUECK_ALTER && aka && aka.gegruendet && (
+                          <button className="btn sm" style={{ flex: "1 1 0" }}
+                            onClick={() => { const r = VEREIN.zurueckInDieJugend(aka, v, s.id, v.jahr);
+                              if (r.fehler) setKfehler(r.fehler);
+                              else { onAkaAendern(r.aka); onAendern(r.v);
+                                setNotiz(""); setOffen(null); setSicher(null); setKfehler(null); } }}>
+                            In die Jugend</button>)}
+                        <button className="btn sm" style={{ flex: "1 1 100%" }}
+                          onClick={() => { setSicher(null); setKfehler(null); }}>Doch nicht</button>
+                      </div>
+                      {s.alter > VEREIN.ZURUECK_ALTER && (
+                        <div className="m" style={{ fontSize: 10, color: "var(--mu)", marginTop: 5 }}>
+                          Über {VEREIN.ZURUECK_ALTER} nimmt die Jugend niemanden mehr.</div>)}
+                    </div>)}
+                  {kfehler && (
+                    <div className="m" style={{ fontSize: 11, color: "var(--bad)", marginTop: 6 }}>
+                      {kfehler}</div>)}
+                </div>
+  );
+
+  const auswahlKasten = (platzAuf, platz) => {
+    const kand = VEREIN.kandidaten(v, platzAuf);
+    const drauf = (v.aufstellung || {})[platzAuf];
+    return (
+<div className="pan pad" style={{ marginTop: 10, borderColor: "var(--ac)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <div className="eb">Wer spielt {platz}?</div>
+                  <button className="btn sm" onClick={() => setPlatzAuf(null)}>Zu</button>
+                </div>
+                <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 5,
+                  display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                  <span>auf {platz}</span><span>gesamt</span><span>Eignung</span>
+                </div>
+                {kand.length === 0 && (
+                  <div className="m" style={{ fontSize: 12, color: "var(--bad)", marginTop: 8 }}>
+                    Niemand im Kader kann {platz} spielen.
+                  </div>)}
+                {kand.map((k) => (
+                  <button key={k.sp.id} className="up"
+                    onClick={() => { onAendern(VEREIN.aufstellen(v, platzAuf, k.sp.id)); setPlatzAuf(null); }}
+                    style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5,
+                      width: "100%", textAlign: "left", padding: "7px 9px",
+                      border: k.sp.id === drauf ? "1px solid var(--ok)" : "1px solid var(--ln2)",
+                      background: "transparent", cursor: "pointer" }}>
+                    <span style={{ fontSize: 15 }}>{k.sp.flag}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, overflow: "hidden",
+                        textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{k.sp.name}</div>
+                      <div className="m" style={{ fontSize: 9.5, color: "var(--mu)" }}>
+                        {k.sp.pos} · {k.sp.alter} Jahre
+                        {k.sp.id === drauf ? " · steht hier"
+                          : k.stehtAuf != null ? " · spielt " + k.stehtAufPlatz : ""}
+                      </div>
+                    </div>
+                    <span className="d" style={{ fontSize: 15, width: 26, textAlign: "right" }}>{k.wert}</span>
+                    <span className="m" style={{ fontSize: 12, width: 26, textAlign: "right",
+                      color: "var(--mu)" }}>{k.sp.ovr}</span>
+                    <span className="m" style={{ fontSize: 11, width: 34, textAlign: "right",
+                      color: k.guete === 1 ? "var(--ok)" : "var(--mu)" }}>
+                      {Math.round(k.guete * 100)} %</span>
+                  </button>))}
+                {drauf != null && (
+                  <button className="btn sm" style={{ marginTop: 8, width: "100%" }}
+                    onClick={() => { onAendern(VEREIN.freimachen(v, platzAuf)); setPlatzAuf(null); }}>
+                    Platz leeren</button>)}
+              </div>);
+  };
+
+  const REITER = [["kader", "Kader"], ["elf", "Aufstellung"],
+    ...(hatRueck ? [["rueck", "Rückblick"]] : []),
+    ["ausbau", "Ausbau"], ["chronik", "Chronik"]];
+  const rueckJahre = (v.chronik || []).filter((c) => c.tabelle).map((c) => c.jahr).reverse();
+  const [rjahr, setRjahr] = React.useState(null);
+  const rc = (v.chronik || []).filter((c) => c.tabelle)
+    .find((c) => c.jahr === (rjahr == null ? rueckJahre[0] : rjahr)) || null;
 
   const holbar = (aka && aka.talente ? aka.talente : []).filter((t) => t.alter >= 16);
   const fehlteil = Object.entries(bd.fehlt).map(([p, n]) => n + "× " + p).join(", ");
@@ -8081,6 +8311,22 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
           <Wappen w={v.wappen} farben={v.farben} groesse={58} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="eb">{v.jahr}. von {VEREIN.VEREIN_JAHRE} Jahren · {v.liga}</div>
+            {/* DEN BONUS ZEIGEN (35.73). Er wirkt seit 35.28 — an zwei Stellen
+                gemessen: `startOvr` hebt die Talente, `zuwachs` den
+                Trainingsertrag. Angezeigt wurde er NIE. Kevin: „ich hab das
+                Gefühl, dass die Bonis nicht übernommen werden."
+                Das Gefühl war richtig und der Grund ein anderer: sie werden
+                übernommen, aber ein Vorteil, den man nicht sieht, ist von
+                keinem Vorteil nicht zu unterscheiden. */}
+            {v.bonus && Object.keys(v.bonus).length > 0 && (
+              <div className="m" style={{ fontSize: 10.5, color: "var(--go)", marginTop: 3 }}>
+                Aus dem letzten Verein: {[
+                  v.bonus.startOvr ? "Talente starten +" + v.bonus.startOvr : null,
+                  v.bonus.aufnahmen ? "+" + v.bonus.aufnahmen + " Aufnahme je Jahr" : null,
+                  v.bonus.ausbauStart ? "Training bereits Stufe " + (1 + v.bonus.ausbauStart) : null,
+                  v.bonus.zuwachs ? "Zuwachs +" + Math.round(v.bonus.zuwachs * 100) + " %" : null,
+                ].filter(Boolean).join(" · ")}
+              </div>)}
             <div className="d" style={{ fontSize: "clamp(22px,6vw,36px)" }}>{v.name}</div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -8134,13 +8380,20 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
           </div>
         )}
 
-        <div ref={reiterRef} style={{ marginTop: 12 }}>
-          <div style={{ display: "flex", gap: 6, overflowX: "auto" }}>
-            {REITER.map(([k, l]) => (
-              <button key={k} className={"btn sm" + (reiter === k ? " on" : "")}
-                style={{ flexShrink: 0 }} onClick={() => setReiter(k)}>{l}</button>))}
-          </div>
-        </div>
+        {/* DIESELBE REITERZEILE wie in Akademie und Spielerkarriere (35.59).
+            Hier stand bis 35.58 eine handgeschriebene Flex-Zeile: ohne
+            Abblendrand rechts (der zeigt, dass es weitergeht), ohne
+            Trennlinie, ohne Einrasten beim Wischen und ohne den Sprung an den
+            Seitenanfang beim Reiterwechsel. Drei Modi, zwei Bauarten — von
+            Kevin gemeldet. Wer eine Zeile zweimal baut, baut sie zweimal
+            anders. */}
+        <div className="tabhuelle" ref={reiterRef}><div className="tabs" style={{ marginTop: 12 }}>
+          {REITER.map(([k, l]) => (
+            <button key={k} className={"btn sm" + (reiter === k ? " on" : "")}
+              style={{ flexShrink: 0 }}
+              onClick={() => { setReiter(k); setPlatzAuf(null); setOffen(null);
+                zumAnfang(reiterRef.current); }}>{l}</button>))}
+        </div></div>
 
         {reiter === "kader" && (
           <div style={{ marginTop: 10 }}>
@@ -8169,14 +8422,43 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
               <div className="eb">Mannschaft</div>
               {!(v.kader || []).length && <div className="m" style={{ fontSize: 12, marginTop: 4 }}>
                 Noch niemand da.</div>}
-              {(v.kader || []).slice().sort((a, b) => b.ovr - a.ovr).map((s) => (
-                <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5 }}>
+              <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 4 }}>
+                Spieler antippen: Vertrag auslaufen lassen oder doch behalten.</div>
+              {(v.kader || []).slice().sort((a, b) => b.ovr - a.ovr).map((s) => {
+                const bis = VEREIN.spVertrag(s, v.jahr);
+                const rest = bis - v.jahr;
+                return (
+                <React.Fragment key={s.id}>
+                <button className="up"
+                  onClick={() => setOffen(offenSp === s.id ? null : s.id)}
+                  style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5,
+                    width: "100%", textAlign: "left", padding: "6px 8px", background: "transparent",
+                    cursor: "pointer",
+                    border: offenSp === s.id ? "1px solid var(--ac)"
+                      : s.auslaufen ? "1px solid var(--bad)" : "1px solid transparent" }}>
                   <span className="chip">{s.pos}</span>
-                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis",
-                    whiteSpace: "nowrap", fontSize: 13 }}>{s.name}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ overflow: "hidden", textOverflow: "ellipsis",
+                      whiteSpace: "nowrap", fontSize: 13 }}>{s.name}</div>
+                    <div className="m" style={{ fontSize: 9.5, color: s.auslaufen ? "var(--bad)" : "var(--mu)" }}>
+                      {s.auslaufen ? "läuft aus" + (s.notiz ? " · " + s.notiz : "")
+                        : rest <= 1 ? "Vertrag läuft dieses Jahr aus"
+                        : "Vertrag noch " + rest + " Jahre"}
+                      {s.spiele ? " · " + s.spiele + " Sp, " + s.tore + " T" : ""}
+                    </div>
+                  </div>
                   <span className="m" style={{ fontSize: 12 }}>{s.alter} J</span>
                   <span className="d" style={{ fontSize: 15, width: 26, textAlign: "right" }}>{s.ovr}</span>
-                </div>))}
+                </button>
+                {/* DIREKT UNTER DEM ANGETIPPTEN SPIELER (35.59) — wie bei der
+                    Aufstellung. Bis 35.58 stand der Kasten unter dem ganzen
+                    Kader, also bei zwanzig Spielern zwanzig Zeilen weiter
+                    unten. Von Kevin gemeldet. */}
+                {offenSp === s.id && spielerKasten(s)}
+                </React.Fragment>);
+              })}
+              {/* (Der Spielerkasten steht jetzt in der Liste oben, direkt
+                  unter dem angetippten Spieler — siehe spielerKasten.) */}
             </div>
           </div>)}
 
@@ -8187,7 +8469,13 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
               <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
                 {VEREIN.FORMATIONEN.map((f) => (
                   <button key={f.id} className={"btn sm" + (v.formation === f.id ? " on" : "")}
-                    onClick={() => onAendern(VEREIN.autoAufstellen({ ...v, formation: f.id }))}>{f.n}</button>))}
+                    onClick={() => { setPlatzAuf(null);
+                      /* SAEUBERN statt neu aufstellen (35.49): wer auf dem
+                         neuen Platz weiter spielen kann, bleibt stehen. Bis
+                         35.48 warf ein Tippen auf die Formation jede
+                         Handarbeit weg — beim blossen Durchsehen der fuenf
+                         Formationen. */
+                      onAendern(VEREIN.aufstellungSaeubern({ ...v, formation: f.id })); }}>{f.n}</button>))}
               </div>
               <div className="eb" style={{ marginTop: 10 }}>Taktik</div>
               {VEREIN.TAKTIKEN.map((t) => (
@@ -8207,11 +8495,19 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
                 <button className="btn sm" onClick={() => onAendern(VEREIN.autoAufstellen(v))}>
                   Bestmöglich</button>
               </div>
+              <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 4 }}>
+                Platz antippen, um ihn zu besetzen.</div>
               {form.plaetze.map((platz, i) => {
                 const s = nachId[(v.aufstellung || {})[i]];
                 const g = s ? VEREIN.guete(s.pos, platz) : 0;
                 return (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5 }}>
+                  <React.Fragment key={i}>
+                  <button className="up"
+                    onClick={() => setPlatzAuf(platzAuf === i ? null : i)}
+                    style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5,
+                      width: "100%", textAlign: "left", padding: "7px 9px",
+                      border: platzAuf === i ? "1px solid var(--ac)" : "1px solid var(--ln2)",
+                      background: "transparent", cursor: "pointer" }}>
                     <span className="chip a" style={{ width: 42, textAlign: "center" }}>{platz}</span>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 13, overflow: "hidden",
                       textOverflow: "ellipsis", whiteSpace: "nowrap",
@@ -8220,9 +8516,110 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
                     {s && g < 1 && <span className="m" style={{ fontSize: 11 }}>
                       {s.pos}, {Math.round(g * 100)} %</span>}
                     {s && <span className="d" style={{ fontSize: 15 }}>{Math.round(s.ovr * g)}</span>}
-                  </div>);
+                  </button>
+                  {/* DIREKT UNTER DEM ANGETIPPTEN PLATZ (35.59). Bis 35.58
+                      stand der Auswahlkasten unter der ganzen Elf — wer den
+                      zweiten Platz besetzte, musste über neun Zeilen hinweg
+                      lesen und danach wieder hochsuchen. Von Kevin gemeldet.
+                      Der Kasten steht jetzt in derselben Liste, direkt an der
+                      Zeile, um die es geht. */}
+                  {platzAuf === i && auswahlKasten(i, platz)}
+                </React.Fragment>);
               })}
+
+              {/* (Der Auswahlkasten steht jetzt in der Liste oben, direkt
+                  unter dem angetippten Platz — siehe auswahlKasten.) */}
             </div>
+          </div>)}
+
+        {reiter === "rueck" && rc && (
+          <div style={{ marginTop: 10 }}>
+            {rueckJahre.length > 1 && (
+              <div className="tabhuelle"><div className="tabs" style={{ marginBottom: 8 }}>
+                {rueckJahre.map((j) => (
+                  <button key={j} className={"btn sm" + (rc.jahr === j ? " on" : "")}
+                    style={{ flexShrink: 0 }} onClick={() => setRjahr(j)}>{j}. Jahr</button>))}
+              </div></div>)}
+
+            <div className="pan pad">
+              <div className="eb">Abschlusstabelle · {rc.liga} · {rc.jahr}. Jahr</div>
+              <div className="m" style={{ fontSize: 10, color: "var(--mu)",
+                display: "flex", gap: 6, marginTop: 5 }}>
+                <span style={{ width: 20 }} /><span style={{ flex: 1 }} />
+                <span style={{ width: 22, textAlign: "right" }}>Sp</span>
+                <span style={{ width: 46, textAlign: "right" }}>Tore</span>
+                <span style={{ width: 24, textAlign: "right" }}>Pkt</span>
+              </div>
+              {rc.tabelle.map((zz) => (
+                <div key={zz.pos} style={{ display: "flex", gap: 6, alignItems: "baseline",
+                  fontSize: 12, marginTop: 3, paddingLeft: 5,
+                  borderLeft: zz.me ? "3px solid var(--ok)" : "3px solid transparent",
+                  color: zz.me ? "var(--tx)" : "var(--mu)" }}>
+                  <span className="m" style={{ width: 20, textAlign: "right" }}>{zz.pos}.</span>
+                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden",
+                    textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    fontWeight: zz.me ? 600 : 400 }}>{zz.name}</span>
+                  <span className="m" style={{ width: 22, textAlign: "right" }}>{zz.sp}</span>
+                  <span className="m" style={{ width: 46, textAlign: "right" }}>{zz.gf}:{zz.ga}</span>
+                  <span className="d" style={{ width: 24, textAlign: "right" }}>{zz.pkt}</span>
+                </div>))}
+            </div>
+
+            <div className="pan pad" style={{ marginTop: 10 }}>
+              <div className="eb">Leistungsdaten</div>
+              <div className="m" style={{ fontSize: 10, color: "var(--mu)",
+                display: "flex", gap: 6, marginTop: 5 }}>
+                <span style={{ flex: 1 }} />
+                <span style={{ width: 24, textAlign: "right" }}>Sp</span>
+                <span style={{ width: 24, textAlign: "right" }}>Tore</span>
+                <span style={{ width: 24, textAlign: "right" }}>Vorl</span>
+                <span style={{ width: 34, textAlign: "right" }}>Karten</span>
+              </div>
+              {(rc.spieler || []).map((x) => (
+                <div key={x.id} style={{ display: "flex", gap: 6, alignItems: "baseline",
+                  fontSize: 12, marginTop: 3 }}>
+                  <span style={{ flex: 1, minWidth: 0, overflow: "hidden",
+                    textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {x.name} <span className="m" style={{ fontSize: 10, color: "var(--mu)" }}>{x.pos}</span></span>
+                  <span className="m" style={{ width: 24, textAlign: "right" }}>{x.spiele}</span>
+                  <span className="d" style={{ width: 24, textAlign: "right" }}>{x.tore}</span>
+                  <span className="m" style={{ width: 24, textAlign: "right" }}>{x.vorlagen}</span>
+                  <span className="m" style={{ width: 34, textAlign: "right",
+                    color: x.rot ? "var(--bad)" : "var(--mu)" }}>
+                    {x.gelb}{x.rot ? " · " + x.rot + "R" : ""}</span>
+                </div>))}
+              {(rc.spieler || []).some((x) => x.verpasst > 0) && (
+                <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 8,
+                  paddingTop: 7, borderTop: "1px solid var(--ln)" }}>
+                  Verpasste Spiele durch Sperren:{" "}
+                  {(rc.spieler || []).filter((x) => x.verpasst > 0)
+                    .map((x) => x.name + " (" + x.verpasst + ")").join(", ")}.
+                  Das ist ein Rückblick — für die nächste Saison ist niemand gesperrt.
+                </div>)}
+            </div>
+
+            {/* Die Einzelspiele nur beim jüngsten Jahr: sie werden nicht
+                archiviert (15 Jahre × 38 Spiele wären über 500 Einträge im
+                Spielstand). Der Grund steht in verein.js. */}
+            {v.spiele && rc.jahr === rueckJahre[0] && (
+              <div className="pan pad" style={{ marginTop: 10 }}>
+                <div className="eb">Alle {v.spiele.length} Spiele</div>
+                {v.spiele.map((sp2, k) => (
+                  <div key={k} style={{ display: "flex", gap: 6, alignItems: "baseline",
+                    fontSize: 11.5, marginTop: 3 }}>
+                    <span className="m" style={{ width: 14, color: "var(--mu)" }}>{sp2.heim ? "H" : "A"}</span>
+                    <span style={{ flex: 1, minWidth: 0, overflow: "hidden",
+                      textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sp2.gegner}</span>
+                    <span className="d" style={{ width: 34, textAlign: "right",
+                      color: sp2.eigene > sp2.fremde ? "var(--ok)"
+                        : sp2.eigene < sp2.fremde ? "var(--bad)" : "var(--mu)" }}>
+                      {sp2.eigene}:{sp2.fremde}</span>
+                    <span className="m" style={{ flex: 1.3, minWidth: 0, fontSize: 10,
+                      color: "var(--mu)", overflow: "hidden", textOverflow: "ellipsis",
+                      whiteSpace: "nowrap" }}>
+                      {sp2.tore.map((t) => t.sp).join(", ")}</span>
+                  </div>))}
+              </div>)}
           </div>)}
 
         {reiter === "ausbau" && (
@@ -9607,20 +10004,41 @@ function WildcardCard({ card, big, onReroll, rerollLeft, rerollN }) {
   );
 }
 
-function Pass({ p, full }) {
-  const [c1] = clubColors(p.club);
-  const [um, setUm] = useState(false);
+/* ---------- Wendekarte ----------------------------------------------------
+   Doppeltippen und umdrehen. Die Mechanik steckte bis 35.75 IM Spielerpass;
+   Kevin wollte sie auch für die Ruhmeshalle („die gleiche Funktion wie die
+   Spielerpässe: Doppeltipp und dann die Umdreh-Animation").
+
+   HERAUSGEZOGEN STATT KOPIERT. Zwei Fassungen derselben Mechanik laufen
+   garantiert auseinander — das hat dieses Projekt bei den Reiterzeilen
+   (35.59) und den Kachelrändern (35.64) schon zweimal bezahlt. Wer die
+   Wendezeit später auf 280 ms ändert, soll das an EINER Stelle tun.
+
+   KEIN `onDoubleClick`: das kommt in der WebView verzögert und verschluckt
+   manchmal den zweiten Tipp. Zwei Berührungen unter 320 ms.                */
+function Wendekarte({ vorn, hinten, um, setUm, label, style }) {
   const letzterTipp = useRef(0);
-  /* Doppeltippen. Kein onDoubleClick — das kommt in der WebView verzögert und
-     verschluckt manchmal den zweiten Tipp. Zwei Berührungen unter 320 ms. */
   const tippen = () => {
     const jetzt = Date.now();
-    if (jetzt - letzterTipp.current < 320) { letzterTipp.current = 0; setUm((u) => !u); haptik("wahl"); }
-    else letzterTipp.current = jetzt;
+    if (jetzt - letzterTipp.current < 320) {
+      letzterTipp.current = 0; setUm((u) => !u); haptik("wahl");
+    } else letzterTipp.current = jetzt;
   };
   const taste = (e) => {
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setUm((u) => !u); }
   };
+  return (
+    <div className={"wender" + (um ? " um" : "")} onClick={tippen} onKeyDown={taste}
+      role="button" tabIndex={0} aria-label={label}
+      style={{ cursor: "pointer", outlineOffset: 3, ...(style || {}) }}>
+      <div className="dreh">{vorn}{hinten}</div>
+    </div>
+  );
+}
+
+function Pass({ p, full }) {
+  const [c1] = clubColors(p.club);
+  const [um, setUm] = useState(false);
 
   /* Nach dem Vorbild echter Spielerpässe: Kopfband mit Verband und Passnummer,
      Lichtbild im harten Rahmen, linierte Felder, Gültigkeitsstempel.
@@ -9802,14 +10220,9 @@ function Pass({ p, full }) {
   );
 
   if (!full) return vorderseite;
-  return (
-    <div className={"wender" + (um ? " um" : "")} onClick={tippen} onKeyDown={taste}
-      role="button" tabIndex={0} aria-label={um ? "Rückseite des Spielerpasses. Doppeltippen zum Wenden."
-        : "Spielerpass. Doppeltippen zeigt die Rückseite mit den Vereinswechseln."}
-      style={{ cursor: "pointer", outlineOffset: 3 }}>
-      <div className="dreh">{vorderseite}{rueckseite}</div>
-    </div>
-  );
+  return <Wendekarte vorn={vorderseite} hinten={rueckseite} um={um} setUm={setUm}
+    label={um ? "Rückseite des Spielerpasses. Doppeltippen zum Wenden."
+      : "Spielerpass. Doppeltippen zeigt die Rückseite mit den Vereinswechseln."} />;
 }
 
 /* ---------- Kurzanleitung ---------- */
@@ -9855,6 +10268,375 @@ const ANLEITUNG = [
     ["Ein Spielstand", "Genau einer. Fängst du neu an, ist der alte weg — was fertig ist, steht in der Ruhmeshalle."]]],
 ];
 
+
+/* ---------- Dein Verein: das Dach über Akademie und Profimannschaft ------
+   Neu in 35.50. Bis 35.49 standen beide nebeneinander im Hauptmenue — eine
+   Folge der Reihenfolge, in der sie entstanden sind, nicht der Sache.
+
+   DIE FREISCHALTUNG SASS VORHER NUR HALB. `VEREIN.freigeschaltet()` rechnete
+   `akademie: n >= 2` aus, und dieser Wert wurde an genau EINER Stelle
+   benutzt: fuer den Hinweis "Die Jugendakademie ist offen". Die Menuezeile
+   bekam ihren Klick ohne jede Bedingung. Man konnte die Akademie also von der
+   ersten Sekunde an oeffnen, und der Hinweis nach zwei Laufbahnen meldete
+   etwas als neu, das laengst offen war. Gebremst hat nur, dass ohne Laufbahn
+   niemand VC hat — eine Sperre, die keine ist, sondern ein Nebeneffekt.
+   Dieselbe Bauart wie `spiele` und `tore` im Kader: ausgerechnet, nie
+   angewandt (offener Punkt 21).
+
+   JETZT gilt: Das Dach oeffnet ab zwei Laufbahnen. Die Akademie hat darin
+   KEINE eigene Grenze mehr — wer hier steht, hat die zwei hinter sich. Die
+   Profimannschaft bleibt bei fuenf.                                        */
+function VereinDach({ aka, verein, gesamt, onAka, onProfi, onZurueck, onAendern, onVAendern }) {
+  const fr = VEREIN.freigeschaltet(gesamt);
+  /* Der Postkorb (35.53). Er sitzt HIER und nicht in der Akademie, weil die
+     Fälle beide Seiten betreffen: freigeben ist Akademie, „in meine
+     Mannschaft holen" ist Verein. Das gemeinsame Dach aus 35.50 war genau
+     dafür da. */
+  const faelle = (aka && aka.faelle ? aka.faelle : []).filter((f) => !f.erledigt);
+  /* Seit 35.54 auch die des Kaders. Sie liegen in `verein.faelle` und sind
+     eine andere Sorte (`abgangswunsch` statt `profiangebot`) — deshalb eine
+     eigene Liste und keine gemischte: zwei Fälle, die verschieden entschieden
+     werden, in einem Topf wäre die Sorte Vereinfachung, die man später teuer
+     auseinandersortiert. Gezählt werden sie gemeinsam, denn für den Spieler
+     ist es ein Postkorb. */
+  const vfaelle = (verein && verein.faelle ? verein.faelle : []).filter((f) => !f.erledigt);
+  const offen = faelle.length + vfaelle.length;
+  const [meldung, setMeldung] = React.useState(null);
+  /* Ob das Postfach aufgeklappt ist (35.60). Bei offenen Fällen von selbst. */
+  /* ZU, bis man es antippt (35.68). Bis 35.67 klappte das Postfach bei
+     offenen Faellen von selbst auf — gut gemeint, aber es schob die beiden
+     Kacheln jedes Mal aus dem Bild, und man konnte es nicht dauerhaft
+     zuklappen. Von Kevin gemeldet. Die Kachel sagt mit „5 offen" in Gold
+     deutlich genug, dass etwas anliegt; das Aufklappen bleibt eine
+     Entscheidung. */
+  const [postAuf, setPostAuf] = React.useState(false);
+  /* WELTJAHR, nicht Akademiejahr. `vertragBis`, `gestellt` und `frist` werden
+     in akademie.js mit demselben `jahr` gerechnet, das `akaJahr` bekommt —
+     und das ist die Weltjahreszahl. Der erste Entwurf nahm `akaJahrNr(aka)`
+     (also 1, 2, 3 …) und hätte „noch 2003 Jahre Zeit" angezeigt sowie beim
+     Behalten einen bereits abgelaufenen Vertrag gesetzt. Von der Prüfung
+     gefunden, nicht beim Lesen. */
+  const jahr = (aka && aka.jahr) || 0;
+  /* KACHELN statt Zeilen (35.60). Kevin: die beiden Einträge sollen
+     „bildfüllender und etwas prägnanter" sein, „schon mit relevanten
+     Infos/Daten zum aktuellen Stand". Vorher standen sie als zwei schmale
+     Zeilen auf einem sonst leeren Bildschirm — man musste hineingehen, um zu
+     wissen, ob es etwas zu tun gibt.
+     Jede Kachel trägt jetzt drei Kennzahlen und eine Statuszeile. Welche
+     Zahlen das sind, entscheidet der Zustand: eine ungegründete Akademie
+     zeigt, was zum Gründen fehlt, eine laufende zeigt Jahrgang und Ausbau. */
+  const kachel = ({ titel, farbe, kopf, zahlen, status, statusFarbe, klick, gesperrtText }) => (
+    <button className="pan" style={{ display: "block", width: "100%", textAlign: "left",
+      padding: 0, marginTop: 12, cursor: klick ? "pointer" : "default",
+      border: "1px solid " + (klick ? farbe : "var(--ln2)"),
+      opacity: klick ? 1 : .55, background: klick
+        ? "linear-gradient(160deg," + farbe + "14 0%,var(--pan) 62%)" : "var(--pan)" }}
+      disabled={!klick} onClick={klick || undefined}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8,
+        padding: "13px 15px 0" }}>
+        <span className="d" style={{ fontSize: 21, flex: 1, minWidth: 0, color: klick ? farbe : "var(--mu)" }}>{titel}</span>
+        <span className="d" style={{ fontSize: 15 }}>{kopf}</span>
+      </div>
+      <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", padding: "3px 15px 0" }}>
+        {status}</div>
+      {zahlen && (
+        <div style={{ display: "flex", gap: 0, padding: "11px 15px 13px", marginTop: 6,
+          borderTop: "1px solid var(--ln)" }}>
+          {zahlen.map(([k, w], i) => (
+            <div key={i} style={{ flex: 1, minWidth: 0 }}>
+              <div className="d" style={{ fontSize: 17, color: statusFarbe || "var(--tx)" }}>{w}</div>
+              <div className="m" style={{ fontSize: 9, color: "var(--mu)", letterSpacing: ".08em",
+                textTransform: "uppercase", marginTop: 1 }}>{k}</div>
+            </div>))}
+        </div>)}
+      {!klick && gesperrtText && (
+        <div className="m" style={{ fontSize: 11, color: "var(--mu)", padding: "0 15px 13px" }}>
+          {gesperrtText}</div>)}
+    </button>);
+
+  const zeile = (titel, wert, unter, klick, farbe) => (
+    <button className="btn" style={{ border: 0, borderBottom: "1px solid var(--ln)",
+      padding: "13px 0 13px 10px", borderLeft: "3px solid " + farbe,
+      opacity: klick ? 1 : .45, cursor: klick ? "pointer" : "default" }}
+      disabled={!klick} onClick={klick || undefined}>
+      <span className="inhalt">
+        <span className="d" style={{ fontSize: 16 }}>{titel}</span>
+        <span className="punkte" />
+        <span className="wert">{wert}</span>
+      </span>
+      {unter && <span className="m" style={{ fontSize: 10.5, color: "var(--mu)",
+        display: "block", marginTop: 2 }}>{unter}</span>}
+    </button>);
+
+  return (
+    /* IN DEN MAGAZINSATZ EINGEREIHT (35.70, von Kevin gemeldet: „sticht im
+       Vergleich zum Hauptmenü, Einstellungen, Ruhmeshalle raus").
+       Ursache gemessen: `<Shell>` OHNE `blatt`. Damit fehlten dem Dach
+       Kolumnentitel und Folio — also genau der Rahmen, den jeder andere
+       Bildschirm hat. Stattdessen trug es einen fetten Balken mit dem Titel
+       und dem Zurückknopf darin, den sonst keiner hat.
+       Das Ressort „verein" gibt es seit 35.20; es wurde hier nur nie
+       angezogen. Der Bildschirm hatte also seinen Platz im Blatt und stand
+       daneben. */
+    <Shell blatt="verein">
+      <div className="fade">
+        {/* Titelzeile wie in der Ruhmeshalle: Name links, kleiner Zurückknopf
+            rechts, darunter ein Satz. Kein Balken — der ist im Magazinsatz
+            den Kartenköpfen vorbehalten, nicht der Seite selbst. */}
+        <div style={{ display: "flex", alignItems: "baseline",
+          justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+          <div className="d" style={{ fontSize: 26 }}>Dein Verein</div>
+          <button className="btn sm" onClick={onZurueck}>Zurück</button>
+        </div>
+        <p style={{ fontSize: 12, color: "var(--mu)", margin: "5px 0 14px" }}>
+          Die Jugendakademie bildet aus, die Profimannschaft spielt. Beides läuft
+          weiter, während du die nächste Laufbahn spielst.
+        </p>
+
+        <div className="pan" style={{ marginBottom: 12 }}>
+          {/* WAPPEN UND NAME (35.68, von Kevin gemeldet). Der Bildschirm heisst
+              „Dein Verein" und zeigte bis 35.67 nichts davon — kein Wappen,
+              keine Farben, den Namen nur beilaeufig in der Statuszeile der
+              Mannschaftskachel. Seit 35.67 wird beides beim ersten Betreten
+              angelegt; dass es hier nicht auftauchte, war ein Rest aus der
+              Zeit davor.
+              Der Kopf steht ueber den Kacheln, nicht darin: er gehoert zu
+              beiden Haeusern, nicht zu einem. */}
+          {verein && verein.gekannt && (
+            <div className="pad" style={{ paddingTop: 12, paddingBottom: 12,
+              display: "flex", alignItems: "center", gap: 13 }}>
+              <Wappen w={verein.wappen} farben={verein.farben} groesse={58} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="d" style={{ fontSize: 22, overflow: "hidden",
+                  textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{verein.name}</div>
+                <div className="m" style={{ fontSize: 11.5, color: "var(--mu)" }}>
+                  {[verein.stadt, verein.gegruendet ? verein.liga : "noch kein Spielbetrieb"]
+                    .filter(Boolean).join(" · ")}</div>
+              </div>
+            </div>)}
+        </div>
+
+        {(() => {
+          const ag = aka && aka.gegruendet;
+          const naechst = ag ? akaNaechster(aka) : null;
+          return kachel({
+            titel: "Jugendakademie", farbe: "var(--ac)", klick: onAka,
+            kopf: ag ? (aka.vc || 0) + " VC" : "nicht gegründet",
+            status: ag
+              ? aka.name + " · " + akaJahrNr(aka) + ". Jahr"
+                + (naechst ? " · nächster Ausbau: " + naechst.abt.kurz
+                    + " " + naechst.preis + " VC" : " · voll ausgebaut")
+              : (aka && aka.vc ? (aka.vc + " VC liegen bereit — jetzt gründen")
+                              : "Coins sammeln, dann gründen"),
+            zahlen: ag ? [
+              ["Talente", (aka.talente || []).length],
+              ["Profis", (aka.bilanz && aka.bilanz.profis) || 0],
+              /* NENNER GEMESSEN, nicht gerechnet. Der erste Entwurf schrieb
+                 ABTEILUNGEN.length * AKA_MAX = 54 — das ist die Summe ALLER
+                 Stufen. `akaAusbau` zählt aber die GEKAUFTEN: 0 bei einer
+                 frischen Akademie, 45 bei voller. Die Kachel hätte „18/54"
+                 gezeigt, wo „18/45" richtig ist, und eine frische Akademie
+                 stünde bei 0/54 statt 0/45. Es gibt dafür längst `AKA_STUFEN`. */
+              ["Ausbau", akaAusbau(aka) + "/" + AKA_STUFEN],
+            ] : null,
+          });
+        })()}
+
+        {(() => {
+          const vg = verein && verein.gegruendet;
+          const st = vg && (verein.kader || []).length ? VEREIN.staerke(verein) : null;
+          const letzte = vg && (verein.chronik || []).length
+            ? verein.chronik[verein.chronik.length - 1] : null;
+          return kachel({
+            titel: "Profimannschaft", farbe: "var(--ok)",
+            klick: fr.verein ? onProfi : null,
+            /* Der abgeschlossene Verein wird BENANNT (35.73). Vorher stand
+               dort „16. Jahr" — eine Zahl, die es gar nicht gibt, und kein
+               Hinweis darauf, dass hier etwas zu Ende ist und ein neuer
+               Verein wartet. */
+            kopf: !fr.verein ? "gesperrt"
+              : vg && verein.abgeschlossen ? "abgeschlossen"
+              : vg ? verein.jahr + ". Jahr" : "nicht gegründet",
+            status: !fr.verein ? "Erst die Akademie, dann die Mannschaft."
+              : vg && verein.abgeschlossen
+                ? verein.name + " · " + VEREIN.VEREIN_JAHRE + " Jahre gespielt · "
+                  + verein.abgeschlossen.punkte + " Punkte — antippen für den Bericht"
+              : vg ? verein.name + " · " + verein.liga
+                  + (letzte ? " · letzte Saison Platz " + letzte.rang + " von " + letzte.N
+                            : (verein.eingeschrieben ? " · erste Saison steht an"
+                                                     : " · noch nicht eingeschrieben"))
+              : "gründe deine eigene Mannschaft",
+            zahlen: vg && st ? [
+              ["Kader", (verein.kader || []).length + "/" + VEREIN.KADER_MIN],
+              ["Stärke", Math.round(st.gesamt)],
+              /* DIE ZAHL MUSS IHRE FARBE ERKLAEREN (35.70). Vorher stand hier
+                 immer „x offen" — bei einem zu kleinen Kader also „0 offen"
+                 in Rot: keine Plaetze frei, trotzdem Alarm. Die Elf steht aus
+                 drei verschiedenen Gruenden nicht, und der Spieler muss
+                 wissen, welcher es ist, sonst sucht er an der falschen
+                 Stelle. Im Bild aufgefallen, nicht im Code. */
+              ["Elf", st.spielbereit ? "steht"
+                : (verein.kader || []).length < VEREIN.KADER_MIN ? "Kader zu klein"
+                : st.leer > 0 ? st.leer + " offen"
+                : "falsch besetzt"],
+            ] : null,
+            statusFarbe: vg && st && !st.spielbereit ? "var(--bad)" : null,
+            gesperrtText: !fr.verein
+              ? "Noch " + fr.nochVerein + " Laufbahn" + (fr.nochVerein === 1 ? "" : "en")
+                + " bis zur Freischaltung."
+              : null,
+          });
+        })()}
+
+        {/* DAS POSTFACH ist seit 35.60 IMMER da, auch leer — Kevins
+            Entscheidung. Vorher erschien es nur, wenn Fälle offen waren; wer
+            es nie gesehen hatte, wusste nicht, dass es existiert, und wer es
+            kannte, konnte nicht nachsehen, ob gerade nichts anliegt. Ein
+            Postfach, das verschwindet, wenn es leer ist, ist kein Postfach. */}
+        {kachel({
+          titel: "Postfach", farbe: offen ? "var(--go)" : "var(--ln2)",
+          klick: () => setPostAuf(!postAuf),
+          kopf: offen ? offen + " offen" : "nichts offen",
+          /* Was ein Tipp bewirkt, gehoert in die Statuszeile — nicht in eine
+             Kennzahlenspalte (das war der Fehler in 35.60). Seit das Postfach
+             zubleibt, muss es aber irgendwo stehen: eine Kachel, die sich
+             aufklappt und es nicht sagt, sieht aus wie ein toter Knopf. */
+          status: offen
+            ? (postAuf ? "Antippen zum Zuklappen."
+              : "Vertragsfragen warten auf dich — antippen zum Ansehen.")
+            : (postAuf ? "Antippen zum Zuklappen."
+              : "Hier landen Vertragsangebote und Wechselwünsche — antippen."),
+          /* ZWEI Spalten, nicht drei. Der erste Entwurf hatte eine dritte mit
+             „ansehen/zu" — bei leerem Postfach stand dort nichts und die
+             Kachel hatte ein Loch. Was der Tipp bewirkt, gehört nicht in eine
+             Kennzahlenspalte. */
+          zahlen: [
+            ["Aus der Akademie", faelle.length],
+            ["Aus der Mannschaft", vfaelle.length],
+          ],
+          statusFarbe: offen ? "var(--go)" : "var(--mu)",
+        })}
+
+        {/* Der Inhalt des Postfachs: aufgeklappt, wenn angetippt — oder von
+            selbst, solange etwas offen ist. Wer hereinkommt und einen Fall
+            hat, soll ihn sehen, nicht erst danach suchen. */}
+        {postAuf && (
+          <div className="pan" style={{ marginTop: 6, borderColor: offen ? "var(--go)" : "var(--ln2)" }}>
+            <div className="band matt"><span>Postfach · {offen} offen</span></div>
+            <div className="pad" style={{ paddingTop: 8 }}>
+              {faelle.length > 0 && (
+                <div className="eb" style={{ color: "var(--ac)" }}>Aus der Jugendakademie</div>)}
+              {faelle.length > 0 && (
+                <p className="m" style={{ fontSize: 11, color: "var(--mu)", margin: "4px 0 6px" }}>
+                  Diese Spieler haben ein Angebot und stehen bei dir unter Vertrag.
+                  Ohne Entscheidung gehen sie nach einem Jahr von selbst.
+                </p>)}
+              {faelle.map((f) => {
+                const rest = f.frist - jahr;
+                const p2 = verein && verein.gegruendet && (verein.kader || []).length
+                  ? VEREIN.ueberzeugt(verein, { ovr: f.ovr, pot: f.peak }) : null;
+                return (
+                  <div key={f.id} className="up" style={{ padding: "9px 10px", marginTop: 6,
+                    border: "1px solid var(--ln2)" }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
+                      <span style={{ fontSize: 15 }}>{f.flag}</span>
+                      <span className="d" style={{ flex: 1, minWidth: 0, fontSize: 14,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</span>
+                      <span className="chip a">{f.pos}</span>
+                      <span className="d" style={{ fontSize: 15 }}>{f.ovr}</span>
+                    </div>
+                    <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 3 }}>
+                      {f.klub} ({f.klubLiga}) bietet einen Profivertrag ·{" "}
+                      {rest <= 0 ? "Frist läuft dieses Jahr ab"
+                        : "noch " + rest + " Jahr" + (rest === 1 ? "" : "e") + " Zeit"}
+                    </div>
+                    <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                      <button className="btn sm" style={{ flex: "1 1 0" }}
+                        onClick={() => { const r = freigeben(aka, f.id);
+                          if (r.fehler) setMeldung(r.fehler);
+                          else { onAendern && onAendern(r.a); setMeldung(r.text); } }}>Freigeben</button>
+                      <button className="btn sm" style={{ flex: "1 1 0" }}
+                        onClick={() => { const r = behalten(aka, f.id, jahr);
+                          if (r.fehler) setMeldung(r.fehler);
+                          else { onAendern && onAendern(r.a); setMeldung(r.text); } }}>Behalten</button>
+                      {p2 != null && (
+                        <button className="btn sm pri" style={{ flex: "1 1 100%" }}
+                          onClick={() => {
+                            const r = VEREIN.hochziehen(aka, verein, f.talentId, { fragen: true });
+                            if (r.fehler) { setMeldung(r.fehler); return; }
+                            if (r.abgelehnt) { setMeldung(r.text); return; }
+                            /* Angenommen — der Fall MUSS hier weg, sonst stünde
+                               der Spieler im Kader und gleichzeitig als offener
+                               Fall im Postkorb. */
+                            onAendern && onAendern({ ...r.aka,
+                              faelle: (r.aka.faelle || []).filter((x) => x.id !== f.id) });
+                            onVAendern && onVAendern(r.v);
+                            setMeldung(f.name + " unterschreibt bei dir.");
+                          }}>
+                          In meine Mannschaft holen · {Math.round(p2 * 100)} % Aussicht</button>)}
+                    </div>
+                  </div>);
+              })}
+              {vfaelle.length > 0 && (
+                <div style={{ marginTop: faelle.length ? 12 : 0, paddingTop: faelle.length ? 10 : 0,
+                  borderTop: faelle.length ? "1px solid var(--ln)" : "none" }}>
+                  <div className="eb" style={{ color: "var(--ok)" }}>Aus der Profimannschaft</div>
+                  <p className="m" style={{ fontSize: 11, color: "var(--mu)", margin: "4px 0 6px" }}>
+                    Diese Spieler wollen weg und stehen noch unter Vertrag.
+                    Ohne Entscheidung sind sie nach einem Jahr fort.
+                  </p>
+                  {vfaelle.map((f) => {
+                    const rest = f.frist - ((verein && verein.jahr) || 0);
+                    return (
+                      <div key={f.id} className="up" style={{ padding: "9px 10px", marginTop: 6,
+                        border: "1px solid var(--ln2)" }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
+                          <span style={{ fontSize: 15 }}>{f.flag || "⚽"}</span>
+                          <span className="d" style={{ flex: 1, minWidth: 0, fontSize: 14,
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.name}</span>
+                          <span className="chip a">{f.pos}</span>
+                          <span className="d" style={{ fontSize: 15 }}>{f.ovr}</span>
+                        </div>
+                        <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 3 }}>
+                          {f.klub} ({f.klubLiga}) will ihn · {f.spiele} Einsätze, Form {f.form}
+                          {" · "}{rest <= 0 ? "Frist läuft dieses Jahr ab"
+                            : "noch " + rest + " Jahr" + (rest === 1 ? "" : "e") + " Zeit"}
+                        </div>
+                        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                          <button className="btn sm" style={{ flex: "1 1 0" }}
+                            onClick={() => { const r = VEREIN.zustimmen(verein, f.id);
+                              if (r.fehler) setMeldung(r.fehler);
+                              else { onVAendern && onVAendern(r.v); setMeldung(r.text); } }}>
+                            Wechsel zustimmen</button>
+                          <button className="btn sm" style={{ flex: "1 1 0" }}
+                            onClick={() => { const r = VEREIN.ablehnen(verein, f.id, (verein && verein.jahr) || 0);
+                              if (r.fehler) setMeldung(r.fehler);
+                              else { onVAendern && onVAendern(r.v); setMeldung(r.text); } }}>
+                            Ablehnen</button>
+                        </div>
+                      </div>);
+                  })}
+                </div>)}
+              {offen === 0 && (
+                <div className="m" style={{ fontSize: 12, color: "var(--mu)" }}>
+                  Nichts offen. Hier melden sich Vereine, die einen deiner Spieler
+                  wollen — und Talente, die ein Profiangebot bekommen haben.
+                </div>)}
+              {meldung && (
+                <div className="m" style={{ fontSize: 11.5, marginTop: 9, color: "var(--go)" }}>
+                  {meldung}</div>)}
+            </div>
+          </div>)}
+
+        {!fr.verein && (
+          <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 10 }}>
+            Die Profimannschaft baut auf der Akademie auf: ihre Absolventen
+            werden dein Kader. Bis dahin lohnt sich jede Ausbaustufe.
+          </div>)}
+      </div>
+    </Shell>
+  );
+}
 
 /* ---------- Freischalthinweis ---------- */
 /* Erscheint EINMAL, wenn Akademie oder Verein aufgehen. Steht oben im
@@ -10399,7 +11181,7 @@ function titelgeschichte(save, laeuft, hall, aka) {
     unter: "Trainingsschwerpunkte, Vertragspoker, Leihen, Angebote, die man besser ablehnt. Eine Laufbahn, eine Entscheidung nach der anderen." };
 }
 
-function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, verein, onVerein, gesamt, onLaden, meta, aufRahmen, freiHinweis, onFreiZu }) {
+function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, verein, onVerein, onVereinDach, gesamt, onLaden, meta, aufRahmen, freiHinweis, onFreiZu }) {
   const [ask, setAsk] = useState(false);
   const [opt, setOpt] = useState(false);
   const [anleitung, setAnleitung] = useState(false);
@@ -10586,22 +11368,30 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
             metaN + " Belohnungen freigeschaltet", onAch)}
           {zeile("hall", "Ruhmeshalle", String(hall.length),
             hall.length ? "Bester Lauf: " + hall[0].score + " Punkte" : "noch keine Laufbahn beendet", onHall)}
-          {zeile("akademie", "Jugendakademie", (aka && aka.gegruendet ? (aka.vc || 0) + " VC" : "geschlossen"),
-            aka && aka.gegruendet
-              ? aka.name + " · " + ((aka.bilanz && aka.bilanz.profis) || 0) + " Profis"
-              : ((aka && aka.vc ? aka.vc + " VC liegen bereit — " : "") + "noch nicht gegründet"), onAka)}
-              {/* Der Verein steht unter der Akademie, weil er auf ihr aufbaut. Vor der
-                  Freischaltung wird er trotzdem gezeigt — mit der Zahl, die noch fehlt.
-                  Ein verstecktes Ziel merkt niemand; dieselbe Ueberlegung wie bei den
-                  gesperrten Auswahlmoeglichkeiten. */}
+              {/* EIN Eintrag statt zwei (35.50). Bis 35.49 standen Jugendakademie
+                  und Verein nebeneinander im Hauptmenue — eine Folge der
+                  Reihenfolge, in der sie entstanden sind (Akademie 35.11,
+                  Verein 35.21), nicht der Sache. Die Akademie GEHOERT zum
+                  Verein; seit die beiden inhaltlich zusammenruecken (35.49
+                  Aufstellung, demnaechst Vertraege ueber beide hinweg) war das
+                  Nebeneinander irrefuehrend.
+
+                  Vor der Freischaltung bleibt die Zeile sichtbar, mit der Zahl,
+                  die noch fehlt — ein verstecktes Ziel merkt niemand. */}
               {(() => {
                 const fr = VEREIN.freigeschaltet(gesamt);
-                return zeile("verein", "Dein Verein",
-                  fr.verein ? (verein && verein.gegruendet ? verein.jahr + ". Jahr" : "frei") : "gesperrt",
-                  !fr.verein ? "noch " + fr.nochVerein + " Laufbahn" + (fr.nochVerein === 1 ? "" : "en") + " bis zur Freischaltung"
-                    : verein && verein.gegruendet ? verein.name + " · " + verein.liga
-                    : "gründe deinen eigenen Verein",
-                  fr.verein ? onVerein : null);
+                const wert = !fr.akademie ? "gesperrt"
+                  : verein && verein.gegruendet ? verein.jahr + ". Jahr"
+                  : aka && aka.gegruendet ? (aka.vc || 0) + " VC"
+                  : "frei";
+                const unter = !fr.akademie
+                  ? "noch " + fr.nochAkademie + " Laufbahn" + (fr.nochAkademie === 1 ? "" : "en") + " bis zur Freischaltung"
+                  : verein && verein.gegruendet ? verein.name + " · " + verein.liga
+                  : aka && aka.gegruendet
+                    ? aka.name + " · " + ((aka.bilanz && aka.bilanz.profis) || 0) + " Profis"
+                    : "Jugendakademie gründen";
+                return zeile("verein", "Dein Verein", wert, unter,
+                  fr.akademie ? onVereinDach : null);
               })()}
         </div>
 
@@ -12046,6 +12836,9 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
 }
 
 function HallScreen({ hall, onBack }) {
+  /* Welche Karte gerade auf der Rückseite liegt (35.69). Nur EINE zur Zeit —
+     zwei offene Rückseiten nebeneinander wären zwei Kartenspiele. */
+  const [gedreht, setGedreht] = React.useState(null);
   useZurueck(onBack);
   /* Rangliste, aber jeder Eintrag ist eine Würdigung: Rangzahl, Bildnis im
      Trikot des Vereins mit den meisten Einsätzen, Wappen, Kennzahlen als
@@ -12070,18 +12863,46 @@ function HallScreen({ hall, onBack }) {
             {hall.map((h, i) => {
               const heim = h.heimat ? CLUBS.find((c) => c.n === h.heimat) : null;
               const r = h.wr ? (RARITY[h.wr] || RARITY.normal) : null;
-              return (
-                <div key={i} className="pan pad klebe rs-auf" style={{ animationDelay: (i * 55) + "ms",
-                  borderColor: i === 0 ? "var(--go)" : "var(--ln2)" }}>
+              /* KOPF UND BAND STEHEN AUF BEIDEN SEITEN (35.75). Beim Wenden
+                 soll man dieselbe Karte sehen, nur von hinten — nicht zwei
+                 verschiedene Dinge. Deshalb wird der obere Teil einmal gebaut
+                 und in beide Seiten gesetzt. */
+              const kopfteil = (
+                <>
                   {r && <div className="band" style={{ background: r.col }}>
                     <span>{h.tier}</span><span style={{ letterSpacing: ".08em" }}>{h.wc}</span></div>}
                   {!r && <div className="band matt"><span>{h.tier}</span></div>}
-
+                </>);
+              const rahmen = (kinder, hinten) => (
+                <div className={"pan pad klebe" + (hinten ? " rueckseite" : " rs-auf")}
+                  style={{ animationDelay: (i * 55) + "ms",
+                    borderColor: i === 0 ? "var(--go)" : "var(--ln2)" }}>
+                  {kinder}
+                </div>);
+              return (
+                <Wendekarte key={i} um={gedreht === i}
+                  setUm={(f) => setGedreht(typeof f === "function"
+                    ? (f(gedreht === i) ? i : null) : (f ? i : null))}
+                  label={gedreht === i
+                    ? "Rückseite der Karte von " + h.name + ". Doppeltippen zum Wenden."
+                    : "Karte von " + h.name + ". Doppeltippen zeigt die Rückseite."}
+                  vorn={rahmen(<>
+                  {kopfteil}
                   <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                     <div className="d" style={{ fontSize: 34, color: i === 0 ? "var(--go)" : "var(--ln2)",
                       minWidth: 34, textAlign: "right", lineHeight: 1 }}>{i + 1}</div>
                     {h.avatar != null && (
-                      <Avatar seed={h.avatar} zuege={h.zuege} club={heim} size={56} ring="var(--ln2)" g={h.g} nat={h.natId} />)}
+                      <Avatar seed={h.avatar} zuege={h.zuege} club={heim} size={56}
+                        ring="var(--ln2)" g={h.g} nat={h.natId}
+                        /* Der Rahmen von damals (35.69). `Avatar` erwartet ein
+                           meta-Objekt und liest daraus selbst — ihm hier eine
+                           fertige Farbe zu geben waere ein zweiter Weg zur
+                           selben Sache, und zwei Wege laufen auseinander.
+                           Also wird ein meta gebaut, das genau diesen einen
+                           Rahmen kennt. Fehlt das Feld (Eintrag vor 35.69),
+                           bleibt es leer und der Avatar zeichnet wie bisher. */
+                        meta={h.rahmen && h.rahmen !== "keiner"
+                          ? { [h.rahmen]: true, rahmenWahl: h.rahmen } : null} />)}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="d" style={{ fontSize: 17, wordBreak: "break-word" }}>{h.nat} {h.name}</div>
                       <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 2 }}>
@@ -12103,7 +12924,21 @@ function HallScreen({ hall, onBack }) {
                       <span className="d stempel" style={{ fontSize: 11, color: "var(--go)", flexShrink: 0 }}>Bester</span>)}
                   </div>
 
-                  <div className="m zellen" style={{ fontSize: 11, marginTop: 11, flexWrap: "wrap" }}>
+                  {/* VORDERSEITE ODER RÜCKSEITE (35.69, Kevins Wunsch: „die
+                      Karte doppeltippen und flippen für extra Informationen").
+                      EIN Tipp, nicht zwei: ein Doppeltipp ist auf einem
+                      Telefon schwer zu treffen und kollidiert mit dem
+                      Zoom-Doppeltipp des Browsers. Wer die Karte antippt,
+                      will etwas von ihr — ein zweiter Tipp dreht sie zurück.
+                      Auf der Rückseite steht, was auf der Vorderseite keinen
+                      Platz hatte: Werdegang, Saisons, Wildcard im Wortlaut,
+                      Schnitt je Spiel. Zahlen, die es schon gibt — gerechnet,
+                      nicht neu erfunden. */}
+                  {/* Beide Seiten stehen jetzt NEBENEINANDER im Baum, nicht
+                      als Entweder-oder (35.75). Die Wendekarte zeigt immer
+                      beide und dreht sie — ohne beide gleichzeitig gibt es
+                      nichts zu drehen. */}
+                  <div className="m zellen zellenVorn" style={{ fontSize: 11, marginTop: 11, flexWrap: "wrap" }}>
                     <div><span className="eb">Punkte</span><span style={{ color: "var(--ac)" }}>{h.score}</span></div>
                     <div><span className="eb">Peak</span>{h.peak}</div>
                     {h.apps != null && <div><span className="eb">Spiele</span>{h.apps}</div>}
@@ -12113,7 +12948,42 @@ function HallScreen({ hall, onBack }) {
                     <div><span className="eb">Länderspiele</span>{h.caps}</div>
                     <div><span className="eb">Vermögen</span>{eur(h.worth || 0)}</div>
                   </div>
-                </div>);
+                    <div className="m" style={{ fontSize: 9.5, color: "var(--mu)",
+                      marginTop: 9, textAlign: "right" }}>Doppeltippen · wenden</div>
+                  </>)}
+                  hinten={rahmen(<>
+                    {kopfteil}
+                    <div style={{ marginTop: 11 }}>
+                    <div className="eb" style={{ color: "var(--ac)" }}>Rückseite</div>
+                    <div className="m zellen" style={{ fontSize: 11, marginTop: 6, flexWrap: "wrap" }}>
+                      {h.saisons != null && <div><span className="eb">Saisons</span>{h.saisons}</div>}
+                      {h.von && <div><span className="eb">Laufbahn</span>{h.von}–{h.bis}</div>}
+                      <div><span className="eb">Ende mit</span>{h.age} Jahren</div>
+                      {h.apps > 0 && <div><span className="eb">Tore je Spiel</span>
+                        {(h.goals / h.apps).toFixed(2)}</div>}
+                      {h.apps > 0 && h.assists != null && <div><span className="eb">Scorer je Spiel</span>
+                        {((h.goals + h.assists) / h.apps).toFixed(2)}</div>}
+                      {h.saisons > 0 && <div><span className="eb">Spiele je Saison</span>
+                        {Math.round((h.apps || 0) / h.saisons)}</div>}
+                      {h.rahmen && h.rahmen !== "keiner" && RAHMEN[h.rahmen] &&
+                        <div><span className="eb">Rahmen damals</span>{RAHMEN[h.rahmen].n}</div>}
+                    </div>
+                    {h.wc && (
+                      <div style={{ marginTop: 9, paddingTop: 8, borderTop: "1px solid var(--ln)" }}>
+                        <div className="eb">Wildcard</div>
+                        <div className="d" style={{ fontSize: 14,
+                          color: r ? r.col : "var(--tx)" }}>{h.wc}</div>
+                      </div>)}
+                    {heim && (
+                      <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 9,
+                        paddingTop: 8, borderTop: "1px solid var(--ln)" }}>
+                        Die meisten Spiele für {heim.n}
+                        {h.heimatSpiele > 0 ? " (" + h.heimatSpiele + ")" : ""}.
+                      </div>)}
+                    </div>
+                    <div className="m" style={{ fontSize: 9.5, color: "var(--mu)",
+                      marginTop: 9, textAlign: "right" }}>Doppeltippen · zurück</div>
+                  </>, true)} />);
             })}
           </div>
         )}
@@ -12123,7 +12993,11 @@ function HallScreen({ hall, onBack }) {
   );
 }
 
-function EndScreen({ p, onNew, onHall, onAka }) {
+function EndScreen({ p, onNew }) {
+  /* `onHall` und `onAka` sind in 35.51 WEGGEFALLEN, nicht nur unbenutzt.
+     Eine Uebergabe, die niemand liest, ist genau die Sorte totes Feld, die
+     dieses Projekt zweimal teuer bezahlt hat (`spiele`/`tore` im Kader,
+     `freigeschaltet().akademie`). Wer sie wiederbraucht, traegt sie ein. */
   /* 35.42: der Bildschirm haengte alles untereinander — Urteil, Wildcard,
      Errungenschaften, Akademiejahr, Zahlenblock, Stationen, drei
      Auswertungsansichten, Teilen-Text, und GANZ unten die Knoepfe. Bei einer
@@ -12150,6 +13024,21 @@ function EndScreen({ p, onNew, onHall, onAka }) {
     + p.nt.caps + " Länderspiele · " + p.trophies.length + " Titel · Vermögen " + eur(netWorth(p)) + " €\n"
     + (p.wc ? "Wildcard: " + p.wc.n + " (" + (RARITY[p.wc.r] || RARITY.normal).name + ")\n" : "")
     + "Vermächtnis: " + v.tier + " (" + v.score + " Punkte) — RASENSCHACH XI";
+  /* OHNE KOLUMNENTITEL, UND ZWAR ABSICHTLICH (festgehalten 35.71).
+        Im Magazinsatz tragen laufende Seiten oben einen Kolumnentitel und
+        unten ein Folio — Ruhmeshalle, Errungenschaften, Dein Verein, alle.
+        Zwei Seiten nicht: das Titelblatt (ein Cover hat keinen laufenden
+        Kopf) und DIESE hier.
+
+        Der Grund: sie ist eine Aufmacherseite. „KARRIEREENDE 2026" steht
+        genau dort, wo sonst der Kolumnentitel stuende, in derselben
+        Auszeichnung — es IST der Kopf, nur als Dachzeile geschrieben. Ein
+        zweiter darueber waere doppelt.
+
+        Bis 35.70 stand das nirgends. Wer den Satzspiegel prueft, findet zwei
+        Ausreisser und „repariert" sie — und macht damit eine gestalterische
+        Entscheidung rueckgaengig, die keine Begruendung hatte. Jetzt hat sie
+        eine, und die Pruefung kennt beide Ausnahmen namentlich. */
   return (
     <Shell wide>
       <div className="fade">
@@ -12224,26 +13113,79 @@ function EndScreen({ p, onNew, onHall, onAka }) {
                 Der Kader stand nicht — kein Spielbetrieb in diesem Jahr. Vor der
                 nächsten Laufbahn aufstellen, dann zählt es wieder.</div>
             </div>);
+          /* 35.51: derselbe Aufbau wie der Akademiebericht darunter — Ueberzeile,
+             grosse Kennzahl rechts, Unterzeile, dann die Einzelheiten. Bis
+             35.50 war der Vereinsbericht ein schlichtes Feld und die Akademie
+             hatte Goldrahmen, Verlauf und eine 38-Punkt-Zahl. Beides ist
+             dasselbe: etwas, das nebenher gelaufen ist, waehrend man spielte.
+             Wenn eines davon dreimal so laut auftritt, liest man das andere
+             nicht mehr — und der Verein ist seit 35.49 der Teil, an dem man
+             selbst etwas entscheidet.
+             Die Farbe bleibt getrennt: Gold gehoert den Coins, der Verein
+             bekommt Gruen. Gleich AUFGEBAUT heisst nicht gleich AUSSEHEND. */
           const kopf = b.meister ? "Meister!" : b.aufstieg ? "Aufgestiegen!"
             : b.abstieg ? "Abgestiegen" : "Platz " + b.rang;
+          const gut = b.meister || b.aufstieg;
+          /* IMMER EIN RAHMEN, IMMER EIN VERLAUF (35.72, von Kevin gemeldet:
+             „warum ist die Infokachel fuer die Profimannschaft im Vergleich
+             zur Jugendakademie immer noch so unscheinbar?").
+             In 35.51 wurde der AUFBAU angeglichen — Ueberzeile, grosse
+             Kennzahl rechts, Zweispalter. Die AUFTRITTSSTAERKE nicht: Rahmen,
+             Verlauf und Farbe gab es nur bei Meister oder Aufstieg. Ein Platz
+             7 stand damit als graues Feld neben einem Goldkasten, der IMMER
+             leuchtet — die Akademie bekommt schliesslich jedes Jahr Coins.
+             Ein Tabellenplatz ist genauso ein Ergebnis wie ein Coingewinn.
+             Die Farbtrennung bleibt: Gold gehoert den Coins, Gruen dem
+             Verein, Rot dem Abstieg. Nur die Lautstaerke wird gleich. */
+          const ton = gut ? "var(--ok)" : b.abstieg ? "var(--bad)" : "var(--ok)";
+          /* Der Verlauf ist bei einem gewoehnlichen Jahr schwaecher als bei
+             einem Titel — sichtbar, aber nicht festlich. Gleich laut heisst
+             nicht gleich gefeiert. */
+          const flaeche = b.abstieg ? "#A81C1319"
+            : gut ? "#4E9A5126" : "#4E9A5114";
           return (
-            <div className="pan pad" style={{ marginTop: 12,
-              borderColor: (b.meister || b.aufstieg) ? "var(--go)" : "var(--ln2)" }}>
+            <div className="pan pad rs-rein" style={{ marginTop: 12,
+              borderColor: b.abstieg ? "var(--bad)" : "var(--ok)",
+              background: "linear-gradient(160deg," + flaeche + " 0%,var(--pan) 58%)" }}>
               <div style={{ display: "flex", justifyContent: "space-between",
                 alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                <div>
-                  <div className="eb" style={{ color: (b.meister || b.aufstieg) ? "var(--go)" : "var(--mu)" }}>
-                    {b.name} · {b.jahr}. Jahr</div>
-                  <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 2 }}>
-                    {b.liga} · Platz {b.rang} von {b.N}
-                    {b.punkte != null ? " · " + b.punkte + " Punkte" : ""}
-                    {b.tore != null ? " · " + b.tore + ":" + b.gegentore : ""}</div>
+                <div style={{ flex: "1 1 100%", minWidth: 0 }}>
+                  <div className="eb" style={{ color: b.abstieg ? "var(--bad)" : "var(--ok)" }}>
+                    Ein Jahr Profimannschaft</div>
+                  <div className="m" style={{ fontSize: 10, color: "var(--mu)", marginTop: 2 }}>
+                    {b.name} · {b.jahr}. Jahr · {b.liga}</div>
                 </div>
-                <div className="d" style={{ fontSize: 20,
-                  color: (b.meister || b.aufstieg) ? "var(--go)" : "var(--tx)" }}>{kopf}</div>
+                {/* EIGENE ZEILE, IMMER. Drei Anlaeufe waren noetig:
+                    (1) feste 38 px neben der Ueberzeile — „Meister!" und
+                        „Abgestiegen" brachen um, „Platz 7" nicht. Zwei
+                        Ausgaenge desselben Berichts sahen verschieden aus.
+                    (2) Groesse nach Wortlaenge gestaffelt — brach weiter um.
+                    (3) linken Block auf 55 % begrenzt — brach WEITER um, weil
+                        das lange Wort auch die restlichen 45 % sprengt.
+                    Jeder Anlauf war eine Vermutung mehr am selben Problem
+                    vorbei. Erst der Blick auf alle VIER Ausgaenge
+                    nebeneinander hat gezeigt, dass die Zeile schlicht zu kurz
+                    ist — und dass die umgebrochene Fassung sogar besser
+                    aussieht: das Wort liest sich als Schlagzeile.
+                    Also steht es jetzt immer unten, immer 38 px, immer gleich.
+                    Die Akademie zeigt eine ZAHL („+14"), die passt rechts
+                    daneben; hier steht ein WORT. Anderer Inhalt, andere
+                    Stellung — das ist kein Bruch, sondern der Grund. */}
+                <div className="d" style={{ lineHeight: 1, color: ton,
+                  fontSize: 38, marginTop: 6, flex: "1 1 100%" }}>{kopf}</div>
+              </div>
+              <div className="g2" style={{ marginTop: 8 }}>
+                {[["Platz", b.rang + " von " + b.N],
+                  ["Punkte", b.punkte != null ? String(b.punkte) : "—"],
+                  ["Tore", b.tore != null ? b.tore + ":" + b.gegentore : "—"]].map(([k, w], i) => (
+                  <div key={i} className="m" style={{ fontSize: 11, display: "flex",
+                    justifyContent: "space-between", gap: 8 }}>
+                    <span style={{ color: "var(--mu)" }}>{k}</span><span>{w}</span>
+                  </div>))}
               </div>
               {(b.abgaenge > 0 || b.vorbei) && (
-                <div style={{ fontSize: 12, marginTop: 6, color: "var(--mu)" }}>
+                <div style={{ marginTop: 10, paddingTop: 9, borderTop: "1px solid var(--ln)",
+                  fontSize: 12.5, color: "var(--mu)" }}>
                   {b.abgaenge > 0 ? b.abgaenge + " Abgänge — die Akademie muss nachliefern." : ""}
                   {b.vorbei ? (b.abgaenge > 0 ? " " : "") + "Die fünfzehn Jahre sind um." : ""}
                 </div>)}
@@ -12258,7 +13200,7 @@ function EndScreen({ p, onNew, onHall, onAka }) {
             background: "linear-gradient(160deg,#E8B84B1A 0%,var(--pan) 58%)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
               <div>
-                <div className="eb" style={{ color: "var(--go)" }}>Vermächtnis-Coins verdient</div>
+                <div className="eb" style={{ color: "var(--go)" }}>Ein Jahr Jugendakademie</div>
                 <div className="m" style={{ fontSize: 10, color: "var(--mu)", marginTop: 2 }}>
                   Nicht dasselbe wie Vermächtnispunkte — die bewerten die Laufbahn,
                   die Coins bauen die Akademie.</div>
@@ -12312,8 +13254,12 @@ function EndScreen({ p, onNew, onHall, onAka }) {
                 </>)}
               </div>)}
 
-            <button className={"btn sm" + (zl && zl.reicht ? " pri" : "")} style={{ marginTop: 11 }} onClick={onAka}>
-              {zl && zl.reicht ? "Jetzt ausbauen" : "Zur Jugendakademie"}</button>
+            {/* Der Sprungknopf „Jetzt ausbauen / Zur Jugendakademie" ist in
+                35.51 weggefallen. Er war der dritte Weg zur Akademie neben
+                Menuezeile und Leiste, und er unterbrach den Abschluss: man
+                sprang mitten aus dem Rueckblick heraus und musste sich
+                zurueckklicken. Was hier steht, ist ein BERICHT — er sagt, was
+                geschehen ist, und wo es weitergeht, weiss das Hauptmenue. */}
           </div>); })()}
         <div className="g2" style={{ marginTop: 14 }}>
           <Pass p={p} full />
@@ -12373,15 +13319,25 @@ function EndScreen({ p, onNew, onHall, onAka }) {
             letzte Eintrag darunter und ist nicht mehr lesbar. */}
         <div aria-hidden style={{ height: 132 }} />
       </div>
+      {/* EIN Knopf statt drei (35.51).
+          BIS 35.50 stand hier „Neue Laufbahn beginnen" — und der Knopf begann
+          nichts. Er leert den Spieler und geht ins Hauptmenue; die neue
+          Laufbahn faengt dort mit einem zweiten Tippen an. Ein Versprechen,
+          das die Mechanik nicht einloest, und zwar an der Stelle, an der man
+          eine Laufbahn ABSCHLIESST — das ist keine Kleinigkeit: wer glaubt,
+          hier beginne schon die naechste, weiss nicht, dass die jetzige
+          endgueltig vorbei ist.
+          Die beiden kleinen Knoepfe darunter (Ruhmeshalle, Dein Verein) sind
+          weg. Beide Ziele stehen im Hauptmenue, und dorthin fuehrt dieser
+          Knopf ohnehin. Ein zweiter Weg zum selben Ort ist kein Dienst,
+          sondern eine Abzweigung, an der man ueberlegen muss. */}
       <div className="rs-abschlussleiste">
         <div className="rs-abschlussleiste-in">
           <button className="btn pri rs-pochen" onClick={onNew} style={{ padding: "12px 16px" }}>
-            <span className="d" style={{ fontSize: 18, letterSpacing: ".02em" }}>Neue Laufbahn beginnen</span>
+            <span className="d" style={{ fontSize: 18, letterSpacing: ".02em" }}>Laufbahn abschließen</span>
+            <span className="m" style={{ fontSize: 11.5, display: "block", marginTop: 2, opacity: .8 }}>
+              Diese Laufbahn ist damit vorbei — zurück zum Hauptmenü</span>
           </button>
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            <button className="btn sm" style={{ flex: "1 1 0" }} onClick={onHall}>Ruhmeshalle</button>
-            <button className="btn sm" style={{ flex: "1 1 0" }} onClick={onAka}>Jugendakademie</button>
-          </div>
         </div>
       </div>
     </Shell>
@@ -12563,15 +13519,33 @@ function FlutlichtApp() {
   };
 
   /* Errungenschaften über alle Laufbahnen hinweg festhalten */
-  const merkeErfolge = async (q, akaJetzt) => {
+  const merkeErfolge = async (q, akaJetzt, vereinJetzt, vereinsZahlen) => {
     const A = akaJetzt || aka || leereAkademie();
     const G = bilanzErgaenzen(ges, q);
+    /* Die Vereinszahlen dazurechnen, falls in dieser Laufbahn einer fertig
+       wurde (35.74). Sie kommen als Zuwaechse und werden ADDIERT — bis auf
+       `vereinPunkteBest`, wo der hoechste Wert gilt. Ein Bestwert, den man
+       aufsummiert, waere Unsinn und faellt trotzdem nicht auf. */
+    if (vereinsZahlen) {
+      Object.keys(vereinsZahlen).forEach((k) => {
+        if (k === "vereinPunkteBest") G[k] = Math.max(G[k] || 0, vereinsZahlen[k]);
+        else G[k] = (G[k] || 0) + vereinsZahlen[k];
+      });
+    }
+    /* DER VEREIN als vierte Übergabe (35.62). Bis 35.61 bekam `ok` nur
+       Spieler, Bilanz und Akademie — Vereinserfolge waren damit gar nicht
+       formulierbar, und deshalb gab es keinen einzigen. Kevin: „Wir benötigen
+       noch Errungenschaften und Belohnungen für Leistungen und Erfolge in
+       Jugendakademie und Profimannschaft."
+       `vereinJetzt` ist der Stand NACH der eben gespielten Saison; ohne ihn
+       würde ein Meistertitel erst eine Laufbahn später zählen. */
+    const V = vereinJetzt || verein || null;
     const next = { ...(ach || {}) };
     const frei = { ...(meta || {}) };
     const neu = [];
     ACHIEVEMENTS.forEach((a) => {
       try {
-        if (!next[a.id] && a.ok(q, G, A)) {
+        if (!next[a.id] && a.ok(q, G, A, V)) {
           next[a.id] = { y: q.year, name: q.name };
           neu.push(a);
           if (a.lohn) frei[a.lohn] = true;
@@ -12680,6 +13654,19 @@ function FlutlichtApp() {
        weiss der Bildschirm etwas anderes als der Ablauf. Ist der Kader nicht
        gestellt, faellt das Jahr aus — Kevins Vorgabe: der Kader muss vor dem
        Karrierestart stehen, dann zaehlt er. */
+    /* VOR dem if, nicht darin (berichtigt 35.66). In 35.62 stand die
+       Deklaration INNERHALB des Blocks, die Verwendung 47 Zeilen weiter
+       ausserhalb. Solange der Verein mitspielte, fiel das nicht auf — spielte
+       er nicht mit (kein Verein gegruendet, Kader nicht gestellt, gar nicht
+       freigeschaltet), warf `finish` einen ReferenceError, und der Knopf
+       „Schuhe an den Nagel haengen" tat schlicht NICHTS. Von Kevin gemeldet.
+
+       Der Fehler ist still: React faengt ihn im Ereignishandler nicht sichtbar
+       ab, es passiert einfach nichts. Genau deshalb ist er 4 Fassungen lang
+       durchgekommen — und kein Prueflauf hat ihn gefunden, weil die
+       Vereinsproben immer MIT Verein laufen. */
+    let vereinNachher = null;
+    let vereinsBilanz = null;   /* nur gesetzt, wenn ein Verein fertig wird */
     if (VEREIN.spieltMit(verein)) {
       const VS = VEREIN.vereinSaison(verein);
       if (!VS.fehler) {
@@ -12690,15 +13677,57 @@ function FlutlichtApp() {
            Namen im ersten Entwurf, alle drei still: sie waeren `undefined`
            geworden und der Bericht haette Luecken gezeigt statt zu brechen. */
         vereinSichern(VS.v);
+        /* AUS DER SAISON, nicht aus der Tabellenzeile (35.58). Hier stand
+           `meins.pts` — und seit 35.52 heisst das Feld `pkt`. Der Bericht am
+           Karriereende zeigte deshalb bei „Punkte" einen Strich, waehrend
+           Platz und Tore stimmten.
+           Bitter: der Kommentar direkt darueber ruehmt sich, die Feldnamen
+           NACHGESEHEN und nicht geraten zu haben. Das stimmte auch — bis die
+           Spielmaschine in 35.52 das Feld umbenannte und diese eine Zeile
+           nicht mitgezogen wurde. Ein Kommentar altert schneller als der Code
+           darunter.
+           `VS.punkte` kommt direkt aus `vereinSaison` und ist damit dieselbe
+           Zahl, aus der auch die Tabelle gebaut wird — eine Quelle statt
+           zwei. */
         const meins = (VS.tabelle || []).find((z) => z.me) || {};
         q.vereinBericht = {
           name: verein.name, jahr: verein.jahr, liga: verein.liga,
-          rang: VS.rang, N: VS.N, tore: meins.gf, gegentore: meins.ga,
-          punkte: meins.pts, aufstieg: !!VS.aufstieg, abstieg: !!VS.abstieg,
+          rang: VS.rang, N: VS.N, tore: VS.tore, gegentore: VS.gegentore,
+          punkte: VS.punkte, aufstieg: !!VS.aufstieg, abstieg: !!VS.abstieg,
           meister: VS.rang === 1, vorbei: !!VS.vorbei,
           abgaenge: (VS.abgaenge || []).length,
         };
-        if (VS.vorbei) setVAbschluss(VEREIN.abschluss(VS.v));
+        /* DEN ABSCHLUSS AM VEREIN SPEICHERN (35.73, von Kevin gemeldet:
+           „die Bonis werden nicht uebernommen").
+           Bis 35.72 lebte er nur in `vAbschluss` — reiner React-Zustand, an
+           keiner Stelle gespeichert. Wer den Bildschirm mit „Zurueck" verliess
+           oder die App schloss, verlor ihn. Und `neuerVerein(ergebnis)` wird
+           NUR von dort aufgerufen: damit war der Bonus weg, und schlimmer,
+           es gab ueberhaupt keinen Weg mehr zu einem neuen Verein — der alte
+           blieb mit `gegruendet: true` stehen, fuer immer abgeschlossen.
+           Jetzt liegt er am Verein und ueberlebt alles, was der Spielstand
+           ueberlebt. */
+        if (VS.vorbei) {
+          const erg = VEREIN.abschluss(VS.v);
+          setVAbschluss(erg);
+          VS.v = { ...VS.v, abgeschlossen: erg };
+          vereinSichern(VS.v);
+          /* Die dauerhaften Vereinszahlen fortschreiben (35.74) — GENAU
+             EINMAL je Verein, hier beim Abschluss. `vorbei` wird nur im
+             fuenfzehnten Jahr wahr, und danach spielt der Verein nicht mehr
+             (`spieltMit` ist false), also kann es sich nicht wiederholen. */
+          const ch = VS.v.chronik || [];
+          vereinsBilanz = {
+            vereineFertig: 1,
+            vereinSaisons: ch.length,
+            vereinMeister: ch.filter((c) => c.rang === 1).length,
+            vereinAufstiege: ch.filter((c) => c.aufstieg).length,
+            vereinTore: ch.reduce((a2, c) => a2 + (c.tore || 0), 0),
+            vereinPunkteBest: erg.punkte,
+            vereinPunkteSumme: erg.punkte,
+          };
+        }
+        vereinNachher = VS.v;   /* fuer merkeErfolge, siehe unten */
       }
     } else if (verein && verein.gegruendet && verein.eingeschrieben) {
       /* Eingeschrieben, aber nicht spielbereit: das Jahr faellt aus. Das
@@ -12711,7 +13740,10 @@ function FlutlichtApp() {
     setAka(AK2.a); speichereAka(AK2.a);
     setRueckblick(null); setJubel([]); setMarken([]); setSchluss(null); setSimLauf(false);
     setKarriereRueck({ ...q, lauf: q.lauf });
-    dropSave(); merkeErlebtes(q); merkeErfolge(q, AK2.a);
+    /* Der Vereinsstand NACH der Saison. Ohne ihn zaehlte ein Meistertitel
+       erst eine Laufbahn spaeter — die Errungenschaft kaeme im falschen
+       Jahr und der Jubel am falschen Bildschirm. */
+    dropSave(); merkeErlebtes(q); merkeErfolge(q, AK2.a, vereinNachher, vereinsBilanz);
     setP(q); setPhase("end"); setStopAsk(false);
     /* Verein mit den meisten Einsätzen — das ist der Verein, für den man
        in Erinnerung bleibt, nicht der letzte. */
@@ -12726,7 +13758,22 @@ function FlutlichtApp() {
          das nicht — jede Auswertung muss ohne diese Felder auskommen. */
       avatar: q.avatar, zuege: q.zuege, g: q.g, natId: q.nation.id, von: q.year + 1 - (q.age - 16), bis: q.year + 1,
       heimat, heimatSpiele: heimat ? proVerein[heimat] : 0,
-      apps: q.tot.apps, assists: q.tot.assists, saisons: q.seasons.length });
+      apps: q.tot.apps, assists: q.tot.assists, saisons: q.seasons.length,
+      /* DER RAHMEN VON DAMALS (35.69, von Kevin gemeldet). Die Ruhmeshalle
+         zeichnete Portraets ganz OHNE `meta` — also ohne Rahmen, und seit
+         35.63 damit auch ohne die Kartenfarbe dahinter. Alle Eintraege sahen
+         gleich aus, egal was man erreicht hatte.
+         Gespeichert wird die KENNUNG des Rahmens, nicht die Farbe: Farben
+         koennen sich aendern, dann zoege die Halle mit. Und gespeichert wird
+         er JETZT, beim Abschluss — spaeter freigeschaltete Rahmen gehoeren
+         nicht an eine Laufbahn, die vorher zu Ende war. Genau das war Kevins
+         Wunsch: „die der Spieler zu dem Zeitpunkt hatte".
+         Aeltere Eintraege haben das Feld nicht; die Halle faengt das ab. */
+      rahmen: (() => { const r = rahmenOffen(meta);
+        const w = meta && meta.rahmenWahl;
+        if (w === "keiner") return "keiner";
+        if (w && r.includes(w)) return w;
+        return r[0] || null; })() });
   };
 
   /* Alles wegräumen, was von einer vorherigen Laufbahn noch offen sein könnte */
@@ -13052,33 +14099,72 @@ function FlutlichtApp() {
     metaN={Object.keys(meta || {}).filter((k) => META[k]).length}
     onBackup={() => setPhase("sicherung")}
     aka={aka} onAka={() => setPhase("akademie")}
+    onVereinDach={() => setPhase("vereindach")}
       verein={verein} gesamt={ges} onVerein={() => setPhase("verein")} onLaden={() => setPhase("laden")}
     meta={meta} aufRahmen={(k) => { const n = { ...(meta || {}), rahmenWahl: k };
       setMeta(n); store.set(META_KEY, JSON.stringify(n)); }}
     ruhe={ruhe} setRuhe={setRuhe} setRuheState={setRuheState} />;
-  if (phase === "akademie") return <AkademieScreen aka={aka} onKauf={akaKaufen}
+  /* Das Dach (35.50, nachgetragen 35.53). Es FEHLTE drei Fassungen lang: das
+     Skript, das es einsetzen sollte, brach vorher mit einem Fehler ab und
+     schrieb gar nichts — nachgezogen wurden danach nur die Rueckwege. Folge:
+     `onVereinDach` kam nie an, die Menuezeile war dauerhaft grau, und kein
+     Lauf hat es gemeldet. Die Quelltextpruefung las nur den TEXT der Zeile.
+     Siehe die neue Routenpruefung in vereinpruefung.cjs. */
+  if (phase === "vereindach") {
+    /* KENNUNG ZUERST (35.67, Kevins Entscheidung: „ohne Verein kommt man
+       nicht in die Akademie"). Wer das Dach zum ersten Mal betritt, legt
+       Namen und Wappen an. Erst danach gibt es Jugendakademie und
+       Profimannschaft — beides gehoert diesem Verein.
+       Kein Zurueck aus diesem Schritt: das Dach ist der einzige Weg dorthin,
+       und ein Ausgang ohne Ergebnis wuerde nur dazu fuehren, dass man beim
+       naechsten Antippen wieder hier steht. Der Bildschirm blendet den
+       Zurueckknopf deshalb in dieser Betriebsart aus. */
+    if (!verein || !verein.gekannt)
+      return <VereinGruenden art="kennung" aka={aka} verein={verein}
+        onFertig={(nv) => vereinSichern(nv)}
+        onZurueck={() => setPhase("menu")} />;
+    return <VereinDach aka={aka} verein={verein} gesamt={ges}
+      onAka={() => setPhase("akademie")}
+      onProfi={() => setPhase("verein")}
+      onAendern={(n) => { setAka(n); speichereAka(n); }}
+      onVAendern={vereinSichern}
+      onZurueck={() => setPhase(p && p.retired ? "end" : "menu")} />;
+  }
+  if (phase === "akademie") return <AkademieScreen aka={aka} verein={verein} onKauf={akaKaufen}
+    onAendern={(n) => { setAka(n); speichereAka(n); }}
     onGruenden={(n) => { const x = akaGruenden(aka, n, (aka && aka.jahr) || 2026);
       setAka(x); speichereAka(x); }}
-    onBack={() => setPhase(p && p.retired ? "end" : "menu")} />;
+    onBack={() => setPhase(p && p.retired ? "end" : "vereindach")} />;
   /* Eigener Verein (35.21). Drei Zustaende in einer Route: noch nicht
      gegruendet, laufend, abgeschlossen. Der Abschluss hat Vorrang — er ist
      das Ergebnis von fuenfzehn Jahren und darf nicht hinter dem Kader
      verschwinden. */
   if (phase === "verein") {
-    if (vAbschluss)
-      return <VereinAbschluss v={verein} ergebnis={vAbschluss}
+    /* Der Abschluss kommt jetzt AUCH aus dem Spielstand (35.73) — nicht nur
+       aus dem fluechtigen Zustand. Damit ist der Bildschirm nach einem
+       Neustart oder einem „Zurueck" wieder erreichbar, und mit ihm der
+       einzige Weg zum naechsten Verein. */
+    const abg = vAbschluss || (verein && verein.abgeschlossen) || null;
+    if (abg)
+      return <VereinAbschluss v={verein} ergebnis={abg}
         onNeu={(nv) => { vereinSichern(nv); setVAbschluss(null); }}
-        onZurueck={() => { setVAbschluss(null); setPhase("menu"); }} />;
+        onZurueck={() => { setVAbschluss(null); setPhase("vereindach"); }} />;
+    /* Nur noch Land und Liga (35.67). Name, Stadt und Wappen stehen seit dem
+       Dach fest — sie werden in der Vorschau gezeigt, aber nicht mehr
+       abgefragt. `art` entscheidet; ohne Kennung faellt es auf die volle
+       Fassung zurueck, damit alte Spielstaende nicht in einer Sackgasse
+       landen. */
     if (!verein || !verein.gegruendet)
-      return <VereinGruenden aka={aka}
+      return <VereinGruenden art={verein && verein.gekannt ? "spielbetrieb" : "voll"}
+        aka={aka} verein={verein}
         onFertig={(nv) => vereinSichern(nv)}
-        onZurueck={() => setPhase("menu")} />;
+        onZurueck={() => setPhase("vereindach")} />;
     return <VereinScreen v={verein} aka={aka}
       onAendern={vereinSichern}
       onAkaAendern={(na) => { setAka(na);
         try { store.set(AKA_KEY, JSON.stringify(na)); } catch (e) { /* kein Speicher */ } }}
       onAbschluss={(erg) => setVAbschluss(erg)}
-      onZurueck={() => setPhase("menu")} />;
+      onZurueck={() => setPhase("vereindach")} />;
   }
   if (phase === "hall") return <HallScreen hall={hall} onBack={() => setPhase(p && p.retired ? "end" : "menu")} />;
   if (phase === "erfolge") return <AchievementScreen ach={ach} ges={ges} meta={meta} onBack={() => setPhase("menu")} />;
@@ -13098,9 +14184,7 @@ function FlutlichtApp() {
   if (karriereRueck && karriereRueck.retired && phase === "end")
     return <KarriereRueckblick p={karriereRueck} onFertig={() => setKarriereRueck(null)} />;
   if (phase === "end") return <EndScreen p={p}
-    onNew={() => { einblendungenLeeren(); setP(null); setPhase("menu"); }}
-    onAka={() => setPhase("akademie")}
-    onHall={() => setPhase("hall")} />;
+    onNew={() => { einblendungenLeeren(); setP(null); setPhase("menu"); }} />;
 
   const rival = rivalOf(p.squad, p.pos);
   const role = roleFor(p.ovr, p.club.s, p.trust, rival ? rival.ovr : null, p.flags.beidseitig);
@@ -13295,7 +14379,27 @@ function FlutlichtApp() {
           })()}
 
           {step === "result" && season && (
-            <div className="fade g1">
+            <div className="fade g1 laufzettel">
+              {/* PAPIER, wie die beiden anderen Schritte (35.65). Kevin:
+                  „Bei der Vertragswahl in der Spielerkarriere ist der
+                  Hintergrund noch nicht genormt an die Papierthematik, auf
+                  die wir uns geeinigt hatten. Gerade bei dem Thema Vertrag
+                  bietet sich Papier an."
+                  Er hatte recht und es war schlicht übersehen: Training
+                  (Schritt 1), Ereignis (Schritt 2) und der Wintertransfer
+                  stehen längst auf laufzettel — ausgerechnet die Vertragswahl
+                  nicht. Drei Schritte, zwei Welten.
+                  Die Klasse dreht die ganze Farbwelt: tx wird Tinte, mu die
+                  blassere Tinte, und die Akzentfarben bekommen ihre
+                  Karton-Fassungen. Alles hier drinnen, was var(--ok) sagt,
+                  meint ab jetzt das dunkle Grün für Papier — deshalb musste
+                  nichts einzeln umgefärbt werden.
+                  DER KOMMENTAR MUSS HIER STEHEN, nicht eine Zeile höher: dort
+                  beginnt der JSX-Ausdruck erst, und ein Blockkommentar ohne
+                  geschweifte Klammern bricht die Übersetzung. Im ersten
+                  Entwurf genau so passiert. */}
+              <div className="zettelkopf"><span>Verträge und Angebote</span>
+                <span className="nr">Schritt 3 von 3</span></div>
               {/* Zuerst der Transfermarkt: Nach dem Saisonrückblick will man
                   weiterspielen, nicht noch einmal dieselben Zahlen lesen. */}
               <div className="pan pad">
