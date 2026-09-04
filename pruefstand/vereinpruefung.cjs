@@ -614,6 +614,425 @@ console.log("=== Vereinsprüfung ===\n");
        neueKarten.map((w) => w.n).join(", "));
   }
 
+  /* ============ Kartenpool, das Fundament (35.79) ========================
+     Kevin: „gezogene Spieler kommen nur dazu und sollen die Spieler aus der
+     Akademie lediglich ergaenzen" — die Akademie bleibt das Herz.
+     Und: „wenn eine Profimannschaft durchgespielt wurde, werden alle Spieler
+     in den Pool aufgenommen, DAUERHAFT."
+
+     Dauerhaft ist das Wort, an dem es haengt. Alles andere ueber den eigenen
+     Verein liegt AM Verein, und der wird alle fuenfzehn Jahre ersetzt — genau
+     daran ist in 35.73 der Abschlussbonus verlorengegangen. */
+  {
+    const K = App.KARTEN;
+    if (!K) { pr("Karten: Modul vorhanden", false, "KARTEN nicht ausgeführt"); }
+    else {
+      /* Die Seltenheit muss die Quelle erkennbar machen — das war der Zweck
+         der Messung ueber 539 echte Spieler. */
+      pr("Karten: die Stufen sind aufsteigend",
+         K.stufeFuer(50) === "bronze" && K.stufeFuer(65) === "silber"
+         && K.stufeFuer(75) === "gold" && K.stufeFuer(90) === "legende",
+         "50→" + K.stufeFuer(50) + " 65→" + K.stufeFuer(65)
+         + " 75→" + K.stufeFuer(75) + " 90→" + K.stufeFuer(90));
+      pr("Karten: die Grenzen sitzen genau",
+         K.stufeFuer(61) === "bronze" && K.stufeFuer(62) === "silber"
+         && K.stufeFuer(71) === "silber" && K.stufeFuer(72) === "gold"
+         && K.stufeFuer(81) === "gold" && K.stufeFuer(82) === "legende");
+
+      /* Aus allen drei Quellen muss eine Karte werden — mit Herkunft, denn
+         ohne sie laesst sich „3 aus der Vorgaengermannschaft, 1 aus der
+         Halle" nicht ziehen. */
+      const t = K.ausTalent({ id: "t1", name: "Talent", pos: "ST", ovr: 64, pot: 78,
+        alter: 18, flag: "🇩🇪", nat: "GER", ruf: 40, vertragBis: 2030 }, 2029);
+      const s2 = K.ausKader({ id: "k1", name: "Profi", pos: "IV", ovr: 74, pot: 80,
+        alter: 25, flag: "🇩🇪", spiele: 200, tore: 8, jahreImVerein: 6 }, "Testelf", 12);
+      const h = K.ausHalle({ name: "Legende", pos: "ZM", nat: "🇩🇪", age: 36,
+        peak: 88, score: 900, titles: 9, goals: 300, caps: 80, bis: 2050 }, 0);
+      pr("Karten: Talent, Kaderspieler und Halleneintrag werden Karten",
+         !!(t.kid && s2.kid && h.kid),
+         t.stufe + " / " + s2.stufe + " / " + h.stufe);
+      pr("Karten: die Herkunft steht drauf",
+         t.herkunft === "akademie" && s2.herkunft === "verein" && h.herkunft === "halle");
+      /* Die Halle fuehrt `peak`, nicht `ovr` — eine Legende darf keine Karte
+         mit 58 werden, nur weil sie mit 38 aufgehoert hat. */
+      pr("Karten: die Halle zeigt den Bestwert, nicht den Stand beim Rücktritt",
+         h.ovr === 88, "ovr " + h.ovr);
+      pr("Karten: der Verein steht auf der Kaderkarte", s2.verein === "Testelf");
+
+      /* DER POOL. Zusammenfuehren statt anhaengen: derselbe Spieler aus drei
+         Durchlaeufen ist EINE Karte, sonst zieht ein Pack dreimal denselben. */
+      let pool = K.leererPool();
+      pool = K.poolErgaenzen(pool, [t, s2, h]);
+      pr("Pool: drei Karten drin", pool.karten.length === 3, "stand " + pool.stand);
+      pool = K.poolErgaenzen(pool, [t, s2]);
+      pr("Pool: Doppelte werden zusammengeführt, nicht angehängt",
+         pool.karten.length === 3, pool.karten.length + " Karten nach dem zweiten Mal");
+      /* Und auf den BESSEREN Wert: die Karte zeigt, was er konnte. */
+      pool = K.poolErgaenzen(pool, [{ ...s2, ovr: 79 }]);
+      const wieder = pool.karten.find((x) => x.kid === s2.kid);
+      pr("Pool: der bessere Wert gewinnt", wieder && wieder.ovr === 79,
+         "ovr " + (wieder && wieder.ovr));
+      pool = K.poolErgaenzen(pool, [{ ...s2, ovr: 60 }]);
+      const nochmal = pool.karten.find((x) => x.kid === s2.kid);
+      pr("Pool: ein schlechterer Wert überschreibt NICHT",
+         nochmal && nochmal.ovr === 79, "ovr " + (nochmal && nochmal.ovr));
+
+      pr("Pool: nach Herkunft filterbar",
+         K.nachHerkunft(pool, "halle").length === 1
+         && K.nachHerkunft(pool, "verein").length === 1);
+      const z = K.zaehlen(pool);
+      pr("Pool: je Stufe zählbar", z.silber === 1 && z.gold === 1 && z.legende === 1,
+         JSON.stringify(z));
+
+      /* DAUERHAFT: durch einen Spielstand geschickt. */
+      const wieder2 = JSON.parse(JSON.stringify(pool));
+      pr("Pool: übersteht das Speichern",
+         wieder2.karten.length === pool.karten.length
+         && wieder2.karten[0].stufe === pool.karten[0].stufe,
+         "sonst wäre „dauerhaft“ eine Behauptung");
+
+      /* Nichts geht verloren: ein leerer Pool und leere Zugaben duerfen nicht
+         stuerzen — der Normalfall in den ersten Laufbahnen. */
+      pr("Pool: leer und ohne Zugabe stürzt nicht",
+         K.poolErgaenzen(null, null).karten.length === 0);
+
+      /* ---- Packs (35.80) ------------------------------------------------
+         Eine Zusage wie „mindestens einer in Gold" ist eine Behauptung, bis
+         sie ueber viele Ziehungen gemessen ist. Hier 1200 je Pack — genug,
+         damit ein Loch von einem Prozent auffiele. */
+      pr("Packs: es gibt vier Stufen", (K.PACKS || []).length === 4,
+         (K.PACKS || []).map((x) => x.n + " " + x.preis + " VC").join(" · "));
+      pr("Packs: die Preise steigen mit der Stufe",
+         K.PACKS.every((x, i) => i === 0 || x.preis > K.PACKS[i - 1].preis));
+
+      const ZIEH = 1200;
+      let alleGut = true, zusagen = [];
+      K.PACKS.forEach((pk) => {
+        let ok2 = 0, anzahlOk = 0;
+        const rang = (st) => K.REIHE.indexOf(st);
+        for (let i = 0; i < ZIEH; i++) {
+          const r = K.ziehen(pk.id, pool, 2030);
+          if ((r.karten || []).length === pk.karten) anzahlOk++;
+          if (!pk.mind) { ok2++; continue; }
+          if (r.karten.some((c) => rang(c.stufe) >= rang(pk.mind))) ok2++;
+        }
+        if (anzahlOk !== ZIEH) alleGut = false;
+        if (ok2 !== ZIEH) { alleGut = false; zusagen.push(pk.n + " " + (ok2 / ZIEH * 100).toFixed(1) + " %"); }
+      });
+      pr("Packs: jede Ziehung liefert die zugesagte Kartenzahl", alleGut || !zusagen.length,
+         ZIEH + " Ziehungen je Pack");
+      pr("Packs: die Mindestzusage hält IMMER", zusagen.length === 0,
+         zusagen.length ? zusagen.join(", ")
+           : "auch wenn der Würfel dreimal Bronze sagt");
+
+      /* Und die Gegenrichtung: ein Bronzepack darf NICHT regelmaessig
+         Legenden ausspucken, sonst waeren die teuren Packs sinnlos. */
+      let legendenImBronze = 0;
+      for (let i = 0; i < ZIEH; i++) {
+        K.ziehen("bronze", pool, 2030).karten
+          .forEach((c) => { if (c.stufe === "legende") legendenImBronze++; });
+      }
+      pr("Packs: aus Bronze kommen keine Legenden", legendenImBronze === 0,
+         legendenImBronze + " in " + ZIEH + " Ziehungen");
+
+      /* Sonderkarten aus dem eigenen Pool — sie ERSETZEN keine gezogene
+         Karte, sie kommen dazu. Wer eine Legende findet, soll nicht dafuer
+         eine andere verlieren. */
+      let mitSonder = 0, immerVoll = true;
+      for (let i = 0; i < ZIEH; i++) {
+        const r = K.ziehen("legende", pool, 2030);
+        if (r.sonder) mitSonder++;
+        if (r.karten.length !== 3) immerVoll = false;
+      }
+      pr("Packs: Sonderkarten kommen dazu, ersetzen nichts", immerVoll,
+         "immer 3 gezogene Karten, Sonderkarte zusätzlich");
+      pr("Packs: Sonderkarten sind selten genug",
+         mitSonder / ZIEH > .15 && mitSonder / ZIEH < .45,
+         (mitSonder / ZIEH * 100).toFixed(1) + " % beim Legendenpack");
+      /* Ohne Pool gibt es keine Sonderkarte — und das darf nicht stuerzen. */
+      pr("Packs: ohne Pool keine Sonderkarte, aber auch kein Absturz",
+         !K.ziehen("legende", K.leererPool(), 2030).sonder);
+      pr("Packs: ein unbekanntes Pack wird abgewiesen",
+         !!K.ziehen("gibtsnicht", pool, 2030).fehler);
+
+      /* Die Preisansage muss stimmen — eine falsche waere schlimmer als
+         keine. */
+      pr("Packs: der Preis wird in Laufbahnen angesagt",
+         K.preisInLaufbahnen("silber") > 0.4 && K.preisInLaufbahnen("silber") < 0.8,
+         "Silberpack " + K.preisInLaufbahnen("silber") + " Laufbahnen");
+
+      /* Gezogene Karten sind FERTIGE Spieler, keine Fuenfzehnjaehrigen — die
+         Akademie soll nicht ersetzt werden (Kevins Entscheidung). */
+      const probe = K.ziehen("gold", pool, 2030).karten;
+      pr("Packs: gezogene Spieler sind fertig, nicht Nachwuchs",
+         probe.every((c) => c.alter >= 20 && c.pot - c.ovr <= 6),
+         "Alter " + probe.map((c) => c.alter).join("/")
+           + " · Anlage über Stärke " + probe.map((c) => c.pot - c.ovr).join("/"));
+    }
+  }
+
+  /* ============ Die Aufstellung als Feld (35.91) =========================
+     Kevin: „Die Aufstellung der Karten sollte schon passend zur Aufstellung
+     sein" — mit einer Skizze: Torwart oben, Viererkette darunter, und die
+     Aussenverteidiger AUSSEN. */
+  {
+    if (!V.feldReihen) pr("Feld: feldReihen vorhanden", false, "fehlt");
+    else {
+      V.FORMATIONEN.forEach((f) => {
+        const r5 = V.feldReihen(f.id);
+        const alle = r5.reduce((a2, x) => a2.concat(x), []);
+        /* JEDER PLATZ GENAU EINMAL. Der naheliegende Fehler beim Umsortieren
+           ist, einen zu verlieren oder zu verdoppeln — und beides faellt
+           optisch kaum auf, weil elf Karten immer nach elf aussehen. */
+        pr("Feld " + f.n + ": alle elf Plätze genau einmal",
+           alle.length === f.plaetze.length
+           && new Set(alle.map((x) => x.i)).size === f.plaetze.length,
+           alle.length + " Stellen, " + new Set(alle.map((x) => x.i)).size + " verschieden");
+        /* Die Stellen muessen zu den Positionen passen — sonst stuende ein
+           Spieler auf einem Platz, der ihm nicht gehoert. */
+        const falsch = alle.filter((x) => f.plaetze[x.i] !== x.pos);
+        pr("Feld " + f.n + ": jede Stelle trägt ihre eigene Position",
+           falsch.length === 0,
+           falsch.length ? falsch.map((x) => x.i + ":" + x.pos).join(" ") : "");
+        /* Der Torwart steht allein und oben. */
+        pr("Feld " + f.n + ": der Torwart steht allein in der ersten Reihe",
+           r5[0].length === 1 && r5[0][0].pos === "TW");
+      });
+
+      /* AUSSEN SIND DIE AUSSEN. Ohne das stuenden bei 4-4-2 „IV IV AV AV"
+         nebeneinander — die Abwehr saehe aus, als haetten sich beide
+         Aussenverteidiger auf eine Seite gestellt. */
+      const abwehr442 = V.feldReihen("442")[1].map((x) => x.pos);
+      pr("Feld: die Außenverteidiger stehen außen",
+         abwehr442[0] === "AV" && abwehr442[abwehr442.length - 1] === "AV",
+         abwehr442.join(" "));
+      const mittel442 = V.feldReihen("442")[2].map((x) => x.pos);
+      pr("Feld: die Außenstürmer auch",
+         mittel442[0] === "AF" && mittel442[mittel442.length - 1] === "AF",
+         mittel442.join(" "));
+
+      /* Die Reihen kommen aus der KENNUNG, nicht aus einer zweiten Tabelle —
+         sonst gaebe es zwei Wahrheiten ueber dieselbe Formation. */
+      const r442 = V.feldReihen("442");
+      pr("Feld: 4-4-2 ergibt 1-4-4-2",
+         r442.map((x) => x.length).join("-") === "1-4-4-2",
+         r442.map((x) => x.length).join("-"));
+      const r352 = V.feldReihen("352");
+      pr("Feld: 3-5-2 ergibt 1-3-5-2",
+         r352.map((x) => x.length).join("-") === "1-3-5-2",
+         r352.map((x) => x.length).join("-"));
+    }
+  }
+
+  /* ============ Das Startpaket (35.89) ===================================
+     Kevin: „der neue Verein bekommt ein Kartenpaket, in dem 6 Spieler sind,
+     von denen mind. 3 aus der vorherigen Mannschaft stammen und mind. 1 aus
+     der Ruhmeshalle (ein Guter)."
+
+     Darauf laeuft der ganze Pool aus 35.79 zu: wer fuenfzehn Jahre aufgebaut
+     hat, faengt nicht bei null an. */
+  {
+    const K3 = App.KARTEN;
+    if (!K3 || !K3.startpaket) pr("Startpaket: vorhanden", false, "fehlt");
+    else {
+      let pl = K3.leererPool();
+      pl = K3.poolErgaenzen(pl, [
+        ...Array.from({ length: 5 }, (_, i) => K3.ausHalle({ name: "Legende " + i,
+          pos: "ST", nat: "x", age: 35, peak: 80 + i * 2, score: 900, titles: 5,
+          goals: 200, caps: 40 }, i)),
+        ...Array.from({ length: 12 }, (_, i) => K3.ausKader({ id: "v" + i,
+          name: "Alt " + i, pos: "ZM", ovr: 62 + i, pot: 72, alter: 27, flag: "x" },
+          "Erster Verein", 15))]);
+
+      const r3 = K3.startpaket(pl, "Erster Verein", 2045);
+      pr("Startpaket: sechs Karten", r3.karten.length === 6, r3.karten.length + "");
+      pr("Startpaket: mindestens drei aus der Vorgängermannschaft",
+         r3.ausVerein >= 3, r3.ausVerein + " von 6");
+      pr("Startpaket: mindestens einer aus der Ruhmeshalle",
+         r3.ausHalle >= 1, r3.ausHalle + "");
+      /* „EIN GUTER" ist eine Bedingung, keine Floskel: aus der Halle wird der
+         STAERKSTE genommen. */
+      const besteHalle = pl.karten.filter((k) => k.herkunft === "halle")
+        .reduce((a2, b2) => ((b2.ovr || 0) > (a2.ovr || 0) ? b2 : a2));
+      pr("Startpaket: aus der Halle kommt der Stärkste",
+         r3.karten.some((k) => k.kid === besteHalle.kid),
+         "erwartet " + besteHalle.ovr);
+
+      /* UND NICHT MEHR ALS NOETIG. Der erste Entwurf fuellte mit den
+         staerksten uebrigen Karten auf — und weil Hallenkarten die staerksten
+         sind, kamen DREI Legenden mit 84 bis 88. Ein Startgeschenk, das die
+         halbe Halle ausschuettet, macht den neuen Verein sofort zum Favoriten
+         und nimmt der Akademie ihren Sinn. */
+      pr("Startpaket: nicht die halbe Ruhmeshalle", r3.ausHalle <= 2,
+         r3.ausHalle + " Hallenkarten von 6");
+      const schnitt = r3.karten.reduce((a2, k) => a2 + (k.ovr || 0), 0) / r3.karten.length;
+      pr("Startpaket: kein übermächtiges Geschenk", schnitt < 80,
+         "Durchschnitt " + schnitt.toFixed(1));
+
+      /* DER ERSTE VEREIN hat weder Vorgaenger noch Halle. Ein Startpaket, das
+         dann leer bleibt, waere eine Zusage, die nur beim zweiten Mal gilt. */
+      const r4 = K3.startpaket(K3.leererPool(), null, 2030);
+      pr("Startpaket: auch beim ersten Verein sechs Karten",
+         r4.karten.length === 6,
+         r4.karten.map((k) => k.stufe).join(", "));
+      pr("Startpaket: die aufgefüllten sind nicht bronze",
+         r4.karten.every((k) => k.stufe !== "bronze"),
+         "bronze wäre ein mageres Geschenk für fünfzehn Jahre");
+    }
+  }
+
+  /* ============ Karten verkaufen (35.86) =================================
+     Kevin: „Wenn wir eine Begrenzung haben, muss es auch eine Moeglichkeit
+     geben, Karten loszuwerden. Am besten kann man sie verkaufen."
+     Er hat grundsaetzlich recht: EINE GRENZE OHNE AUSWEG IST EINE FALLE. */
+  {
+    const K2 = App.KARTEN;
+    if (!K2 || !K2.verkaufen) pr("Verkauf: vorhanden", false, "fehlt");
+    else {
+      /* DER RUECKFLUSS DARF NIE 100 % ERREICHEN. Sonst waere Kaufen und
+         Verkaufen eine Geldmaschine — und die VC-Kalibrierung waertlos, weil
+         jeder unbegrenzt Coins herstellen koennte. Das ist kein Feinschliff,
+         sondern die Grenze zwischen Wirtschaft und Unsinn. */
+      const rueck = K2.PACKS.map((pk) => {
+        let e = 0;
+        K2.REIHE.forEach((st) => { e += pk.karten * ((pk.chancen[st] || 0) / 100) * (K2.VERKAUF[st] || 0); });
+        return { n: pk.n, anteil: e / pk.preis };
+      });
+      const zuHoch = rueck.filter((x) => x.anteil >= 0.75);
+      pr("Verkauf: kein Pack zahlt sich durch Verkaufen selbst",
+         zuHoch.length === 0,
+         zuHoch.length ? zuHoch.map((x) => x.n + " " + (x.anteil * 100).toFixed(0) + " %").join(", ")
+           : rueck.map((x) => (x.anteil * 100).toFixed(0) + " %").join(" · "));
+      /* Und die Gegenrichtung: ganz wertlos darf es auch nicht sein, sonst
+         verkauft niemand und die Grenze bleibt eine Falle. */
+      pr("Verkauf: aber wertlos ist er auch nicht",
+         rueck.every((x) => x.anteil >= 0.2),
+         "mindestens " + (Math.min(...rueck.map((x) => x.anteil)) * 100).toFixed(0) + " %");
+
+      /* Der Erloes steigt mit der Stufe. */
+      pr("Verkauf: bessere Karten bringen mehr",
+         K2.VERKAUF.legende > K2.VERKAUF.gold && K2.VERKAUF.gold > K2.VERKAUF.silber
+         && K2.VERKAUF.silber > K2.VERKAUF.bronze,
+         JSON.stringify(K2.VERKAUF));
+
+      /* ERINNERUNG IST KEINE WARE. Wer seine eigene Legende zu Geld macht,
+         verliert sie fuer immer — und der Pool ist das einzige Gedaechtnis,
+         das es dafuer gibt. */
+      let pl = K2.leererPool();
+      pl = K2.poolErgaenzen(pl, [
+        { kid: "pk1", name: "Pack", pos: "ST", ovr: 76, pot: 80, alter: 26,
+          stufe: "gold", herkunft: "pack" },
+        K2.ausHalle({ name: "Legende", pos: "ZM", nat: "x", age: 35, peak: 88,
+          score: 900, titles: 9, goals: 300, caps: 80 }, 0),
+        K2.ausKader({ id: "a1", name: "Alt", pos: "IV", ovr: 72, pot: 76,
+          alter: 28, flag: "x" }, "Altverein", 10)]);
+      const vPack = K2.verkaufen(pl, "pk1");
+      pr("Verkauf: eine Packkarte lässt sich verkaufen",
+         !vPack.fehler && vPack.vc > 0 && vPack.pool.karten.length === 2,
+         "+" + vPack.vc + " VC");
+      const halleKid = pl.karten.find((x) => x.herkunft === "halle").kid;
+      const vereinKid = pl.karten.find((x) => x.herkunft === "verein").kid;
+      pr("Verkauf: die eigene Ruhmeshalle wird NICHT verkauft",
+         !!K2.verkaufen(pl, halleKid).fehler);
+      pr("Verkauf: eigene frühere Vereinsspieler auch nicht",
+         !!K2.verkaufen(pl, vereinKid).fehler);
+      pr("Verkauf: eine Karte, die es nicht gibt, wird abgewiesen",
+         !!K2.verkaufen(pl, "gibtsnicht").fehler);
+
+      /* AUS DEM KADER NEHMEN ist etwas anderes als verkaufen — der Platz wird
+         frei, die Karte bleibt. Zwei Entscheidungen, zwei Wege. */
+      let vv2 = V.karteEinsetzen({ gegruendet: true, kader: [] },
+        { kid: "e1", name: "E", pos: "ST", ovr: 70, pot: 74, alter: 25, stufe: "gold" }).v;
+      pr("Kader: ein gezogener Spieler belegt einen Platz",
+         V.packPlatz(vv2) === Math.floor(V.KADER_MIN * V.PACK_ANTEIL) - 1);
+      const raus = V.karteEntfernen(vv2, "e1");
+      pr("Kader: er lässt sich wieder herausnehmen",
+         !raus.fehler && V.packPlatz(raus.v) === Math.floor(V.KADER_MIN * V.PACK_ANTEIL));
+      /* Eigengewaechse gehen NICHT diesen Weg — dafuer gibt es die
+         Kaderverwaltung mit ihren Vertragsregeln. */
+      const eigen = { gegruendet: true, kader: [{ id: "j1", name: "Jugend", pos: "ST" }] };
+      pr("Kader: Eigengewächse gehen nicht über diesen Weg",
+         !!V.karteEntfernen(eigen, "j1").fehler);
+    }
+  }
+
+  /* ============ VC aus Akademie, Verein und Erfolgen (35.81) =============
+     Kevin: „Lass uns den VC-Verdienst noch etwas verbessern."
+     Gemessen und bestaetigt: VC kamen ausschliesslich aus der
+     Spielerlaufbahn. Zwei von drei Haeusern arbeiteten umsonst. */
+  {
+    const vc = App.vcAusHaeusern;
+    if (!vc) pr("VC: die Rechnung ist ausgeführt", false, "vcAusHaeusern fehlt");
+    else {
+      pr("VC: ohne Zutaten gibt es nichts", vc(null, null, null).vc === 0);
+
+      /* Die Akademie zahlt fuer ERGEBNISSE, nicht fuer Aufnahmen — sonst
+         lohnte sich Masse statt Arbeit. */
+      const nurAufnahmen = vc({ aufgenommen: 20 }, null, null).vc;
+      pr("VC: Aufnehmen allein bringt nichts", nurAufnahmen === 0,
+         "sonst lohnte sich Masse statt Arbeit");
+      const einProfi = vc({ profis: 1 }, null, null).vc;
+      const eineWK = vc({ weltklasse: 1 }, null, null).vc;
+      pr("VC: Weltklasse zählt mehr als ein Profi", eineWK > einProfi,
+         einProfi + " gegen " + eineWK);
+
+      /* Der Verein: Erfolg zaehlt, nicht Teilnahme. */
+      pr("VC: ein Mittelfeldplatz bringt nichts",
+         vc(null, { rang: 9 }, null).vc === 0);
+      pr("VC: Meister zahlt am meisten",
+         vc(null, { rang: 1 }, null).vc > vc(null, { rang: 3 }, null).vc,
+         "Meister " + vc(null, { rang: 1 }, null).vc
+           + " · Platz 3 " + vc(null, { rang: 3 }, null).vc);
+      /* KEIN Abzug beim Abstieg: eine Strafe auf die Waehrung, mit der man
+         die Jugend aufbaut, traefe ausgerechnet den, der Aufbau noetig hat. */
+      pr("VC: der Abstieg kostet nichts",
+         vc(null, { rang: 18, abstieg: true }, null).vc === 0);
+
+      /* Errungenschaften, gestaffelt. */
+      const stufe = (s3) => vc(null, null, [{ s: s3, n: "x" }]).vc;
+      pr("VC: Errungenschaften zahlen nach Stufe",
+         stufe("legende") > stufe("platin") && stufe("platin") > stufe("gold")
+         && stufe("gold") >= stufe("silber"),
+         "bronze " + stufe("bronze") + " · gold " + stufe("gold")
+           + " · legende " + stufe("legende"));
+
+      /* DIE SUMME IST DAS EIGENTLICHE. 192 kleine Betraege sind in der Summe
+         kein kleiner Betrag — der erste Entwurf haette mit 3/6/12/20/35 ueber
+         alle Errungenschaften 2780 VC ausgeschuettet, bei einem Vollausbau von
+         2912. Wer Einzelposten bemisst, muss sie zusammenzaehlen, bevor er sie
+         fuer klein haelt. */
+      const alleErf = (App.ACHIEVEMENTS || [])
+        .reduce((s3, x) => s3 + vc(null, null, [x]).vc, 0);
+      pr("VC: alle Errungenschaften zusammen bleiben unter dem halben Ausbau",
+         alleErf < 1456,
+         alleErf + " VC gegen 2912 Vollausbau");
+
+      /* Die Posten muessen benannt sein — eine Gutschrift ohne Grund ist
+         eine Zahl, die vom Himmel faellt. */
+      const mitPosten = vc({ profis: 2 }, { rang: 1 }, null);
+      pr("VC: jede Gutschrift wird benannt",
+         mitPosten.posten.length === 2
+         && mitPosten.posten.reduce((s3, x) => s3 + x.x, 0) === mitPosten.vc,
+         mitPosten.posten.map((x) => x.n + " " + x.x).join(" · "));
+    }
+
+    /* DIE FALLE MIT DEN ABSOLUTEN ZAHLEN. Gerechnet werden muss auf der
+       DIFFERENZ der Akademiebilanz — sonst bekaeme man in jeder Laufbahn Geld
+       fuer alle Profis, die man je ausgebildet hat. Im Quelltext geprueft,
+       weil die Stelle in der App liegt. */
+    const fsV = require("fs");
+    const ARGV = require("./argumente.cjs");
+    const kV = [ARGV.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+      .filter(Boolean).find((k) => { try { return fsV.statSync(k).isFile(); }
+        catch (e) { return false; } });
+    if (kV) {
+      const qV = fsV.readFileSync(kV, "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");
+      pr("VC: gerechnet wird auf der Differenz, nicht auf dem Gesamtstand",
+         /nachBil\.profis \|\| 0\) - \(vorBil\.profis \|\| 0\)/.test(qV),
+         "sonst zahlt jede Laufbahn für alle je ausgebildeten Profis");
+    }
+  }
+
   /* ============ Der Bonus des Vorgaengers (35.73) ========================
      Kevin: „ich hab das Gefuehl, dass bei Erstellung eines neuen Vereins
      danach die Bonis nicht uebernommen werden."
@@ -996,7 +1415,16 @@ console.log("=== Vereinsprüfung ===\n");
            ist unerreichbar. Ein Pruefstand, der einen Verein nachbildet, muss
            einen nachbilden, der sich entwickelt: genau das tut ein Verein,
            dessen Akademie ausgebaut wird. */
-        const stufe = Math.min(84, 58 + j * 2);
+        /* STARK GENUG, DASS DER TITEL SICHER IST (berichtigt 35.86).
+           Mit einer Obergrenze von 84 wurde der Testverein nach dem Aufstieg
+           in die Bundesliga nur noch Mittelmass — „Meisterschale" und „Beide
+           Haeuser" fielen dann manchmal nicht, und die Pruefung meldete rot,
+           obwohl an den Bedingungen nichts falsch war.
+           Vierter sporadischer Befund in diesem Projekt. Hier geht es um
+           ERREICHBARKEIT, nicht um eine faire Liga: der Testverein soll
+           gewinnen, damit die Frage „ist es erreichbar" ueberhaupt
+           beantwortbar wird. */
+        const stufe = Math.min(94, 62 + j * 3);
         gvv = V.autoAufstellen({ ...gvv,
           kader: gk.map((x, i) => ({ ...x, id: "j" + j + "_" + i, ovr: stufe,
             pot: Math.min(92, stufe + 8), alter: 20,

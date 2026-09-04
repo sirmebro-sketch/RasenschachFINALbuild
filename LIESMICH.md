@@ -7,6 +7,8 @@
     App.jsx                 das ganze Spiel
     ereignisse.js           die Ereignisse, ausgelagert seit 35.6
     verein.js               der eigene Verein, ausgelagert seit 35.17
+    karten.js               Sammelkarten und dauerhafter Spielerpool, seit 35.79
+    titelbild.js            das Aufmacherfoto des Titelblatts, seit 35.100
     namen.js                die Namenskartei, ein Eintrag je Land (seit 35.43)
     akademie.js             die Jugendakademie, ausgelagert seit 35.48
     schriften.js            Anton und Archivo als Base64

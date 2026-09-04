@@ -42,7 +42,14 @@ kunst = im.crop((rahmen, rahmen, W - rahmen, H - rahmen))
 print("Bildinhalt: %dx%d" % kunst.size)
 
 # --- Ebenen bauen ---
-ANTEIL = 72 / 108        # sichere Fläche der Maske
+# 66 STATT 72 (35.100). Android nennt 72/108 die "sichtbare" Flaeche und
+# 66/108 die SICHERE — die, die jede Maske ganz zeigt, auch der Kreis. Bei 72
+# stand die Schrift RASENSCHACH bis an den Rand und wurde vom Kreis an beiden
+# Enden abgeschnitten; im Bild nachgesehen.
+# Der Unterschied sind nur sechs von 108 Einheiten, aber genau die entscheiden,
+# ob eine Schrift ganz dasteht. Der Rand wird ohnehin mit einer unscharfen
+# Vergroesserung aufgefuellt, es entsteht also kein Loch.
+ANTEIL = 66 / 108        # SICHERE Flaeche der Maske (nicht die sichtbare)
 
 def vordergrund(kante):
     """Scharfes Bild auf den mittleren 72 von 108 Einheiten, außen durchsichtig.

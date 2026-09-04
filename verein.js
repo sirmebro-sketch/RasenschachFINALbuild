@@ -397,7 +397,135 @@ export const machVerein = (H) => {
       text: s.name + " spielt wieder in der Jugend." };
   };
 
+  /* ---- Die Aufstellung als Feld (35.91) ----------------------------------
+     Kevin: „Die Aufstellung der Karten sollte schon passend zur Aufstellung
+     sein", mit einer Skizze:
+                    TW
+           AV   IV   IV   AV
+                 ZM   ZM
+           AF               AF
+                    ST
+
+     Ein Raster mit vier gleichen Spalten zeigt elf Karten, aber keine
+     Aufstellung. Wer eine Formation waehlt, will sie SEHEN — sonst ist die
+     Wahl eine Liste von Namen.
+
+     DIE REIHEN KOMMEN AUS DER KENNUNG, nicht aus einer zweiten Tabelle. „442"
+     heisst 4-4-2, also nach dem Torwart drei Reihen mit 4, 4 und 2 Spielern.
+     Eine zweite Tabelle waere eine zweite Wahrheit ueber dieselbe Sache — und
+     die laeuft irgendwann auseinander (siehe Reiterzeilen 35.59,
+     Kachelraender 35.64).
+
+     AUSSEN SIND DIE AUSSEN. Innerhalb einer Reihe wandern die
+     Aussenpositionen (AV, AF) an die Raender, die zentralen in die Mitte.
+     Ohne das stuenden bei 4-4-2 „IV IV AV AV" nebeneinander, und die Abwehr
+     saehe aus, als haetten sich beide Aussenverteidiger auf eine Seite
+     gestellt.                                                              */
+  const AUSSEN = ["AV", "AF"];
+
+  const reihenOrdnen = (pos) => {
+    const aussen = pos.filter((x) => AUSSEN.indexOf(x) >= 0);
+    const innen = pos.filter((x) => AUSSEN.indexOf(x) < 0);
+    if (aussen.length < 2) return pos.slice();
+    /* Erste und letzte nach aussen, der Rest bleibt in der Mitte. Bei drei
+       Aussenspielern (kommt in keiner Formation vor, koennte aber) landet der
+       dritte in der Mitte — besser als ihn wegzulassen. */
+    return [aussen[0], ...innen, ...aussen.slice(2), aussen[1]];
+  };
+
+  /* Gibt die Plaetze als Reihen zurueck, jede mit ihren Stellen im
+     Aufstellungsfeld. Die Stelle (`i`) muss mitwandern: die Aufstellung wird
+     ueber sie gefuehrt, und nach dem Umsortieren stimmt die Reihenfolge im
+     Feld nicht mehr mit der im Array ueberein. */
+  const feldReihen = (formation) => {
+    const F = FORMATIONEN.find((x) => x.id === formation) || FORMATIONEN[0];
+    const ziffern = String(F.id).split("").map(Number).filter((n) => n > 0);
+    const reihen = [];
+    let k = 0;
+    /* Der Torwart steht allein. */
+    reihen.push([{ pos: F.plaetze[0], i: 0 }]);
+    k = 1;
+    ziffern.forEach((anz) => {
+      const teil = [];
+      for (let j = 0; j < anz && k < F.plaetze.length; j++, k++) {
+        teil.push({ pos: F.plaetze[k], i: k });
+      }
+      if (!teil.length) return;
+      /* Umsortieren, aber die Stellen mitnehmen. */
+      const nurPos = teil.map((x) => x.pos);
+      const geordnet = reihenOrdnen(nurPos);
+      const genommen = {};
+      reihen.push(geordnet.map((pz) => {
+        const kandidat = teil.find((x) => x.pos === pz && !genommen[x.i]);
+        if (kandidat) { genommen[kandidat.i] = true; return kandidat; }
+        return teil.find((x) => !genommen[x.i]);
+      }).filter(Boolean));
+    });
+    /* Reste (falls die Ziffern nicht aufgehen) hinten anhaengen — besser eine
+       schiefe Reihe als ein fehlender Spieler. */
+    while (k < F.plaetze.length) { reihen.push([{ pos: F.plaetze[k], i: k }]); k++; }
+    return reihen;
+  };
+
   const kaderVoll = (v) => (v.kader || []).length >= KADER_MIN;
+
+  /* ---- Gezogene Karten in den Kader (35.85) ------------------------------
+     Kevins Bedingung von Anfang an: „Gezogene Spieler kommen nur DAZU und
+     sollen die Spieler aus der Akademie lediglich ERGAENZEN."
+
+     Ohne Grenze waere das eine leere Zusage. Wer genug Packs kauft, haette
+     eine ganze Mannschaft aus dem Laden — die Akademie waere dann nicht
+     ersetzt, aber ueberfluessig, und das kommt aufs selbe heraus.
+
+     PACK_ANTEIL sagt, welcher Teil des Kaders aus Packs stammen darf. Ein
+     Drittel: die Elf steht dann immer mehrheitlich aus eigener Ausbildung,
+     und die gezogenen Spieler sind Verstaerkung, nicht Grundstock.
+     Gerechnet auf KADER_MIN, nicht auf die tatsaechliche Kadergroesse —
+     sonst koennte man die Grenze umgehen, indem man erst Karten einsetzt und
+     dann Talente hochzieht. */
+  const PACK_ANTEIL = 1 / 3;
+  const packImKader = (v) => (v.kader || []).filter((s) => s.ausPack).length;
+  const packPlatz = (v) => Math.max(0, Math.floor(KADER_MIN * PACK_ANTEIL) - packImKader(v));
+
+  /* Einen gezogenen Spieler wieder aus dem Kader nehmen (35.86). Er bleibt in
+     der Sammlung — nur der Kaderplatz wird frei. Wer ihn ganz loswerden will,
+     verkauft ihn im Laden; das sind zwei verschiedene Entscheidungen. */
+  const karteEntfernen = (v0, kid) => {
+    const v = { ...v0, kader: [...((v0 && v0.kader) || [])] };
+    const i = v.kader.findIndex((s2) => s2.id === kid);
+    if (i < 0) return { v: v0, fehler: "Der steht nicht im Kader." };
+    if (!v.kader[i].ausPack) {
+      return { v: v0, fehler: "Eigengewächse gehen über die Kaderverwaltung." };
+    }
+    v.kader.splice(i, 1);
+    /* Die Aufstellung kann ihn noch enthalten — dann stuende dort ein Spieler,
+       den es nicht mehr gibt. */
+    if (v.elf) v.elf = v.elf.map((x) => (x === kid ? null : x));
+    return { v, fehler: null };
+  };
+
+  const karteEinsetzen = (v0, karte) => {
+    const v = { ...v0, kader: [...((v0 && v0.kader) || [])] };
+    if (!v.gegruendet) return { v: v0, fehler: "Erst einen Verein gründen." };
+    if (!karte) return { v: v0, fehler: "Keine Karte." };
+    if (packPlatz(v) <= 0) {
+      return { v: v0, fehler: "Höchstens " + Math.floor(KADER_MIN * PACK_ANTEIL)
+        + " gezogene Spieler im Kader — der Rest kommt aus der Jugend." };
+    }
+    if (v.kader.some((s) => s.id === karte.kid)) {
+      return { v: v0, fehler: "Der steht schon im Kader." };
+    }
+    v.kader.push({
+      id: karte.kid, name: karte.name, nat: karte.nat, flag: karte.flag,
+      pos: karte.pos, ovr: karte.ovr, pot: karte.pot, alter: karte.alter,
+      form: 50, fitness: 80, spiele: 0, tore: 0, jahreImVerein: 0,
+      /* DIE HERKUNFT BLEIBT AM SPIELER. Ohne sie liesse sich die Grenze nach
+         dem naechsten Laden des Spielstands nicht mehr nachrechnen — und eine
+         Grenze, die man nur beim Einsetzen kennt, ist keine. */
+      ausPack: true, stufe: karte.stufe,
+    });
+    return { v, fehler: null };
+  };
 
   /* Sechzehn Spieler sind NICHT dasselbe wie eine aufstellbare Mannschaft.
      Zieht man die staerksten Talente hoch, kann der Torwart fehlen — dann
@@ -1228,6 +1356,8 @@ export const machVerein = (H) => {
   return { KADER_MIN, VEREIN_JAHRE, FORMATIONEN, TAKTIKEN, GUETE,
            leererVerein, gruenden, kennungSetzen, pyramide, stufenVon, startligen,
            hochziehen, kaderVoll, bedarf, startklar, alsSpieler, guete, kannSpielen,
+           karteEinsetzen, karteEntfernen, packPlatz, packImKader, PACK_ANTEIL,
+           feldReihen, reihenOrdnen,
            staerke, autoAufstellen, vereinSaison, einschreiben, spieltMit,
            ligaSpielen, erwarteteTore, poisson, saisonSpielen,
            kandidaten, aufstellen, freimachen, aufstellungSaeubern, ueberzeugt,

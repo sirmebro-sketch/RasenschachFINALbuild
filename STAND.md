@@ -45,7 +45,7 @@
 > Danach: Langzeitbeobachtung (offener Punkt 13) und die Gestaltungsfragen
 > 1 bis 3 und 5, die alle Augen brauchen statt Messungen.
 
-**Fassung 35.75** · Stand 30. August 2026
+**Fassung 35.100** · Stand 4. September 2026
 
 <!-- VERZEICHNIS -->
 
@@ -55,127 +55,152 @@
 
 | Zeile | Abschnitt |
 |---:|---|
-| 190 | 1. Was das Projekt ist |
-| 273 | 2. Zusammenarbeit |
-| 289 | 3. Was drin ist (Grobüberblick) |
-| 402 | 4. Kalibrierung — worauf eingestellt wurde |
-| 441 | 5. Prüfstand |
-| 526 | 6. Stolperfallen — teuer gelernt |
-| 565 | 7. Was offen ist |
-| 593 | 8. Wie ein neuer Chat anfangen sollte |
-| 683 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
-| 1007 | Auf dem Gerät geprüft — 10.8.2026 |
-| 1114 | 34.0 · Die Spielerporträts |
-| 1231 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
-| 1479 | 34.8 · Vier gemeldete Punkte |
-| 1531 | 34.9 · Block A — fünf Fehler im Spielfluss |
-| 1596 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
-| 1651 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
-| 1699 | 34.12 · Block C — Frauenfußball |
-| 1754 | 34.13 · Block D, erster Teil |
-| 1803 | 34.14 · Die Wachstumskurve |
-| 1857 | 34.15 · Die Rückblick-Karten |
-| 1896 | 34.16 · Zwei Fehler aus Kevins Test |
-| 1956 | 34.17 · Die Freischaltungen |
-| 1991 | 34.18 · Der Vermächtnis-Laden |
-| 2059 | 34.19 · Der gekaufte Kartentausch wirkt |
-| 2105 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
-| 2137 | 34.21 · Laden und Zahnrad lagen aufeinander |
-| 2218 | 34.22 · Der Laden rechnet ab, und zwei Texte |
-| 2305 | 34.23 · Jede neue Seite beginnt oben |
-| 2362 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
-| 2434 | 34.25 · Die Ränge der Errungenschaften |
-| 2497 | 34.26 · Der Rückblick liegt auf Karteikarten |
-| 2567 | 34.27 · Drei wirklich runde Kopfformen |
-| 2636 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
-| 2672 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
-| 2739 | 34.30 · Aufräumen nach dem Belastungstest |
-| 2801 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
-| 2847 | 34.32 · Die Wildcard auf hellem Papier |
-| 2885 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
-| 2922 | 34.34 · Drei Meldungen aus dem Spiel |
-| 2977 | 34.35 · Bärte bleiben in der Kopfform |
-| 3010 | Kevins Testprotokoll zu 34.33 — Ergebnis |
-| 3035 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
-| 3083 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
-| 3130 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
-| 3181 | 35.1 · Werkzeugpflege |
-| 3236 | 35.2 · STAND.md hat ein Verzeichnis |
-| 3271 | 35.3 · Eine Regel weniger zum Merken |
-| 3308 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
-| 3416 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
-| 3545 | 35.6 · Die Ereignisse ziehen aus |
-| 3621 | 35.7 · Entscheidungen mit Folgen |
-| 3687 | 35.8 · Deine Werte öffnen Türen |
-| 3763 | 35.9 · Storystränge |
-| 3829 | 35.10 · Der Anfang war die engste Stelle |
-| 3902 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
-| 3966 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
-| 4033 | 35.13 · Die Akademie wird größer |
-| 4119 | 35.14 · Antworten, die nur manchmal da sind |
-| 4189 | 35.15 · Vier Geschichten statt einer |
-| 4241 | 35.16 · Vierundzwanzig weitere Male anders |
-| 4306 | 35.17 · Der eigene Verein — Durchstich |
-| 4400 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
-| 4462 | 35.19 · Die Akademie wird zeitlos |
-| 4507 | 35.20 · Der Verein bekommt ein Gesicht |
-| 4571 | 35.21 · Der Verein ist erreichbar |
-| 4621 | 35.22 · Was hier stand, stimmte nicht mehr |
-| 4707 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
-| 4813 | 35.24 · Durchsicht des ganzen Projektwissens |
-| 4924 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
-| 4995 | 35.26 · Das Tutorial |
-| 5097 | 35.27 · Erster Gerätetest des Vereinsmodus |
-| 5180 | 35.28 · Der Verein läuft nebenher |
-| 5296 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
-| 5374 | 35.30 · Die Bauanleitung war unvollständig |
-| 5533 | 35.31 · Die Moral steht in der Anleitung — und liefert ande… |
-| 5623 | 35.32 · Die Akademie steht im Rückblick |
-| 5728 | 35.33 · Die Ruhmeshalle war nie geprüft |
-| 5807 | 35.34 · Jugendturniere bekommen Namen und Gegner |
-| 5945 | 35.35 · Drei Flaggen bekommen Folgen |
-| 6060 | 35.36 · Die letzten zwei Flaggen bekommen Inhalt |
-| 6154 | 35.37 · Ereignisse, die zum falschen Moment kommen |
-| 6306 | 35.38 · Der Kapitän spricht nicht mehr mit sich selbst |
-| 6416 | 35.39 · Die Akademie zahlt früher — und sagt es |
-| 6529 | 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe |
-| 6611 | 35.41 · Werkzeugkasten aufgeräumt |
-| 6719 | 35.42 · Der Abschlussbildschirm wird übersichtlich |
-| 6841 | 35.43 · Namen nach Land statt nach Sprachraum |
-| 7046 | 35.44 · Eine Kennzahl, die nichts mehr bedeutete |
-| 7110 | 35.45 · Sechs Listen, die auseinandergelaufen waren |
-| 7262 | 35.46 · Der Bau ist wiederholbar — und eine eigene Behauptu… |
-| 7398 | 35.47 · Der Prüfstand sieht nach der Sicherheitslage |
-| 7504 | 35.48 · Die Akademie zieht aus |
-| 7631 | 35.49 · Stufe A — die Aufstellung von Hand |
-| 7753 | 35.50 · Ein Dach über Akademie und Profimannschaft |
-| 7828 | 35.51 · Der Abschluss schließt ab |
-| 7954 | 35.52 · Stufe B — die Saison wird gespielt |
-| 8074 | 35.53 · Stufe C, erster Teil — Verträge und Postkorb |
-| 8182 | 35.54 · Stufe C, zweiter Teil — Kaderverträge, und Punkt 21… |
-| 8280 | 35.55 · Stufe D — den Kader ausdünnen |
-| 8356 | 35.56 · Die Werkstatt war nie da, und die Namen kamen alle… |
-| 8462 | 35.57 · Die Namen haben ihre Zeichen zurück |
-| 8543 | 35.58 · Drei Befunde vom Gerät — und einer davon war unsich… |
-| 8618 | 35.59 · Die Auswahl steht dort, wo man hingetippt hat |
-| 8653 | 35.60 · Das Dach zeigt den Stand, statt ihn zu verstecken |
-| 8712 | 35.61 · Verwaltung im Jugendhaus |
-| 8762 | 35.62 · Errungenschaften für den eigenen Verein |
-| 8858 | 35.63 · Kartenoptik hinter dem Porträt |
-| 8926 | 35.64 · Derselbe Fehler, eine Klasse weiter |
-| 8981 | 35.65 · Verträge auf Papier — und eine ganze Farbwelt war u… |
-| 9041 | 35.66 · Der Rücktrittsknopf tat vier Fassungen lang nichts |
-| 9093 | 35.67 · Erst der Verein, dann die Liga |
-| 9165 | 35.68 · Wappen im Dach, Postfach zu |
-| 9211 | 35.69 · Der Rahmen von damals, und eine Rückseite |
-| 9282 | 35.70 · „Dein Verein" gehört jetzt zum Blatt |
-| 9327 | 35.71 · Nachgesehen: hängt jeder Bildschirm am Blatt? |
-| 9379 | 35.72 · Gleich gebaut war nicht gleich laut |
-| 9435 | 35.73 · Der Abschluss lebte nur im Arbeitsspeicher |
-| 9489 | 35.74 · Achtzehn Ziele für die langen Jahre |
-| 9566 | 35.75 · Die Hallenkarten wenden sich wie ein Spielerpass |
-| 9609 | Offene Punkte (Stand 35.75) |
-| 9891 | Zusätzliche Stolperfallen |
+| 215 | 1. Was das Projekt ist |
+| 300 | 2. Zusammenarbeit |
+| 316 | 3. Was drin ist (Grobüberblick) |
+| 429 | 4. Kalibrierung — worauf eingestellt wurde |
+| 468 | 5. Prüfstand |
+| 553 | 6. Stolperfallen — teuer gelernt |
+| 592 | 7. Was offen ist |
+| 620 | 8. Wie ein neuer Chat anfangen sollte |
+| 710 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
+| 1034 | Auf dem Gerät geprüft — 10.8.2026 |
+| 1141 | 34.0 · Die Spielerporträts |
+| 1258 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
+| 1506 | 34.8 · Vier gemeldete Punkte |
+| 1558 | 34.9 · Block A — fünf Fehler im Spielfluss |
+| 1623 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
+| 1678 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
+| 1726 | 34.12 · Block C — Frauenfußball |
+| 1781 | 34.13 · Block D, erster Teil |
+| 1830 | 34.14 · Die Wachstumskurve |
+| 1884 | 34.15 · Die Rückblick-Karten |
+| 1923 | 34.16 · Zwei Fehler aus Kevins Test |
+| 1983 | 34.17 · Die Freischaltungen |
+| 2018 | 34.18 · Der Vermächtnis-Laden |
+| 2086 | 34.19 · Der gekaufte Kartentausch wirkt |
+| 2132 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
+| 2164 | 34.21 · Laden und Zahnrad lagen aufeinander |
+| 2245 | 34.22 · Der Laden rechnet ab, und zwei Texte |
+| 2332 | 34.23 · Jede neue Seite beginnt oben |
+| 2389 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
+| 2461 | 34.25 · Die Ränge der Errungenschaften |
+| 2524 | 34.26 · Der Rückblick liegt auf Karteikarten |
+| 2594 | 34.27 · Drei wirklich runde Kopfformen |
+| 2663 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
+| 2699 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
+| 2766 | 34.30 · Aufräumen nach dem Belastungstest |
+| 2828 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
+| 2874 | 34.32 · Die Wildcard auf hellem Papier |
+| 2912 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
+| 2949 | 34.34 · Drei Meldungen aus dem Spiel |
+| 3004 | 34.35 · Bärte bleiben in der Kopfform |
+| 3037 | Kevins Testprotokoll zu 34.33 — Ergebnis |
+| 3062 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
+| 3110 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
+| 3157 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
+| 3208 | 35.1 · Werkzeugpflege |
+| 3263 | 35.2 · STAND.md hat ein Verzeichnis |
+| 3298 | 35.3 · Eine Regel weniger zum Merken |
+| 3335 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
+| 3443 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
+| 3572 | 35.6 · Die Ereignisse ziehen aus |
+| 3648 | 35.7 · Entscheidungen mit Folgen |
+| 3714 | 35.8 · Deine Werte öffnen Türen |
+| 3790 | 35.9 · Storystränge |
+| 3856 | 35.10 · Der Anfang war die engste Stelle |
+| 3929 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
+| 3993 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
+| 4060 | 35.13 · Die Akademie wird größer |
+| 4146 | 35.14 · Antworten, die nur manchmal da sind |
+| 4216 | 35.15 · Vier Geschichten statt einer |
+| 4268 | 35.16 · Vierundzwanzig weitere Male anders |
+| 4333 | 35.17 · Der eigene Verein — Durchstich |
+| 4427 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
+| 4489 | 35.19 · Die Akademie wird zeitlos |
+| 4534 | 35.20 · Der Verein bekommt ein Gesicht |
+| 4598 | 35.21 · Der Verein ist erreichbar |
+| 4648 | 35.22 · Was hier stand, stimmte nicht mehr |
+| 4734 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
+| 4840 | 35.24 · Durchsicht des ganzen Projektwissens |
+| 4951 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
+| 5022 | 35.26 · Das Tutorial |
+| 5124 | 35.27 · Erster Gerätetest des Vereinsmodus |
+| 5207 | 35.28 · Der Verein läuft nebenher |
+| 5323 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
+| 5401 | 35.30 · Die Bauanleitung war unvollständig |
+| 5560 | 35.31 · Die Moral steht in der Anleitung — und liefert ande… |
+| 5650 | 35.32 · Die Akademie steht im Rückblick |
+| 5755 | 35.33 · Die Ruhmeshalle war nie geprüft |
+| 5834 | 35.34 · Jugendturniere bekommen Namen und Gegner |
+| 5972 | 35.35 · Drei Flaggen bekommen Folgen |
+| 6087 | 35.36 · Die letzten zwei Flaggen bekommen Inhalt |
+| 6181 | 35.37 · Ereignisse, die zum falschen Moment kommen |
+| 6333 | 35.38 · Der Kapitän spricht nicht mehr mit sich selbst |
+| 6443 | 35.39 · Die Akademie zahlt früher — und sagt es |
+| 6556 | 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe |
+| 6638 | 35.41 · Werkzeugkasten aufgeräumt |
+| 6746 | 35.42 · Der Abschlussbildschirm wird übersichtlich |
+| 6868 | 35.43 · Namen nach Land statt nach Sprachraum |
+| 7073 | 35.44 · Eine Kennzahl, die nichts mehr bedeutete |
+| 7137 | 35.45 · Sechs Listen, die auseinandergelaufen waren |
+| 7289 | 35.46 · Der Bau ist wiederholbar — und eine eigene Behauptu… |
+| 7425 | 35.47 · Der Prüfstand sieht nach der Sicherheitslage |
+| 7531 | 35.48 · Die Akademie zieht aus |
+| 7658 | 35.49 · Stufe A — die Aufstellung von Hand |
+| 7780 | 35.50 · Ein Dach über Akademie und Profimannschaft |
+| 7855 | 35.51 · Der Abschluss schließt ab |
+| 7981 | 35.52 · Stufe B — die Saison wird gespielt |
+| 8101 | 35.53 · Stufe C, erster Teil — Verträge und Postkorb |
+| 8209 | 35.54 · Stufe C, zweiter Teil — Kaderverträge, und Punkt 21… |
+| 8307 | 35.55 · Stufe D — den Kader ausdünnen |
+| 8383 | 35.56 · Die Werkstatt war nie da, und die Namen kamen alle… |
+| 8489 | 35.57 · Die Namen haben ihre Zeichen zurück |
+| 8570 | 35.58 · Drei Befunde vom Gerät — und einer davon war unsich… |
+| 8645 | 35.59 · Die Auswahl steht dort, wo man hingetippt hat |
+| 8680 | 35.60 · Das Dach zeigt den Stand, statt ihn zu verstecken |
+| 8739 | 35.61 · Verwaltung im Jugendhaus |
+| 8789 | 35.62 · Errungenschaften für den eigenen Verein |
+| 8885 | 35.63 · Kartenoptik hinter dem Porträt |
+| 8953 | 35.64 · Derselbe Fehler, eine Klasse weiter |
+| 9008 | 35.65 · Verträge auf Papier — und eine ganze Farbwelt war u… |
+| 9068 | 35.66 · Der Rücktrittsknopf tat vier Fassungen lang nichts |
+| 9120 | 35.67 · Erst der Verein, dann die Liga |
+| 9192 | 35.68 · Wappen im Dach, Postfach zu |
+| 9238 | 35.69 · Der Rahmen von damals, und eine Rückseite |
+| 9309 | 35.70 · „Dein Verein" gehört jetzt zum Blatt |
+| 9354 | 35.71 · Nachgesehen: hängt jeder Bildschirm am Blatt? |
+| 9406 | 35.72 · Gleich gebaut war nicht gleich laut |
+| 9462 | 35.73 · Der Abschluss lebte nur im Arbeitsspeicher |
+| 9516 | 35.74 · Achtzehn Ziele für die langen Jahre |
+| 9593 | 35.75 · Die Hallenkarten wenden sich wie ein Spielerpass |
+| 9636 | 35.76 · Der Sonderschuss |
+| 9733 | 35.77 · Sonderschuss auf Knopfdruck |
+| 9776 | 35.78 · Der Sonderschuss wird ein Fenster |
+| 9838 | 35.79 · Das Fundament für die Sammelkarten |
+| 9924 | 35.80 · Vier Packs, und sie sagen, was sie kosten |
+| 9994 | 35.81 · Zwei von drei Häusern arbeiteten umsonst |
+| 10066 | 35.82 · Die Spielerkarte |
+| 10123 | 35.83 · Feste Karten, Merkmale, Jubel |
+| 10197 | 35.84 · Holoschimmer |
+| 10260 | 35.85 · Der Packladen — das Kartensystem wird spielbar |
+| 10308 | 35.86 · Eine Grenze ohne Ausweg ist eine Falle |
+| 10368 | 35.87 · Der Fundus, und Karten wischen weg |
+| 10408 | 35.88 · Die Aufstellung wird zum Kartenraster |
+| 10485 | 35.89 · Karten fallen aus dem Pack — und das Startpaket |
+| 10547 | 35.90 · Vier Befunde vom Gerät |
+| 10617 | 35.91 · Die Elf steht jetzt so, wie sie spielt |
+| 10682 | 35.92 · Ist der Tisch leer, geht es zurück |
+| 10717 | 35.93 · Das Postfach wird ein Briefsymbol |
+| 10781 | 35.94 · Acht Befunde vom Gerät |
+| 10891 | 35.95 · Ein neuer Zugang braucht einen passenden Ausgang |
+| 10926 | 35.96 · Der Schimmer, zum dritten Mal — diesmal gerechnet |
+| 10992 | 35.97 · „Warum funktioniert das an anderen Stellen?" |
+| 11056 | 35.98 · Eine Ziffer, und ein Lauf an der Zeitgrenze |
+| 11116 | 35.99 · Ein stetiger Verlauf ist nicht dasselbe wie ein ruh… |
+| 11166 | 35.100 · Neues App-Symbol, echtes Mannschaftsfoto |
+| 11233 | Offene Punkte (Stand 35.100) |
+| 11515 | Zusätzliche Stolperfallen |
 
 <!-- ENDE VERZEICHNIS -->
 
@@ -199,6 +224,8 @@ nachzählbar an den `import`-Zeilen 2 bis 7:
 |---|---|---|
 | `ereignisse.js` | die Ereignisse | 35.6 |
 | `verein.js` | der eigene Verein | 35.17 |
+| `karten.js` | Sammelkarten, Seltenheit, dauerhafter Spielerpool | 35.79 |
+| `titelbild.js` | das Aufmacherfoto des Titelblatts (WebP, eingebettet) | 35.100 |
 | `namen.js` | die Namenskartei, ein Eintrag je Land | 35.43 |
 | `akademie.js` | die Jugendakademie: Talente, Jahreslauf, Ausbau, Gabe | 35.48 |
 | `schriften.js` | Anton und Archivo als Base64 | 33.3 |
@@ -9606,7 +9633,1604 @@ Zwei Gegenproben: Doppeltipp-Erkennung ausgehebelt → drei Meldungen; Klasse
 Im Browser nachgesehen: nach einem Tipp `class="wender"`, nach dem Doppeltipp
 `class="wender um"`.
 
-## Offene Punkte (Stand 35.75)
+## 35.76 · Der Sonderschuss
+
+Kevins Idee: nach einer Saison mit Note 2,1 oder besser gibt es im nächsten
+Training ein kleines Spiel — ein Ball läuft schnell durch einen Balken, man
+trifft ein Segment, das beste ist das schmalste.
+
+### Die Schwelle 2,1 hätte das Spiel fast unsichtbar gemacht
+
+**Erst gemessen**, 400 Laufbahnen mit 9.382 Saisons:
+
+    Note <= 2,1 erreichen     4,6 % aller Saisons
+    je Laufbahn               Median 0 Treffer
+    Laufbahnen ganz ohne      65 %
+
+Der Median-Spieler hätte das Minispiel **nie** gesehen. Und es hätte fast nur
+die Spitze getroffen: ab OVR 85 in 32 % der Saisons, unter OVR 70 in 1,1 %.
+**Die Belohnung wäre ausgerechnet dort angekommen, wo Anlagepunkte niemandem
+mehr nutzen.**
+
+Meine erste Messung war dabei selbst falsch — sie ließ Angebote, Vereinswechsel
+und Alterung weg, jede Laufbahn lief die vollen 40 Runden, und die Noten waren
+entsprechend gut (Median 1,40 statt 3,30). Verräterisch war „40,0 Saisons im
+Schnitt" bei einer Schleifengrenze von 40: **keine einzige Laufbahn endete von
+selbst.**
+
+### Kevins Lösung war die richtige
+
+Er wollte die 2,1 behalten und **Auszeichnungen** dazunehmen —
+Torschützenkönig, Spieler der Saison, Weltfußballer, Bester Nachwuchsspieler,
+dazu Titel. Gemessen:
+
+| | Median je Laufbahn | ohne Treffer |
+|---|---|---|
+| Note 2,1 allein | 0 | 65 % |
+| **Note 2,1 oder Auszeichnung** | **7** | **3 %** |
+
+„Bester Nachwuchsspieler" trifft genau die Jungen — die Gruppe, die über die
+Note nie hingekommen wäre.
+
+### Was es einbringt
+
+Sieben Felder, symmetrisch um die Mitte (26/17/5/**4**/5/17/26). Das beste ist
+das schmalste, deckt **4 %** ab und gibt als einziges einen Anlagepunkt. Ein
+Versuch; wer danebentrifft, bekommt einen Attributpunkt als Trost — die Saison
+war ja trotzdem gut.
+
+Die Punkte gehen auf die **wichtigsten Werte der Position**, nach `POS[pos].w`
+sortiert: ein Stürmer bekommt Abschluss, ein Torwart Zweikampf.
+
+**Gemessen, was es mit einer Laufbahn macht** (250 je Fall):
+
+    ohne Sonderschuss          802 Punkte · Peak-OVR 75,6
+    mit Zufallstreffern        813 Punkte · Peak-OVR 76,1   (7,1 Schüsse)
+    mit lauter Volltreffern    896 Punkte · Peak-OVR 78,4
+
+Können bringt **+12 %**, Glück +1,4 %. Das ist spürbar, ohne das Spiel zu
+entwerten.
+
+**Eine Einschränkung, die dazugehört:** das Kalibrierband „Laufbahnen bis
+Vollausbau 25–35" wurde ohne Minispiel gerechnet. Wer jedes Mal perfekt trifft,
+landet rechnerisch bei rund 24 — knapp unter dem Band. Das ist kein Fehler,
+sondern der Preis einer Belohnung für Können, und es steht hier, damit niemand
+es später für Drift hält.
+
+### Zwei Dinge, die keine Bequemlichkeit sind
+
+**Die Bewegung läuft über die wirkliche Zeit**, nicht über einen Zähler je
+Bild. Auf einem 120-Hz-Gerät wäre ein Bildzähler doppelt so schnell — dasselbe
+Spiel wäre auf dem besseren Telefon schwerer.
+
+**Wer Bewegung abgeschaltet hat**, bekommt den Balken ohne Lauf und einen
+festen mittleren Gewinn. Ein Geschicklichkeitsspiel darf niemanden von einer
+Belohnung aussperren, der aus gutem Grund keine schnellen Bewegungen sehen
+will.
+
+### Drei eigene Fehler
+
+**Erster:** `POS[pos].key` gibt es nicht — die Gewichte stehen in `w`. Der
+Ausdruck wäre still auf „alle Werte" zurückgefallen und hätte einem Torwart
+Abschlusspunkte gegeben. **Vierter erfundener Name in dieser Sitzung**, nach
+`TIER_BONUS`, `ARG2` und `mischen`.
+
+**Zweiter:** `left: calc(47.1% - 10px)` — im Browser richtig, aber jsdoms
+CSS-Parser bricht daran ab, und die Ablaufprüfung liest die Stile des **ganzen**
+Dokuments. Sie meldete `")" is expected` an einer Stelle, die mit dem
+Sonderschuss nichts zu tun hat.
+
+**Dritter:** Meine Prüfung erwartete Anlagepunkte an **zwei** Feldern, weil ich
+die Spiegelung mitgedacht habe, ohne nachzusehen. Das beste Feld liegt in der
+Mitte und ist genau einmal da.
+
+### Geprüft
+
+**Ansichten 679 → 693.** Die neuen prüfen Symmetrie, dass das beste Feld das
+schmalste ist, seinen Anteil (2–15 %), den Trostbonus und seine Obergrenze —
+und dass es bei abgeschalteter Bewegung trotzdem eine Belohnung gibt.
+
+## 35.77 · Sonderschuss auf Knopfdruck
+
+Kevin: „Kannst du mir ins Werkzeug einbauen, dass ich dort auswählen kann, dass
+das Minispiel sofort kommt, um es zu testen."
+
+Berechtigt: der Schuss kommt sonst erst nach einer Saison mit Note 2,1 oder
+einer Auszeichnung. Um das **Tempo des Balls** zu beurteilen, müsste man dafür
+jedes Mal eine Saison spielen — genau die Art Wartezeit, für die es die
+Werkstatt gibt.
+
+Der Knopf setzt die Marke `sonderchance` im Spielstand — **dasselbe Feld, das
+`simulateSeason` setzt.** Kein Sonderweg im Spiel, also kann auch nichts
+auseinanderlaufen: was hier ausgelöst wird, ist derselbe Ablauf wie im
+Ernstfall.
+
+### Meine erste Meldung log
+
+Sie sagte „Keine laufende Laufbahn", während eine lief. Gemessen: nach „Neue
+Laufbahn" und dem ganzen Spielerpass steht unter `rasenschach:stand` **noch
+nichts** — `saveGame` läuft erst beim Saisonergebnis oder wenn man „Hauptmenü"
+drückt. Das ist die Bauart des Spiels, kein Fehler.
+
+**Eine Meldung, die etwas Falsches behauptet, schickt in die Irre.** Jetzt sagt
+sie, was wirklich fehlt und was zu tun ist.
+
+### Ein Fund im Bild
+
+Der Balken war auf dem Laufzettel **blass und kaum lesbar**. Ursache: ich hatte
+alle Segmente auf 45 % gedämpft und erst das getroffene hervorgehoben — also
+war der Balken ausgerechnet dann blass, **wenn man das Ziel sehen muss**. Auf
+dem Papier besonders schlimm, weil die Akzente dort dunkel sind und als
+Schleier auf hellem Karton lagen.
+
+Jetzt andersherum: vorher alle voll, nachher alle bis auf das getroffene
+zurückgenommen.
+
+### Geprüft im Browser
+
+Ganzer Weg nachgespielt: Laufbahn starten → „Hauptmenü" (speichert) → Werkstatt
+→ „Sonderschuss sofort" → neu laden → weiterspielen. Der Schuss steht im
+Training, der Grund wird genannt, keine Konsolenfehler. Ohne Spielstand kommt
+die richtige Meldung statt der falschen.
+
+## 35.78 · Der Sonderschuss wird ein Fenster
+
+Vier Punkte von Kevin nach dem ersten Spielen.
+
+### Popup, nicht wegdrückbar
+
+Es ist eine Belohnung, keine Störung: wer sie wegwischt, verliert sie — und
+wüsste nicht einmal, dass er das getan hat. Kein Schließen am Rand, kein
+Kreuz, kein Zurück. Der dunkle Grund hat **bewusst keinen `onClick`**: ein
+Tipp daneben soll nichts tun.
+
+### „Klunky" war messbar
+
+`setX` lief in **jedem Bild** — sechzig React-Durchläufe je Sekunde für ein
+Bauteil mit sieben Segmenten und einem SVG. React zeichnet dabei jedes Mal den
+ganzen Baum nach, obwohl sich nur eine Zahl ändert.
+
+Jetzt liegt die Stellung in einem `ref` und der Ball wird **direkt** bewegt
+(`ball.current.style.left`). React erfährt davon nichts. Der Zustand wechselt
+nur einmal: beim Schuss. Das Tempo bleibt bei 1500 ms — Kevin: „das Tempo ist
+in Ordnung".
+
+### Ein richtiger Fußball, 16 statt 20 px
+
+Als SVG: weißes Rund, ein Fünfeck in der Mitte, drei angeschnittene am Rand.
+Mehr Flächen wären bei dieser Größe Matsch.
+
+### Über 99 — die Mechanik gab es längst
+
+`wertGrenze(p)` liefert **112**, sobald die Regel `mx_ueber99` freigeschaltet
+ist (durch „Zwanzigtausend Spiele" oder „Das Maximum"). Mein Sonderschuss hat
+das ignoriert und hart bei 99 gedeckelt — **eine zweite Wahrheit über dieselbe
+Sache, und die schlechtere.** Jetzt nimmt er die Grenze, die es schon gibt.
+Ohne die Freischaltung bleibt es bei 99; sonst wäre sie entwertet.
+
+### Zwei Fehler, beide nur im Bild sichtbar
+
+**Erster:** Das Fenster lag im Laufzettel. `.fade` animiert `transform` mit
+`fill-mode: both` — die Transformation bleibt stehen, und ein Vorfahr mit
+Transformation macht aus `position: fixed` ein `absolute`. Der dunkle Grund
+deckte nichts ab. Behoben mit `createPortal` an `document.body`.
+
+**Zweiter, und der ärgerliche:** am Körper waren dann die **Farbvariablen weg**
+— sie sind auf `.fl` definiert, nicht auf `:root`. Der Kasten stand
+durchsichtig über dem Text darunter.
+
+**Genau diese Falle steht seit 35.65 in der Kontrastprüfung aufgeschrieben, mit
+denselben Worten.** Aufgeschrieben ist nicht befolgt — zum zweiten Mal in
+dieser Sitzung nach den Rückwärts-Anführungszeichen in 35.64.
+
+### Ein fünfter erfundener Name
+
+`ReactDOM.createPortal` — `ReactDOM` war nie eingeführt. Nach `TIER_BONUS`,
+`ARG2`, `mischen` und `POS[pos].key`. Jetzt als benannte Einfuhr aus
+`react-dom`, das ohnehin da ist.
+
+### Geprüft
+
+Die Ansichtsprüfung sucht das Fenster jetzt **am Körper**, nicht im eigenen
+Behälter — `mach` meldete sonst „Ansicht bleibt leer". Nicht falsch, nur am
+falschen Ort gesucht. Dazu neu: es darf keinen Ausweg ohne Schuss geben.
+
+## 35.79 · Das Fundament für die Sammelkarten
+
+Kevin will ein Kartensystem wie in einem TCG: Packs, Seltenheiten, jeder
+Spieler als Sammelkarte, Spieler abgeschlossener Vereine dauerhaft im Pool.
+**Das sind keine drei Punkte, das sind mehrere Fassungen.** Diese hier ist die
+erste und die unsichtbarste — ohne sie geht keine der anderen.
+
+Und die Entscheidung, die alles trägt, kam von ihm: **„Gezogene Spieler kommen
+nur dazu und sollen die Spieler aus der Akademie lediglich ergänzen."** Die
+Akademie bleibt das Herz.
+
+### Die Seltenheit ist gemessen, nicht geraten
+
+Über 539 echte Spieler aus Akademie und Kader:
+
+| Quelle | Spanne | Median |
+|---|---|---|
+| Akademieabsolventen | 38–77 | 62 |
+| Kaderspieler | 61–78 | 69 |
+| Ruhmeshalle (Peak) | 70–95 | — |
+
+**Perzentile wären hier falsch gewesen** — die Verteilung ist so schmal, dass
+Gold auf einen einzigen Wert zusammenfiel (gemessen: genau 71). Feste Grenzen
+bei **62 / 72 / 82** geben jeder Quelle eine eigene Handschrift:
+
+    Akademie   45 % bronze · 52 % silber ·  3 % gold
+    Kader       3 % bronze · 54 % silber · 43 % gold
+    Halle                    10 % silber · 50 % gold · 40 % legendär
+
+Wer eine goldene Karte sieht, weiß ungefähr, woher sie kommt.
+
+### Drei Spielerformen, eine Karte
+
+Gemessen, was Talent, Kaderspieler und Halleneintrag gemeinsam haben: Name,
+Position, Stärke, Alter, Flagge. Der Rest wandert nach `zusatz` — dort geht
+nichts verloren, und die Karte muss trotzdem nicht jede Form kennen.
+
+**Die Herkunft wird mitgeschrieben.** Kein Zierrat: Kevin will, dass ein neuer
+Verein „mind. 3 aus der vorherigen Mannschaft und mind. 1 aus der Ruhmeshalle"
+bekommt. Ohne Herkunft lässt sich das nicht ziehen.
+
+**Die Halle zeigt den Bestwert**, nicht den Stand beim Rücktritt — sonst wäre
+eine Legende eine Karte mit 58, weil sie mit achtunddreißig aufgehört hat.
+
+### Der Pool liegt bewusst nicht am Verein
+
+„Dauerhaft" ist das Wort, an dem alles hängt. Alles andere über den eigenen
+Verein liegt **am** Verein, und der wird alle fünfzehn Jahre ersetzt — genau
+daran ist in 35.73 der Abschlussbonus verlorengegangen. Der Pool bekommt
+deshalb einen eigenen Speicher.
+
+**Doppelte werden zusammengeführt, nicht angehängt**, und zwar auf den
+besseren Wert: derselbe Spieler aus drei Durchläufen ist eine Karte, sonst
+zöge ein Pack dreimal denselben Mann.
+
+Gefüllt wird beim Vereinsabschluss — die einzige richtige Stelle: der Kader
+steht fest, und gleich wird er ersetzt. Eine Saison früher wären es die
+falschen Spieler, eine später gibt es sie nicht mehr.
+
+### Eine eigene Datei
+
+`karten.js`, wie `akademie.js` (35.48) und `verein.js`. `App.jsx` hat 14.800
+Zeilen und steht als Punkt 10 als zu groß vermerkt — ein neues System gehört
+nicht hinein.
+
+**Der Prüfstand hat mich dabei erwischt:** die neue Datei fehlte in `LIESMICH.md`
+und im Verzeichnis von `STAND.md`, und der Aufbau brach mit einer Warnung ab.
+Genau dafür gibt es diese Prüfung seit 35.30 — sie hat zum ersten Mal einen
+echten Fall gefangen statt nur grün zu melden.
+
+### Geprüft
+
+**Vereinsprüfungen 250 → 264.** Sie fragen die Stufengrenzen einzeln ab
+(61/62, 71/72, 81/82), ob alle drei Quellen zu Karten werden, ob die Herkunft
+draufsteht, ob Doppelte zusammengeführt werden, ob der bessere Wert gewinnt und
+ein schlechterer **nicht** überschreibt — und ob der Pool das Speichern
+übersteht. Sonst wäre „dauerhaft" eine Behauptung.
+
+Gegenprobe: Zusammenführung ausgehebelt → drei Meldungen.
+
+### Was noch fehlt
+
+Packs mit VC und vier Stufen, die Ziehung, die Kartenoptik in Kader und
+Aufstellung, das 6er-Startpaket für den neuen Verein. In dieser Reihenfolge —
+jedes für sich prüfbar.
+
+## 35.80 · Vier Packs, und sie sagen, was sie kosten
+
+Zweiter Schritt des Kartensystems: die Packs. Noch ohne Laden — der Bildschirm
+kommt als nächstes. Was hier steht, ist die Mechanik samt Preisen, und die
+sind das eigentliche Thema.
+
+### Der erste Preisentwurf war eine Wand, keine Entscheidung
+
+Gemessen gegen die VC-Wirtschaft (Median **108 VC je Laufbahn**, Vollausbau
+**2912 VC** über 45 Stufen):
+
+| Pack zu 90 VC jede Laufbahn | Vollausbau |
+|---|---|
+| ohne Pack | 27 Laufbahnen |
+| Silberpack (90 VC) | **162 Laufbahnen** |
+| Gold (180) und Legendär (350) | nie — teurer als eine Laufbahn einbringt |
+
+**Das ist keine Entscheidung mehr, sondern eine Wand.** Jetzt 30 / 65 / 130 /
+240 VC: mit einem Silberpack je Laufbahn sind es 68 statt 27 — ein spürbarer,
+aber bezahlbarer Umweg. Gold und Legendär kosten weiter mehr, als eine Laufbahn
+einbringt; darauf spart man, und das ist Absicht.
+
+Nach dem Vollausbau hat VC ohnehin kaum noch Verwendung — der ganze VC-Laden
+kostet 241 VC für je ein Stück. Dort sind Packs genau die richtige Senke.
+
+### Die Kosten werden angesagt
+
+`preisInLaufbahnen` rechnet den Preis in die Währung um, die der Spieler
+versteht: nicht „65 VC", sondern **„etwa 0,6 Laufbahnen Ausbau"**. Ein Preis,
+dessen Folgen man erst drei Stunden später merkt, ist keine Entscheidung.
+
+Die Zahl dahinter ist gemessen, nicht geschätzt. Stünde sie falsch, würde die
+Anzeige lügen — und das wäre schlimmer als keine Anzeige.
+
+### Die Ausschüttung, über 6000 Ziehungen
+
+    Pack           Preis  bronze silber  gold legende   Zusage  Sonder
+    Bronzepack       30    73,7   24,2   2,1    0,0      100 %   0,0 %
+    Silberpack       65    42,6   47,0   9,5    0,9      100 %   5,8 %
+    Goldpack        130    13,7   43,3  38,7    4,2      100 %  14,3 %
+    Legendenpack    240     3,5   31,8  47,8   16,9      100 %  30,7 %
+
+**Die Mindestzusage hält ausnahmslos** — auch wenn der Würfel dreimal Bronze
+sagt. Ersetzt wird dann die **schwächste** Karte, nicht die erste: sonst
+verlöre man manchmal die beste des Packs.
+
+### Zwei Entscheidungen, die Kevins Vorgabe schützen
+
+**Gezogene Spieler sind fertig**, nicht fünfzehn: Alter 20–32, Anlage höchstens
+vier über der Stärke. Sie ergänzen die Akademie, sie ersetzen sie nicht — das
+war seine Bedingung, und ein Pack voller Talente hätte sie ausgehöhlt.
+
+**Sonderkarten kommen dazu, sie ersetzen nichts.** Wer eine Legende aus der
+eigenen Ruhmeshalle zieht, soll nicht dafür eine andere Karte verlieren.
+
+### Geprüft
+
+**Vereinsprüfungen 264 → 275.** 1200 Ziehungen je Pack: liefert jede die
+zugesagte Zahl, hält die Mindestzusage, kommen aus Bronze wirklich keine
+Legenden (0 von 1200), sind Sonderkarten selten genug, stürzt es ohne Pool
+nicht, wird ein unbekanntes Pack abgewiesen.
+
+Gegenprobe: Mindestzusage ausgehebelt → gemeldet.
+
+### Was noch fehlt
+
+Der Packladen (Bildschirm, Kauf, Aufdecken), das Gratis-Bronzepack je Laufbahn,
+die Kartenoptik in Kader und Aufstellung, das 6er-Startpaket für den neuen
+Verein.
+
+## 35.81 · Zwei von drei Häusern arbeiteten umsonst
+
+Kevin: „Lass uns den VC-Verdienst noch etwas verbessern. Möglicherweise über
+Erfolge in der Jugendakademie und in der Profimannschaft. Vielleicht auch über
+Errungenschaften?"
+
+**Gemessen, und der Befund gab ihm recht:** VC kamen ausschließlich aus der
+Spielerlaufbahn — Punktzahl, Titel, Länderspiele, Wildcard. Die Akademie konnte
+hundert Profis ausbilden und der Verein dreimal Meister werden, ohne dass ein
+einziger Coin dabei heraussprang.
+
+### Der schwerste Fund betraf die Prüfung selbst
+
+Nach dem Einbau meldete die Kalibrierung weiter **grün mit 28,1 Laufbahnen bis
+Vollausbau**. Sie kannte die neuen Quellen nicht — das Spiel lieferte **19,0**.
+
+**Ein Band, das eine Quelle nicht kennt, hütet nichts.** Es meldet grün über
+einen Zustand, den es gar nicht misst, und das ist schlimmer als kein Band,
+weil man sich darauf verlässt. Die Kalibrierung rechnet jetzt Akademie, Verein
+und Errungenschaften mit.
+
+### Das Band wurde bewegt — nach einer Entscheidung, nicht danach, dass es rot war
+
+Gemessen: schon die Akademie allein (11 VC je Laufbahn) drückt das Band von 27
+auf 25,3, also an die Untergrenze. **Beides — das Band 25–35 und eine spürbare
+Verbesserung — ging nicht.** Kevins Entscheidung: Band auf **20–30**, alle drei
+Quellen.
+
+Der Unterschied ist wichtig und steht auch so im Prüfstand: ein Band, das man
+verschiebt, damit es wieder grün wird, hütet nichts mehr. Dieses wurde
+verschoben, nachdem die Entscheidung gefallen war.
+
+### Die Beträge
+
+| Quelle | |
+|---|---|
+| Akademie | Profi 4 · Weltklasse 12 · Nationalspieler 6 · Turnier 5 |
+| Verein | **Meister 35** · Aufstieg 22 · unter den ersten drei 12 |
+| Errungenschaften | 1 / 1 / 2 / 4 / 7 nach Stufe |
+
+Kevin: „ein Meistertitel ist mehr wert als 20 VC" — jetzt 35, ein Drittel einer
+ganzen Spielerlaufbahn. Das trifft es, weil er fünfzehn Jahre Aufbau
+voraussetzt.
+
+**Kein Abzug beim Abstieg.** Eine Strafe auf die Währung, mit der man die
+Jugend aufbaut, träfe ausgerechnet den, der Aufbau nötig hat.
+
+### Zwei eigene Fehler
+
+**Erster:** Mein erster Entwurf gab Errungenschaften 3/6/12/20/35. Über 192
+Stück waren das **2780 VC** — bei einem Vollausbau von 2912. Das Einkommen wäre
+von 108 auf 216 gesprungen. **192 kleine Beträge sind in der Summe kein kleiner
+Betrag:** wer Einzelposten bemisst, muss sie zusammenzählen, bevor er sie für
+klein hält.
+
+**Zweiter:** Nachdem ich die Beträge gesenkt hatte, meldete meine Messung
+unverändert 93 VC. Sie trug die Zahlen noch einmal selbst ein, statt sie aus
+dem Spiel zu holen. **Eine Messung mit eigener Kopie der Zahlen misst die
+Kopie.**
+
+Dazu die Falle, die ich vermieden habe: gerechnet wird auf der **Differenz** der
+Akademiebilanz. Die absoluten Zahlen zu nehmen wäre der naheliegende Fehler —
+dann bekäme man in jeder Laufbahn Geld für alle Profis, die man je ausgebildet
+hat. Es gibt jetzt eine Prüfung dafür.
+
+### Geprüft
+
+**Vereinsprüfungen 275 → 285.** Band nach drei Läufen: 20,8 / 21,4 / 21,5 —
+rund ein Punkt Luft nach unten. Bei 1/1/3/5/9 lag es bei 20,1–21,0, also an der
+Kante; **ein Band, das zufällig kippt, wird nach dem zweiten Fehlalarm nicht
+mehr ernst genommen.**
+
+## 35.82 · Die Spielerkarte
+
+Dritter Schritt des Kartensystems, und der erste sichtbare. Kevin: „dass jeder
+Spieler — auch Spieler aus der Jugendakademie — als eine Art Sammelkarte
+behandelt und designt wird."
+
+### In der Sprache, die es schon gibt
+
+Das Spiel hat seit Langem eine Kartenoptik für die Wildcards: Klebestreifen,
+Folienrand bei den obersten Stufen, ein Verlauf auf deckender Fläche, leichte
+Schräglage. **Eine zweite Kartensprache danebenzustellen wäre der naheliegende
+Fehler** — dann hätte das Blatt zwei Handschriften. Die Spielerkarte benutzt
+dieselben Bausteine (`wkarte`, `winkel`, `folie`), nur mit anderem Inhalt.
+
+Vier Stufen, jede mit eigener Randfarbe und eigenem Verlauf. Der Folienrand
+bleibt der obersten vorbehalten — Material als Auszeichnung.
+
+### Gezeichnet, nicht gemalt
+
+Alles ist SVG und CSS: Verlauf, Rand, Porträt, Werte. **Kein einziges Bild.**
+Das hält das Bündel klein (1,34 MB für ein APK) und bleibt auf jedem Bildschirm
+scharf.
+
+### Zwei Entscheidungen im Kleinen
+
+**Die verdeckte Karte zeigt die Stufe, aber nicht den Spieler.** Ohne die Stufe
+wäre das Aufdecken ohne Erwartung; mit dem Namen gäbe es nichts aufzudecken.
+
+**Dasselbe Gesicht, immer.** Der Avatar würfelt aus einer Kennung, die aus
+`kid` gerechnet wird. Käme sie aus dem Zufall, sähe ein Spieler nach dem
+Blättern anders aus als davor.
+
+**Die Anlage erscheint nur, wenn etwas zu holen ist.** „Anlage 76" bei Stärke
+76 ist keine Auskunft, sondern Füllsel.
+
+### Drei eigene Fehler an den Prüfungen
+
+**Erster:** `nixf` benutzt, das weiter unten in einem anderen Block definiert
+ist. **Ein Name, den man anderswo gesehen hat, ist nicht derselbe wie einer,
+den man hier benutzen darf.**
+
+**Zweiter:** Den Rand über `style.borderColor` geprüft — jsdom rechnet die Farbe
+in `rgb(...)` um, der Vergleich mit dem Hexwert findet nie etwas. **Dieselbe
+Falle wie beim Verlauf in 35.72, wo sie schon im Kommentar stand.** Zum dritten
+Mal in dieser Sitzung in eine selbst dokumentierte Falle gelaufen.
+
+**Dritter:** Die verdeckte Karte hat außer der Stufe keinen Text — `mach` hält
+eine Ansicht ohne Inhalt für leer und wirft. Sie bekommt jetzt einen eigenen
+Behälter, wie das Portal-Fenster in 35.78.
+
+### Geprüft
+
+**Ansichten 692 → 715.** Je Stufe: Name da, Stufe benannt, Rand in der
+Stufenfarbe. Dazu: die verdeckte Karte verrät den Spieler nicht, zeigt aber die
+Stufe; dieselbe Karte bekommt zweimal dasselbe Gesicht; die Anlage bleibt weg,
+wenn nichts zu holen ist.
+
+## 35.83 · Feste Karten, Merkmale, Jubel
+
+Kevin nach dem ersten Blick: „An sich sind die Karten cool, aber ich würde es
+noch besser finden, wenn sie nicht teiltransparent sind, sondern eher fest und
+wie eine Sammelkarte wirken." Dazu Symbole für besondere Eigenschaften und eine
+Feier beim Ziehen seltener Karten.
+
+### Warum sie durchscheinend wirkten
+
+Gemessen: der Verlauf ging von 15 % Stufenfarbe auf `transparent`, darunter
+`--pan` = `#211E17`, ein fast schwarzes Braun. **15 % Farbe auf Schwarz sind
+kaum Farbe** — die Karte war deckend, wirkte aber wie ein Schleier.
+
+Jetzt zwei **deckende** Stopps: oben die Stufenfarbe kräftig in den Kartongrund
+gemischt, unten dunkel, dazu ein Rand von 2 px und ein feiner Glanz über der
+oberen Kante. Kein `transparent` mehr. **Eine Sammelkarte ist ein Stück Pappe,
+kein Fenster.**
+
+Die Töne werden **gerechnet**, nicht getippt: eine neue Stufe passt automatisch,
+statt acht Hexwerte nachzupflegen.
+
+### Merkmale, abgeleitet statt gewürfelt
+
+Acht Merkmale mit eigenen Symbolen: Ruhmeshalle, Eigengewächs, Rohdiamant,
+Torjäger, Bollwerk, Spielmacher, Titelsammler, Routinier.
+
+**Der naheliegende Fehler wäre, sie zu würfeln** — dann stünde „Torjäger" auf
+einem Innenverteidiger, und beim zweiten Ansehen glaubt niemand mehr, was auf
+der Karte steht. Sie kommen aus Position, Stärke, Alter, Herkunft und Titeln.
+Höchstens drei je Karte: was jeder hat, zeichnet niemanden aus.
+
+Die Symbole sind **SVG-Pfade, keine Schriftzeichen**. Das Spiel prüft seit
+35.57 die Zeichenabdeckung seiner fünf Schriften; ein Symbol, das eine davon
+nicht kennt, wäre ein leeres Kästchen.
+
+### Der Jubel
+
+Zwei Teile, absichtlich getrennt: die Karte springt auf, und ein Lichtstreifen
+wandert einmal darüber. Einzeln wäre das eine ein Zucken und das andere ein
+Reflex.
+
+**Nur für Gold, Legendär und Sonderkarten.** Eine Feier bei jeder Bronzekarte
+ist keine Feier mehr, sondern eine Wartezeit. Abgeschaltet wird sie doppelt:
+durch die Systemeinstellung für reduzierte Bewegung **und** durch den
+Ruhe-Schalter im Spiel — das eine ist das Betriebssystem, das andere eine
+Entscheidung des Spielers.
+
+### Zum dritten Mal dieselbe Falle — und diesmal gibt es eine Prüfung
+
+Ein Rückwärts-Anführungszeichen im CSS-Kommentar hat den Bau zerlegt. Passiert
+in **35.58, 35.64 und jetzt**. Nach dem zweiten Mal stand die Lehre in
+STAND.md; nach dem dritten reicht das offensichtlich nicht.
+
+**Wer sich dreimal auf sein Gedächtnis verlässt, braucht keine Lehre, sondern
+eine Prüfung.**
+
+Mein erster Anlauf legte sie in die Vereinsprüfung — und die Gegenprobe zeigte
+sofort, dass das nichts nützt: **der Aufbau bricht vorher ab, die Prüfung kommt
+nie zum Zug.** Jetzt steht sie im Hygieneabschnitt von `pruefen.sh`, vor dem
+Bau, und nennt Zeile und Fundstelle.
+
+### Und ein Prüffehler, den ich zweimal machen musste
+
+Den Rand über `style.borderColor` verglichen — jsdom rechnet in `rgb(...)` um
+(35.82). Also das rohe Attribut gelesen — **das steht dort ebenfalls als
+`rgb(...)`**, und der Hexvergleich fand weiter nichts. Jetzt wird der Hexwert
+selbst umgerechnet, damit beide Seiten dasselbe vergleichen.
+
+### Geprüft
+
+**Ansichten 715 → 740.** Kein `transparent` im Verlauf, obere und untere Farbe
+verschieden, Merkmale passen zur Position, höchstens drei, jedes hat ein
+Symbol, ein schwacher Stürmer ist kein Torjäger — und Bronze feiert nicht.
+
+## 35.84 · Holoschimmer
+
+Kevin: „Bekommen wir auf Gold und legendären Karten noch einen passenden,
+bewegenden Holoeffekt?"
+
+### Zwei Schichten, wie bei einer echten Folienkarte
+
+Ein Farbschimmer, der über die Fläche wandert, und darin ein feines Raster,
+das ihn bricht. **Ohne das Raster sieht es nach Regenbogenverlauf aus, nicht
+nach Folie.** Das Raster liegt *im* Schimmer, wandert also mit und blitzt nur
+dort auf, wo gerade Farbe ist.
+
+Nur auf Gold und Legendär. Auf Bronze und Silber wäre der Schimmer kein
+Merkmal mehr, sondern Dekoration — und **Dekoration, die überall ist, sagt
+nichts.**
+
+### Zwei Werte, beide gemessen
+
+**Die Mischart:** erst `overlay`, wie es naheliegt. Im Bild gesehen: auf
+dunklem Grund dämpft overlay die Farbe, der Schimmer las sich als
+Lichtstreifen. Jetzt `screen` — das **addiert** Licht, und genau das tut eine
+Folie: sie gibt etwas dazu, statt etwas wegzunehmen.
+
+**Die Deckung:** ich habe die Farbsättigung im Kartenbild über fünf Werte
+gemessen statt nach Gefühl zu drehen.
+
+    Deckung   Sättigung (max)
+    0,14         47,8
+    0,20         51,6
+    0,30         53,0
+    0,42         55,8
+    0,55         68,1
+
+Bis 0,3 passiert kaum etwas, danach ein Sprung. Jetzt 0,32 für Gold und 0,44
+für Legendär.
+
+### Der Text liegt oben, und das ist geprüft
+
+Ein Schimmer über der Schrift verschluckt sie — und das fiele erst auf dem
+Gerät auf, wo man es nicht mehr messen kann. Die Prüfung liest die Reihenfolge
+im Baum.
+
+Der Schimmer läuft **dauerhaft**, nicht nur beim Aufdecken: eine Folienkarte
+hört ja nicht auf zu schimmern, weil man sie kennt. Neun Sekunden je Durchlauf
+— schneller wirkt es nervös, und auf einem Bildschirm mit zwanzig Karten laufen
+zwanzig davon. Deshalb zwei Schichten und keine Schatten.
+
+### Fünfter und sechster Fall derselben Falle
+
+Rückwärts-Anführungszeichen im CSS-Kommentar, **zweimal in genau diesem
+Block**. Der Unterschied zu den drei Malen davor: **beide Male hat die Prüfung
+aus 35.83 sie gefangen**, vor dem Bau, mit Zeile und Fundstelle — statt dass
+esbuild einen Folgefehler meldete, der nach etwas ganz anderem aussieht.
+
+Das ist der ganze Zweck einer Prüfung: sie erinnert sich, wenn ich es nicht
+tue.
+
+### Geprüft
+
+**Ansichten 740 → 750.** Schimmer nur auf Gold und Legendär, Text liegt über
+dem Schimmer. Gegenprobe: auf allen Stufen freigeschaltet → Bronze und Silber
+melden.
+
+## 35.85 · Der Packladen — das Kartensystem wird spielbar
+
+Vier Fassungen Fundament, jetzt das sichtbare Stück. Kevin: „Damit ich die
+Karten sehe, müssen wir das Projekt dahingehend erst mal fertig machen."
+
+### Drei Zustände, und der mittlere ist der Punkt
+
+| | |
+|---|---|
+| **Laden** | vier Packs, Preis in VC **und** in Laufbahnen Ausbau |
+| **Aufdecken** | verdeckte Karten, eine nach der anderen antippen |
+| **Ergebnis** | wer gezogen wurde, mit dem Weg in den Kader |
+
+**Das Aufdecken einzeln.** Alles auf einmal umzudrehen wäre ein Bildschirm
+voller Karten und kein Moment — der Jubel aus 35.83 braucht etwas, worauf er
+folgt.
+
+### Die Obergrenze macht Kevins Bedingung erst wahr
+
+Seine Vorgabe von Anfang an: gezogene Spieler **ergänzen** die Akademie, sie
+ersetzen sie nicht. **Ohne Grenze wäre das eine leere Zusage** — wer genug
+Packs kauft, hätte eine ganze Mannschaft aus dem Laden. Die Akademie wäre dann
+nicht ersetzt, aber überflüssig, und das kommt aufs selbe heraus.
+
+Höchstens **ein Drittel** des Kaders, gemessen fünf von sechzehn. Die Elf steht
+damit immer mehrheitlich aus eigener Ausbildung.
+
+Gerechnet auf `KADER_MIN`, nicht auf die tatsächliche Kadergröße — sonst könnte
+man die Grenze umgehen, indem man erst Karten einsetzt und dann Talente
+hochzieht. Und die Herkunft bleibt **am Spieler**: ohne sie ließe sich die
+Grenze nach dem nächsten Laden nicht mehr nachrechnen, und **eine Grenze, die
+man nur beim Einsetzen kennt, ist keine.**
+
+### Das Gratispack wird gezählt, nicht verschenkt
+
+Ein Bronzepack je beendeter Laufbahn. Wer drei Laufbahnen am Stück spielt, soll
+drei Packs vorfinden und nicht zwei verlieren.
+
+### Geprüft
+
+**Ansichten 750 → 770.** Alle vier Packs mit Preis, der Preis auch in
+Laufbahnen, die Obergrenze steht im Text; mit leerem Konto ist kein Kaufknopf
+aktiv und es steht da, wie viel fehlt; das Gratispack erscheint nur, wenn eines
+da ist. Dazu die Grenze selbst: nach fünf Karten wird abgewiesen, und derselbe
+Spieler lässt sich nicht zweimal einsetzen.
+
+Gegenprobe: Obergrenze ausgehebelt → gemeldet.
+
+## 35.86 · Eine Grenze ohne Ausweg ist eine Falle
+
+Kevin: „Wenn wir eine Begrenzung haben für nutzbare Karten, muss es auch eine
+Möglichkeit geben, Karten, die man nicht mehr haben will, loszuwerden. Am
+besten kann man sie verkaufen für einen angemessenen Preis."
+
+**Er hat grundsätzlich recht.** Wer fünf mittelmäßige Karten eingesetzt hat,
+käme sonst nie wieder an einen besseren Spieler — die Obergrenze aus 35.85 wäre
+vom Schutz zur Sackgasse geworden.
+
+### Zwei getrennte Wege, weil es zwei Entscheidungen sind
+
+| | |
+|---|---|
+| **aus dem Kader nehmen** | der Platz wird frei, die Karte bleibt |
+| **verkaufen** | die Karte ist weg, dafür gibt es VC |
+
+Verkaufen fragt nach, weil es endgültig ist. Ein Kaderplatz kommt wieder, eine
+Karte nicht.
+
+### Der Preis ist gegen die Packpreise gerechnet
+
+    Bronzepack    30 VC  →  11,7 VC   39 %
+    Silberpack    65 VC  →  26,9 VC   41 %
+    Goldpack     130 VC  →  44,0 VC   34 %
+    Legendenpack 240 VC  →  71,6 VC   30 %
+
+**Läge der Rückfluss über 100 %, wäre Kaufen und Verkaufen eine Geldmaschine**
+— und die VC-Kalibrierung wertlos, weil jeder unbegrenzt Coins herstellen
+könnte. Das ist kein Feinschliff, sondern die Grenze zwischen Wirtschaft und
+Unsinn. Die Prüfung schlägt ab 75 % an; die Gegenprobe mit vervierfachten
+Erlösen meldet sofort.
+
+Nach unten gibt es ebenfalls eine Grenze: **wertlos darf es auch nicht sein**,
+sonst verkauft niemand und die Obergrenze bleibt eine Falle.
+
+### Erinnerung ist keine Ware
+
+Spieler aus der **eigenen Ruhmeshalle** und aus **früheren eigenen Vereinen**
+lassen sich nicht verkaufen. Wer seine eigene Legende zu Geld macht, verliert
+sie für immer — und der Pool ist das einzige Gedächtnis, das es dafür gibt.
+
+### Ein Fund beim Verdrahten
+
+Beim Verkauf muss der Spieler **erst aus dem Kader**, dann aus der Sammlung.
+Sonst stünde ein Spieler im Kader, den es in der Sammlung nicht mehr gibt — und
+die Obergrenze zählte einen Platz, der zu nichts gehört.
+
+### Und der vierte sporadische Prüfstand
+
+„Meisterschale" und „Beide Häuser" fielen manchmal nicht: der Testverein wurde
+mit einer Stärkeobergrenze von 84 nach dem Aufstieg in die Bundesliga nur noch
+Mittelmaß. Jetzt bis 94. **Hier geht es um Erreichbarkeit, nicht um eine faire
+Liga** — der Testverein soll gewinnen, damit die Frage überhaupt beantwortbar
+wird. Fünf Läufe: 12 von 12.
+
+### Geprüft
+
+**Vereinsprüfungen 285 → 295.**
+
+## 35.87 · Der Fundus, und Karten wischen weg
+
+Kevin: „Generell, dass man gezogene Spieler immer in einem Fundus hat und sie
+in die Mannschaft packen und wieder rausziehen kann. Dass man allgemein nötige
+Verwaltungsmöglichkeiten hat." Dazu eine Wischanimation beim Einsetzen.
+
+### Bei fünf Karten braucht es nichts, bei fünfzig alles
+
+Und **fünfzig sind nach zehn Packs erreicht**. Deshalb jetzt und nicht später:
+eine Liste, die man nur noch durchscrollt, ist kein Fundus, sondern ein Haufen.
+
+Der Fundus hat jetzt eine Zählung je Stufe („16 Karten · 4 bronze · 4 silber ·
+4 gold · 4 legendär"), sieben Filter (alle, nicht im Kader, im Kader, je Stufe)
+und drei Sortierungen.
+
+**Vorgabe ist die Stärke** — das ist die Frage, die man an einen Fundus hat:
+wer ist der Beste, den ich noch nicht drin habe?
+
+### Die Wischanimation
+
+Nach rechts und weg, mit leichter Drehung — als schöbe man die Karte aus dem
+Stapel. Der Platz fällt danach zusammen; sonst bliebe ein Loch, wo die Karte
+war, und die Liste spränge erst beim nächsten Zeichnen zusammen.
+
+**0,34 Sekunden:** lang genug, dass man die Richtung sieht, kurz genug, dass es
+beim dritten Spieler nicht nervt. Wer sechs Karten einsetzt, sieht sie sechsmal.
+
+**Gewischt wird nur bei Erfolg.** Ist der Kader voll, bleibt die Karte liegen —
+sie wegzuwischen wäre eine Lüge über etwas, das nicht passiert ist.
+
+### Geprüft
+
+**Ansichten 770 → 777.** Zählung je Stufe stimmt, Filter und Sortierung sind
+da, sortiert wird wirklich nach Stärke, die Ruhmeshallenkarte hat **keinen**
+Verkaufsknopf und eine Packkarte **einen** — sonst wäre die Grenze wieder eine
+Falle.
+
+Zwei Gegenproben: Filter entfernt → gemeldet; alles verkäuflich gemacht → an
+drei Stellen gemeldet.
+
+## 35.88 · Die Aufstellung wird zum Kartenraster
+
+Fünf Punkte von Kevin, einer davon ein Fehler.
+
+### Der Holoschimmer brach ab — und der Grund ist lehrreich
+
+`background-position` wird auf dem **Hauptstrang** gerechnet. Jedes Mal, wenn
+React etwas neu zeichnet — ein Filter im Fundus, eine aufgedeckte Karte —, setzt
+der Browser die Animation dort fort, wo er gerade Zeit hat. Bei zwölf Karten
+gleichzeitig ist das ein Abbruch.
+
+Jetzt wandert ein **Element** über die Karte, verschoben per `transform`. Das
+läuft auf dem Compositor, also neben dem Hauptstrang: React kann zeichnen, so
+viel es will.
+
+### Hochkant, in Wappenform
+
+Die große Karte ist 380 px breit — elf davon wären vier Bildschirme. Die
+Elfkarte ist 74 px breit, oben gerade, unten angeschrägt wie ein Schild
+(`clip-path`, kein Bild).
+
+**Vier je Reihe**, feste Spaltenzahl. `auto-fit` wäre bequemer und falsch: dann
+hinge die Spaltenzahl von der Breite ab, und die Rechnung für den
+Auswahlkasten stimmte nicht mehr. **Eine Anzeige, deren Aufbau man kennt, lässt
+sich ansteuern; eine, die sich selbst anordnet, nicht.**
+
+### Was beim Umbau fast verlorengegangen wäre
+
+Die Zeilenansicht zeigte bei falscher Position „ZM, 74 %" und die **wirksame**
+Stärke statt der rohen. Ein Innenverteidiger im Sturm hat 74 auf dem Papier und
+55 auf dem Platz. Beides steht jetzt auf der Karte, rot markiert — **hübscher
+und ärmer wäre kein Fortschritt.**
+
+Ein leerer Platz ist ebenfalls eine Karte, gestrichelt und rot. Sonst hüpft das
+Raster, sobald jemand fehlt, und man sieht nicht, **wo** die Lücke ist.
+
+### Die Herkunft ist Pflicht, nicht Zierrat
+
+Kevin: „es muss gekennzeichnet sein, welche Spieler gezogen wurden und welche
+aus der Akademie kommen." Ein Spross für die Jugend, eine Raute für die
+Gezogenen, oben rechts auf jeder Karte. **Ohne das sieht eine Elf aus wie eine
+Elf, und man weiß nicht mehr, was man selbst aufgebaut hat.**
+
+Akademiespieler bekommen ihre Stufe aus der Stärke — dieselbe Rechnung wie bei
+allen anderen Karten.
+
+### Boosterpacks
+
+Was ein Pack ausmacht, zerlegt: hochkant, Folienfläche in der Stufenfarbe, eine
+**gezackte Aufreißkante** oben, eine Naht darunter, ein Zeichen in der Mitte.
+Die Aufreißkante ist das Erkennungsmerkmal — noch vor der Farbe. Bei Gold und
+Legendär kommt der Schimmer dazu.
+
+Alles gezeichnet: eine neue Stufe braucht kein neues Bild, sondern nur eine
+Farbe.
+
+### Die Prüfung aus 35.59 hat den Umbau bemerkt
+
+Sie verlangt, dass der Auswahlkasten direkt unter dem angetippten Platz steht,
+und meldete nach dem Umbau „2 Platzzeilen dazwischen". **Sie hatte recht** — im
+Raster stehen bis zu drei Karten zwischen der angetippten und dem Kasten. Das
+ist die Bauart, kein Fehler: der Kasten kann erst nach der Reihe kommen.
+Geprüft wird jetzt, dass höchstens der **Rest der eigenen Reihe** dazwischen
+liegt, nicht die ganze Elf.
+
+### Siebter und achter Fall
+
+Rückwärts-Anführungszeichen im CSS-Kommentar (siebter Fall, von der Prüfung
+gefangen) und `ELF_PLAETZE` — ein Name, den es nicht gibt; die Plätze heißen
+`form.plaetze`. **Achter erfundener Name in dieser Sitzung.**
+
+### Geprüft
+
+**Ansichten 777, Vereinsprüfungen 295, beide ohne Fehler.** Die Stellungsprüfung
+aus 35.59 wurde auf das Raster nachgezogen und meldet wieder grün. Kontrast 145
+Textstellen ohne Befund, 154 Knöpfe lesbar, Rücktritt 6 von 6.
+
+## 35.89 · Karten fallen aus dem Pack — und das Startpaket
+
+Damit ist das Kartensystem vollständig.
+
+### Die Karten droppen
+
+Sie kommen **von oben**, aus der Richtung, in der das Pack steht — sonst fällt
+nichts heraus, sondern erscheint irgendwo. Leicht gedreht und verkleinert,
+damit es nach Herausrutschen aussieht und nicht nach Einblenden.
+
+**Versetzt, 90 ms je Karte.** Gleichzeitig wäre ein Aufploppen, zu weit
+auseinander wartet man. Der Versatz steht als CSS-Variable am Element, nicht
+als eigene Regel je Karte — sonst bräuchte es für sechs Karten sechs Klassen.
+
+**Das geöffnete Pack bleibt oben stehen.** Ohne es kämen die Karten von
+nirgendwo; die Bewegung braucht einen Ort, aus dem sie fällt.
+
+### Der Kader bekommt die Kartensprache, nicht das Kartenformat
+
+Kevin wollte Kader **und** Aufstellung in Kartenoptik. Die Aufstellung ist
+umgestellt — dort zählt nur, wer wo steht.
+
+**Der Kader ist etwas anderes:** dort stehen Vertragsstand, Restlaufzeit,
+Spiele und Tore. Auf einer 74 px breiten Karte ist davon nichts unterzubringen.
+Der Kader ist der Bildschirm, auf dem man **verwaltet**; ihn auf Karten
+umzustellen wäre hübscher und ärmer — genau der Fehler, den ich bei der
+Aufstellung vermieden habe.
+
+Stattdessen bekommt jede Zeile die Merkmale der Karte: einen Rand in der
+Stufenfarbe, einen Verlauf, das Herkunftszeichen und die Stärke in der
+Stufenfarbe.
+
+### Das Startpaket — darauf lief der ganze Pool zu
+
+Sechs Spieler für den nächsten Verein: **mindestens drei** aus der
+Vorgängermannschaft, **mindestens einer** aus der Ruhmeshalle, und aus der
+Halle kommt der **Stärkste** — „ein Guter" ist eine Bedingung, keine Floskel.
+
+Vorgemerkt wird beim Abschluss des alten Vereins, nicht beim Gründen des
+neuen: der Pool enthält **gerade dann** den eben abgeschlossenen Kader.
+
+**Mein erster Entwurf war zu großzügig.** Er füllte mit den stärksten übrigen
+Karten auf — und weil Hallenkarten die stärksten sind, kamen **drei Legenden
+mit 84 bis 88**. Kevin hat „mindestens eine" gesagt, nicht „so viele wie
+möglich". Ein Startgeschenk, das die halbe Halle ausschüttet, macht den neuen
+Verein sofort zum Favoriten und nimmt der Akademie ihren Sinn für die nächsten
+fünfzehn Jahre. Jetzt wird außerhalb der Halle aufgefüllt: eine Legende, fünf
+aus der alten Mannschaft, Durchschnitt 73,8.
+
+**Der erste Verein** hat weder Vorgänger noch Halle — dann wird mit frischen
+Silber- und Goldkarten aufgefüllt. Ein Startpaket, das beim ersten Mal leer
+bleibt, wäre eine Zusage, die nur beim zweiten Mal gilt.
+
+### Geprüft
+
+**Vereinsprüfungen 295 → 303, Ansichten 777.** Sechs Karten, drei aus dem
+Vorgänger, einer aus der Halle und zwar der Stärkste, nicht mehr als zwei
+Hallenkarten, Durchschnitt unter 80 — und auch beim ersten Verein sechs Stück,
+keine davon bronze.
+
+Gegenprobe: Auffüllen wieder in die Halle gelassen → „3 Hallenkarten von 6".
+
+## 35.90 · Vier Befunde vom Gerät
+
+Kevin mit Bildschirmfoto. Alle vier waren echt.
+
+### Die Aufstellung lief über den Rand
+
+Gemessen: die Karte war **88 px** breit, ihre Spalte bei 412 px Fensterbreite
+nur **82** — jede ragte sechs Pixel darüber, und die vierte wurde am Rand
+abgeschnitten.
+
+**Eine feste Pixelbreite in einem Raster, das sich anpasst, ist ein
+Widerspruch.** Jetzt füllt die Karte ihre Spalte (`width: 100 %`, Deckel bei
+110), und das Raster verteilt mit `stretch` statt `center`. Gemessen nach der
+Änderung: vierte Karte endet bei 383, Behälter bei 400.
+
+### Der Schimmer auf kleinen Karten war ein Farbteppich
+
+Das Schimmerelement ist 150 % der **Kartenbreite** breit. Auf einer großen
+Karte von 380 px sind das 570 px — ein Streifen, der darüberwandert. Auf einer
+Elfkarte von 82 px sind es 123 px, und der Farbbogen deckt die ganze Karte auf
+einmal ab.
+
+**Dasselbe Bauteil in zwei Größen braucht zwei Zuschnitte.** Die kleine Karte
+bekommt einen schmalen Streifen (60 %) mit längerem Weg und geringerer Deckung.
+
+### Der Aufdeckbildschirm war eine Sackgasse
+
+Kevins Befund: „Die gezogenen Karten kann ich nicht zum Fundus hinzufügen, wenn
+das Limit erreicht ist, und die Karten bleiben sichtbar und auswählbar."
+
+Bis 35.89 gab es nur „In den Kader". War der voll, blieb die Karte liegen — mit
+einem Knopf, der nichts tat, und ohne Weg weiter.
+
+Die Karte lag ohnehin schon im Fundus (beim Öffnen hinzugefügt); was fehlte,
+war das **Ablegen** — das Zeichen, dass man sie gesehen und angenommen hat.
+Jetzt zwei Knöpfe, und **beide führen weg**: „In den Kader" nur, wenn Platz
+ist, sonst „Annehmen". Dazu „Alle annehmen", wenn alles aufgedeckt ist.
+
+### Die Formation: ja, sie ändert die Elf
+
+Kevins Frage, mit einer Messung beantwortet statt einer Vermutung:
+
+    4-4-2    TW IV IV AV AV ZM ZM AF AF ST ST
+    4-3-3    TW IV IV AV AV ZDM ZM ZM AF AF ST
+    3-5-2    TW IV IV IV ZDM ZM ZM AV AV ST ST
+
+Und `autoAufstellen` besetzt sie danach: 11 von 11 auf ihrer eigenen Position,
+in allen drei Formationen.
+
+### Zwei eigene Prüffehler
+
+Beide Male meldete meine neue Prüfung rot, obwohl der Code stimmte:
+
+**Erster:** Das Muster für die Breite durchsuchte die ganze Stilzeile und fand
+`maxWidth: 110px`. **Ein Muster, das die ganze Zeile durchsucht, findet auch,
+was zu einer anderen Eigenschaft gehört.**
+
+**Zweiter:** Ich suchte die Zahl 61 mit Wortgrenzen. Im zusammengeflossenen
+`textContent` steht „Testspieler61ST" — dort gibt es links von der 61 keine
+Wortgrenze. **Wortgrenzen setzen voraus, dass Text getrennt ist; in
+`textContent` ist er das nicht.**
+
+### Geprüft
+
+**Ansichten 777 → 787.** Keine feste Pixelbreite, Herkunftszeichen vorhanden,
+Eignung und wirksame Stärke bei falscher Position, leerer Platz ist eine Karte,
+kleine Karten tragen den schmalen Schimmer.
+
+Gegenprobe: feste Breite zurückgesetzt → „88px" gemeldet.
+
+## 35.91 · Die Elf steht jetzt so, wie sie spielt
+
+Kevin, mit einer Skizze:
+
+                    TW
+           AV   IV   IV   AV
+                 ZM   ZM
+           AF               AF
+                    ST
+
+**Vier gleiche Spalten zeigten elf Karten, aber keine Aufstellung.** Wer eine
+Formation wählt, will sie sehen — sonst ist die Wahl eine Liste von Namen.
+
+### Die Reihen kommen aus der Kennung
+
+„442" heißt 4-4-2, also nach dem Torwart drei Reihen mit 4, 4 und 2 Spielern.
+**Eine zweite Tabelle wäre eine zweite Wahrheit über dieselbe Sache** — und die
+läuft irgendwann auseinander, wie die Reiterzeilen in 35.59 und die
+Kachelränder in 35.64.
+
+    4-4-2      TW / AV IV IV AV / AF ZM ZM AF / ST ST
+    4-3-3      TW / AV IV IV AV / ZDM ZM ZM / AF ST AF
+    4-2-3-1    TW / AV IV IV AV / ZDM ZDM / AF ZOM AF / ST
+    3-5-2      TW / IV IV IV / AV ZDM ZM ZM AV / ST ST
+    5-4-1      TW / AV IV IV IV AV / ZDM ZM ZM AF / ST
+
+### Außen sind die Außen
+
+Innerhalb einer Reihe wandern die Außenpositionen an die Ränder. Ohne das
+stünden bei 4-4-2 „IV IV AV AV" nebeneinander, und **die Abwehr sähe aus, als
+hätten sich beide Außenverteidiger auf eine Seite gestellt.**
+
+Die Karte ist damit nicht mehr an vier Spalten gebunden: eine Reihe mit fünf
+(3-5-2) verteilt sich auf fünf, eine mit zwei auf zwei.
+
+### Zum dritten Mal dieselbe Prüfung nachgezogen
+
+Die Regel aus 35.59 — der Auswahlkasten steht direkt bei dem, was man
+angetippt hat — ist seither dreimal derselben Frage mit drei Antworten
+begegnet:
+
+| | Bauart | Antwort |
+|---|---|---|
+| 35.59 | Liste | keine Platzzeile dazwischen |
+| 35.88 | Raster | höchstens der Rest der eigenen Reihe |
+| 35.91 | Feld | direkt hinter der Reihe, in der der Platz liegt |
+
+Sie meldete diesmal „steht nicht in derselben Liste" — **und hatte recht:**
+der Kasten ist jetzt Geschwister der Reihe, nicht der Karte.
+
+**Dass diese Prüfung den Umbau dreimal bemerkt hat, ist ihr Wert.** Eine Regel,
+die man beim Umbauen vergisst, ist nach dem zweiten Umbau weg.
+
+### Geprüft
+
+**Vereinsprüfungen 303 → 322.** Je Formation: alle elf Plätze genau einmal,
+jede Stelle trägt ihre eigene Position, der Torwart steht allein. Dazu: Außen
+außen, und die Reihenlängen entsprechen der Kennung (1-4-4-2, 1-3-5-2).
+
+**Der naheliegende Fehler beim Umsortieren ist, einen Platz zu verlieren oder
+zu verdoppeln** — beides fällt optisch kaum auf, weil elf Karten immer nach
+elf aussehen. Deshalb wird gezählt, nicht hingesehen.
+
+Gegenprobe: Umsortieren ausgehebelt → „IV IV AV AV".
+
+## 35.92 · Ist der Tisch leer, geht es zurück
+
+Kevin: „Wenn man alle Karten im Pack angenommen hat, dann soll die Ansicht
+wieder in den Shop wechseln."
+
+Richtig: **ein leerer Aufdecktisch mit einem „Fertig"-Knopf ist ein Bildschirm,
+der nur noch aus einer Aufforderung besteht, ihn zu verlassen.** Wer alles
+angenommen hat, hat den Schritt beendet — dann soll das Spiel ihn auch beenden.
+
+### Zwei Entscheidungen im Kleinen
+
+**Erst nach der Wischbewegung**, 220 ms danach. Sonst verschwindet der
+Bildschirm unter der letzten Karte, während sie noch wegwischt — und man sieht
+nicht mehr, was man da eigentlich genommen hat. Lang genug, dass die Bewegung
+fertig ist, kurz genug, dass es nicht wie Warten wirkt.
+
+**Am Zustand, nicht am Klickpfad.** „Alle Karten sind weg" ist ein *Zustand*,
+kein Ereignis. Hätte ich beim Ablegen mitgezählt, müsste jede künftige Stelle,
+die eine Karte entfernt, daran denken — und die erste, die es vergisst, lässt
+den Tisch leer stehen.
+
+### Im Browser nachgespielt, beide Wege
+
+    Gratispack öffnen → aufdecken → „Alle annehmen"   → PACKS
+    voller Kader     → aufdecken → dreimal „Annehmen" → PACKS
+
+Bei vollem Kontingent erscheint **kein** „In den Kader" mehr — das war der
+Befund aus 35.90, und es gibt jetzt eine Prüfung dafür: ein Knopf, der nichts
+tut, ist schlimmer als keiner.
+
+### Geprüft
+
+**Ansichten 787 → 791.** Gegenprobe: „In den Kader" auch bei vollem Kontingent
+sichtbar gemacht → gemeldet.
+
+## 35.93 · Das Postfach wird ein Briefsymbol
+
+Kevin: „Das Postfach hätte ich gerne nicht als riesen Hauptknopf, sondern oben
+als kleines Briefsymbol, so groß wie das VC-Shop-Icon im Hauptmenü. Grau, wenn
+nichts ansteht, und gelb, wenn etwas zu erledigen ist. Das Postfach öffnet sich
+dann als überlappendes Fenster."
+
+### Eine Kachel, die meistens nichts zu sagen hat
+
+Bis 35.92 war das Postfach so groß wie Akademie und Mannschaft — und sagte in
+den allermeisten Fällen „nichts offen". **Eine Kachel, die in neun von zehn
+Fällen nichts zu sagen hat, nimmt den Platz von etwas, das etwas zu sagen
+hat.**
+
+Jetzt ein Briefsymbol in der Kopfzeile, gleiche Klasse und Größe wie das
+Ladensymbol im Hauptmenü. Grau, wenn nichts ansteht; in Gold mit Zähler, wenn
+etwas liegt — dieselbe Farbe, die im ganzen Spiel „hier gibt es etwas"
+bedeutet.
+
+### Das Fenster, und wo es sich vom Sonderschuss unterscheidet
+
+Dieselbe Bauart wie 35.78: `createPortal` an den Körper (weil `.fade` eine
+Transformation stehen lässt) und die Klasse `fl` (weil die Farbvariablen dort
+definiert sind). Beide Fallen kannte ich diesmal.
+
+**Anders als der Sonderschuss ist dieses Fenster schließbar** — ein Klick
+daneben, ein Knopf oben. Es ist eine Auskunft, keine Belohnung; **wer eine
+Auskunft nicht wegklicken kann, ist gefangen.**
+
+### Ein Fund im Bild
+
+Das Kopfband ragte links und rechts hinaus: „Postfach" wurde zu „OSTFACH", der
+Schließknopf stand halb außerhalb. `.band` hat `margin: -15px -16px` — es ragt
+**absichtlich** über den Rand des Kastens, in dem es sonst sitzt, und schließt
+dort bündig ab. Mein Fenster hat aber keinen `pad`-Innenabstand, an dem es sich
+ausrichten könnte.
+
+**Eine Klasse, die einen bestimmten Behälter voraussetzt, muss man ihn auch
+geben — oder ihre Annahme aufheben.**
+
+### Drei Prüfungen nachgezogen, eine davon zum zweiten Mal
+
+Die Postfachprüfungen suchten im Text nach „1 offen" und „antippen". Den Text
+gibt es nicht mehr; der Zustand steht jetzt im `aria-label`, also dort, wo er
+auch für einen Screenreader steht. Sie hatten recht, rot zu melden.
+
+Die Postkorbprüfung aus 35.53 hat inzwischen **zwei** Umbauten mitgemacht
+(35.68: nicht mehr selbsttätig offen; 35.93: Fenster statt Kasten) und beide
+Male gemeldet.
+
+### Und ein eigener Prüffehler
+
+`document.body.querySelector` fand das Fenster einer **früheren** Probe —
+Portale bleiben am Körper, solange die Ansicht lebt. Die Postkorbprüfung
+prüfte damit das Fenster der Zählerprüfung und meldete „Name oder Verein
+fehlen". Jetzt wird das **zuletzt** geöffnete genommen.
+
+### Geprüft
+
+**Ansichten 791 → 790** (eine Prüfung ist beim Zusammenlegen entfallen, vier
+neue dazugekommen): Briefsymbol vorhanden, Zähler im `aria-label`, Inhalt
+bleibt zu, Fenster öffnet sich am Körper, Fenster ist schließbar, und auch bei
+leerem Postfach ist das Symbol da.
+
+## 35.94 · Acht Befunde vom Gerät
+
+Kevin nach einer Spielrunde. Alle acht geprüft, sechs davon waren echt.
+
+### Zwei Kästen statt einem
+
+Kevin: „Der VC-Verdienst und die Übersicht der Jugendakademie müssen noch
+getrennt werden. Die Kachel zur Jugendakademie darf nur kommen, wenn diese auch
+bereits gegründet wurde."
+
+**Er hat beides richtig gesehen.** Der Kasten hieß „Ein Jahr Jugendakademie"
+und zeigte den VC-Verdienst — auch bei jemandem **ohne** Akademie, der dann eine
+Überschrift über einem Haus las, das es nicht gibt. **Zwei verschiedene Dinge
+unter einer Überschrift sind eine Überschrift zu wenig.**
+
+Jetzt: erster Kasten „Vermächtnis-Coins" mit dem Verdienst und den Posten;
+zweiter Kasten „Ein Jahr Jugendakademie" mit dem Jahresbericht — und der kommt
+**nur, wenn es das Haus gibt**. Wer keine Akademie hat, liest im ersten Kasten
+den Hinweis, dass die Coins bereitliegen.
+
+### Ein eigener Prüffehler
+
+Mein Probespieler war von Hand zusammengesteckt und vergaß `depot` —
+`netWorth` stürzte ab. Jetzt kommt er aus `createPlayer`: **ein Spieler hat
+mehr Felder, als man beim Abtippen im Kopf hat; die Fabrik weiß, welche.**
+
+
+### Die drei Ereignisse sind Absicht
+
+Kevin: „Warum sind es mittlerweile ab und zu wieder 3 Events pro Saison?"
+
+Gemessen: `meta.mx_events && chance(.25) ? 3 : 2`. Das ist die freigeschaltete
+Regel **„Bewegtes Leben — ab und zu drei Ereignisse statt zwei"**, verdient
+durch „Zwanzig Laufbahnen". Kein Rückschritt, sondern eine Belohnung, die er
+sich erspielt hat. Wenn sie stört, ist sie eine Zeile.
+
+### Das Minispiel kam zu oft — und es lag nicht an den Auszeichnungen
+
+Gemessen über 300 Laufbahnen, aufgeschlüsselt nach Auslöser:
+
+    Note <= 2,1     Median 0 je Laufbahn · Mittel 1,0
+    Auszeichnungen  Median 1 · Mittel 1,3
+    TITEL           Median 5 · Mittel 5,8      <- der Grund
+
+„Oder ein Titel" traf bei einem Spieler am Spitzenklub **fast jede Saison**.
+
+Nur die großen Auslöser zu nehmen reichte nicht: auch „nur Meister und
+international" blieb bei Median 5 — ein Spitzenklub wird eben meistens Meister.
+Und die Titel ganz zu streichen fiel auf **Median 0** zurück, also zurück zum
+Problem aus 35.76.
+
+    heute                                   Median 6 · ohne  5 %
+    nur große Auslöser                      Median 5 · ohne 10 %
+    große Auslöser + Sperre vier Saisons    Median 2 · ohne  8 %   ← gewählt
+
+Gegen das gebaute Spiel nachgemessen: **Median 3, Mittel 2,6, 6 % ohne.** Von
+sechs auf drei halbiert.
+
+Die Sperre steht **am Spieler**, nicht in einer Zählvariablen der Anzeige — sie
+muss den Spielstand überleben, sonst umginge man sie durch Neuladen.
+
+### Die Punkte verpufften wirklich
+
+Kevin: „Ich habe das Gefühl, dass die gewonnenen Attributpunkte manchmal nicht
+verteilt werden." **Er hatte recht.** Stand ein Wert schon an der Grenze — bei
+einem starken Stürmer ist `sho` irgendwann 99 —, tat `clamp(… + 1)` nichts, und
+der Punkt war lautlos weg.
+
+Jetzt geht er auf den nächsten Wert, der noch Luft hat. Sind alle voll, sagt es
+die Meldung: **besser eine ehrliche Absage als eine stille.**
+
+### Vier Preise statt immer Anlage
+
+    +1 Anlage      40 %   dauerhaft, aber nur ein Punkt
+    Bestform       22 %   eine Saison lang volle Form
+    Eisenhart      22 %   eine Saison ohne Verletzung
+    Man spricht…   16 %   +9 Ruf, wirkt auf Angebote
+
+Jeder greift an einer Zahl, die es schon gibt — kein neues System für eine
+Belohnung, die dreimal im Spielerleben fällt. Der Verletzungsschutz sitzt an
+**derselben Stelle wie der Physio**: eine zweite Stelle wäre eine zweite
+Wahrheit darüber, wann jemand unverletzt bleibt.
+
+### Der Packschimmer: zwei Fehler, beide schon bekannt
+
+`.holo` ohne `eng` ist 150 % der **Elementbreite** breit — auf einem 64 px
+schmalen Pack deckt der Farbbogen alles auf einmal ab. Und der rechteckige
+`clipPath` schnitt quer durch die **gezackte** Aufreißkante; genau dort wirkte
+es „abgebrochen", weil der Schimmer an einer geraden Linie endete, die im Pack
+nicht existiert.
+
+Beides dieselben Fehler wie bei den Elfkarten in 35.90.
+
+### Der Fundus neben dem Postfach
+
+Er war nur über Packs → Sammlung zu finden, also **hinter dem Laden**, obwohl
+er mit dem Kaufen nichts zu tun hat. Jetzt ein eigenes Symbol im Dach, blau mit
+Kartenzähler.
+
+### Die Karrierebilanz war schon getrennt
+
+Kevins vierter Punkt: erledigt. Zwei Kästen, und die Akademiekachel hängt an
+`p.akaAktiv` — ohne gegründete Akademie erscheint sie nicht.
+
+### Geprüft
+
+**Ansichten 790 → 804.** Kein Punkt verpufft, wenn irgendwo Platz ist; es gibt
+mehr als einen Preis; jeder hat Namen und Erklärung; die Anlage kommt in
+höchstens 60 % der Fälle.
+
+## 35.95 · Ein neuer Zugang braucht einen passenden Ausgang
+
+Kevin: „Aus der Spielersammlung gibt es keinen Zurück-Knopf."
+
+### Der Fehler entstand durch die letzte Fassung
+
+Bis 35.93 kam man **nur über den Laden** in die Sammlung — „Zum Laden" war der
+richtige und einzige Rückweg. Seit dem Fundussymbol im Dach (35.94) kommt man
+auch **direkt**, und stand dann in einer Sammlung, aus der nur ein Weg in einen
+Laden führte, den man nie betreten hat.
+
+**Ein neuer Zugang braucht einen passenden Ausgang.** Wer das vergisst, baut
+eine Sackgasse — dieselbe Art Fehler wie beim Aufdecktisch in 35.90, wo bei
+vollem Kader ein Knopf stand, der nichts tat.
+
+Jetzt zwei Ausgänge: „Zum Laden" für den, der kaufen will, und „Zurück" für
+den, der über das Symbol kam.
+
+### Beide Male hat Kevin es gefunden, nicht der Prüfstand
+
+Deshalb gibt es jetzt eine Prüfung dafür. Sie fragt für jeden Reiter des
+Ladens zweierlei: **ist ein Zurück-Knopf da**, und **ruft er auch etwas auf**.
+Das zweite ist nicht selbstverständlich — die Lehre aus 35.90 war, dass ein
+Knopf, der nichts tut, schlimmer ist als keiner.
+
+Meine erste Grobsuche über alle Shell-Ansichten schlug zu breit an: sie las nur
+die ersten 4000 Zeichen je Ansicht und meldete zehn Verdächtige, von denen
+keiner einer war. **Eine Suche, die zu viel meldet, wird genauso ignoriert wie
+eine, die zu wenig meldet.** Deshalb prüft die neue Fassung gezielt die
+Bildschirme, um die es geht.
+
+### Geprüft
+
+**Ansichten 804 → 812.** Gegenprobe: den Knopf wieder entfernt → gemeldet.
+
+## 35.96 · Der Schimmer, zum dritten Mal — diesmal gerechnet
+
+Kevin: „Die Animation sieht immer noch falsch aus" — mit einem
+Bildschirmvideo. **Aus dem Video habe ich Einzelbilder gezogen** (`ffmpeg`),
+und darauf war es eindeutig: ein hartkantiges senkrechtes Band, das an einer
+geraden Linie aufhört.
+
+### Zwei Fehler, beide rechnerisch belegbar
+
+**Erster: die Ausblendung war zu schmal.** Das Schimmerelement war *schmaler*
+als die Karte (60 % bei der engen Fassung, also 38 px auf einem 64-px-Pack).
+Die weichen Enden des Verlaufs liegen bei 12 % und 88 % **des Elements** — bei
+38 px Breite sind das 4,6 px Ausblendung, auf einem Telefon mit 2,6-facher
+Auflösung zwölf echte Pixel. **Zwölf Pixel Übergang sieht niemand als Verlauf.
+Man sieht eine Kante.**
+
+**Zweiter, und der eigentliche:** ein einzelnes Band auf einem breiten Element
+ist nur einen Bruchteil der Zeit überhaupt auf der Karte. Gerechnet:
+
+    bei   0 %: Band von -119 bis  -73 px  → auf der Karte: NEIN
+    bei  25 %: Band von  -55 bis   -9 px  → NEIN
+    bei  50 %: Band von    9 bis   55 px  → ja
+    bei  75 %: Band von   72 bis  119 px  → NEIN
+
+**Ein Viertel der Zeit.** Den Rest schimmert gar nichts — und genau das sieht
+aus, als bräche die Bewegung ab.
+
+### Die Lösung ist ein wiederholtes Muster
+
+Element 200 % der Karte, Muster mit einer Periode von 50 % — also genau einer
+Kartenbreite —, Weg ebenfalls 50 %. Dann ist **immer** ein Band unterwegs, und
+weil der Weg exakt einer Periode entspricht, ist das letzte Bild dasselbe wie
+das erste: der Umlauf ist nicht zu sehen.
+
+Nachgemessen am Element: 128 px breit, 64 px Weg, Periode 64 px. Die
+Ausblendung beträgt jetzt 40 statt 12 echte Pixel.
+
+### Meine Messung war zweimal kaputt, nicht die Sache
+
+**Playwright setzt beim Ablichten standardmäßig `animations: "disabled"`** — es
+spult laufende Animationen ans Ende und friert sie dort ein. Meine Bildfolge
+zeigte deshalb dreimal dasselbe Bild, und ich hielt es für einen Abbruch.
+
+Am Element gemessen lief die Animation die ganze Zeit sauber durch:
+0 → 220 px, dann von vorn. **Erst die Messung am Objekt statt am Bild hat es
+gezeigt.**
+
+Das ist dieselbe Lehre wie in 35.81, wo meine Messung eine Kopie der Zahlen
+prüfte: **wenn Messung und Sache sich widersprechen, ist erst die Messung
+verdächtig.**
+
+### Neunter Fall
+
+Rückwärts-Anführungszeichen im CSS-Kommentar, beim Schreiben genau dieses
+Abschnitts. Von der Prüfung aus 35.83 gefangen, vor dem Bau.
+
+### Geprüft
+
+**Ansichten 812, Vereinsprüfungen 322, beide ohne Fehler.** Die Geometrie ist
+am Element nachgemessen: 128 px breit, 64 px Weg, Musterperiode 64 px — also
+exakt eine Kartenbreite, deshalb kein Sprung beim Umlauf.
+
+**Was ich nicht beweisen kann:** wie es sich auf dem Gerät anfühlt. Mein
+Abbildwerkzeug friert Animationen ein, und die Bewegung über die Zeit sehe ich
+nur an Zahlen. Kevins Video war hier das bessere Messgerät.
+
+## 35.97 · „Warum funktioniert das an anderen Stellen?"
+
+Kevins Frage war die richtige — und sie enthielt die Antwort.
+
+### Die Folie läuft seit Fassungen tadellos
+
+    .folie   background-size: 220 %; die Bewegung verschiebt nur die
+             HINTERGRUNDSTELLUNG von 0 % auf 200 %.
+             DAS ELEMENT BEWEGT SICH NICHT.
+             Und der Verlauf beginnt und endet auf DERSELBEN Farbe (#79E3D2),
+             deshalb ist der Umlauf nahtlos.
+
+    mein     ein Element per Verschiebung darübergeschoben.
+    Ansatz   Ein Element hat RÄNDER. Sobald ein Rand über die Karte läuft,
+             sieht man eine Kante — und beim Umlauf springt er zurück.
+
+**Das ließ sich mit keiner Breite und keinem Muster wegrechnen.** Ich habe es
+dreimal versucht: schmales Element (35.90), breites Element mit einem Band
+(35.96), breites Element mit wiederholtem Muster (35.96). Ränder verschwinden
+nicht, man kann sie nur verschieben.
+
+**Was seit Fassungen funktioniert, muss man nicht neu erfinden — man muss es
+lesen.**
+
+Die Sorge um den Hauptstrang aus 35.88 war theoretisch: die Folie läuft auf
+demselben Weg und ruckelt nicht. **Eine Vermutung über die Bauart hat gegen
+eine Sache verloren, die nachweislich seit Langem läuft.**
+
+### Und ein Fehler, der alles noch schlimmer machte
+
+Kevin: „Jetzt wirken alle Holoanimationen, auch an anderer Stelle, defekt."
+
+Beim Austausch hatte ich den Ausschnitt zu früh enden lassen — vier Zeilen der
+alten Fassung blieben stehen, **darunter eine zweite Bewegungsvorschrift
+desselben Namens**. Die spätere gewann: der Schimmer wurde weiter verschoben,
+obwohl die neue Regel den Hintergrund bewegen sollte.
+
+Gemessen war es eindeutig: die Hintergrundstellung blieb bei 0 %, während sich
+die Verschiebung bewegte.
+
+**Zwei Regeln mit demselben Namen sind kein Streit, den CSS meldet — die letzte
+gewinnt stillschweigend.** Wer eine Regel ersetzt, muss die alte ganz entfernen
+und nachsehen, ob sie nur einmal dasteht.
+
+### Nachgemessen
+
+    Hintergrundstellung   0,6 % → 33,9 → 67,2 → 101,1 → 134,4 → 167,8 → 1,7
+    Verschiebung          none
+    Element deckungsgleich mit der Karte: ja
+
+Keine Ränder, die darüberlaufen könnten. In der Bildfolge sind alle sieben
+Bilder verschieden — vorher waren vier davon pixelgleich.
+
+### Zehnter und elfter Fall
+
+Rückwärts-Anführungszeichen im CSS-Kommentar, beide beim Schreiben dieses
+Abschnitts, beide von der Prüfung aus 35.83 vor dem Bau gefangen.
+
+### Geprüft
+
+**Ansichten 812, Vereinsprüfungen 322, beide ohne Fehler.** Nur noch eine
+Bewegungsvorschrift `rs-holo` im ganzen Stilblock — das war der eigentliche
+Fund.
+
+## 35.98 · Eine Ziffer, und ein Lauf an der Zeitgrenze
+
+### Der Schimmer schnitt am Ende ab — auch die Folie
+
+Kevin: „Wildcards, bzw. die Holo-Animation sieht am Ende abgeschnitten aus."
+
+**Gerechnet.** Bei einer Hintergrundstellung in Prozent gilt
+
+    Versatz = (Behälterbreite − Bildbreite) × Prozentwert
+
+| `background-size` | Weg | Kachel | Weg/Kachel | |
+|---|---|---|---|---|
+| **220 %** | 240 % | 220 % | **1,091** | Sprung von 0,091 Kacheln |
+| **200 %** | 200 % | 200 % | **1,000** | nahtlos |
+
+Bei 220 % springt der Umlauf um ein Elftel der Kachel — **genau das sieht man
+als Abschneiden am Ende.**
+
+Der Fehler steckte **in der Folie selbst**, seit vielen Fassungen. Ich hatte
+die 220 in 35.97 von dort abgeschrieben — samt ihres Fehlers, während ich sie
+als Vorbild lobte.
+
+Nachgemessen mit angehaltener Animation, Bild bei 0 % gegen Bild bei 200 %:
+
+    background-size 200 %: PIXELGLEICH → nahtlos
+    background-size 220 %: 96.000 abweichende Bildpunkte → Sprung
+
+**Der Verlauf war immer richtig gebaut** (erste und letzte Farbe gleich). Es
+hakte an einer einzigen Ziffer.
+
+### Warum der Prüfstand so lange brauchte
+
+Kevins zweite Frage. Gemessen, Teil für Teil:
+
+    aufbau 5 s · kalib 16 · ansicht 30 · ereignis 1 · stimmig 0
+    namen 0 · verein 1 · rueck 38 · bau 54          = 145 Sekunden
+
+**Der Prüfstand ist nicht langsam.** Das Audit dagegen, dreimal gemessen:
+**116 s, 156 s, 0 s** (aus dem Zwischenspeicher). Es fragt eine Datenbank im
+Netz ab, und wie lange das dauert, entscheidet nicht dieses Projekt.
+
+Zusammen 145 bis 300 Sekunden — und damit lag der ganze Lauf **genau an der
+Zeitgrenze eines einzelnen Aufrufs**. Die Schwankung kippte ihn mal darüber und
+mal nicht.
+
+**Das löst man nicht mit einer höheren Zeitsperre.** Der Fehler ist, einen
+Schritt mit unbekannter Dauer in einen Lauf mit fester Grenze zu legen.
+
+Die Sicherheitsprüfung ist jetzt ein eigener Teil (`TEILE=…,sicher`). Gemessen:
+
+    üblicher Lauf ohne sie   101 s   (vorher bis 300)
+    Sicherheitsprüfung allein 11 s
+
+Zwei kurze Läufe sind besser als einer, der gelegentlich abbricht.
+
+### Geprüft
+
+**Ansichten 812, Vereinsprüfungen 322, Sicherheitslage 0 Funde** — letztere
+getrennt gefahren, wie es jetzt vorgesehen ist.
+
+## 35.99 · Ein stetiger Verlauf ist nicht dasselbe wie ein ruhiger
+
+Kevin sieht auf Gold und Legendär eine senkrechte Farbkante — mit drei
+Bildschirmfotos, auf denen sie deutlich zu sehen ist.
+
+### Gemessen: der Verlauf ist stetig, und Kevin hat trotzdem recht
+
+Der größte Farbsprung von einem Bildpunkt zum nächsten betrug **9 von 765
+möglichen**, also gut ein Prozent. Es gibt keine Unterbrechung.
+
+Der Grund lag in den Farbtönen der alten Folie:
+
+    170° → 262° → 39° → 209° → 139° → 170°
+    Sprünge:  91°   138°  169°   70°   32°
+
+**Über 160 Grad Farbton auf rund dreizehn Pixeln** — fünf Übergänge auf 64 px
+Packbreite. Das liest das Auge als Kante, auch wenn die Rechnung stetig ist.
+
+**Ein stetiger Verlauf ist nicht dasselbe wie ein ruhiger.**
+
+Die Töne laufen jetzt der Reihe nach um den Farbkreis, in Schritten von
+38° bis 76° statt 32° bis 169°. Nachgemessen am Bild: der größte Sprung fiel
+von 9 auf 4.
+
+### Und ein Ballast, den ich selbst eingebaut und wieder ausgebaut habe
+
+Ich hatte zusätzlich einen Weichzeichner eingebaut, mit der Begründung, was
+weichgezeichnet sei, **könne** keine Kante haben. Klingt zwingend. Dann
+gemessen, über fünf Stufen von 0 bis 7 px:
+
+    Sättigung        26,5 → 26,1
+    größter Sprung      4 → 3
+
+Er ändert so gut wie nichts — die gleichmäßige Palette allein hatte den Sprung
+bereits halbiert. Dafür hätte er auf **jeder animierten Karte** Rechenzeit
+gekostet, und im Fundus laufen ein Dutzend gleichzeitig.
+
+**Eine Maßnahme, die nichts messbar verbessert, ist keine Maßnahme, sondern
+Ballast.** Im Bild sah es außerdem matt aus — was ich zuerst der neuen Palette
+anlastete, obwohl die mit 66 % gegen 67 % praktisch gleich sättig ist.
+
+### Zwölfter Fall
+
+Rückwärts-Anführungszeichen im CSS-Kommentar, von der Prüfung vor dem Bau
+gefangen.
+
+### Geprüft
+
+**Ansichten 812, Vereinsprüfungen 322, Sicherheitslage 0 Funde.**
+
+## 35.100 · Neues App-Symbol, echtes Mannschaftsfoto
+
+Kevin hat zwei Bilder geliefert.
+
+### Das Symbol: sechs von 108 Einheiten haben entschieden
+
+Der Symbolsatz wird seit Langem von `symbol/appicon.py` erzeugt — Rahmen
+abziehen, auf die Maskenfläche legen, fünf Dichten, dazu die
+Zusammensetzungsvorschrift für Android 8+. Das musste ich nicht bauen, nur
+füttern.
+
+Aber: das Werkzeug legte das Bild auf **72 von 108** Einheiten. Android nennt
+das die *sichtbare* Fläche; die **sichere** ist 66. In der Kreismaske wurde
+„RASENSCHACH" an beiden Enden abgeschnitten — im Bild nachgesehen, nicht
+vermutet.
+
+Jetzt 66. **Sechs Einheiten Unterschied, und genau die entscheiden, ob eine
+Schrift ganz dasteht.** Der Rand wird ohnehin mit einer unscharfen Vergrößerung
+aufgefüllt, es entsteht also kein Loch.
+
+**Ehrliche Einschränkung:** in der Squircle-Maske (die Samsung One UI benutzt,
+also Kevins S24) steht die Schrift vollständig. In einer *reinen Kreismaske*
+fehlt an den äußersten Enden ein Haar, weil ein Kreis bei der Höhe der
+Schriftzeile schmaler ist als 66. Das ließe sich nur beheben, indem das ganze
+Bild weiter schrumpft — dann wäre das Symbol bei 48 dp deutlich kleiner.
+
+### Das Titelfoto: ein Prozent Bündel für einen Ort
+
+Die gezeichnete Mannschaftsreihe aus 35.30 war ein Behelf, weil es kein Bild
+gab. Jetzt gibt es eins.
+
+Gemessen am selben Zuschnitt (824×420):
+
+    PNG    rund 300 kB
+    JPEG        24 kB bei Güte 82
+    WebP        16 kB bei Güte 72
+
+Das Bild ist fast schwarz und lässt sich deshalb gut packen. **16 kB sind auf
+1,4 MB rund ein Prozent** — vertretbar. Ein unbearbeitetes PNG wären zwanzig
+Prozent gewesen.
+
+Eingebettet als Base64 in `titelbild.js`, dieselbe Bauart wie die Schriften:
+das Spiel läuft im APK ohne Netz, und eine Datei danebenzulegen hieße, sich auf
+Pfade zu verlassen, die Capacitor und Vite unterschiedlich auflösen.
+
+**Was bleibt:** die Deckung hängt weiter davon ab, ob eine Laufbahn läuft —
+0,42 mit Porträt davor, 0,85 ohne. Genau diese Abstufung gab es schon bei der
+Zeichnung, und sie ist der Grund, warum das Porträt nicht mit dem Hintergrund
+um Aufmerksamkeit streitet. Der Badge „Neue Laufbahn" ist unberührt.
+
+Zuschnitt: die Quelle ist 3:1, der Platz 1,96:1. Seitlich beschnitten, mittig —
+die Mannschaft steht in der Mitte, die goldenen Streifen bleiben.
+
+### Zwei Prüfungen haben den Wechsel bemerkt
+
+Die Beidateienprüfung fing `titelbild.js`, das in `LIESMICH.md` und im
+Verzeichnis fehlte — dieselbe Prüfung, die schon `karten.js` gefangen hat.
+
+Und die Titelfotoprüfung zählte elf gezeichnete Silhouetten und meldete
+„-1 statt 11". **Sie hatte recht:** das SVG, das sie suchte, gibt es nicht
+mehr. Sie prüft jetzt dasselbe an der neuen Bauart — ist ein Bild da, ist es
+eingebettet, tritt es zurück, und verschwindet es nicht ganz.
+
+### Geprüft
+
+**Ansichten 812 → 814.** Gegenprobe: Deckung fest gemacht → gemeldet.
+
+## Offene Punkte (Stand 35.100)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;

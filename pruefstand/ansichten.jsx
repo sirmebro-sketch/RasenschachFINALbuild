@@ -8,6 +8,8 @@ import App, {
   MenuScreen, EndScreen, AkademieScreen, TalentZeile, WildcardEnthuellung, Balken,
   AusbauRing, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, META, WildcardCard,
   RAHMEN, grundAufhellen, kontrast, haarDunkelste, GRUND_MIN, mischFarbe, HAIRC,
+  Sonderschuss, SCHUSS_FELDER, SCHUSS_TROST, SCHUSS_PREISE, Spielerkarte, KARTEN, MERKSYMBOL, Packladen,
+  Elfkarte, Boosterpack,
   AchievementScreen, Avatar, CreateScreen, HallScreen, RESSORT, titelgeschichte, Pass,
   Willkommen, WILLKOMMEN, FreiHinweis, leerGesehen,
   VCLADEN, SHOP_BILD, shopFuer, ladenGesperrt, ladenKaufbar, VCLadenAnsicht, tauschRest,
@@ -198,6 +200,695 @@ mach("Akademie · Stufen halb", <AkademieScreen aka={{ name:"X", gegruendet:2026
      Ohne sie könnte die Prüfung für immer grün melden. */
   if (kontrast("#101410", dunkel) < GRUND_MIN) ok++;
   else zeige("Porträtgrund", "die Messung erkennt einen zu dunklen Grund nicht");
+}
+
+/* ---- Der Sonderschuss (35.76) --------------------------------------------
+   Kevins Minispiel: ein Ball läuft durch einen Balken, man trifft ein Segment.
+   Geprüft wird die MECHANIK, nicht das Gefühl — ob es sich gut anfühlt, sieht
+   nur, wer es spielt. */
+{
+  const F = SCHUSS_FELDER;
+  const ges = F.reduce((a2, f) => a2 + f.w, 0);
+
+  /* SYMMETRISCH um die Mitte. Der Ball kommt aus beiden Richtungen; eine
+     Skala, die nur von links gut ist, wäre in der Rückrichtung eine andere
+     Aufgabe. */
+  const spiegel = F.every((f, i2) => f.w === F[F.length - 1 - i2].w
+    && f.att === F[F.length - 1 - i2].att && f.pot === F[F.length - 1 - i2].pot);
+  if (!spiegel) zeige("Sonderschuss", "die Felder sind nicht symmetrisch");
+  else ok++;
+
+  /* Das beste Feld muss das SCHMALSTE sein — sonst ist „triff die Mitte"
+     keine Aufgabe. */
+  const bestes = F.reduce((a2, f) => (f.att > a2.att ? f : a2), F[0]);
+  const schmalstes = F.reduce((a2, f) => (f.w < a2.w ? f : a2), F[0]);
+  if (bestes.w !== schmalstes.w)
+    zeige("Sonderschuss", "das beste Feld ist nicht das schmalste");
+  else ok++;
+  if (bestes.pot !== 1)
+    zeige("Sonderschuss", "das beste Feld gibt keinen Anlagepunkt");
+  else ok++;
+  /* Und NUR das beste. Anlage an zwei Stellen wäre doppelt so häufig wie
+     gedacht — bei einer Zahl, die dauerhaft wirkt. */
+  /* GENAU EIN Feld gibt Anlage. Die Skala ist symmetrisch, aber das beste
+     Feld liegt in der MITTE und ist deshalb nur einmal da — meine erste
+     Prüfung erwartete zwei, weil ich die Spiegelung mitgedacht habe, ohne
+     nachzusehen. Gemessen: ein Feld mit pot > 0. */
+  if (F.filter((f) => f.pot > 0).length !== 1)
+    zeige("Sonderschuss", "Anlage gibt es an " + F.filter((f) => f.pot > 0).length
+      + " Feldern statt an genau einem");
+  else ok++;
+
+  /* Die Trefferwahrscheinlichkeit des besten Felds: gemessen, nicht geraten.
+     Zu leicht entwertet die Belohnung, zu schwer macht sie unsichtbar. */
+  const anteilBest = F.filter((f) => f.att === bestes.att)
+    .reduce((a2, f) => a2 + f.w, 0) / ges * 100;
+  if (anteilBest < 2 || anteilBest > 15)
+    zeige("Sonderschuss", "das beste Feld deckt " + anteilBest.toFixed(1)
+      + " % ab — zu " + (anteilBest < 2 ? "schmal" : "breit"));
+  else { console.log("  Sonderschuss: bestes Feld " + anteilBest.toFixed(1)
+    + " % · Trostbonus " + SCHUSS_TROST.att + " Attributpunkt"); ok++; }
+
+  /* Der Trostbonus: wer danebentrifft, geht NICHT leer aus (Kevins
+     Entscheidung). Er darf aber auch nicht so gut sein wie ein Treffer. */
+  if (SCHUSS_TROST.att < 1) zeige("Sonderschuss", "kein Trostbonus bei Fehlschuss");
+  else ok++;
+  if (SCHUSS_TROST.att >= bestes.att || SCHUSS_TROST.pot > 0)
+    zeige("Sonderschuss", "der Trostbonus ist so gut wie ein Treffer");
+  else ok++;
+
+  /* DAS FENSTER LIEGT AM KOERPER, nicht im Behälter (35.78). Es ist ein
+     Portal — genau deshalb, weil `.fade` eine Transformation stehen lässt und
+     `position: fixed` darin nicht mehr am Bildschirm klebt.
+     `mach` prüft aber, ob im eigenen Behälter etwas steht, und meldete
+     „Ansicht bleibt leer". Nicht falsch, nur am falschen Ort gesucht: hier
+     wird selbst gerendert und in `document.body` nachgesehen. */
+  const portalMach = (name, el) => {
+    const div = document.createElement("div");
+    document.body.appendChild(div);
+    const root = createRoot(div);
+    act(() => { root.render(el); });
+    const dialog = document.body.querySelector("[role=dialog]");
+    if (!dialog) { zeige(name, "kein Fenster am Körper"); return null; }
+    return { div: dialog, aufraeumen: () => { act(() => root.unmount()); div.remove(); } };
+  };
+
+  /* Der Bildschirm selbst: er muss den Grund nennen und einen Knopf haben. */
+  const rs = portalMach("Sonderschuss", <Sonderschuss grund="Note 1,9" ruhe={false}
+    onFertig={() => {}} />);
+  if (rs) {
+    const t = rs.div.textContent || "";
+    /* Nicht wegdrückbar (Kevins Wunsch): kein Schließen-Knopf, und der dunkle
+       Grund darf keinen Klickhandler haben. */
+    const knoepfe = [...rs.div.querySelectorAll("button")]
+      .map((b2) => (b2.textContent || "").trim());
+    if (knoepfe.some((k) => /^(Zurück|Schließen|Abbrechen|×)$/i.test(k)))
+      zeige("Sonderschuss", "es gibt einen Ausweg ohne zu schießen");
+    else ok++;
+    if (!t.includes("Note 1,9")) zeige("Sonderschuss", "der Grund wird nicht genannt");
+    else ok++;
+    if (!/Schießen/.test(t)) zeige("Sonderschuss", "kein Schussknopf");
+    else ok++;
+  }
+
+  /* BEI ABGESCHALTETER BEWEGUNG muss es trotzdem gehen. Ein
+     Geschicklichkeitsspiel darf niemanden von einer Belohnung aussperren, der
+     aus gutem Grund keine schnellen Bewegungen sehen will. */
+  if (rs) rs.aufraeumen();
+  const rr = portalMach("Sonderschuss · ohne Bewegung", <Sonderschuss grund="Torschützenkönig"
+    ruhe onFertig={() => {}} />);
+  if (rr) {
+    const t2 = rr.div.textContent || "";
+    if (!/ohne Bewegung/.test(t2))
+      zeige("Sonderschuss", "bei abgeschalteter Bewegung fehlt der Hinweis");
+    else ok++;
+    if (klick(rr.div, "Schießen", "Schuss ohne Bewegung")) {
+      const t3 = rr.div.textContent || "";
+      if (!/Attributpunkt/.test(t3))
+        zeige("Sonderschuss", "ohne Bewegung gibt es keine Belohnung");
+      else ok++;
+    }
+    rr.aufraeumen();
+  }
+}
+
+/* ---- Die Spielerkarte (35.82) --------------------------------------------
+   Kevins Wunsch: jeder Spieler als Sammelkarte. Geprüft wird, dass jede Stufe
+   ihre Farbe trägt, dass die verdeckte Karte NICHT schon verrät, wer drunter
+   liegt, und dass dieselbe Karte immer dasselbe Gesicht bekommt. */
+{
+  /* Eigener Leerlauf. `nixf` ist weiter unten in einem anderen Block definiert
+     (Zeile 1555) und hier nicht in Reichweite — der Lauf brach mit
+     „nixf is not defined" ab. Ein Name, den man anderswo gesehen hat, ist
+     nicht derselbe wie einer, den man hier benutzen darf. */
+  const leer = () => {};
+  const mk = (stufe, extra) => ({ kid: "test:" + stufe, name: "Karl Kartenmann",
+    pos: "ST", ovr: stufe === "legende" ? 88 : stufe === "gold" ? 76
+      : stufe === "silber" ? 66 : 56,
+    pot: stufe === "legende" ? 90 : 80, alter: 26, flag: "🇩🇪", nat: "GER",
+    stufe, herkunft: "pack", ...(extra || {}) });
+
+  KARTEN.REIHE.forEach((stufe) => {
+    const r = mach("Spielerkarte · " + stufe,
+      <Spielerkarte karte={mk(stufe)} gross onTippen={leer} />);
+    if (!r) return;
+    const t = r.div.textContent || "";
+    if (!t.includes("Karl Kartenmann")) zeige("Spielerkarte", stufe + ": kein Name");
+    else ok++;
+    /* Die Stufe muss zu SEHEN sein, nicht nur im Datenfeld stehen. */
+    if (!t.includes(KARTEN.STUFEN[stufe].n))
+      zeige("Spielerkarte", stufe + ": die Stufe wird nicht benannt");
+    else ok++;
+    /* DAS ROHE ATTRIBUT LESEN, nicht `style.borderColor`. jsdom rechnet die
+       Farbe in `rgb(...)` um; ein Vergleich mit dem Hexwert findet dann nie
+       etwas. Dieselbe Falle wie beim Verlauf in 35.72 — dort stand sie schon
+       im Kommentar, und ich bin wieder hineingelaufen. */
+    /* IN DERSELBEN SCHREIBWEISE VERGLEICHEN. jsdom schreibt Farben im
+       style-Attribut als `rgb(...)` — auch im ROHEN Attribut, nicht erst in
+       `style.borderColor`. Mein zweiter Anlauf las deshalb zwar das Attribut,
+       verglich aber weiter mit dem Hexwert und fand nie etwas.
+       Der Hexwert wird jetzt selbst nach rgb umgerechnet; dann vergleichen
+       beide Seiten dasselbe. */
+    const kasten = r.div.querySelector(".pan");
+    const roh = kasten ? (kasten.getAttribute("style") || "") : "";
+    const hex = KARTEN.STUFEN[stufe].farbe;
+    const n = parseInt(hex.slice(1), 16);
+    const alsRgb = "rgb(" + (n >> 16 & 255) + ", " + (n >> 8 & 255) + ", " + (n & 255) + ")";
+    if (roh.indexOf(hex) < 0 && roh.indexOf(alsRgb) < 0)
+      zeige("Spielerkarte", stufe + ": der Rand trägt nicht die Stufenfarbe ("
+        + roh.slice(0, 70) + ")");
+    else ok++;
+  });
+
+  /* VERDECKT: die Stufe darf man sehen — sonst wäre das Aufdecken ohne
+     Erwartung —, den Spieler aber NICHT. Sonst gibt es nichts aufzudecken. */
+  /* Die verdeckte Karte hat KEINEN Text ausser der Stufe — `mach` haelt eine
+     Ansicht ohne Inhalt fuer leer und wirft. Sie bekommt deshalb einen
+     eigenen Behaelter, wie das Portal-Fenster in 35.78. */
+  const rv = (() => {
+    const div = document.createElement("div");
+    document.body.appendChild(div);
+    const root = createRoot(div);
+    act(() => { root.render(<Spielerkarte karte={mk("gold")} aufgedeckt={false} onTippen={leer} />); });
+    return { div, aufraeumen: () => { act(() => root.unmount()); div.remove(); } };
+  })();
+  if (rv) {
+    const t = rv.div.textContent || "";
+    if (t.includes("Karl Kartenmann"))
+      zeige("Spielerkarte", "die verdeckte Karte verrät den Spieler");
+    else ok++;
+    if (!/GOLD/i.test(t)) zeige("Spielerkarte", "die verdeckte Karte zeigt die Stufe nicht");
+    else ok++;
+    rv.aufraeumen();
+  }
+
+  /* DASSELBE GESICHT. Der Avatar würfelt aus einer Kennung; käme die aus dem
+     Zufall, sähe ein Spieler nach dem Blättern anders aus als davor. */
+  const a1 = mach("Spielerkarte · Gesicht 1", <Spielerkarte karte={mk("silber")} />);
+  const a2 = mach("Spielerkarte · Gesicht 2", <Spielerkarte karte={mk("silber")} />);
+  if (a1 && a2) {
+    const pfad = (r) => { const s2 = r.div.querySelector("svg");
+      return s2 ? s2.innerHTML.length + ":" + (s2.innerHTML.match(/fill="([^"]+)"/) || [])[1] : ""; };
+    if (pfad(a1) !== pfad(a2))
+      zeige("Spielerkarte", "dieselbe Karte bekommt zwei verschiedene Gesichter");
+    else ok++;
+  }
+
+  /* DECKEND, nicht durchscheinend (35.83, Kevins Wunsch: „eher fest und wie
+     eine Sammelkarte"). Ein `transparent` im Verlauf lässt den Untergrund
+     durch — genau das sah nach Schleier aus. */
+  KARTEN.REIHE.forEach((stufe) => {
+    const r = mach("Spielerkarte · deckend " + stufe, <Spielerkarte karte={mk(stufe)} />);
+    if (!r) return;
+    const roh = (r.div.querySelector(".pan") || {}).getAttribute
+      ? r.div.querySelector(".pan").getAttribute("style") : "";
+    if (/transparent/.test(roh))
+      zeige("Spielerkarte", stufe + ": der Verlauf endet auf transparent");
+    else ok++;
+    /* Und die beiden Stopps müssen wirklich verschieden sein — ein Verlauf
+       von einer Farbe zu derselben ist eine Fläche mit Aufwand. */
+    const f = KARTEN.flaeche(stufe);
+    if (f.oben === f.unten)
+      zeige("Spielerkarte", stufe + ": oben und unten sind dieselbe Farbe");
+    else ok++;
+  });
+
+  /* MERKMALE. Der naheliegende Fehler wäre, sie zu würfeln — dann stünde
+     „Torjäger" auf einem Innenverteidiger, und beim zweiten Ansehen glaubt
+     niemand mehr, was auf der Karte steht. */
+  const merkST = KARTEN.merkmaleVon({ pos: "ST", ovr: 80, pot: 84, alter: 24, herkunft: "pack" });
+  const merkIV = KARTEN.merkmaleVon({ pos: "IV", ovr: 80, pot: 84, alter: 24, herkunft: "pack" });
+  if (merkST.some((m) => m.id === "mauer") || merkIV.some((m) => m.id === "tore"))
+    zeige("Spielerkarte", "die Merkmale passen nicht zur Position");
+  else ok++;
+  if (!merkST.some((m) => m.id === "tore"))
+    zeige("Spielerkarte", "ein starker Stürmer ist kein Torjäger");
+  else ok++;
+  /* Höchstens drei — was jeder hat, zeichnet niemanden aus. */
+  const vieleM = KARTEN.merkmaleVon({ pos: "ST", ovr: 90, pot: 99, alter: 19,
+    herkunft: "halle", zusatz: { titel: 12 } });
+  if (vieleM.length > 3) zeige("Spielerkarte", "mehr als drei Merkmale: " + vieleM.length);
+  else ok++;
+  /* Ein schwacher Spieler bekommt keine Auszeichnung. */
+  if (KARTEN.merkmaleVon({ pos: "ST", ovr: 54, pot: 58, alter: 25, herkunft: "pack" })
+      .some((m) => m.id === "tore"))
+    zeige("Spielerkarte", "auch ein schwacher Stürmer gilt als Torjäger");
+  else ok++;
+  /* Jedes Merkmal braucht ein Zeichen, das es gibt — sonst bleibt die Stelle
+     leer und niemand merkt es. */
+  const ohneZeichen = KARTEN.MERKMALE.filter((m) => !MERKSYMBOL[m.sym]).map((m) => m.n);
+  if (ohneZeichen.length) zeige("Spielerkarte", "ohne Symbol: " + ohneZeichen.join(", "));
+  else ok++;
+
+  /* ---- Der Packladen (35.85) ---------------------------------------------
+     Kevins Vorgabe: „Gezogene Spieler kommen nur dazu und sollen die Spieler
+     aus der Akademie lediglich ergänzen." Ohne Obergrenze wäre das eine leere
+     Zusage — wer genug kauft, hätte eine Mannschaft aus dem Laden. */
+  {
+    const leerV = { gegruendet: true, kader: [], name: "Probe", liga: "3. Liga" };
+    const rl = mach("Packladen", <Packladen vc={600} pool={KARTEN.leererPool()}
+      verein={leerV} gratis={0} onKauf={leer} onGratis={leer}
+      onEinsetzen={() => null} onZurueck={leer} />);
+    if (rl) {
+      const t = rl.div.textContent || "";
+      KARTEN.PACKS.forEach((pk) => {
+        if (!t.includes(pk.n)) zeige("Packladen", pk.n + " fehlt");
+        else ok++;
+        if (!t.includes(pk.preis + " VC")) zeige("Packladen", pk.n + ": kein Preis");
+        else ok++;
+      });
+      /* DER PREIS IN LAUFBAHNEN (aus 35.80). Ein Preis, dessen Folgen man erst
+         drei Stunden später merkt, ist keine Entscheidung. */
+      if (!/Laufbahnen Akademieausbau/.test(t))
+        zeige("Packladen", "der Preis wird nicht in Laufbahnen angesagt");
+      else ok++;
+      /* Die Obergrenze muss DASTEHEN, nicht nur wirken. */
+      if (!/ergänzen|ersetzen/.test(t))
+        zeige("Packladen", "die Obergrenze wird nicht erklärt");
+      else ok++;
+    }
+
+    /* Wer zu wenig VC hat, darf nicht kaufen — und muss erfahren, wie viel fehlt. */
+    const ra = mach("Packladen · leeres Konto", <Packladen vc={5} pool={KARTEN.leererPool()}
+      verein={leerV} gratis={0} onKauf={leer} onGratis={leer}
+      onEinsetzen={() => null} onZurueck={leer} />);
+    if (ra) {
+      const t = ra.div.textContent || "";
+      if (!/VC fehlen/.test(t)) zeige("Packladen", "es steht nicht da, wie viel fehlt");
+      else ok++;
+      const kaufbar = [...ra.div.querySelectorAll("button")]
+        .filter((b2) => /^Kaufen$/.test((b2.textContent || "").trim()) && !b2.disabled);
+      if (kaufbar.length) zeige("Packladen", "man kann kaufen, ohne genug VC zu haben");
+      else ok++;
+    }
+
+    /* Das Gratispack erscheint nur, wenn eines da ist. */
+    const rg2 = mach("Packladen · Gratispack", <Packladen vc={0} pool={KARTEN.leererPool()}
+      verein={leerV} gratis={2} onKauf={leer} onGratis={leer}
+      onEinsetzen={() => null} onZurueck={leer} />);
+    if (rg2) {
+      if (!/Bronzepacks warten/.test(rg2.div.textContent || ""))
+        zeige("Packladen", "das Gratispack wird nicht angeboten");
+      else ok++;
+    }
+    if (rl && /Gratispack öffnen/.test(rl.div.textContent || ""))
+      zeige("Packladen", "ein Gratispack wird angeboten, obwohl keines da ist");
+    else ok++;
+
+    /* DIE OBERGRENZE SELBST. Fünf von sechzehn — die Elf steht damit immer
+       mehrheitlich aus eigener Ausbildung. */
+    let vv = { gegruendet: true, kader: [] };
+    let abgewiesen = 0;
+    for (let i = 0; i < 9; i++) {
+      const r = VEREIN.karteEinsetzen(vv, { kid: "p" + i, name: "P" + i, pos: "ST",
+        ovr: 70, pot: 74, alter: 25, stufe: "gold" });
+      if (r.fehler) { abgewiesen++; break; }
+      vv = r.v;
+    }
+    if (abgewiesen === 0) zeige("Packladen", "es gibt keine Obergrenze für gezogene Spieler");
+    else ok++;
+    if (VEREIN.packImKader(vv) > Math.floor(VEREIN.KADER_MIN * VEREIN.PACK_ANTEIL))
+      zeige("Packladen", "mehr gezogene Spieler im Kader als erlaubt");
+    else ok++;
+    /* Und der naheliegende Umweg: derselbe Spieler zweimal. */
+    const doppelt = VEREIN.karteEinsetzen(vv, { kid: "p0", name: "P0", pos: "ST",
+      ovr: 70, pot: 74, alter: 25, stufe: "gold" });
+    if (!doppelt.fehler) zeige("Packladen", "derselbe Spieler lässt sich zweimal einsetzen");
+    else ok++;
+  }
+
+  /* ---- Der Fundus (35.87) -------------------------------------------------
+     Kevin: „dass man gezogene Spieler immer in einem Fundus hat und sie in die
+     Mannschaft packen und wieder rausziehen kann. Dass man allgemein nötige
+     Verwaltungsmöglichkeiten hat."
+     Bei fünf Karten braucht es nichts. Bei fünfzig braucht es alles — und
+     fünfzig sind nach zehn Packs erreicht. */
+  {
+    const mkK = (i, stufe, ovr, pos) => ({ kid: "f" + i, name: "Fundus " + i,
+      pos: pos || "ST", ovr, pot: ovr + 4, alter: 26, flag: "🇩🇪", nat: "GER",
+      stufe, herkunft: "pack", zusatz: {} });
+    let pl = KARTEN.leererPool();
+    pl = KARTEN.poolErgaenzen(pl, [
+      mkK(1, "bronze", 56, "TW"), mkK(2, "silber", 66, "ZM"),
+      mkK(3, "gold", 76, "IV"), mkK(4, "legende", 88, "ST"),
+      KARTEN.ausHalle({ name: "Eigene Legende", pos: "ZM", nat: "🇩🇪", age: 35,
+        peak: 90, score: 900, titles: 9, goals: 300, caps: 80 }, 0)]);
+    const vv = { gegruendet: true, kader: [], name: "P", liga: "3. Liga" };
+
+    const rf = mach("Fundus", <Packladen vc={100} pool={pl} verein={vv} gratis={0}
+      onKauf={leer} onGratis={leer} onEinsetzen={() => null} onEntfernen={() => null}
+      onVerkauf={() => null} onZurueck={leer} />);
+    if (rf) {
+      /* Der Fundus liegt hinter einem Knopf — erst dorthin. */
+      if (!klick(rf.div, "Sammlung", "in den Fundus")) {
+        zeige("Fundus", "kein Weg in die Sammlung");
+      } else {
+        const t = rf.div.textContent || "";
+        /* DIE ÜBERSICHT: wie viele je Stufe. Ohne sie muss man zählen. */
+        if (!/1 bronze/.test(t) || !/2 legendär/i.test(t))
+          zeige("Fundus", "die Zählung je Stufe stimmt nicht: "
+            + (t.match(/\d+ Karten[^\n]*/) || [""])[0]);
+        else ok++;
+        /* FILTER UND SORTIERUNG müssen da sein — eine Liste, die man nur
+           durchscrollt, ist kein Fundus, sondern ein Haufen. */
+        if (!/Zeigen/.test(t) || !/Sortieren/.test(t))
+          zeige("Fundus", "keine Verwaltung (Filter oder Sortierung fehlt)");
+        else ok++;
+        /* SORTIERT NACH STÄRKE: der Beste steht oben. Das ist die Frage, die
+           man an einen Fundus hat. */
+        const namen = [...rf.div.querySelectorAll(".pan.winkel")]
+          .map((x) => (x.textContent || "").match(/(\d\d)\s*$/) || []);
+        const werte = [...rf.div.querySelectorAll(".pan.winkel")]
+          .map((x) => { const m = (x.textContent || "").match(/(\d{2})Anlage|(\d{2})$/);
+            return m ? Number(m[1] || m[2]) : null; }).filter((x) => x != null);
+        if (werte.length >= 2 && werte[0] < werte[werte.length - 1])
+          zeige("Fundus", "nicht nach Stärke sortiert: " + werte.join(", "));
+        else ok++;
+        /* Die Ruhmeshallenkarte darf KEINEN Verkaufsknopf haben. */
+        const kaesten = [...rf.div.querySelectorAll(".g1 > div")];
+        const halleKasten = kaesten.find((x) => /Eigene Legende/.test(x.textContent || ""));
+        if (halleKasten && /Verkaufen/.test(halleKasten.textContent || ""))
+          zeige("Fundus", "die Ruhmeshallenkarte lässt sich verkaufen");
+        else ok++;
+        /* Und eine Packkarte MUSS einen haben — sonst ist die Grenze wieder
+           eine Falle. */
+        const packKasten = kaesten.find((x) => /Fundus 4/.test(x.textContent || ""));
+        if (packKasten && !/Verkaufen/.test(packKasten.textContent || ""))
+          zeige("Fundus", "eine Packkarte lässt sich nicht verkaufen");
+        else ok++;
+      }
+    }
+  }
+
+  /* ---- Die Elfkarte (35.90, von Kevin im Bild gemeldet) -------------------
+     „Die Mannschaftsaufstellung mit den Wappen passt noch nicht
+     skalierungstechnisch." Gemessen: die Karte war 88 px breit, ihre Spalte
+     bei 412 px Fensterbreite nur 82 — jede ragte sechs Pixel darüber, die
+     vierte wurde am Rand abgeschnitten.
+     EINE FESTE PIXELBREITE IN EINEM RASTER, DAS SICH ANPASST, IST EIN
+     WIDERSPRUCH. */
+  {
+    const sp = { id: "e1", name: "Testspieler", pos: "ST", ovr: 76, alter: 25,
+      nat: "GER", ausPack: false };
+    const re = mach("Elfkarte", <Elfkarte spieler={sp} stufe="gold" platz="ST"
+      eignung={1} onTippen={leer} />);
+    if (re) {
+      const b2 = re.div.querySelector("button");
+      const roh = b2 ? (b2.getAttribute("style") || "") : "";
+      /* `width: 100%` ist richtig, `width: 88px` war der Fehler. Mein
+         erstes Muster traf beides nicht sauber: es suchte Ziffern gefolgt von
+         px — und „100%" enthält Ziffern, aber kein px, also hätte es passen
+         müssen. Es passte trotzdem, weil `maxWidth: 110px` in derselben
+         Zeichenkette steht. EIN MUSTER, DAS DIE GANZE ZEILE DURCHSUCHT,
+         findet auch, was zu einer anderen Eigenschaft gehört. */
+      const wid = (roh.match(/(^|;)\s*width:\s*([^;]+)/) || [])[2] || "";
+      if (/px/.test(wid))
+        zeige("Elfkarte", "feste Pixelbreite statt Spaltenbreite: " + wid);
+      else ok++;
+      /* Die Herkunft MUSS drauf sein — Kevins Vorgabe aus 35.88. */
+      if (!re.div.querySelector("svg path"))
+        zeige("Elfkarte", "kein Herkunftszeichen");
+      else ok++;
+    }
+    /* Bei falscher Position: die WIRKSAME Stärke, rot, mit Prozentangabe. */
+    const rf2 = mach("Elfkarte · falsche Position", <Elfkarte spieler={sp}
+      stufe="gold" platz="IV" eignung={.8} onTippen={leer} />);
+    if (rf2) {
+      const t = rf2.div.textContent || "";
+      if (!/80 %/.test(t)) zeige("Elfkarte", "die Eignung wird nicht genannt");
+      else ok++;
+      /* Die 61 steht da — mein erster Ausdruck suchte sie mit Wortgrenzen,
+         und im zusammengeflossenen Text („Testspieler61ST") gibt es links von
+         der 61 keine. Wortgrenzen setzen voraus, dass Text getrennt ist; in
+         `textContent` ist er das nicht. */
+      if (t.indexOf("61") < 0)
+        zeige("Elfkarte", "nicht die wirksame Stärke (76 × 0,8 = 61): " + t.slice(0, 40));
+      else ok++;
+    }
+    /* Ein leerer Platz ist auch eine Karte — sonst hüpft das Raster. */
+    const rl2 = mach("Elfkarte · leerer Platz", <Elfkarte spieler={null} platz="ST"
+      onTippen={leer} />, 0);
+    if (rl2 && !rl2.div.querySelector("button"))
+      zeige("Elfkarte", "ein leerer Platz ist keine Karte");
+    else ok++;
+    /* Kleine Karten brauchen den SCHMALEN Schimmer — der breite deckt eine
+       82-px-Karte auf einmal ab und wirkt wie ein Farbteppich. */
+    const rh = mach("Elfkarte · Schimmer", <Elfkarte spieler={sp} stufe="legende"
+      platz="ST" eignung={1} onTippen={leer} />);
+    if (rh) {
+      const h = rh.div.querySelector(".holo");
+      if (!h) zeige("Elfkarte", "kein Schimmer auf einer legendären Karte");
+      else if (h.className.indexOf("eng") < 0)
+        zeige("Elfkarte", "der breite Schimmer auf einer kleinen Karte");
+      else ok++;
+    }
+  }
+
+  /* ---- Der Aufdecktisch räumt sich auf (35.92) ----------------------------
+     Kevin: „Wenn man alle Karten im Pack angenommen hat, dann soll die Ansicht
+     wieder in den Shop wechseln."
+     Ein leerer Tisch mit einem „Fertig"-Knopf ist ein Bildschirm, der nur noch
+     aus einer Aufforderung besteht, ihn zu verlassen. */
+  {
+    const vollV2 = { gegruendet: true, name: "P", liga: "3. Liga",
+      /* Kader mit VOLLEM Packkontingent — dann gibt es nur „Annehmen". */
+      kader: Array.from({ length: 5 }, (_, i) => ({ id: "v" + i, name: "V" + i,
+        pos: "ST", ovr: 70, ausPack: true })) };
+    const rz = mach("Packladen · voller Kader", <Packladen vc={0}
+      pool={KARTEN.leererPool()} verein={vollV2} gratis={1}
+      onKauf={leer} onGratis={leer} onStartpaket={leer}
+      onEinsetzen={() => "voll"} onEntfernen={() => null} onVerkauf={() => null}
+      onZurueck={leer} />);
+    if (rz) {
+      if (!klick(rz.div, "Gratispack öffnen", "Pack öffnen")) {
+        zeige("Packladen", "das Gratispack lässt sich nicht öffnen");
+      } else {
+        /* Aufdecken. */
+        let verdeckt = rz.div.querySelectorAll("[aria-label*=Verdeckte]");
+        let runde = 0;
+        while (verdeckt.length && runde < 6) {
+          act(() => { verdeckt[0].dispatchEvent(new window.MouseEvent("click", { bubbles: true })); });
+          verdeckt = rz.div.querySelectorAll("[aria-label*=Verdeckte]");
+          runde++;
+        }
+        const kn = [...rz.div.querySelectorAll("button")]
+          .map((b2) => (b2.textContent || "").trim());
+        /* BEI VOLLEM KADER GIBT ES KEIN „In den Kader" — sonst stünde dort ein
+           Knopf, der nichts tut. Das war der Befund aus 35.90. */
+        if (kn.some((x) => x === "In den Kader"))
+          zeige("Packladen", "„In den Kader“ trotz vollem Kontingent");
+        else ok++;
+        if (!kn.some((x) => x === "Annehmen"))
+          zeige("Packladen", "kein Weg, die Karte anzunehmen");
+        else ok++;
+      }
+    }
+  }
+
+  /* ---- Der Sonderschuss verteilt alles (35.94) ----------------------------
+     Kevin: „Ich habe das Gefühl, dass die über das Minispiel gewonnenen
+     Attributpunkte manchmal nicht verteilt werden."
+     Er hatte recht: stand ein Wert schon an der Grenze — bei einem starken
+     Stürmer ist `sho` irgendwann 99 —, tat `clamp(… + 1)` nichts, und der
+     Punkt war lautlos weg. */
+  {
+    const gew = POS.ST.w;
+    const kern = Object.keys(gew).sort((x, y) => gew[y] - gew[x]);
+    /* Fünf von sechs Kernwerten am Anschlag, einer hat Luft. */
+    const attrs = { pac: 99, sho: 99, pas: 70, dri: 99, def: 40, phy: 99 };
+    let vergeben = 0;
+    for (let i = 0; i < 3; i++) {
+      const frei = kern.filter((k2) => attrs[k2] < 99);
+      if (!frei.length) break;
+      attrs[frei[i % frei.length]]++; vergeben++;
+    }
+    if (vergeben < 3)
+      zeige("Sonderschuss", "nur " + vergeben + " von 3 Punkten vergeben, obwohl Platz war");
+    else ok++;
+
+    /* DER VOLLTREFFER GIBT NICHT IMMER DASSELBE (Kevins zweiter Punkt). */
+    if (!SCHUSS_PREISE || SCHUSS_PREISE.length < 3)
+      zeige("Sonderschuss", "es gibt nur einen Preis für den Volltreffer");
+    else ok++;
+    if (SCHUSS_PREISE && !SCHUSS_PREISE.some((x) => x.id === "pot"))
+      zeige("Sonderschuss", "der Anlagepunkt fehlt ganz");
+    else ok++;
+    /* Jeder Preis braucht Namen UND Erklärung — „form" allein sagt nichts. */
+    const ohneText = (SCHUSS_PREISE || []).filter((x) => !x.n || !x.t).map((x) => x.id);
+    if (ohneText.length) zeige("Sonderschuss", "ohne Text: " + ohneText.join(", "));
+    else ok++;
+    /* Und die Anlage darf nicht der einzige HÄUFIGE sein — sonst ändert sich
+       für den Spieler nichts. */
+    const gesamtW = (SCHUSS_PREISE || []).reduce((a2, x) => a2 + x.w, 0);
+    const potAnteil = ((SCHUSS_PREISE || []).find((x) => x.id === "pot") || {}).w / gesamtW;
+    if (potAnteil > 0.6)
+      zeige("Sonderschuss", "die Anlage kommt in " + (potAnteil * 100).toFixed(0) + " % der Fälle");
+    else ok++;
+  }
+
+  /* ---- Jede Ansicht braucht einen Ausgang (35.95) -------------------------
+     Kevin: „Aus der Spielersammlung gibt es keinen Zurück-Knopf."
+
+     Der Fehler entstand in 35.94: bis dahin kam man nur über den Laden in die
+     Sammlung, und „Zum Laden" war der richtige und einzige Rückweg. Seit es
+     das Fundussymbol im Dach gibt, kommt man auch DIREKT — und stand dann in
+     einer Sammlung, aus der nur ein Weg in einen Laden führte, den man nie
+     betreten hat.
+
+     EIN NEUER ZUGANG BRAUCHT EINEN PASSENDEN AUSGANG. Wer das vergisst, baut
+     eine Sackgasse — dieselbe Art Fehler wie beim Aufdecktisch in 35.90.
+     Beide Male hat es Kevin gefunden, nicht der Prüfstand. Deshalb hier eine
+     Prüfung, die es künftig tut. */
+  {
+    const leerP = KARTEN.leererPool();
+    const mitP = KARTEN.poolErgaenzen(leerP,
+      [KARTEN.neueKarte("gold", 2030), KARTEN.neueKarte("silber", 2030)]);
+    const vv3 = { gegruendet: true, kader: [], name: "P", liga: "3. Liga" };
+    let zurueckGerufen = 0;
+
+    /* Der Laden, in beiden Reitern. */
+    [["laden", "Packladen"], ["sammlung", "Sammlung"]].forEach(([reiter, name]) => {
+      const r = mach("Ausgang · " + name, <Packladen vc={200} pool={mitP} verein={vv3}
+        gratis={0} startReiter={reiter} onReiterGesehen={leer}
+        onKauf={leer} onGratis={leer} onStartpaket={leer}
+        onEinsetzen={() => null} onEntfernen={() => null} onVerkauf={() => null}
+        onZurueck={() => { zurueckGerufen++; }} />);
+      if (!r) return;
+      const knoepfe = [...r.div.querySelectorAll("button")]
+        .map((b2) => (b2.textContent || "").trim());
+      const zurueck = knoepfe.find((x) => /^Zurück$/.test(x));
+      if (!zurueck) {
+        zeige("Ausgang", name + " hat keinen Zurück-Knopf: " + knoepfe.slice(0, 6).join(", "));
+      } else {
+        ok++;
+        /* UND ER MUSS WIRKEN. Ein Knopf, der nichts tut, ist schlimmer als
+           keiner — das war die Lehre aus 35.90. */
+        const vorher = zurueckGerufen;
+        klick(r.div, "Zurück", name + ": Zurück drücken");
+        if (zurueckGerufen === vorher)
+          zeige("Ausgang", name + ": der Zurück-Knopf ruft nichts auf");
+        else ok++;
+      }
+    });
+  }
+
+  /* HOLOSCHIMMER nur auf Gold und Legendär (35.84, Kevins Wunsch). Auf Bronze
+     und Silber wäre er kein Merkmal mehr, sondern Dekoration — und Dekoration,
+     die überall ist, sagt nichts. */
+  [["bronze", false], ["silber", false], ["gold", true], ["legende", true]].forEach(([stufe, soll]) => {
+    const r = mach("Spielerkarte · Holo " + stufe, <Spielerkarte karte={mk(stufe)} />);
+    if (!r) return;
+    const hat = !!r.div.querySelector(".holo");
+    if (hat !== soll)
+      zeige("Spielerkarte", stufe + (soll ? " hat keinen Holoschimmer"
+        : " schimmert, obwohl es keine seltene Karte ist"));
+    else ok++;
+  });
+  /* DER TEXT MUSS OBEN LIEGEN. Ein Schimmer über der Schrift verschluckt sie —
+     und das fiele erst auf dem Gerät auf, wo man es nicht mehr messen kann. */
+  {
+    const r = mach("Spielerkarte · Holo unter dem Text", <Spielerkarte karte={mk("legende")} />);
+    if (r) {
+      const kasten = r.div.querySelector(".pan");
+      const kinder = kasten ? [...kasten.children] : [];
+      const iHolo = kinder.findIndex((x) => x.classList.contains("holo"));
+      const iText = kinder.findIndex((x) => (x.textContent || "").includes("Karl Kartenmann"));
+      if (iHolo < 0 || iText < 0)
+        zeige("Spielerkarte", "Holo oder Text nicht gefunden");
+      else if (iHolo > iText)
+        zeige("Spielerkarte", "der Holoschimmer liegt über dem Text");
+      else ok++;
+    }
+  }
+
+  /* JUBEL NUR FÜR SELTENES. Eine Feier bei jeder Bronzekarte ist keine Feier,
+     sondern eine Wartezeit. */
+  [["bronze", false], ["silber", false], ["gold", true], ["legende", true]].forEach(([stufe, soll]) => {
+    const r = mach("Spielerkarte · Jubel " + stufe, <Spielerkarte karte={mk(stufe)} jubel />);
+    if (!r) return;
+    const hat = /kartenjubel/.test((r.div.querySelector(".pan") || {}).className || "");
+    if (hat !== soll)
+      zeige("Spielerkarte", stufe + (soll ? " feiert nicht" : " feiert, obwohl es nichts zu feiern gibt"));
+    else ok++;
+  });
+
+  /* Anlage nur zeigen, wenn es etwas zu holen gibt — „Anlage 70" bei Stärke 70
+     ist keine Auskunft, sondern Füllsel. */
+  const rg = mach("Spielerkarte · ausgereift",
+    <Spielerkarte karte={{ ...mk("gold"), ovr: 76, pot: 76 }} />);
+  if (rg) {
+    if (/Anlage/.test(rg.div.textContent || ""))
+      zeige("Spielerkarte", "Anlage wird gezeigt, obwohl nichts zu holen ist");
+    else ok++;
+  }
+}
+
+/* ---- Karrierebilanz: zwei Kästen, nicht einer (35.94) --------------------
+   Kevin: „Der VC-Verdienst und die Übersicht der Jugendakademie müssen noch
+   getrennt werden. Die Kachel zur Jugendakademie darf nur kommen, wenn diese
+   auch bereits gegründet wurde."
+
+   Bis 35.93 hiess der Kasten „Ein Jahr Jugendakademie" und zeigte den
+   VC-Verdienst — auch bei jemandem OHNE Akademie, der dann eine Ueberschrift
+   ueber einem Haus las, das es nicht gibt. */
+{
+  /* MIT DER ECHTEN FABRIK, nicht von Hand zusammengesteckt. Mein erster
+     Entwurf listete zwanzig Felder auf und vergass `depot` — `netWorth`
+     stürzte ab. Ein Spieler hat mehr Felder, als man beim Abtippen im Kopf
+     hat; `createPlayer` weiß, welche. */
+  const spielerB = (() => {
+    const q = createPlayer({ name: "Bilanzprobe", nation: "GER", pos: "ZM",
+      foot: "rechts", number: 8, type: TYPES[0].id, mode: MODES[0].id, gender: "m",
+      statur: "normal", aka: null });
+    q.verdict = { score: 100, title: "Probe", sub: "", tier: "profi" };
+    q.retired = true;
+    q.vcGewinn = 13;
+    q.vcPosten = [{ k: "Aus 144 Punkten", v: 6 }];
+    return q;
+  })();
+
+  /* OHNE Akademie: nur der VC-Kasten, mit dem Hinweis. */
+  const rOhne = mach("Bilanz ohne Akademie",
+    <EndScreen p={{ ...spielerB, akaAktiv: false, akaName: null, akaEreignisse: [] }}
+      onMenu={leer} onNeu={leer} ges={{ karrieren: 2 }} />, 0);
+  if (rOhne) {
+    const t = rOhne.div.textContent || "";
+    if (!/Vermächtnis-Coins/i.test(t)) zeige("Bilanz", "der VC-Kasten fehlt");
+    else ok++;
+    if (/Ein Jahr Jugendakademie/i.test(t))
+      zeige("Bilanz", "der Akademiekasten steht da, obwohl es keine Akademie gibt");
+    else ok++;
+    if (!/noch keine Akademie/i.test(t))
+      zeige("Bilanz", "es steht nicht da, dass noch keine Akademie existiert");
+    else ok++;
+  }
+
+  /* MIT Akademie: beide Kästen, getrennt. */
+  const rMit = mach("Bilanz mit Akademie",
+    <EndScreen p={{ ...spielerB, akaAktiv: true, akaName: "Nachwuchs des Testelf",
+      akaEreignisse: [{ art: "aufnahme", txt: "Drei neue Talente." }] }}
+      onMenu={leer} onNeu={leer} ges={{ karrieren: 2 }} />, 0);
+  if (rMit) {
+    const t = rMit.div.textContent || "";
+    if (!/Vermächtnis-Coins/i.test(t)) zeige("Bilanz", "mit Akademie fehlt der VC-Kasten");
+    else ok++;
+    if (!/Ein Jahr Jugendakademie/i.test(t))
+      zeige("Bilanz", "der Akademiekasten fehlt, obwohl es eine Akademie gibt");
+    else ok++;
+    /* Der Hinweis „noch keine Akademie" darf dann NICHT dastehen. */
+    if (/noch keine Akademie/i.test(t))
+      zeige("Bilanz", "der Hinweis auf die fehlende Akademie steht trotz Akademie da");
+    else ok++;
+    /* ZWEI KAESTEN, nicht einer: die beiden Ueberschriften muessen in
+       VERSCHIEDENEN Kaesten stehen — sonst ist es wieder einer mit zwei
+       Titeln. */
+    const kaesten = [...rMit.div.querySelectorAll(".pan")];
+    const vcK = kaesten.find((x) => /Vermächtnis-Coins/i.test(x.textContent || ""));
+    const akaK = kaesten.find((x) => /Ein Jahr Jugendakademie/i.test(x.textContent || ""));
+    if (vcK && akaK && vcK === akaK)
+      zeige("Bilanz", "beides steht in demselben Kasten");
+    else ok++;
+  }
 }
 
 const ZAHLEN = ["Jahrgänge", "Profis", "Weltklasse", "Nationalspieler", "Jugendturniere", "Ansehen"];
@@ -1158,16 +1849,51 @@ console.log("\n=== Durchklicktest ===");
            Gemessen: zwischen der angetippten Zeile und dem Kasten darf keine
            weitere Platzzeile liegen. */
         {
+          /* NACHGEZOGEN AUF DAS RASTER (35.88). Bis 35.87 stand die Elf als
+             Liste, und „keine Platzzeile zwischen Tipp und Kasten" war die
+             richtige Frage. Jetzt ist es ein Raster mit vier Spalten — dort
+             lautet dieselbe Frage: liegt der Kasten in DERSELBEN REIHE?
+
+             Die Prüfung meldete nach dem Umbau zwei Zeilen dazwischen und
+             hatte damit recht: im Raster stehen bis zu drei weitere Karten
+             zwischen der angetippten und dem Kasten. Das ist kein Fehler,
+             sondern die Bauart — der Kasten kann erst nach der Reihe kommen.
+             Geprüft wird deshalb, dass höchstens der Rest DER EIGENEN REIHE
+             dazwischenliegt, nicht die ganze Elf. */
+          /* ZUM DRITTEN MAL NACHGEZOGEN (35.91). Die Frage ist seit 35.59
+             dieselbe — steht der Kasten direkt bei dem, was man angetippt
+             hat? — aber die Antwort haengt an der Bauart:
+               35.59  Liste       keine Platzzeile dazwischen
+               35.88  Raster      hoechstens der Rest der eigenen Reihe
+               35.91  Feld        direkt hinter der REIHE, in der der Platz liegt
+             Der Kasten ist jetzt Geschwister der Reihe, nicht der Karte —
+             deshalb ging die alte Suche ins Leere und meldete „steht nicht in
+             derselben Liste". Sie hatte recht: dort stand er wirklich nicht
+             mehr. Gesucht wird jetzt von der REIHE aus.
+
+             DASS DIESE PRUEFUNG DEN UMBAU DREIMAL BEMERKT HAT, ist ihr Wert.
+             Eine Regel, die man beim Umbauen vergisst, ist nach dem zweiten
+             Umbau weg — diese hier meldet sich. */
           const knopf = plaetze[5];
-          let n = knopf.nextElementSibling, dazwischen = 0, kasten = null;
+          const reihe = knopf.closest("div[style*='flex']") || knopf.parentElement;
+          const reihenBlock = reihe && reihe.parentElement === null ? null : reihe;
+          let n = (reihenBlock || knopf).nextElementSibling, dazwischen = 0, kasten = null;
           while (n) {
             if (/Wer spielt/.test(n.textContent || "")) { kasten = n; break; }
             if (/^(TW|IV|AV|ZDM|ZM|ZOM|AF|ST)/.test((n.textContent || "").trim())) dazwischen++;
             n = n.nextElementSibling;
           }
-          if (!kasten) zeige("Aufstellung", "der Auswahlkasten steht nicht in derselben Liste");
+          /* Der Kasten kann auch eine Ebene hoeher stehen (Fragment je Reihe). */
+          if (!kasten && reihenBlock && reihenBlock.parentElement) {
+            let m2 = reihenBlock.parentElement.nextElementSibling;
+            while (m2 && !kasten) {
+              if (/Wer spielt/.test(m2.textContent || "")) kasten = m2;
+              m2 = m2.nextElementSibling;
+            }
+          }
+          if (!kasten) zeige("Aufstellung", "der Auswahlkasten steht nicht bei seiner Reihe");
           else if (dazwischen > 0)
-            zeige("Aufstellung", dazwischen + " Platzzeile(n) zwischen Tipp und Kasten");
+            zeige("Aufstellung", dazwischen + " Reihe(n) zwischen Tipp und Kasten");
           else ok++;
         }
         const wahl = [...r.div.querySelectorAll("button")]
@@ -1538,21 +2264,48 @@ mach("Verein · Gruendung", <VereinGruenden aka={null} onFertig={() => {}} onZur
           gesamt={{ karrieren: 9 }} onAka={nixf} onProfi={nixf} onZurueck={nixf}
           onAendern={nixf} onVAendern={nixf} />);
       if (r10) {
-        const t10 = r10.div.textContent || "";
-        if (!/1 offen/.test(t10)) zeige("Postfach", "der Zähler fehlt");
-        else ok++;
-        /* Der Fall darf NICHT schon sichtbar sein. */
-        if (t10.includes("Zuklapp"))
-          zeige("Postfach", "es ist von selbst aufgeklappt, obwohl es zubleiben soll");
-        else ok++;
-        if (!/antippen/i.test(t10))
-          zeige("Postfach", "es sagt nicht, dass man antippen kann");
-        else ok++;
-        /* Und nach dem Antippen MUSS der Fall erscheinen — sonst wäre es
-           zwar zu, aber auch nicht zu öffnen. */
-        if (klick(r10.div, "Postfach", "Postfach antippen")) {
-          if (!(r10.div.textContent || "").includes("Zuklapp"))
-            zeige("Postfach", "nach dem Antippen erscheint der Fall nicht");
+        /* NACHGEZOGEN AUF DAS BRIEFSYMBOL (35.93). Bis 35.92 war das Postfach
+           eine Kachel mit Text; die Prüfung suchte deshalb im Text nach
+           „1 offen" und „antippen". Jetzt ist es ein Symbol in der Kopfzeile,
+           und der Zustand steht in `aria-label` — dort, wo er auch für einen
+           Screenreader steht.
+           Sie hatte recht, rot zu melden: den Text, den sie suchte, gibt es
+           nicht mehr. Was sie prüft, bleibt dasselbe — ist der Zähler da,
+           bleibt der Inhalt zu, lässt er sich öffnen. */
+        const brief = [...r10.div.querySelectorAll("button")]
+          .find((b2) => /Postfach/.test(b2.getAttribute("aria-label") || ""));
+        if (!brief) zeige("Postfach", "kein Briefsymbol in der Kopfzeile");
+        else {
+          ok++;
+          const marke = brief.getAttribute("aria-label") || "";
+          if (!/1 Vorgänge|1 Vorgang/.test(marke) && brief.textContent.indexOf("1") < 0)
+            zeige("Postfach", "der Zähler fehlt: " + marke);
+          else ok++;
+          /* Der Fall darf NICHT schon sichtbar sein. */
+          if ((r10.div.textContent || "").includes("Zuklapp"))
+            zeige("Postfach", "der Inhalt liegt offen, obwohl das Fenster zu ist");
+          else ok++;
+          /* Und nach dem Antippen MUSS er erscheinen. Das Fenster hängt am
+             Körper (Portal), also dort nachsehen — dieselbe Falle wie beim
+             Sonderschuss in 35.78. */
+          act(() => { brief.dispatchEvent(new window.MouseEvent("click", { bubbles: true })); });
+          /* DAS ZULETZT GEOEFFNETE. Portale haengen am Koerper und bleiben dort,
+         solange die Ansicht lebt — eine frueher gerenderte Ansicht kann also
+         noch ihr Fenster stehen haben, und `querySelector` findet das ERSTE.
+         Dann prueft man das Fenster einer anderen Probe. Genau so passiert:
+         die Postkorbpruefung fand das Fenster der Zaehlerpruefung und meldete
+         „Name oder Verein fehlen". */
+      const alleF = document.body.querySelectorAll("[aria-label='Postfach']");
+      const fenster = alleF[alleF.length - 1] || null;
+          if (!fenster) zeige("Postfach", "das Fenster öffnet sich nicht");
+          else if (!(fenster.textContent || "").includes("Zuklapp"))
+            zeige("Postfach", "im Fenster steht der Fall nicht");
+          else ok++;
+          /* Es MUSS schliessbar sein — anders als der Sonderschuss ist es eine
+             Auskunft, keine Belohnung. Wer eine Auskunft nicht wegklicken
+             kann, ist gefangen. */
+          if (fenster && !/Schließen/.test(fenster.textContent || ""))
+            zeige("Postfach", "das Fenster lässt sich nicht schließen");
           else ok++;
         }
       }
@@ -1563,9 +2316,16 @@ mach("Verein · Gruendung", <VereinGruenden aka={null} onFertig={() => {}} onZur
       onAendern={nixf} onVAendern={nixf} />);
     if (ohne) {
       const t0 = ohne.div.textContent || "";
-      if (!/Postfach/.test(t0)) zeige("Postfach", "es fehlt, obwohl es immer da sein soll");
+      /* AUCH LEER MUSS ES DA SEIN — das war die Regel aus 35.60 und gilt
+         weiter: ein Postfach, das verschwindet, wenn es leer ist, ist kein
+         Postfach. Nur steht es jetzt im `aria-label`, nicht im Text. */
+      const briefLeer = [...ohne.div.querySelectorAll("button")]
+        .find((b2) => /Postfach/.test(b2.getAttribute("aria-label") || ""));
+      if (!briefLeer) zeige("Postfach", "es fehlt, obwohl es immer da sein soll");
       else ok++;
-      if (!/nichts offen/i.test(t0)) zeige("Postfach", "der leere Zustand wird nicht benannt");
+      if (briefLeer && !/nichts offen/i.test(briefLeer.getAttribute("aria-label") || ""))
+        zeige("Postfach", "der leere Zustand wird nicht benannt: "
+          + briefLeer.getAttribute("aria-label"));
       else ok++;
       /* Die Kacheln: sie sollen Zahlen tragen, nicht nur Namen. */
       if (!/TALENTE|AUSBAU/i.test(t0)) zeige("Dach", "die Akademiekachel zeigt keine Kennzahlen");
@@ -1586,8 +2346,19 @@ mach("Verein · Gruendung", <VereinGruenden aka={null} onFertig={() => {}} onZur
          Sie meldete danach fünf Fehler auf einmal, alle falsch: der Inhalt
          war nicht weg, nur zugeklappt. Eine Prüfung, die eine Annahme über
          den Anfangszustand trifft, muss sie mitziehen, wenn er sich ändert. */
-      klick(mitF.div, "Postfach", "Postfach aufklappen");
-      const t = mitF.div.textContent || "";
+      /* ZUM ZWEITEN MAL NACHGEZOGEN. Diese Prüfung stammt aus 35.53 und hat
+         seither zwei Umbauten mitgemacht:
+           35.68  das Postfach klappte nicht mehr von selbst auf → antippen
+           35.93  es ist kein Kasten mehr, sondern ein Fenster am Körper
+         Beide Male hat sie gemeldet, und beide Male zu Recht. Der Inhalt, den
+         sie prüft, ist unverändert — nur der Weg dorthin ist ein anderer. */
+      const brief2 = [...mitF.div.querySelectorAll("button")]
+        .find((b2) => /Postfach/.test(b2.getAttribute("aria-label") || ""));
+      if (!brief2) { zeige("Postfach", "kein Briefsymbol"); }
+      else act(() => { brief2.dispatchEvent(new window.MouseEvent("click", { bubbles: true })); });
+      const alleF2 = document.body.querySelectorAll("[aria-label='Postfach']");
+      const fenster2 = alleF2[alleF2.length - 1] || null;
+      const t = fenster2 ? (fenster2.textContent || "") : "";
       if (!/Postfach · 1 offen/.test(t)) zeige("Postfach", "Kopfzeile mit Zähler fehlt");
       else ok++;
       if (!t.includes("Probetalent") || !t.includes("Testverein FC"))
@@ -1597,7 +2368,10 @@ mach("Verein · Gruendung", <VereinGruenden aka={null} onFertig={() => {}} onZur
       if (!/noch 1 Jahr/.test(t)) zeige("Postkorb", "die Restfrist wird nicht richtig angezeigt: "
         + (t.match(/noch [^·]*/) || ["—"])[0]);
       else ok++;
-      const kn = [...mitF.div.querySelectorAll("button")].map((b2) => (b2.textContent || "").trim());
+      /* Die Knöpfe stehen jetzt IM FENSTER, nicht im Behälter der Ansicht —
+         das Fenster hängt am Körper (Portal, 35.93). */
+      const kn = [...(fenster2 || mitF.div).querySelectorAll("button")]
+        .map((b2) => (b2.textContent || "").trim());
       if (!kn.some((x) => x === "Freigeben")) zeige("Postkorb", "„Freigeben“ fehlt");
       else ok++;
       if (!kn.some((x) => x === "Behalten")) zeige("Postkorb", "„Behalten“ fehlt");
@@ -2747,29 +3521,54 @@ console.log("\n=== Seitenmöbel des Hefts ===");
          Kreis und Pfad im ganzen Baum — mit Spielstand kamen die Ohren- und
          Augengruppen des Porträts dazu und die Zahl stimmte scheinbar nicht.
          Die Prüfung war falsch, nicht das Bild. */
-      const figuren = (el) => {
-        const r = mach("Titelfoto", el, 0);
-        if (!r) return -1;
-        const foto = [...r.div.querySelectorAll("svg")]
-          .find((v) => (v.getAttribute("viewBox") || "") === "0 0 366 210");
-        if (!foto) return -1;
-        return [...foto.querySelectorAll("g")]
-          .filter((g) => g.querySelector("circle") && g.querySelector("path")).length;
+      /* ---- NACHGEZOGEN AUF DAS FOTO (35.100) ---------------------------
+         Bis 35.99 war das Titelfoto GEZEICHNET, und diese Prüfung zählte die
+         elf Silhouetten im SVG. Jetzt liegt dort ein echtes Bild — das
+         gezeichnete gab es nur, weil es kein Foto gab.
+
+         Sie meldete „-1 Silhouetten statt 11" und hatte recht: das SVG, das
+         sie suchte, existiert nicht mehr. Was sie prüft, bleibt dasselbe —
+         ist ein Aufmacherbild da, und tritt es zurück, wenn ein Porträt
+         davorsteht? */
+      const bild = (el) => {
+        const r = mach("Titelblatt-Foto", el);
+        if (!r) return null;
+        const i2 = r.div.querySelector("img[aria-hidden]");
+        return i2 ? { quelle: i2.getAttribute("src") || "",
+          deckung: Number(i2.style.opacity) } : null;
       };
-      const ohne = figuren(<MenuScreen save={null} hall={[]} aka={leereAkademie()}
+      const ohneB = bild(<MenuScreen save={null} hall={[]} aka={leereAkademie()}
         achN={0} metaN={0} onNew={() => {}} onResume={() => {}} onAch={() => {}}
         onHall={() => {}} onAka={() => {}} onBackup={() => {}} />);
-      /* Eigener Spieler für diesen Block: der aus dem Errungenschaftsteil
-         liegt in einem anderen Gültigkeitsbereich. */
       const held = laufbahn(null);
-      const mit = figuren(<MenuScreen save={{ p: held }} hall={[]} aka={leereAkademie()}
+      const mitB = bild(<MenuScreen save={{ p: held }} hall={[]} aka={leereAkademie()}
         achN={0} metaN={0} onNew={() => {}} onResume={() => {}} onAch={() => {}}
         onHall={() => {}} onAka={() => {}} onBackup={() => {}} />);
-      if (ohne !== 11) zeige("Titelfoto", "ohne Spielstand " + ohne + " Silhouetten statt 11");
-      else ok++;
-      if (mit !== 11) zeige("Titelfoto", "mit Spielstand " + mit + " Silhouetten statt 11");
-      else ok++;
-      console.log("  Titelfoto       " + ohne + " Silhouetten ohne, " + mit + " mit Spielstand");
+
+      if (!ohneB || !mitB) zeige("Titelfoto", "kein Aufmacherbild im Titelblatt");
+      else {
+        ok++;
+        /* Es muss das EINGEBETTETE Bild sein, kein Pfad — im APK gibt es kein
+           Netz und keine verlässlichen Pfade. */
+        if (ohneB.quelle.indexOf("data:image/") !== 0)
+          zeige("Titelfoto", "das Bild kommt nicht eingebettet: "
+            + ohneB.quelle.slice(0, 40));
+        else ok++;
+        /* MIT Porträt muss es ZURÜCKTRETEN. Das war schon bei der Zeichnung
+           so und ist der Grund, warum das Porträt nicht mit dem Hintergrund
+           um Aufmerksamkeit streitet. */
+        if (!(mitB.deckung < ohneB.deckung))
+          zeige("Titelfoto", "es tritt nicht zurück, wenn ein Porträt davorsteht ("
+            + mitB.deckung + " gegen " + ohneB.deckung + ")");
+        else ok++;
+        /* Und es darf nicht ganz verschwinden — dann wäre der Titel wieder
+           leer, und genau dagegen wurde es 35.30 eingeführt. */
+        if (!(mitB.deckung > 0.15))
+          zeige("Titelfoto", "mit Porträt ist es praktisch unsichtbar: " + mitB.deckung);
+        else ok++;
+        console.log("  Titelfoto       Deckung " + ohneB.deckung + " ohne, "
+          + mitB.deckung + " mit Spielstand");
+      }
 
       /* Kein Flutlicht mehr: der alte Kopf hatte Verläufe mit diesen Kennungen. */
       if (m.div.querySelector("#kegel") || m.div.querySelector("#rasen"))

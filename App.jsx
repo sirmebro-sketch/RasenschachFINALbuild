@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
+/* Nur fuer `createPortal` (35.78). Der Sonderschuss ist ein Fenster ueber
+   allem, und `.fade` animiert `transform` mit `fill-mode: both` — ein Vorfahr
+   mit Transformation macht aus `position: fixed` ein `absolute`. Ein Portal
+   haengt das Fenster an `document.body`, ausserhalb jeder Transformation.
+   `react-dom` ist ohnehin da: main.jsx baut damit die Wurzel. */
+import { createPortal } from "react-dom";
 import { store } from "./storage.js";
 import { SCHRIFTEN } from "./schriften.js";
+import { TITELBILD } from "./titelbild.js";
+import { machKarten } from "./karten.js";
 import { machEreignisse } from "./ereignisse.js";
 import { machVerein } from "./verein.js";
 import { machNamen } from "./namen.js";
@@ -11,8 +19,8 @@ import { machAkademie } from "./akademie.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "35.75";
-const VERSION_INFO = "Die Karten der Ruhmeshalle wenden sich wie ein Spielerpass.";
+const VERSION = "35.100";
+const VERSION_INFO = "Neues App-Symbol und ein echtes Mannschaftsfoto auf dem Titel.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -5018,10 +5026,21 @@ function simulateSeason(p) {
      Sperren bleiben unberuehrt: der Physio heilt, er redet nicht mit dem
      Schiedsrichter. */
   const physio = (p.laden && p.laden.physio) > 0;
+  /* DER SONDERSCHUSS-SCHUTZ (35.94). Kevins Wunsch: der Volltreffer soll auch
+     mal „eine Saison keine Verletzung" geben. Er greift GENAU EINE Saison —
+     die, die auf den Schuss folgt — und wird danach geloescht.
+     An derselben Stelle wie der Physio, weil es dieselbe Wirkung ist: der
+     Wurf findet nicht statt. Eine zweite Stelle waere eine zweite Wahrheit
+     darueber, wann jemand unverletzt bleibt. */
+  const schutz = p.sonderSchutz != null && p.seasons.length <= p.sonderSchutz + 1;
+  if (schutz && p.sonderSchutz != null && p.seasons.length > p.sonderSchutz) {
+    /* Die Saison, fuer die er galt, ist jetzt gespielt. */
+    p.sonderSchutz = null;
+  }
   let injury = null;
-  if (physio) { p.pendingInjury = null; }
+  if (physio || schutz) { p.pendingInjury = null; }
   else if (p.pendingInjury) { injury = { sev: p.pendingInjury }; p.pendingInjury = null; }
-  else if (chance(clamp((.13 + p.injuryProne / 380 + Math.max(0, p.age - 28) * .022 - p.fitness / 1400) * (1 + (p.wcMod ? p.wcMod.injMod : 0)), .02, .65))) {
+  else if (!schutz && chance(clamp((.13 + p.injuryProne / 380 + Math.max(0, p.age - 28) * .022 - p.fitness / 1400) * (1 + (p.wcMod ? p.wcMod.injMod : 0)), .02, .65))) {
     const r = Math.random();
     injury = { sev: r < .55 ? "leicht" : r < .86 ? "mittel" : "schwer" };
   }
@@ -5225,6 +5244,65 @@ function simulateSeason(p) {
   if (p.ovr >= 88 && trophies.length && note <= 2.3 && TOP5.includes(club.l) && chance(.3)) awards.push("Weltfußballer des Jahres");
   awards.forEach((a) => p.awards.push({ y: p.year + 1, a }));
   trophies.forEach((t) => p.trophies.push(t + " " + (p.year + 1)));
+
+  /* ---- Der Sondertreffer (35.76) --------------------------------------
+     Kevins Wunsch: nach einer herausragenden Saison ein kleines Spiel im
+     naechsten Training, mit Attributpunkten und im besten Fall einem Punkt
+     Anlage.
+
+     ZWEI WEGE, und der zweite war seine Idee — die entscheidende.
+     Gemessen ueber 400 Laufbahnen (9.382 Saisons):
+       Note 2,1 allein        4,6 % der Saisons · Median 0 je Laufbahn
+                              65 % der Laufbahnen NIE
+       Note 2,1 ODER Auszeichnung/Titel   Median 7 je Laufbahn
+                                          nur 3 % gehen leer aus
+     Die Note allein trifft fast nur Spieler ab OVR 85 (32 % ihrer Saisons)
+     und die unter 70 so gut wie nie (1,1 %). Die Belohnung waere also
+     ausgerechnet dort angekommen, wo Anlagepunkte niemandem mehr nutzen.
+     Die Auszeichnungen holen die anderen — „Bester Nachwuchsspieler" trifft
+     genau die Jungen. */
+  /* ---- Wann der Sonderschuss kommt (verschaerft 35.94) -------------------
+     Kevin: „Das Trainingsminispiel kommt deutlich zu haeufig. Es sollte nur
+     bei ausserordentlichen Spielererrungenschaften kommen oder bei Noten
+     besser als 2,1."
+
+     GEMESSEN, woran es lag — und es waren nicht die Auszeichnungen:
+       Note <= 2,1     Median 0 je Laufbahn · Mittel 1,0
+       Auszeichnungen  Median 1 · Mittel 1,3
+       TITEL           Median 5 · Mittel 5,8   <- der Grund
+     „Oder ein Titel" traf bei einem Spieler am Spitzenklub fast jede Saison.
+
+     Nur die grossen Ausloeser zu nehmen reichte NICHT: auch „nur Meister und
+     international" blieb bei Median 5, weil ein Spitzenklub eben meistens
+     Meister wird. Und die Titel ganz zu streichen fiel auf Median 0 zurueck —
+     zurueck zum Problem aus 35.76, wo zwei von drei Laufbahnen das Spiel nie
+     gesehen haetten.
+
+     Es braucht deshalb ZWEI Bremsen, gemessen ueber 300 Laufbahnen:
+       heute                                   Median 6 · ohne  5 %
+       nur grosse Ausloeser                    Median 5 · ohne 10 %
+       grosse Ausloeser + Sperre vier Saisons  Median 2 · ohne  8 %   <- gewaehlt
+     Zwei- bis dreimal in einer Laufbahn: selten genug, dass es etwas
+     bedeutet, haeufig genug, dass es fast jeder erlebt.
+
+     Die Sperre steht am Spieler, nicht in einer Zaehlvariablen der Anzeige:
+     sie muss den Spielstand ueberleben, sonst umginge man sie durch Neuladen. */
+  const GROSSE_AUSZEICHNUNG = /Torschützenkönig|Spieler der Saison|Weltfußballer|Torhüter der Saison/;
+  const GROSSER_TITEL = /^Meister |Champions|Europa|Libertadores|Weltpokal|Klub-WM/;
+  const grossAus = awards.find((x) => GROSSE_AUSZEICHNUNG.test(x));
+  const grossTit = trophies.find((t) => GROSSER_TITEL.test(t));
+  const SPERRE = 4;
+  const letzterSchuss = p.sonderZuletzt == null ? -99 : p.sonderZuletzt;
+  const langGenugHer = (p.seasons.length - letzterSchuss) >= SPERRE;
+  const sonderGrund = !langGenugHer ? null
+    : note <= 2.1 ? "Note " + note.toFixed(1)
+    : grossAus ? grossAus
+    : grossTit ? grossTit
+    : null;
+  if (sonderGrund) {
+    p.sonderchance = { grund: sonderGrund, jahr: p.year + 1 };
+    p.sonderZuletzt = p.seasons.length;
+  }
 
   p.form = clamp(55 + (2.9 - note) * 22 + rnd(-8, 8), 10, 98);
   p.morale = clamp(p.morale + (3.2 - note) * 9 + trophies.length * 7 - (apps < total * .25 ? 12 : 0), 5, 100);
@@ -5793,6 +5871,10 @@ const VER_KEY = "rasenschach:verein";
    und er haengt am Laufbahnende, nicht an der Akademie.                    */
 const AKA = machAkademie({ CLUBS, NATIONS, NAT_BY_ID, REGION_KEYS,
                            chance, clamp, gauss, genName, pick, ri });
+/* Dieselbe Bauart (35.80): eine Fabrik, die ihre Helfer bekommt. Damit bleibt
+   karten.js frei von Verweisen auf App.jsx und laesst sich einzeln pruefen. */
+const KARTEN = machKarten({ NATIONS, NAT_BY_ID, REGION_KEYS,
+                            chance, clamp, gauss, genName, pick, ri });
 const { ABTEILUNGEN, AKA_MAX, AKA_STUFEN,
         leereAkademie, akaJahrNr, akaJahrgang, akaStufe, akaSumme, akaAusbau,
         akaPreis, akaRestkosten, akaSpanne, akaLeistbar,
@@ -5801,6 +5883,80 @@ const { ABTEILUNGEN, AKA_MAX, AKA_STUFEN,
         AKA_SCHWELLE, akaRuhm, talentBauen,
         freigeben, behalten, unterVertrag,
         talentAuslaufen, aussortieren } = AKA;
+
+/* ---- VC aus Akademie und Verein (35.81) ---------------------------------
+   Kevin: „Lass uns den VC-Verdienst noch etwas verbessern. Möglicherweise über
+   Erfolge in der Jugendakademie und in der Profimannschaft. Vielleicht auch
+   über Errungenschaften?"
+
+   Gemessen, und der Befund gab ihm recht: VC kamen AUSSCHLIESSLICH aus der
+   Spielerlaufbahn — Punktzahl, Titel, Länderspiele, Wildcard. Die Akademie
+   konnte hundert Profis ausbilden und der Verein dreimal Meister werden, ohne
+   dass ein einziger Coin dabei heraussprang. Zwei von drei Häusern arbeiteten
+   umsonst.
+
+   DIE BETRÄGE SIND AN DER LAUFBAHN GEMESSEN, nicht geraten: eine Laufbahn
+   bringt im Median 108 VC. Alles hier zusammen soll spürbar sein, ohne die
+   Laufbahn zu entwerten — sie bleibt die Hauptquelle.
+
+   ES STEHT IN EINER EIGENEN FUNKTION, nicht in `vcFuer`. Dort geht es um den
+   Spieler; hier um die beiden Häuser. Zusammengelegt wüsste später niemand
+   mehr, welcher Anteil woher kommt — und genau das braucht man, wenn das
+   Zielband wandert.                                                        */
+function vcAusHaeusern(akaJahre, vereinSaison, neueErfolge) {
+  let vc = 0;
+  const posten = [];
+  const dazu = (n, x) => { if (x > 0) { vc += x; posten.push({ n, x }); } };
+
+  /* Die Akademie: bezahlt wird, was aus den Jungen wird — nicht, wie viele
+     man aufnimmt. Sonst lohnte sich Masse statt Arbeit. */
+  if (akaJahre) {
+    dazu("Profis aus der Jugend", (akaJahre.profis || 0) * 4);
+    dazu("Weltklasse ausgebildet", (akaJahre.weltklasse || 0) * 12);
+    dazu("Nationalspieler ausgebildet", (akaJahre.nationalspieler || 0) * 6);
+    dazu("Jugendturnier gewonnen", (akaJahre.turniere || 0) * 5);
+  }
+
+  /* Der Verein: Erfolg zählt, nicht Teilnahme. Ein Mittelfeldplatz bringt
+     nichts — sonst wäre es eine Grundrente fürs Dabeisein. */
+  if (vereinSaison) {
+    /* HOEHER als im ersten Entwurf (Kevin: „ein Meistertitel ist mehr wert
+       als 20 VC"). Zur Einordnung: eine ganze Spielerlaufbahn bringt im Median
+       104 VC. Ein Meistertitel mit dem eigenen Verein ist ein Drittel davon —
+       das trifft es, weil er fuenfzehn Jahre Aufbau voraussetzt und nicht
+       jede Saison faellt. */
+    if (vereinSaison.rang === 1) dazu("Meister", 35);
+    else if (vereinSaison.rang <= 3) dazu("unter den ersten drei", 12);
+    if (vereinSaison.aufstieg) dazu("Aufstieg", 22);
+    /* Kein Abzug für den Abstieg. Wer absteigt, hat schon genug verloren, und
+       eine Strafe auf die Währung, mit der man die Jugend aufbaut, träfe
+       ausgerechnet den, der Aufbau nötig hat. */
+  }
+
+  /* Errungenschaften: einmalig, gestaffelt nach Stufe. Das ist die Antwort
+     auf Kevins dritte Frage — und die passt gut, weil Errungenschaften
+     ohnehin die langen Ziele markieren. */
+  /* ERSTER ENTWURF WAR VIEL ZU GROSSZUEGIG. Gemessen: 3/6/12/20/35 ergaben
+     ueber 192 Errungenschaften 2780 VC — fast den ganzen Vollausbau (2912).
+     Das Einkommen je Laufbahn waere von 108 auf 216 gesprungen und das Band
+     „Laufbahnen bis Vollausbau" von 27 auf 13,5 gefallen, also weit unter das
+     Zielband 25-35.
+     Der Fehler war die Zahl der Errungenschaften: 192 kleine Betraege sind in
+     der Summe kein kleiner Betrag. Wer Einzelposten bemisst, muss sie
+     ZUSAMMENZAEHLEN, bevor er sie fuer klein haelt. */
+  /* 1/1/2/4/7 statt 1/1/3/5/9: gemessen landete das Band sonst bei 20,5 und
+     schwankte zwischen 20,1 und 21,0 — eine Kante, an der ein gewoehnlicher
+     Lauf faelschlich rot meldet. Ein Band, das zufaellig kippt, wird nach
+     dem zweiten Fehlalarm nicht mehr ernst genommen. Jetzt 21,5 mit rund
+     einem Punkt Luft nach unten. */
+  const PROSTUFE = { bronze: 1, silber: 1, gold: 2, platin: 4, legende: 7 };
+  (neueErfolge || []).forEach((e) => {
+    const x = PROSTUFE[e.s] || 0;
+    if (x) { vc += x; posten.push({ n: e.n, x }); }
+  });
+
+  return { vc, posten };
+}
 
 /* Vermächtnis-Coins für eine beendete Laufbahn. Bewusst so bemessen, dass
    ein guter Durchgang spürbar etwas bringt, ohne alles sofort zu kaufen. */
@@ -6666,6 +6822,85 @@ table.led td.r,table.led th.r{text-align:right;}
 @keyframes rs-puls{0%,100%{opacity:1}50%{opacity:.45}}
 @keyframes rs-blitz{0%{background:var(--go);opacity:.35}100%{background:transparent;opacity:0}}
 @keyframes rs-dreh{to{transform:rotate(360deg)}}
+/* ---- Jubel beim Aufdecken (35.83) ---------------------------------------
+   Kevin: „beim Ziehen von besonderen Karten sollte es auch eine passende
+   Animation bzw. Celebration geben."
+
+   ZWEI TEILE, absichtlich getrennt: die Karte springt kurz auf (kartenjubel),
+   und ein Lichtstreifen wandert einmal darueber (kartenglanz). Zusammen sieht
+   es nach Aufdecken aus; einzeln waere das eine ein Zucken und das andere ein
+   Reflex.
+
+   NUR FUER GOLD UND LEGENDAER. Eine Feier bei jeder Bronzekarte ist keine
+   Feier mehr, sondern eine Wartezeit.
+
+   Die Systemeinstellung fuer reduzierte Bewegung schaltet beides ab — und
+   zwar hier in der Regel,
+   nicht im Bauteil: wer Bewegung abgestellt hat, soll sie NIRGENDS bekommen,
+   und eine Ausnahme in einem Bauteil vergisst man beim naechsten. */
+@keyframes rs-kartenjubel{
+  0%{transform:scale(.86) rotate(-2deg);opacity:.2}
+  55%{transform:scale(1.05) rotate(1deg);opacity:1}
+  75%{transform:scale(.985) rotate(0deg)}
+  100%{transform:none;opacity:1}
+}
+@keyframes rs-kartenglanz{
+  0%{transform:translateX(-130%) skewX(-18deg);opacity:0}
+  12%{opacity:.85}
+  100%{transform:translateX(230%) skewX(-18deg);opacity:0}
+}
+/* ---- Karte wischt weg (35.87) -------------------------------------------
+   Kevin: „Wenn man ein Pack oeffnet und Spieler zur Mannschaft hinzufuegt,
+   soll die Karte mit einer kurzen, passenden Wischanimation verschwinden."
+
+   NACH RECHTS UND WEG, mit leichter Drehung — als schoebe man sie aus dem
+   Stapel. Der Platz faellt danach zusammen (max-height), sonst bliebe ein
+   Loch, wo die Karte war, und die Liste sprаenge erst beim naechsten
+   Zeichnen zusammen.
+
+   .34s: lang genug, dass man die Richtung sieht, kurz genug, dass es beim
+   dritten Spieler nicht nervt. Wer sechs Karten einsetzt, sieht sie sechsmal. */
+@keyframes rs-wisch{
+  0%{transform:none;opacity:1;max-height:400px;margin-bottom:0}
+  55%{transform:translateX(38%) rotate(3deg);opacity:.35}
+  100%{transform:translateX(115%) rotate(6deg);opacity:0;max-height:0;margin-bottom:0}
+}
+/* ---- Karten fallen aus dem Pack (35.89) ---------------------------------
+   Kevin: „wenn man das Pack oeffnet, eine Animation, die die Karten aus dem
+   Pack droppen laesst."
+
+   SIE KOMMEN VON OBEN, aus der Richtung, in der das Pack steht — sonst
+   faellt nichts heraus, sondern erscheint irgendwo. Leicht gedreht und
+   verkleinert, damit es nach Herausrutschen aussieht und nicht nach
+   Einblenden.
+
+   VERSETZT, 90 ms je Karte. Gleichzeitig waere ein Aufploppen; zu weit
+   auseinander wartet man. Bei vier Karten dauert es 0,27 s laenger als bei
+   einer — das merkt man kaum, aber man sieht die Reihenfolge.
+
+   Der Versatz steht als CSS-Variable am Element, nicht als eigene Regel je
+   Karte: sonst braeuchte es fuer sechs Karten sechs Klassen.             */
+@keyframes rs-drop{
+  0%{transform:translateY(-58px) scale(.82) rotate(-4deg);opacity:0}
+  60%{transform:translateY(6px) scale(1.02) rotate(1deg);opacity:1}
+  100%{transform:none;opacity:1}
+}
+.kartendrop{animation:rs-drop .46s cubic-bezier(.22,1.1,.36,1) both;
+  animation-delay:var(--dropzeit,0ms);}
+@media (prefers-reduced-motion: reduce){
+  .kartendrop{animation:none;}
+}
+.kartenwisch{animation:rs-wisch .34s ease-in both;overflow:hidden;pointer-events:none;}
+@media (prefers-reduced-motion: reduce){
+  .kartenwisch{animation:none;display:none;}
+}
+.kartenjubel{animation:rs-kartenjubel .62s cubic-bezier(.22,1.3,.36,1) both;}
+.kartenjubel::after{content:"";position:absolute;top:0;bottom:0;width:38%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);
+  animation:rs-kartenglanz .95s ease-out .18s both;pointer-events:none;}
+@media (prefers-reduced-motion: reduce){
+  .kartenjubel,.kartenjubel::after{animation:none;}
+}
 @keyframes rs-flip{0%{transform:rotateY(0)}100%{transform:rotateY(180deg)}}
 @keyframes rs-schimmer{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}
 @keyframes rs-zeichnen{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
@@ -6952,12 +7187,183 @@ html,body{overscroll-behavior:none;}
   border-top:1px solid rgba(237,242,233,.13);border-bottom:1px solid rgba(0,0,0,.30);}
 .stempel{display:inline-block;border:3px solid currentColor;padding:0 7px 1px;
   line-height:1.25;transform:rotate(-7deg);opacity:.85;white-space:nowrap;}
+/* 200 % STATT 220 % (berichtigt 35.98, von Kevin gemeldet: „die
+   Holo-Animation sieht am Ende abgeschnitten aus" — und zwar auch die Folie
+   auf den Wildcards, die es seit vielen Fassungen so gibt).
+
+   GERECHNET. Bei einer Hintergrundstellung in Prozent gilt
+     Versatz = (Behaelterbreite − Bildbreite) × Prozentwert
+   Bei 220 % Bildbreite und einem Weg von 0 auf 200 % ergibt das einen Versatz
+   von 240 % der Behaelterbreite — bei einer Kachel von 220 %. Das sind
+   1,091 Kacheln. Der Umlauf springt also um 0,091 Kacheln, und genau das
+   sieht man als Abschneiden am Ende.
+
+   Bei 200 % ist der Weg 200 % und die Kachel 200 %: genau eine Runde, kein
+   Sprung. Die Zahl muss zum Weg passen, sonst hilft auch der schoenste
+   Verlauf nichts — und der hier war immer schon richtig gebaut (erste und
+   letzte Farbe gleich). Es hakte an einer einzigen Ziffer. */
 .folie{background:linear-gradient(115deg,#79E3D2,#B79BE8,#F2C878,#7FB6E8,#8FE0A8,#79E3D2);
-  background-size:220% 100%;animation:rs-folie 6.5s linear infinite;}
+  background-size:200% 100%;animation:rs-folie 6.5s linear infinite;}
 .rs-still .folie{animation:none;}
 .raster{background-image:radial-gradient(circle at center,currentColor 1.05px,transparent 1.4px);
   background-size:5px 5px;}
 @keyframes rs-folie{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+/* ---- Holoschimmer auf Gold und Legendaer (35.84) -------------------------
+   Kevin: „bekommen wir auf Gold und legendaeren Karten noch einen passenden,
+   bewegenden Holoeffekt?"
+
+   ZWEI SCHICHTEN, wie bei einer echten Folienkarte:
+     .holo        der Farbschimmer, der ueber die Flaeche wandert
+     .holo::after ein feines Raster, das den Schimmer bricht — ohne das
+                  sieht es nach Regenbogenverlauf aus, nicht nach Folie
+
+   Die Mischart overlay legt den Schimmer AUF die Karte, statt sie zu
+   uebermalen: die Stufenfarbe bleibt sichtbar, der Schimmer haengt sich
+   daran. Ein deckender Verlauf haette die Karte wieder ausgewaschen — genau
+   das war in 35.83 der Befund.
+
+   SEHR LEISE. 22 % Deckung fuer Gold, 30 % fuer Legendaer. Eine Karte muss
+   lesbar bleiben; die Kontrastpruefung misst 145 Textstellen, und ein
+   Schimmer, der Schrift verschluckt, faellt dort auf.
+
+   LANGSAM, 9 Sekunden. Schneller wirkt es nervoes, und es laeuft dauerhaft —
+   anders als der Jubel, der einmal spielt. Auf einem Bildschirm mit zwanzig
+   Karten laufen zwanzig davon; deshalb nur zwei Schichten und keine
+   Schatten, die das Geraet neu zeichnen muss.
+
+   ABSCHALTBAR ueber die Klasse rs-still wie die Folie und ueber die
+   Systemeinstellung fuer reduzierte Bewegung.
+
+   VIERTER FALL derselben Falle beim Schreiben dieses Kommentars — und der
+   erste, den nicht der Zufall gefunden hat, sondern die Pruefung aus 35.83.
+   Sie nannte Zeile und Fundstelle, statt dass esbuild einen Folgefehler
+   meldete. Genau dafuer ist sie gebaut. */
+.holo{position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  overflow:hidden;}
+
+/* DER SCHIMMER WANDERT ALS ELEMENT, nicht als Hintergrundposition (35.88).
+   Kevin: „die Holo-Animation bricht ab und zu ab."
+
+   Gemessen und erklaerbar: die Eigenschaft background-position wird auf dem
+   HAUPTSTRANG
+   gerechnet. Jedes Mal, wenn React etwas neu zeichnet — ein Filter im Fundus,
+   eine aufgedeckte Karte, ein Zustandswechsel —, muss der Browser die
+   Animation dort fortsetzen, wo er gerade Zeit hat. Das sieht aus wie ein
+   Ruckeln oder ein Abbruch, und bei zwoelf Karten gleichzeitig ist es einer.
+
+   Eine Verschiebung ueber transform laeuft dagegen auf dem Compositor, also
+   NEBEN dem Hauptstrang. React kann zeichnen, so viel es will — der Schimmer
+   laeuft weiter. Die Angabe will-change sagt es dem Browser vorher, damit er
+   die Schicht gleich anlegt und nicht erst beim ersten Bild.
+
+   Das Element ist dreimal so breit wie die Karte und wandert von links nach
+   rechts durch; die Kante bleibt dadurch immer ausserhalb.                 */
+/* ---- Der Schimmer als BREITES Element mit schmalem Band (35.96) ----------
+   Kevin: „Die Animation sieht immer noch falsch aus" — mit einem Bildschirm-
+   video, aus dem ich Einzelbilder gezogen habe. Darauf war es eindeutig: ein
+   hartkantiges senkrechtes Band, das an einer geraden Linie aufhoert.
+
+   GERECHNET, woran es lag. Das Schimmerelement war SCHMALER als die Karte
+   (60 % bei der engen Fassung, also 38 px auf einem 64-px-Pack). Die weichen Enden des
+   Verlaufs liegen bei 12 % und 88 % DES ELEMENTS — bei 38 px Breite sind das
+   4,6 px Ausblendung, auf einem Telefon mit 2,6-facher Aufloesung also zwoelf
+   echte Pixel. Zwoelf Pixel Uebergang sieht niemand als Verlauf. Man sieht
+   eine Kante.
+
+   Mein erster Entwurf (150 % breit) hatte das umgekehrte Problem: dort war
+   der Farbbogen so breit wie die ganze Karte und schien stillzustehen.
+
+   RICHTIG IST BEIDES ZUSAMMEN: ein SEHR BREITES Element, damit seine Raender
+   weit ausserhalb der Karte liegen, und darin ein SCHMALES Farbband mit
+   grosszuegigen Ausblendungen. Dann wandert ein weicher Streifen ueber die
+   Karte, und man sieht nie, wo er anfaengt oder aufhoert.
+
+   Bei 300 % Breite und Farben zwischen 38 % und 62 % ist das Band auf einem
+   64-px-Pack rund 46 px breit, mit je 23 px Ausblendung. Das ist ein Verlauf. */
+/* ---- Der Schimmer nach dem Vorbild der Folie (35.97) ---------------------
+   Kevins Frage war die richtige: „Warum funktioniert das an anderen Stellen?"
+
+   Die Folie auf den Wildcards laeuft seit vielen Fassungen tadellos. Der
+   Unterschied, gemessen an ihrer Regel:
+
+     .folie   background-size:220%; animation verschiebt background-position
+              von 0 % auf 200 %. DAS ELEMENT BEWEGT SICH NICHT.
+              Und ihr Verlauf beginnt und endet auf DERSELBEN Farbe (#79E3D2),
+              deshalb ist der Umlauf nahtlos.
+
+     mein     ein Element per Verschiebung darueber geschoben.
+     Ansatz   Ein Element hat RAENDER. Sobald ein Rand ueber die Karte laeuft,
+              sieht man eine Kante — und beim Umlauf springt er zurueck.
+              Genau das war das „Abgehackte", und es liess sich mit keiner
+              Breite und keinem Muster wegrechnen: Raender verschwinden nicht,
+              man kann sie nur verschieben.
+
+   ALSO GENAUSO WIE DIE FOLIE. Kein bewegtes Element, keine Raender, und ein
+   Verlauf, dessen erste und letzte Farbe gleich sind. Was seit Fassungen
+   funktioniert, muss man nicht neu erfinden — man muss es lesen.
+
+   Die Sorge um den Hauptstrang aus 35.88 war theoretisch: die Folie laeuft
+   auf demselben Weg und ruckelt nicht. Eine Vermutung ueber die Bauart hat
+   gegen eine Sache verloren, die nachweislich seit Langem laeuft.        */
+/* ---- Die Farbtoene GLEICHMAESSIG, dazu weichgezeichnet (35.99) -----------
+   Kevin sieht auf Gold und Legendaer eine senkrechte Farbkante.
+
+   GEMESSEN, und der Verlauf ist STETIG: der groesste Farbsprung von einem
+   Bildpunkt zum naechsten betraegt 9 von 765 moeglichen, also gut ein Prozent.
+   Es gibt also keine Unterbrechung — und trotzdem hat Kevin recht.
+
+   Der Grund steht in den Farbtoenen der alten Folie:
+     170° → 262° → 39° → 209° → 139° → 170°
+     Spruenge:  91°   138°  169°   70°   32°
+   Ueber 160 Grad Farbton auf rund dreizehn Pixeln (fuenf Uebergaenge auf 64 px
+   Packbreite) liest das Auge als Kante, auch wenn die Rechnung stetig ist.
+   EIN STETIGER VERLAUF IST NICHT DASSELBE WIE EIN RUHIGER.
+
+   Zwei Maßnahmen:
+     1. Die Toene laufen jetzt der Reihe nach um den Farbkreis — gleich grosse
+        Schritte von rund 60 Grad statt Spruengen zwischen 32 und 169.
+     KEIN WEICHZEICHNER. Ich hatte einen eingebaut und begruendet, er koenne
+     „gar keine Kante haben". Dann gemessen, ueber fuenf Stufen von 0 bis 7 px:
+       Saettigung 26,5 → 26,1     groesster Farbsprung 4 → 3
+     Er aendert also so gut wie nichts — die gleichmaessige Palette allein hat
+     den Sprung von 9 auf 4 halbiert. Dafuer haette er auf jeder animierten
+     Karte Rechenzeit gekostet, und davon laufen im Fundus ein Dutzend
+     gleichzeitig.
+     EINE MASSNAHME, DIE NICHTS MESSBAR VERBESSERT, IST KEINE MASSNAHME,
+     SONDERN BALLAST. Im Bild sah es ausserdem matt aus — was ich zuerst der
+     Palette anlastete, obwohl die (66 % gegen 67 %) praktisch gleich saettig
+     ist. */
+.holo i{position:absolute;inset:0;display:block;
+  background:linear-gradient(112deg,
+    #7FE0D0, #7FB6E8, #A79BE8, #E89BC8, #F2C878, #A8E08F, #7FE0D0);
+
+  /* 200 %, aus demselben Grund wie bei der Folie: der Weg (200 %) muss ein
+     ganzes Vielfaches der Kachel sein. Ich hatte die 220 von dort
+     abgeschrieben — samt ihres Fehlers. */
+  background-size:200% 100%;
+  mix-blend-mode:screen;
+  animation:rs-holo 8s linear infinite;}
+/* Das Raster bricht den Schimmer in Linien — ohne das sieht es nach
+   Regenbogenverlauf aus, nicht nach Folie. Es liegt AUF der Karte und steht
+   still; der Schimmer wandert darunter hindurch. */
+.holo::after{content:"";position:absolute;inset:0;border-radius:inherit;
+  background-image:repeating-linear-gradient(112deg,rgba(255,255,255,.13) 0 1px,
+    transparent 1px 5px);}
+@keyframes rs-holo{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.rs-still .holo i{animation:none;}
+@media (prefers-reduced-motion: reduce){ .holo i{animation:none;} }
+/* Kleine Karten etwas schneller — auf 82 px wirkt derselbe Weg traeger. */
+.holo.eng i{animation-duration:6s;}
+/* (Hier standen bis 35.97 vier Zeilen der alten, verschiebenden Fassung —
+   darunter eine ZWEITE Bewegungsvorschrift desselben Namens. Beim Austausch
+   hatte ich den
+   Ausschnitt zu frueh enden lassen, und die spaetere Regel gewann: der
+   Schimmer wurde weiter verschoben, obwohl die neue Regel den Hintergrund
+   bewegen sollte. Gemessen war es eindeutig: die Hintergrundstellung blieb
+   bei 0 %, waehrend sich die Verschiebung bewegte.
+   ZWEI REGELN MIT DEMSELBEN NAMEN sind kein Streit, den CSS meldet: die
+   letzte gewinnt stillschweigend. Wer eine Regel ersetzt, muss die alte
+   GANZ entfernen — und nachsehen, ob sie nur einmal dasteht.) */
 .rs-blitz{position:relative;}
 .rs-blitz::after{content:"";position:absolute;inset:-3px;pointer-events:none;
   animation:rs-blitz .9s ease-out both;}
@@ -7624,9 +8030,13 @@ async function ladeMitAltbestand(key) {
   return null;
 }
 const HALL_KEY = "rasenschach:halle";
+/* Der Kartenpool (35.79). EIGENER Schluessel, nicht am Verein — der wird alle
+   fuenfzehn Jahre ersetzt, und genau daran ist in 35.73 der Abschlussbonus
+   verlorengegangen. Kevin: „dauerhaft". */
+const KARTEN_KEY = "rasenschach:karten";
 /* Alles, was die App dauerhaft ablegt — einzige Wahrheit für „Alles
    zurücksetzen". Wer einen neuen Schlüssel einführt, trägt ihn hier ein. */
-const SPEICHERSCHLUESSEL = [SAVE_KEY, SEEN_KEY, WILL_KEY, ACH_KEY, LIFE_KEY, META_KEY, HALL_KEY, AKA_KEY, VER_KEY,
+const SPEICHERSCHLUESSEL = [SAVE_KEY, SEEN_KEY, WILL_KEY, ACH_KEY, LIFE_KEY, META_KEY, HALL_KEY, AKA_KEY, VER_KEY, KARTEN_KEY,
   "rasenschach:ruhe", "rasenschach:vib", "rasenschach:text",
   "rasenschach:speed", "rasenschach:schwer", "rasenschach:wach"];
 /* Schulnoten laufen von 1 bis 6 — die Farbe soll das auch tun. Vorher:
@@ -8429,14 +8839,37 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
                 const rest = bis - v.jahr;
                 return (
                 <React.Fragment key={s.id}>
+                {/* KARTENSPRACHE OHNE KARTENFORMAT (35.89).
+                    Kevin wollte Kader und Aufstellung „in Kartenoptik". Die
+                    Aufstellung ist umgestellt — dort zaehlt nur, wer wo steht.
+                    DER KADER IST ETWAS ANDERES: hier stehen Vertragsstand,
+                    Restlaufzeit, Spiele und Tore. Auf einer 74 px breiten
+                    Karte ist davon nichts unterzubringen.
+                    Der Kader ist der Bildschirm, auf dem man VERWALTET; ihn
+                    auf Karten umzustellen waere huebscher und aermer — genau
+                    der Fehler, den ich bei der Aufstellung vermieden habe.
+
+                    Stattdessen bekommt jede Zeile die Merkmale der Karte:
+                    einen farbigen Rand in der Stufenfarbe und das
+                    Herkunftszeichen. Man sieht auf einen Blick, wer aus der
+                    Jugend kommt und wie stark er ist — und liest daneben
+                    weiter, wann sein Vertrag ausläuft. */}
                 <button className="up"
                   onClick={() => setOffen(offenSp === s.id ? null : s.id)}
                   style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5,
-                    width: "100%", textAlign: "left", padding: "6px 8px", background: "transparent",
+                    width: "100%", textAlign: "left", padding: "6px 8px",
+                    background: "linear-gradient(100deg,"
+                      + KARTEN.flaeche(KARTEN.stufeFuer(s.ovr)).oben + "66 0%,transparent 34%)",
                     cursor: "pointer",
+                    borderLeft: "3px solid " + KARTEN.STUFEN[KARTEN.stufeFuer(s.ovr)].farbe,
                     border: offenSp === s.id ? "1px solid var(--ac)"
-                      : s.auslaufen ? "1px solid var(--bad)" : "1px solid transparent" }}>
+                      : s.auslaufen ? "1px solid var(--bad)" : "1px solid transparent",
+                    borderLeftWidth: 3,
+                    borderLeftColor: KARTEN.STUFEN[KARTEN.stufeFuer(s.ovr)].farbe }}>
                   <span className="chip">{s.pos}</span>
+                  <Merkzeichen sym={s.ausPack ? "raute" : "spross"}
+                    farbe={s.ausPack ? KARTEN.STUFEN[KARTEN.stufeFuer(s.ovr)].farbe : "var(--ok)"}
+                    groesse={12} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ overflow: "hidden", textOverflow: "ellipsis",
                       whiteSpace: "nowrap", fontSize: 13 }}>{s.name}</div>
@@ -8448,7 +8881,8 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
                     </div>
                   </div>
                   <span className="m" style={{ fontSize: 12 }}>{s.alter} J</span>
-                  <span className="d" style={{ fontSize: 15, width: 26, textAlign: "right" }}>{s.ovr}</span>
+                  <span className="d" style={{ fontSize: 15, width: 26, textAlign: "right",
+                    color: KARTEN.STUFEN[KARTEN.stufeFuer(s.ovr)].farbe }}>{s.ovr}</span>
                 </button>
                 {/* DIREKT UNTER DEM ANGETIPPTEN SPIELER (35.59) — wie bei der
                     Aufstellung. Bis 35.58 stand der Kasten unter dem ganzen
@@ -8497,35 +8931,55 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
               </div>
               <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 4 }}>
                 Platz antippen, um ihn zu besetzen.</div>
-              {form.plaetze.map((platz, i) => {
-                const s = nachId[(v.aufstellung || {})[i]];
-                const g = s ? VEREIN.guete(s.pos, platz) : 0;
+              {/* VIER SPALTEN, feste Breite. `auto-fit` waere bequemer und
+                  falsch: dann haengt die Zahl der Spalten von der Breite ab,
+                  und die Rechnung fuer den Auswahlkasten („welche Reihe?")
+                  stimmte nicht mehr. Eine Anzeige, deren Aufbau man kennt,
+                  laesst sich ansteuern; eine, die sich selbst anordnet, nicht. */}
+              {/* ---- Als Feld, nicht als Raster (35.91) --------------------
+                  Kevin mit einer Skizze:
+                                 TW
+                        AV   IV   IV   AV
+                              ZM   ZM
+                        AF               AF
+                                 ST
+
+                  Vier gleiche Spalten zeigten elf Karten, aber keine
+                  Aufstellung. Wer eine Formation waehlt, will sie SEHEN —
+                  sonst ist die Wahl eine Liste von Namen.
+
+                  Die Reihen kommen aus `feldReihen`, also aus der Kennung der
+                  Formation. Die Karte ist damit nicht mehr an vier Spalten
+                  gebunden: eine Reihe mit fuenf (3-5-2) verteilt sich auf
+                  fuenf, eine mit zwei auf zwei.
+
+                  DER AUSWAHLKASTEN bleibt unter SEINER REIHE — die Regel aus
+                  35.59, uebertragen. Er steht direkt hinter der Reihe, in der
+                  der angetippte Platz liegt. */}
+              <div style={{ marginTop: 10 }}>
+              {VEREIN.feldReihen(v.formation || "442").map((reihe, ri) => {
+                const tippInReihe = platzAuf != null
+                  && reihe.some((x) => x.i === platzAuf);
                 return (
-                  <React.Fragment key={i}>
-                  <button className="up"
-                    onClick={() => setPlatzAuf(platzAuf === i ? null : i)}
-                    style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5,
-                      width: "100%", textAlign: "left", padding: "7px 9px",
-                      border: platzAuf === i ? "1px solid var(--ac)" : "1px solid var(--ln2)",
-                      background: "transparent", cursor: "pointer" }}>
-                    <span className="chip a" style={{ width: 42, textAlign: "center" }}>{platz}</span>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, overflow: "hidden",
-                      textOverflow: "ellipsis", whiteSpace: "nowrap",
-                      color: s ? "var(--tx)" : "var(--bad)" }}>
-                      {s ? s.name : "— nicht besetzt —"}</span>
-                    {s && g < 1 && <span className="m" style={{ fontSize: 11 }}>
-                      {s.pos}, {Math.round(g * 100)} %</span>}
-                    {s && <span className="d" style={{ fontSize: 15 }}>{Math.round(s.ovr * g)}</span>}
-                  </button>
-                  {/* DIREKT UNTER DEM ANGETIPPTEN PLATZ (35.59). Bis 35.58
-                      stand der Auswahlkasten unter der ganzen Elf — wer den
-                      zweiten Platz besetzte, musste über neun Zeilen hinweg
-                      lesen und danach wieder hochsuchen. Von Kevin gemeldet.
-                      Der Kasten steht jetzt in derselben Liste, direkt an der
-                      Zeile, um die es geht. */}
-                  {platzAuf === i && auswahlKasten(i, platz)}
-                </React.Fragment>);
+                  <React.Fragment key={"r" + ri}>
+                    <div style={{ display: "flex", gap: 5, justifyContent: "center",
+                      marginBottom: 6 }}>
+                      {reihe.map(({ pos: platz, i }) => {
+                        const sp = nachId[(v.aufstellung || {})[i]];
+                        const g2 = sp ? VEREIN.guete(sp.pos, platz) : 0;
+                        return (
+                          <div key={i} style={{ flex: "1 1 0", minWidth: 0, maxWidth: 96 }}>
+                            <Elfkarte spieler={sp}
+                              stufe={sp ? KARTEN.stufeFuer(sp.ovr) : null}
+                              platz={platz} eignung={g2} aktiv={platzAuf === i}
+                              onTippen={() => setPlatzAuf(platzAuf === i ? null : i)} />
+                          </div>);
+                      })}
+                    </div>
+                    {tippInReihe && auswahlKasten(platzAuf, form.plaetze[platzAuf])}
+                  </React.Fragment>);
               })}
+              </div>
 
               {/* (Der Auswahlkasten steht jetzt in der Liste oben, direkt
                   unter dem angetippten Platz — siehe auswahlKasten.) */}
@@ -9965,6 +10419,722 @@ function WildcardEnthuellung({ card, onFertig }) {
   );
 }
 
+/* ---------- Spielerkarte (35.82) ------------------------------------------
+   Kevin: „Generell, dass jeder Spieler — auch Spieler aus der Jugendakademie —
+   als eine Art Sammelkarte behandelt und designt wird. Das Grundprinzip der
+   Profimannschaft soll erhalten bleiben, aber etwas spannender und optisch
+   ansprechender gemacht werden."
+
+   IN DER SPRACHE, DIE ES SCHON GIBT. Das Spiel hat seit Langem eine
+   Kartenoptik fuer die Wildcards: Klebestreifen, Folienrand bei den obersten
+   Stufen, ein Verlauf auf deckender Flaeche, leichte Schraeglage. Eine
+   ZWEITE Kartensprache danebenzustellen waere der naheliegende Fehler — dann
+   haette das Blatt zwei Handschriften. Die Spielerkarte benutzt dieselben
+   Bausteine (`wkarte`, `winkel`, `folie`), nur mit anderem Inhalt.
+
+   GEZEICHNET, NICHT GEMALT. Alles hier ist SVG und CSS: Verlauf, Rand,
+   Portraet, Werte. Kein einziges Bild — das haelt das Buendel klein (die App
+   liegt bei 1,34 MB fuer ein APK) und bleibt auf jedem Bildschirm scharf.  */
+/* Die Symbole. Als SVG-Pfade, nicht als Zeichen aus einer Schrift: das Spiel
+   prueft seit 35.57 die Zeichenabdeckung seiner fuenf Schriften, und ein
+   Symbol, das eine davon nicht kennt, waere ein leeres Kaestchen. Gezeichnet
+   ist gezeichnet. */
+const MERKSYMBOL = {
+  stern:  "M12 2 L14.6 8.6 L21.5 9.2 L16.2 13.7 L17.9 20.5 L12 16.8 L6.1 20.5 L7.8 13.7 L2.5 9.2 L9.4 8.6 Z",
+  spross: "M12 21 V10 M12 10 C12 6 9 4 5 4 C5 8 8 10 12 10 M12 12 C12 9 15 7 19 7 C19 10 16 12 12 12",
+  raute:  "M12 2 L21 12 L12 22 L3 12 Z",
+  ball:   "M12 2 A10 10 0 1 0 12 22 A10 10 0 1 0 12 2 M12 7 L16 10 L14.5 15 L9.5 15 L8 10 Z",
+  schild: "M12 2 L21 6 V12 C21 17 17 21 12 22 C7 21 3 17 3 12 V6 Z",
+  zirkel: "M12 3 V21 M12 3 L5 20 M12 3 L19 20 M7.5 14 H16.5",
+  schale: "M7 3 H17 V8 C17 12 15 14 12 14 C9 14 7 12 7 8 Z M12 14 V19 M8 21 H16 M17 5 H20 V7 C20 9 19 10 17 10 M7 5 H4 V7 C4 9 5 10 7 10",
+  uhr:    "M12 2 A10 10 0 1 0 12 22 A10 10 0 1 0 12 2 M12 6 V12 L16 14",
+};
+function Merkzeichen({ sym, farbe, groesse = 15 }) {
+  const d = MERKSYMBOL[sym];
+  if (!d) return null;
+  /* Gefuellt oder gestrichen? Offene Formen (Spross, Zirkel, Uhr) muessen
+     gestrichen werden — gefuellt waeren sie ein Klecks. */
+  const offen = sym === "spross" || sym === "zirkel" || sym === "uhr" || sym === "schale";
+  return (
+    <svg viewBox="0 0 24 24" width={groesse} height={groesse} aria-hidden
+      style={{ display: "block", flexShrink: 0 }}>
+      <path d={d} fill={offen ? "none" : farbe} stroke={farbe}
+        strokeWidth={offen ? 1.8 : 1} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* ---------- Der Packladen (35.85) ----------------------------------------
+   Kevin: „Packs werden ueber VC gekauft. Es sollte verschiedene Packs geben
+   (Bronze, Silber, Gold, Legendaer), einmal nach jeder Spielerkarriere gibt es
+   ein Bronzepack gratis."
+
+   DREI ZUSTAENDE, und der mittlere ist der Punkt:
+     Laden      die vier Packs mit Preis und dem, was sie zusagen
+     Aufdecken  verdeckte Karten, eine nach der anderen antippen
+     Ergebnis   was gezogen wurde, mit dem Weg in den Kader
+
+   DAS AUFDECKEN EINZELN. Alles auf einmal umzudrehen waere ein Bildschirm
+   voller Karten und kein Moment — der Jubel aus 35.83 braucht etwas, worauf
+   er folgt.                                                                */
+/* ---------- Die kleine Karte fuer die Aufstellung (35.88) ------------------
+   Kevin: „Ich faende es cool, wenn man die Aufstellung dann auch mit den
+   Karten macht, optisch. Die Karten dafuer in ein passendes, uebersichtlicheres
+   Format geschnitten (hochkant, Wappenform?)."
+
+   HOCHKANT UND SCHMAL, weil elf davon auf einen Telefonbildschirm muessen.
+   Die grosse Karte ist 380 px breit; elf davon waeren vier Bildschirme. Diese
+   hier ist so breit wie ein Drittel und zeigt nur, was auf einem Platz zaehlt:
+   Position, Gesicht, Name, Staerke.
+
+   DIE WAPPENFORM steckt im Zuschnitt: oben gerade, unten angeschraegt, wie
+   ein Schild. Ein `clip-path` statt eines Bildes — dieselbe Ueberlegung wie
+   bei der grossen Karte, es bleibt scharf und kostet nichts.
+
+   HERKUNFT IST PFLICHT, nicht Zierrat (Kevin: „es muss gekennzeichnet sein,
+   welche Spieler gezogen wurden und welche aus der Akademie kommen"). Sie
+   steht als Zeichen oben links: ein Spross fuer die Jugend, eine Raute fuer
+   die gezogenen. Ohne das sieht eine Elf aus wie eine Elf, und man weiss
+   nicht mehr, was man selbst aufgebaut hat.                                */
+/* ---------- Das Boosterpack (35.88) ---------------------------------------
+   Kevin: „Die zu kaufenden Packs im Shop sollten auch aussehen wie
+   Boosterpacks eines typischen TCGs."
+
+   Was ein Boosterpack ausmacht, wenn man es zerlegt:
+     * hochkant, schmaler als hoch
+     * eine Folienflaeche in der Farbe der Stufe, oben heller
+     * eine AUFREISSKANTE oben, gezackt
+     * ein Zeichen in der Mitte, nicht ein Text
+     * bei den teuren: Glanz
+
+   ALLES GEZEICHNET. Kein Bild — dieselbe Ueberlegung wie bei den Karten: es
+   bleibt scharf, kostet kein Buendelgewicht, und eine neue Stufe braucht kein
+   neues Bild, sondern nur eine Farbe.                                      */
+function Boosterpack({ stufe, breit }) {
+  const st = KARTEN.STUFEN[stufe] || KARTEN.STUFEN.bronze;
+  const fl = KARTEN.flaeche(stufe);
+  const glanz = stufe === "gold" || stufe === "legende";
+  const b = breit || 64;
+  return (
+    <div aria-hidden style={{ width: b, height: Math.round(b * 1.42),
+      position: "relative", flexShrink: 0 }}>
+      <svg viewBox="0 0 64 91" width={b} height={Math.round(b * 1.42)}
+        style={{ display: "block", overflow: "visible" }}>
+        <defs>
+          <linearGradient id={"bp" + stufe} x1="0" y1="0" x2=".4" y2="1">
+            <stop offset="0" stopColor={fl.kante} />
+            <stop offset=".45" stopColor={fl.oben} />
+            <stop offset="1" stopColor={fl.unten} />
+          </linearGradient>
+        </defs>
+        {/* Der Beutel. Oben die Aufreisskante als Zickzack — das ist das
+            Zeichen, an dem man ein Pack erkennt, noch vor der Farbe. */}
+        <path d="M2 8 L6 4 L10 8 L14 4 L18 8 L22 4 L26 8 L30 4 L34 8 L38 4
+                 L42 8 L46 4 L50 8 L54 4 L58 8 L62 4 L62 87 L2 87 Z"
+          fill={"url(#bp" + stufe + ")"} stroke={st.farbe} strokeWidth="2"
+          strokeLinejoin="round" />
+        {/* Die Naht unter der Aufreisskante. */}
+        <path d="M4 14 H60" stroke={st.farbe} strokeWidth="1" opacity=".55"
+          strokeDasharray="3 3" />
+        {/* Das Zeichen: ein Ball, weil es ein Fussballspiel ist. */}
+        <g transform="translate(20 34) scale(1)">
+          <path d={MERKSYMBOL.ball} fill={st.farbe} opacity=".9"
+            transform="scale(1)" />
+        </g>
+        <text x="32" y="76" textAnchor="middle" fill={st.farbe}
+          style={{ font: "700 8px 'Barlow Condensed', sans-serif",
+            letterSpacing: ".12em" }}>{st.n.toUpperCase()}</text>
+      </svg>
+      {/* DER SCHMALE SCHIMMER, wie bei den Elfkarten (berichtigt 35.94, von
+          Kevin gemeldet: „die Holo-Animation der zu kaufenden Packs sieht
+          kaputt aus, irgendwie abgebrochen").
+          Zwei Fehler auf einmal, beide dieselben wie in 35.90:
+            * `.holo` ohne `eng` ist 150 % der ELEMENTBREITE breit. Auf einem
+              64 px schmalen Pack deckt der Farbbogen alles auf einmal ab —
+              er scheint zu stehen statt zu wandern.
+            * der rechteckige `clipPath` schnitt quer durch die GEZACKTE
+              Aufreisskante. Genau dort wirkt es „abgebrochen": der Schimmer
+              endet an einer geraden Linie, die im Pack nicht existiert.
+          Jetzt `eng` und ein Zuschnitt, der die Zacken auslaesst — er beginnt
+          UNTER der Naht, wo das Pack wirklich eine gerade Kante hat. */}
+      {glanz && !RUHE && (
+        <span className="holo eng" style={{ opacity: stufe === "legende" ? .34 : .24,
+          clipPath: "polygon(4% 16%,96% 16%,96% 95%,4% 95%)" }}><i /></span>)}
+    </div>
+  );
+}
+
+function Elfkarte({ spieler, stufe, klein, onTippen, aktiv, platz, eignung }) {
+  const g = eignung == null ? 1 : eignung;
+  /* Ein leerer Platz ist auch eine Karte — sonst huepft das Raster, sobald
+     jemand fehlt, und man sieht nicht, WO die Luecke ist. */
+  if (!spieler) {
+    return (
+      <button onClick={onTippen} aria-label={"Platz " + platz + " ist nicht besetzt"}
+        style={{ width: "100%", padding: 0, borderRadius: 4,
+          border: "2px dashed var(--bad)", background: "transparent",
+          clipPath: "polygon(0 0,100% 0,100% 78%,50% 100%,0 78%)",
+          cursor: "pointer", display: "block",
+          outline: aktiv ? "2px solid var(--ac)" : "none", outlineOffset: 1 }}>
+        <span style={{ display: "block", padding: "5px 4px 18px", textAlign: "center" }}>
+          <span className="eb" style={{ fontSize: 8.5, color: "var(--bad)" }}>{platz}</span>
+          <span className="d" style={{ display: "block", fontSize: 22,
+            color: "var(--bad)", marginTop: 12, lineHeight: 1 }}>+</span>
+        </span>
+      </button>);
+  }
+  const st = KARTEN.STUFEN[stufe] || KARTEN.STUFEN.bronze;
+  const fl = KARTEN.flaeche(stufe || "bronze");
+  const holo = !RUHE && (stufe === "gold" || stufe === "legende");
+  /* DIE KARTE FUELLT IHRE SPALTE (berichtigt 35.90). Eine feste Pixelbreite
+     in einem Raster, das sich der Breite anpasst, ist ein Widerspruch: bei
+     412 px ist eine Spalte 82 px breit, die Karte war 88 — jede Karte ragte
+     sechs Pixel ueber ihre Spalte, und die vierte wurde am Rand
+     abgeschnitten. Von Kevin im Bild gemeldet.
+     `width: 100 %` mit einer Hoehe ueber das Seitenverhaeltnis: die Karte ist
+     dann auf jedem Geraet so breit wie ihr Platz und behaelt die Form. */
+  const b = "100%";
+  return (
+    <button onClick={onTippen} aria-label={spieler.name + ", " + spieler.pos
+      + ", Stärke " + spieler.ovr + (spieler.ausPack ? ", gezogen" : ", aus der Jugend")}
+      style={{ width: b, maxWidth: 110, padding: 0, border: "2px solid " + st.farbe,
+        borderRadius: 4, position: "relative", overflow: "hidden",
+        background: "linear-gradient(150deg," + fl.oben + " 0%," + fl.unten + " 100%)",
+        clipPath: "polygon(0 0,100% 0,100% 78%,50% 100%,0 78%)",
+        cursor: onTippen ? "pointer" : "default", display: "block",
+        outline: aktiv ? "2px solid var(--ac)" : "none", outlineOffset: 1 }}>
+      {/* `eng`, weil die Karte klein ist — und leiser: auf 82 px faellt
+          derselbe Schimmer viel staerker auf als auf 380. */}
+      {holo && <span className="holo eng"
+        style={{ opacity: stufe === "legende" ? .26 : .18 }}><i /></span>}
+      <span style={{ position: "relative", display: "block", padding: "5px 4px 14px" }}>
+        <span style={{ display: "flex", justifyContent: "space-between",
+          alignItems: "center", marginBottom: 2 }}>
+          {/* DER PLATZ, nicht die Position des Spielers — auf dem Feld zählt,
+              wo er steht. Weicht seine eigene Position ab, wird es rot: die
+              Zeilenansicht sagte das mit „ZM, 74 %", und diese Auskunft darf
+              beim Umbau auf Karten nicht verlorengehen. */}
+          <span className="eb" style={{ fontSize: 8.5,
+            color: g < 1 ? "var(--bad)" : st.farbe }}>
+            {platz || (POS[spieler.pos] ? POS[spieler.pos].short : spieler.pos)}</span>
+          {/* Das Herkunftszeichen. Klein, aber immer da. */}
+          <Merkzeichen sym={spieler.ausPack ? "raute" : "spross"}
+            farbe={spieler.ausPack ? st.farbe : "var(--ok)"} groesse={10} />
+        </span>
+        <span style={{ display: "block", margin: "0 auto" }}>
+          <Avatar seed={kartenKennung({ kid: spieler.id })} zuege={null} club={null}
+            size={klein ? 30 : 38} nat={spieler.nat || null} g="m" meta={null} />
+        </span>
+        <span className="d" style={{ display: "block", fontSize: 9.5, marginTop: 3,
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          textAlign: "center" }}>{(spieler.name || "").split(" ").slice(-1)[0]}</span>
+        {/* DIE WIRKSAME STÄRKE, nicht die rohe. Ein Innenverteidiger im Sturm
+            hat 74 auf dem Papier und 55 auf dem Platz — die Zahl, die zählt,
+            ist die zweite. */}
+        <span className="d" style={{ display: "block", fontSize: 15,
+          color: g < 1 ? "var(--bad)" : st.farbe,
+          lineHeight: 1, textAlign: "center" }}>{Math.round(spieler.ovr * g)}</span>
+        {g < 1 && (
+          <span className="m" style={{ display: "block", fontSize: 8,
+            color: "var(--bad)", textAlign: "center" }}>
+            {spieler.pos} · {Math.round(g * 100)} %</span>)}
+      </span>
+    </button>
+  );
+}
+
+function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
+                    onReiterGesehen, onKauf, onGratis,
+                    onStartpaket, onEinsetzen, onEntfernen, onVerkauf, onZurueck }) {
+  const [offen, setOffen] = React.useState(null);      /* gezogene Karten */
+  const [gezeigt, setGezeigt] = React.useState([]);    /* welche schon aufgedeckt */
+  const [meldung, setMeldung] = React.useState(null);
+  /* Der Laden kann direkt im Fundus aufgehen, wenn man ueber das Symbol im
+     Dach kommt (35.94). `startReiter` sagt es nur EINMAL — danach entscheidet
+     der Spieler, und ein Wechsel im Laden darf ihn nicht zurueckwerfen. */
+  const [reiter, setReiter] = React.useState(startReiter === "sammlung" ? "sammlung" : "laden");
+  React.useEffect(() => { if (onReiterGesehen) onReiterGesehen(); }, []);
+  const [fragt, setFragt] = React.useState(null);      /* Karte, die verkauft werden soll */
+  /* Karten, die gerade wegwischen. Sie bleiben KURZ im Baum — eine Animation
+     an einem Element, das schon entfernt ist, sieht niemand. */
+  const [wischt, setWischt] = React.useState([]);
+  const [weg, setWeg] = React.useState([]);
+  const [offenPack, setOffenPack] = React.useState(null);
+  const [filter, setFilter] = React.useState("alle");
+  const [sortier, setSortier] = React.useState("staerke");
+
+  /* Eine Karte vom Aufdecktisch nehmen: wischen, dann aus der Liste. Sie
+     bleibt im Fundus — dorthin kam sie beim Oeffnen des Packs. */
+  const ablegen = (i) => {
+    setWischt((w) => (w.indexOf(i) >= 0 ? w : [...w, i]));
+    setTimeout(() => setWeg((g) => (g.indexOf(i) >= 0 ? g : [...g, i])), RUHE ? 0 : 340);
+  };
+
+  /* ---- Zurueck in den Laden, wenn der Tisch leer ist (35.92) -------------
+     Kevin: „Wenn man alle Karten im Pack angenommen hat, dann soll die
+     Ansicht wieder in den Shop wechseln."
+
+     Richtig: ein leerer Aufdecktisch mit einem „Fertig"-Knopf ist ein
+     Bildschirm, der nur noch aus einer Aufforderung besteht, ihn zu
+     verlassen. Wer alles angenommen hat, hat den Schritt beendet — dann soll
+     das Spiel ihn auch beenden.
+
+     ERST NACH DER WISCHBEWEGUNG, sonst verschwindet der Bildschirm unter der
+     letzten Karte, waehrend sie noch wegwischt — und man sieht nicht mehr,
+     was man da eigentlich genommen hat. 220 ms nach dem letzten Ablegen:
+     lang genug, dass die Bewegung fertig ist, kurz genug, dass es nicht wie
+     Warten wirkt.
+
+     Der Effekt haengt an `weg` und `offen`, nicht an einem Zaehler im
+     Klickpfad: „alle Karten sind weg" ist ein ZUSTAND, kein Ereignis. Haette
+     ich es beim Ablegen mitgezaehlt, muesste jede kuenftige Stelle, die eine
+     Karte entfernt, daran denken. */
+  React.useEffect(() => {
+    if (!offen || !offen.length) return undefined;
+    if (weg.length < offen.length) return undefined;
+    const id = setTimeout(() => {
+      setOffen(null); setOffenPack(null); setWischt([]); setWeg([]);
+      setMeldung(null);
+    }, RUHE ? 0 : 220);
+    return () => clearTimeout(id);
+  }, [weg, offen]);
+
+  const ziehen = (packId, umsonst) => {
+    const r = KARTEN.ziehen(packId, pool, new Date().getFullYear());
+    if (r.fehler) { setMeldung(r.fehler); return; }
+    const alle = r.sonder ? [...r.karten, r.sonder] : r.karten;
+    setOffen(alle); setGezeigt([]); setMeldung(null);
+    setWischt([]); setWeg([]); setOffenPack(packId);
+    if (umsonst) onGratis(alle); else onKauf(packId, alle);
+  };
+
+  if (offen) {
+    const alleAuf = gezeigt.length >= offen.length;
+    return (
+      <Shell blatt="verein">
+        <div className="fade">
+          <div style={{ display: "flex", alignItems: "baseline",
+            justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+            <div className="d" style={{ fontSize: 26 }}>Dein Pack</div>
+            {alleAuf && (
+              <div style={{ display: "flex", gap: 6 }}>
+                {/* ALLE AUF EINMAL. Wer sechs Karten zieht und keine davon
+                    einsetzen will, soll nicht sechsmal tippen muessen. */}
+                {offen.some((x, j) => gezeigt.indexOf(j) >= 0 && weg.indexOf(j) < 0) && (
+                  <button className="btn sm"
+                    onClick={() => offen.forEach((x, j) => {
+                      if (weg.indexOf(j) < 0) ablegen(j);
+                    })}>Alle annehmen</button>)}
+                <button className="btn sm" onClick={() => setOffen(null)}>Fertig</button>
+              </div>)}
+          </div>
+          <p style={{ fontSize: 12, color: "var(--mu)", margin: "5px 0 10px" }}>
+            {alleAuf ? "Alles aufgedeckt. Wen nimmst du in den Kader?"
+              : "Tippe die Karten an, eine nach der anderen."}
+          </p>
+          {/* DAS GEOEFFNETE PACK bleibt oben stehen. Ohne es kaemen die Karten
+              von nirgendwo — die Bewegung braucht einen Ort, aus dem sie
+              faellt, sonst ist sie nur ein Einblenden. */}
+          {offenPack && (
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 12,
+              opacity: .55 }}>
+              <Boosterpack stufe={offenPack} breit={52} />
+            </div>)}
+          <div className="g1">
+            {offen.map((k, i) => {
+              if (weg.indexOf(i) >= 0) return null;
+              return (
+              <div key={k.kid + i}
+                className={wischt.indexOf(i) >= 0 ? "kartenwisch"
+                  : (RUHE ? undefined : "kartendrop")}
+                style={wischt.indexOf(i) >= 0 || RUHE ? undefined
+                  : { "--dropzeit": (i * 90) + "ms" }}>
+                <Spielerkarte karte={k} gross
+                  aufgedeckt={gezeigt.indexOf(i) >= 0}
+                  jubel={gezeigt.indexOf(i) >= 0}
+                  onTippen={() => setGezeigt((g) => (g.indexOf(i) >= 0 ? g : [...g, i]))} />
+                {/* ZWEI WEGE, UND BEIDE FUEHREN WEG (35.90, von Kevin
+                    gemeldet): „Die gezogenen Karten kann ich nicht zum Fundus
+                    hinzufuegen, wenn das Limit erreicht ist, und die Karten
+                    bleiben sichtbar und auswaehlbar. Sie sollen in den Fundus
+                    wandern, wenn ich die Karten annehme."
+
+                    Er hat einen echten Fehler beschrieben: bis 35.89 gab es
+                    nur „In den Kader". War der voll, blieb die Karte liegen —
+                    mit einem Knopf, der nichts tat, und ohne Weg weiter. Der
+                    Bildschirm war eine Sackgasse.
+
+                    Die Karte liegt ohnehin schon im Fundus (beim Oeffnen
+                    hinzugefuegt); was fehlte, war das ABLEGEN — das Zeichen,
+                    dass man sie gesehen und angenommen hat. */}
+                {gezeigt.indexOf(i) >= 0 && (
+                  <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
+                    {verein && verein.gegruendet && VEREIN.packPlatz(verein) > 0 && (
+                      <button className="btn sm" style={{ flex: 1 }}
+                        onClick={() => {
+                          const f = onEinsetzen(k);
+                          setMeldung(f || (k.name + " steht im Kader."));
+                          if (!f) ablegen(i);
+                        }}>
+                        In den Kader</button>)}
+                    <button className="btn sm" style={{ flex: 1 }}
+                      onClick={() => {
+                        setMeldung(k.name + " liegt im Fundus.");
+                        ablegen(i);
+                      }}>
+                      {verein && verein.gegruendet && VEREIN.packPlatz(verein) > 0
+                        ? "In den Fundus" : "Annehmen"}</button>
+                  </div>)}
+              </div>);
+            })}
+          </div>
+          {meldung && (
+            <div className="up" style={{ padding: "8px 11px", marginTop: 10 }}>
+              <span className="m" style={{ fontSize: 11.5 }}>{meldung}</span>
+            </div>)}
+        </div>
+      </Shell>);
+  }
+
+  const platz = verein && verein.gegruendet ? VEREIN.packPlatz(verein) : 0;
+  const sammlung = (pool && pool.karten) || [];
+
+  /* ---- Die Sammlung (35.86) ----------------------------------------------
+     Kevin: „Wenn wir eine Begrenzung haben, muss es auch eine Möglichkeit
+     geben, Karten loszuwerden." Zwei getrennte Wege, weil es zwei
+     verschiedene Entscheidungen sind:
+       aus dem Kader nehmen   der Platz wird frei, die Karte bleibt
+       verkaufen              die Karte ist weg, dafür gibt es VC          */
+  if (reiter === "sammlung") {
+    const imKader = (k) => !!(verein && (verein.kader || []).some((sp) => sp.id === k.kid));
+    /* ---- Der Fundus (35.87) ----------------------------------------------
+       Kevin: „Generell, dass man gezogene Spieler immer in einem Fundus hat
+       und sie in die Mannschaft packen und wieder rausziehen kann. Dass man
+       allgemein nötige Verwaltungsmöglichkeiten hat."
+
+       BEI FÜNF KARTEN braucht es nichts. Bei fünfzig braucht es alles — und
+       fünfzig sind nach zehn Packs erreicht. Deshalb jetzt und nicht später:
+       eine Liste, die man nur noch durchscrollt, ist kein Fundus, sondern ein
+       Haufen.
+
+       Sortiert wird nach Stärke, weil das die Frage ist, die man an einen
+       Fundus hat: wer ist der Beste, den ich noch nicht drin habe? */
+    const zaehlung = KARTEN.zaehlen(pool);
+    const gefiltert = sammlung
+      .filter((k) => (filter === "alle" ? true
+        : filter === "kader" ? imKader(k)
+        : filter === "frei" ? !imKader(k)
+        : k.stufe === filter))
+      .slice()
+      .sort((a2, b2) => {
+        if (sortier === "staerke") return (b2.ovr || 0) - (a2.ovr || 0);
+        if (sortier === "stufe") return KARTEN.REIHE.indexOf(b2.stufe) - KARTEN.REIHE.indexOf(a2.stufe);
+        if (sortier === "position") return String(a2.pos).localeCompare(String(b2.pos));
+        return 0;
+      });
+    const knopf = (wert, text, ist, setz) => (
+      <button key={wert} className={"btn sm" + (ist === wert ? " on" : "")}
+        style={{ padding: "4px 9px" }} onClick={() => setz(wert)}>
+        <span className="m" style={{ fontSize: 10.5 }}>{text}</span></button>);
+    return (
+      <Shell blatt="verein">
+        <div className="fade">
+          <div style={{ display: "flex", alignItems: "baseline",
+            justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+            <div className="d" style={{ fontSize: 26 }}>Sammlung</div>
+            {/* ZWEI AUSGAENGE (35.95, von Kevin gemeldet: „Aus der
+                Spielersammlung gibt es keinen Zurück-Knopf").
+                Der Fehler ist erst in 35.94 entstanden: bis dahin kam man nur
+                ueber den Laden hierher, und „Zum Laden" war der richtige und
+                einzige Rueckweg. Seit es das Fundussymbol im Dach gibt, kommt
+                man auch DIREKT — und stand dann in einer Sammlung, aus der
+                nur ein Weg in einen Laden fuehrte, den man nie betreten hat.
+                EIN NEUER ZUGANG BRAUCHT EINEN PASSENDEN AUSGANG. Wer das
+                vergisst, baut eine Sackgasse — dieselbe Art Fehler wie beim
+                Aufdecktisch in 35.90. */}
+            <div style={{ display: "flex", gap: 6 }}>
+              <button className="btn sm" onClick={() => { setReiter("laden"); setFragt(null); }}>
+                Zum Laden</button>
+              <button className="btn sm" onClick={onZurueck}>Zurück</button>
+            </div>
+          </div>
+          <p style={{ fontSize: 12, color: "var(--mu)", margin: "5px 0 10px" }}>
+            {sammlung.length} Karten · {KARTEN.REIHE.map((st) =>
+              zaehlung[st] + " " + KARTEN.STUFEN[st].n.toLowerCase()).join(" · ")}
+          </p>
+          <p style={{ fontSize: 11, color: "var(--mu)", margin: "0 0 10px" }}>
+            Spieler aus deiner Ruhmeshalle und aus früheren eigenen Vereinen lassen
+            sich nicht verkaufen — sie sind Erinnerung, keine Ware.
+          </p>
+
+          <div className="eb" style={{ marginTop: 10 }}>Zeigen</div>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 5 }}>
+            {[["alle", "alle"], ["frei", "nicht im Kader"], ["kader", "im Kader"]]
+              .map(([w, t]) => knopf(w, t, filter, setFilter))}
+            {KARTEN.REIHE.map((st) => knopf(st, KARTEN.STUFEN[st].n, filter, setFilter))}
+          </div>
+          <div className="eb" style={{ marginTop: 10 }}>Sortieren</div>
+          <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 5,
+            marginBottom: 12 }}>
+            {[["staerke", "nach Stärke"], ["stufe", "nach Stufe"], ["position", "nach Position"]]
+              .map(([w, t]) => knopf(w, t, sortier, setSortier))}
+          </div>
+          {sammlung.length === 0 && (
+            <div className="pan pad"><span className="m" style={{ fontSize: 12 }}>
+              Noch nichts gesammelt. Öffne ein Pack.</span></div>)}
+          {sammlung.length > 0 && gefiltert.length === 0 && (
+            <div className="pan pad"><span className="m" style={{ fontSize: 12 }}>
+              Keine Karte passt zu dieser Auswahl.</span></div>)}
+          <div className="g1">
+            {gefiltert.map((k) => (
+              <div key={k.kid}>
+                <Spielerkarte karte={k} />
+                <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                  {verein && verein.gegruendet && (imKader(k) ? (
+                    <button className="btn sm" style={{ flex: 1 }}
+                      onClick={() => setMeldung(onEntfernen(k) || (k.name + " ist wieder frei."))}>
+                      Aus dem Kader</button>
+                  ) : (
+                    <button className="btn sm" style={{ flex: 1 }}
+                      onClick={() => setMeldung(onEinsetzen(k) || (k.name + " steht im Kader."))}>
+                      In den Kader</button>))}
+                  {KARTEN.verkaeuflich(k) ? (
+                    fragt === k.kid ? (
+                      <>
+                        <button className="btn sm" style={{ borderColor: "var(--bad)" }}
+                          onClick={() => { setFragt(null);
+                            setMeldung(onVerkauf(k) || (k.name + " verkauft.")); }}>
+                          Wirklich verkaufen</button>
+                        <button className="btn sm" onClick={() => setFragt(null)}>Doch nicht</button>
+                      </>
+                    ) : (
+                      /* RÜCKFRAGE, weil es endgültig ist. Eine Karte, die weg
+                         ist, kommt nicht wieder — anders als ein Kaderplatz. */
+                      <button className="btn sm" onClick={() => setFragt(k.kid)}>
+                        Verkaufen · {KARTEN.erloes(k)} VC</button>)
+                  ) : (
+                    <span className="m" style={{ fontSize: 10.5, color: "var(--mu)",
+                      alignSelf: "center" }}>
+                      {k.herkunft === "halle" ? "Ruhmeshalle" : "eigener Verein"}</span>)}
+                </div>
+              </div>))}
+          </div>
+          {meldung && (
+            <div className="up" style={{ padding: "8px 11px", marginTop: 10 }}>
+              <span className="m" style={{ fontSize: 11.5 }}>{meldung}</span>
+            </div>)}
+        </div>
+      </Shell>);
+  }
+
+  return (
+    <Shell blatt="verein">
+      <div className="fade">
+        <div style={{ display: "flex", alignItems: "baseline",
+          justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+          <div className="d" style={{ fontSize: 26 }}>Packs</div>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button className="btn sm" onClick={() => setReiter("sammlung")}>
+              Sammlung ({sammlung.length})</button>
+            <button className="btn sm" onClick={onZurueck}>Zurück</button>
+          </div>
+        </div>
+        <p style={{ fontSize: 12, color: "var(--mu)", margin: "5px 0 14px" }}>
+          Gezogene Spieler ergänzen deine Jugend, sie ersetzen sie nicht:
+          höchstens {Math.floor(VEREIN.KADER_MIN * VEREIN.PACK_ANTEIL)} von{" "}
+          {VEREIN.KADER_MIN} Kaderplätzen.
+          {verein && verein.gegruendet ? " Frei: " + platz + "." : ""}
+        </p>
+
+        {/* DAS STARTPAKET (35.89). Es steht ganz oben und vor den Gratispacks:
+            es ist der Lohn fuer fuenfzehn Jahre, nicht eine Zugabe unter
+            anderen. */}
+        {startpaket && (
+          <div className="pan pad" style={{ borderColor: "var(--ac)", marginBottom: 12 }}>
+            <div className="eb" style={{ color: "var(--ac)" }}>Aus deinem letzten Verein</div>
+            <div className="d" style={{ fontSize: 17, marginTop: 2 }}>
+              Sechs Spieler warten</div>
+            <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
+              Drei aus {startpaket.vorher || "deiner alten Mannschaft"}, mindestens
+              einer aus deiner Ruhmeshalle. Du fängst nicht bei null an.</div>
+            <button className="btn pri" style={{ marginTop: 10, width: "100%" }}
+              onClick={() => {
+                const r = KARTEN.startpaket(pool, startpaket.vorher, new Date().getFullYear());
+                setOffen(r.karten); setGezeigt([]); setMeldung(null);
+                setWischt([]); setWeg([]); setOffenPack("gold");
+                onStartpaket(r.karten);
+              }}>Startpaket öffnen</button>
+          </div>)}
+
+        {gratis > 0 && (
+          <div className="pan pad" style={{ borderColor: "var(--go)", marginBottom: 12 }}>
+            <div className="eb" style={{ color: "var(--go)" }}>Geschenk</div>
+            <div className="d" style={{ fontSize: 17, marginTop: 2 }}>
+              {gratis === 1 ? "Ein Bronzepack wartet" : gratis + " Bronzepacks warten"}</div>
+            <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
+              Für jede beendete Laufbahn eines.</div>
+            <button className="btn pri" style={{ marginTop: 10, width: "100%" }}
+              onClick={() => ziehen("bronze", true)}>Gratispack öffnen</button>
+          </div>)}
+
+        <div className="m" style={{ fontSize: 11.5, color: "var(--mu)", marginBottom: 8 }}>
+          Dein Konto: <span style={{ color: "var(--go)" }}>{vc} VC</span>
+        </div>
+        <div className="g1">
+          {KARTEN.PACKS.map((pk) => {
+            const leistbar = vc >= pk.preis;
+            return (
+              <div key={pk.id} className="pan pad" style={{
+                borderColor: leistbar ? KARTEN.STUFEN[pk.id].farbe : "var(--ln2)" }}>
+                <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <div style={{ opacity: leistbar ? 1 : .4 }}>
+                    <Boosterpack stufe={pk.id} /></div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between",
+                  alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                  <div className="d" style={{ fontSize: 17,
+                    color: leistbar ? KARTEN.STUFEN[pk.id].farbe : "var(--mu)" }}>{pk.n}</div>
+                  <div className="d" style={{ fontSize: 17,
+                    color: leistbar ? "var(--go)" : "var(--mu)" }}>{pk.preis} VC</div>
+                </div>
+                <div className="m" style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 3 }}>
+                  {pk.t}</div>
+                {/* DER PREIS IN DER WAEHRUNG, DIE MAN VERSTEHT (aus 35.80).
+                    Nicht „130 VC", sondern was einen das im Ausbau kostet. */}
+                <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 3 }}>
+                  entspricht etwa {KARTEN.preisInLaufbahnen(pk.id).toString().replace(".", ",")}
+                  {" "}Laufbahnen Akademieausbau</div>
+                <button className="btn" disabled={!leistbar}
+                  style={{ marginTop: 9, width: "100%",
+                    borderColor: leistbar ? KARTEN.STUFEN[pk.id].farbe : undefined }}
+                  onClick={() => ziehen(pk.id, false)}>
+                  {leistbar ? "Kaufen" : "Noch " + (pk.preis - vc) + " VC fehlen"}
+                </button>
+                  </div>
+                </div>
+              </div>);
+          })}
+        </div>
+        {meldung && (
+          <div className="up" style={{ padding: "8px 11px", marginTop: 10 }}>
+            <span className="m" style={{ fontSize: 11.5 }}>{meldung}</span>
+          </div>)}
+      </div>
+    </Shell>);
+}
+
+function Spielerkarte({ karte, gross, aufgedeckt = true, onTippen, jubel }) {
+  if (!karte) return null;
+  const st = (KARTEN.STUFEN && KARTEN.STUFEN[karte.stufe]) || KARTEN.STUFEN.bronze;
+  const gr = gross ? 1 : .78;
+  /* Die Rueckseite eines noch nicht aufgedeckten Packs. Sie zeigt die Stufe
+     schon — sonst waere das Aufdecken ohne Spannung, weil man nichts erwartet. */
+  if (!aufgedeckt) {
+    return (
+      <div className="pan pad winkel" style={{ borderColor: st.farbe, borderWidth: 2,
+        background: "linear-gradient(150deg," + KARTEN.flaeche(karte.stufe).oben
+          + " 0%," + KARTEN.flaeche(karte.stufe).unten + " 100%)",
+        minHeight: Math.round(150 * gr), display: "flex",
+        alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+        onClick={onTippen} role="button" tabIndex={0}
+        aria-label={"Verdeckte Karte, Stufe " + st.n + ". Antippen zum Aufdecken."}>
+        <div className="d" style={{ fontSize: Math.round(15 * gr), color: st.farbe,
+          letterSpacing: ".1em" }}>{st.n.toUpperCase()}</div>
+      </div>);
+  }
+  const fl = KARTEN.flaeche(karte.stufe);
+  const merk = KARTEN.merkmaleVon(karte);
+  /* GEFEIERT WIRD NUR, WAS SELTEN IST. Eine Feier bei jeder Bronzekarte ist
+     keine Feier, sondern eine Wartezeit. Und `RUHE` hat das letzte Wort —
+     die CSS-Regel faengt die Systemeinstellung ab, dieser Schalter die im
+     Spiel. Beide braucht es: das eine ist das Betriebssystem, das andere
+     eine Entscheidung des Spielers. */
+  /* Der Schimmer haengt an der Stufe, nicht am Jubel: er laeuft dauerhaft,
+     auch wenn die Karte schon lange liegt. Eine Folienkarte hoert ja nicht
+     auf zu schimmern, weil man sie kennt. */
+  const holo = !RUHE && (karte.stufe === "gold" || karte.stufe === "legende");
+  const feiern = jubel && !RUHE
+    && (karte.stufe === "gold" || karte.stufe === "legende" || karte.sonderkarte);
+  return (
+    <div className={"pan pad winkel" + (feiern ? " kartenjubel" : "")}
+      style={{ borderColor: st.farbe, borderWidth: 2,
+      /* DECKEND, kein `transparent` mehr (35.83). Zwei volle Stopps: oben die
+         Stufenfarbe kräftig im Kartongrund, unten dunkel. Eine Sammelkarte
+         ist ein Stück Pappe, kein Fenster. */
+      background: "linear-gradient(150deg," + fl.oben + " 0%," + fl.unten + " 100%)",
+      position: "relative", overflow: "hidden" }}>
+      {/* Ein feiner Glanz über der oberen Kante — das, was eine gedruckte
+          Karte von einem Rechteck unterscheidet. */}
+      <span aria-hidden style={{ position: "absolute", left: 0, right: 0, top: 0,
+        height: 1, background: fl.kante, opacity: .9, zIndex: 2 }} />
+      {/* HOLOSCHIMMER, nur auf den beiden obersten Stufen (35.84). Auf Bronze
+          und Silber wäre er kein Merkmal mehr, sondern Dekoration — und
+          Dekoration, die überall ist, sagt nichts. */}
+      {holo && (
+        <span className="holo" aria-hidden
+          /* Deckung GEMESSEN, nicht nach Gefuehl: die Farbsaettigung im
+             Kartenbild steigt bis 0,3 kaum und macht dann einen Sprung.
+             Der Text liegt darueber, seine Lesbarkeit ist davon unberuehrt. */
+          style={{ opacity: karte.stufe === "legende" ? .44 : .32 }}><i /></span>)}
+      {/* Folienrand nur fuer die oberste Stufe — Material als Auszeichnung,
+          wie bei den Wildcards. */}
+      {karte.stufe === "legende" && (
+        <span className="folie" aria-hidden="true" style={{ position: "absolute",
+          left: 0, right: 0, bottom: 0, height: 3, opacity: .8 }} />)}
+
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+        <Avatar seed={kartenKennung(karte)} zuege={null} club={null}
+          size={Math.round(54 * gr)} nat={karte.nat || null} g="m"
+          meta={karte.stufe === "legende" ? { mk_rahmen4: true, rahmenWahl: "mk_rahmen4" }
+            : karte.stufe === "gold" ? { mk_gold: true, rahmenWahl: "mk_gold" } : null} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="eb" style={{ color: st.farbe }}>
+            {st.n} · {POS[karte.pos] ? POS[karte.pos].short : karte.pos}</div>
+          <div className="d" style={{ fontSize: Math.round(17 * gr), overflow: "hidden",
+            textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {karte.flag ? karte.flag + " " : ""}{karte.name}</div>
+          <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 2 }}>
+            {karte.alter} Jahre{karte.verein ? " · " + karte.verein : ""}
+            {karte.herkunft === "halle" ? " · Ruhmeshalle" : ""}
+            {karte.herkunft === "akademie" ? " · aus der Jugend" : ""}</div>
+        </div>
+        <div className="d" style={{ fontSize: Math.round(26 * gr), color: st.farbe,
+          lineHeight: 1 }}>{karte.ovr}</div>
+      </div>
+
+      {/* Anlage nur zeigen, wenn sie ueber der Staerke liegt — „Anlage 70" bei
+          Staerke 70 ist keine Auskunft, sondern Fuellsel. */}
+      {karte.pot > karte.ovr && (
+        <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 7 }}>
+          Anlage {karte.pot} · noch {karte.pot - karte.ovr} zu holen</div>)}
+      {/* MERKMALE ALS SYMBOLE (Kevins Wunsch). Höchstens drei — was jeder
+          hat, zeichnet niemanden aus. */}
+      {merk.length > 0 && (
+        <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center",
+          flexWrap: "wrap" }}>
+          {merk.map((m) => (
+            <span key={m.id} title={m.n} style={{ display: "flex", alignItems: "center",
+              gap: 4 }}>
+              <Merkzeichen sym={m.sym} farbe={st.farbe} groesse={gross ? 15 : 13} />
+              <span className="m" style={{ fontSize: 9.5, color: "var(--mu)" }}>{m.n}</span>
+            </span>))}
+        </div>)}
+      {karte.sonderkarte && (
+        <div className="eb" style={{ color: "var(--go)", marginTop: 7 }}>Sonderkarte</div>)}
+    </div>
+  );
+}
+
+/* Eine Zahl aus der Kennung, damit dieselbe Karte immer dasselbe Gesicht hat.
+   Ohne das wuerfelt der Avatar bei jedem Zeichnen neu — und ein Spieler saehe
+   nach dem Blaettern anders aus als davor. */
+function kartenKennung(k) {
+  const s = String((k && k.kid) || "");
+  let n = 0;
+  for (let i = 0; i < s.length; i++) n = (n * 31 + s.charCodeAt(i)) % 999983;
+  return n || 1;
+}
+
 function WildcardCard({ card, big, onReroll, rerollLeft, rerollN }) {
   if (!card) return null;
   const r = RARITY[card.r] || RARITY.normal;
@@ -10002,6 +11172,235 @@ function WildcardCard({ card, big, onReroll, rerollLeft, rerollN }) {
         </div>)}
     </div>
   );
+}
+
+/* ---------- Der Sonderschuss (35.76) --------------------------------------
+   Kevin: „ein Balken mit mehreren Segmenten, und durch diesen Balken zieht ein
+   Fussball sehr schnell von links nach rechts und wieder zurueck; man muss das
+   Beste (kleinste) Segment treffen."
+
+   DIE SEGMENTE sind symmetrisch um die Mitte gelegt: aussen breit und wenig
+   wert, innen schmal und viel. Symmetrisch, weil der Ball aus beiden
+   Richtungen kommt — eine Skala, die nur von links gut ist, waere in der
+   Rueckrichtung eine andere Aufgabe.
+
+   DIE BEWEGUNG laeuft ueber `requestAnimationFrame` und die WIRKLICHE Zeit,
+   nicht ueber einen Zaehler je Bild. Auf einem Geraet mit 120 Hz waere ein
+   Bildzaehler doppelt so schnell wie auf einem mit 60 — dasselbe Spiel waere
+   auf dem besseren Telefon schwerer. Gemessen wird deshalb in Millisekunden.
+
+   RUHE WIRD GEACHTET: wer Bewegung abgeschaltet hat, bekommt den Balken ohne
+   Lauf und einen festen mittleren Gewinn. Ein Geschicklichkeitsspiel darf
+   niemanden von einer Belohnung aussperren, der aus gutem Grund keine
+   schnellen Bewegungen sehen will. */
+const SCHUSS_FELDER = [
+  { w: 26, n: "daneben", att: 0, pot: 0, farbe: "var(--ln2)" },
+  { w: 17, n: "ordentlich", att: 1, pot: 0, farbe: "var(--mu)" },
+  { w: 5,  n: "stark",   att: 2, pot: 0, farbe: "var(--ac)" },
+  { w: 4,  n: "perfekt", att: 3, pot: 1, farbe: "var(--go)" },
+  { w: 5,  n: "stark",   att: 2, pot: 0, farbe: "var(--ac)" },
+  { w: 17, n: "ordentlich", att: 1, pot: 0, farbe: "var(--mu)" },
+  { w: 26, n: "daneben", att: 0, pot: 0, farbe: "var(--ln2)" },
+];
+/* Trostbonus (Kevins Entscheidung: „ein Versuch, bei Verfehlen ein kleiner
+   Trostbonus"). Wer danebentrifft, geht nicht leer aus — die Saison war ja
+   trotzdem gut. */
+const SCHUSS_TROST = { att: 1, pot: 0 };
+
+/* ---- Der Volltreffer gibt nicht immer dasselbe (35.94) --------------------
+   Kevin: „Der beste Treffer sollte nicht immer +1 auf Anlagen geben,
+   stattdessen auch mal einen anderen Bonus, der passend ist (Leistungsboost
+   fuer naechste Saison, 1 Saison keine Verletzung etc.)."
+
+   Richtig: eine Belohnung, die immer dieselbe ist, ist nach dem dritten Mal
+   keine Ueberraschung mehr, sondern eine Abrechnung.
+
+   ALLE VIER SIND ETWA GLEICH VIEL WERT, nur verschieden nuetzlich:
+     Anlage      dauerhaft, aber nur ein Punkt
+     Form        eine Saison lang deutlich, dann vorbei
+     Gesundheit  eine Saison ohne Verletzung — im Zweifel die wertvollste,
+                 aber man merkt es nur, wenn man sonst Pech gehabt haette
+     Ruf         wirkt auf Angebote und Vertraege, nicht auf das Spiel
+
+   Der Anlagepunkt bleibt der HAEUFIGSTE (40 %), weil er der einzige ist, der
+   ueber die Saison hinaus bleibt — und weil Kevin ihn urspruenglich wollte. */
+const SCHUSS_PREISE = [
+  { id: "pot",     w: 40, n: "+1 Anlage",
+    t: "Dein Höchstwert steigt um einen Punkt — dauerhaft." },
+  { id: "form",    w: 22, n: "Bestform",
+    t: "Du gehst mit voller Form in die neue Saison." },
+  { id: "gesund",  w: 22, n: "Eisenhart",
+    t: "Eine Saison lang bleibst du von Verletzungen verschont." },
+  { id: "ruf",     w: 16, n: "Man spricht über dich",
+    t: "Dein Ruf wächst — das merkst du bei den nächsten Angeboten." },
+];
+const schussPreisZiehen = () => {
+  const ges = SCHUSS_PREISE.reduce((a2, x) => a2 + x.w, 0);
+  let r = Math.random() * ges;
+  for (const x of SCHUSS_PREISE) { r -= x.w; if (r <= 0) return x; }
+  return SCHUSS_PREISE[0];
+};
+
+function Sonderschuss({ grund, ruhe, onFertig }) {
+  const [halt, setHalt] = React.useState(null);
+  const laeuft = useRef(true);
+  const start = useRef(0);
+  /* DIE STELLUNG LIEGT IN EINEM REF, NICHT IM ZUSTAND (berichtigt 35.78).
+     Der erste Entwurf rief `setX` in jedem Bild auf — sechzig React-Durchläufe
+     je Sekunde für ein Bauteil mit sieben Segmenten und einem SVG. Kevin:
+     „das Minispiel fühlt sich noch etwas klunky an". Das war es auch, und
+     zwar messbar: React zeichnet dabei jedes Mal den ganzen Baum des Bauteils
+     nach, obwohl sich nur eine Zahl ändert.
+     Jetzt wird der Ball DIREKT bewegt — `ball.current.style.left`. React
+     erfährt davon nichts und muss nichts tun. Der Zustand wechselt nur einmal:
+     beim Schuss. */
+  const stelle = useRef(0);
+  const ball = useRef(null);
+
+  React.useEffect(() => {
+    if (ruhe || halt) return undefined;
+    let id = 0;
+    const DAUER = 1500;            /* eine volle Hin- und Rückbahn */
+    const tick = (t) => {
+      if (!start.current) start.current = t;
+      const p2 = ((t - start.current) % DAUER) / DAUER;
+      /* Dreieckswelle: 0 → 1 → 0. Kein Sinus — der ist an den Rändern
+         langsam, und dort läge dann ausgerechnet das breiteste Feld still. */
+      stelle.current = p2 < .5 ? p2 * 2 : 2 - p2 * 2;
+      if (ball.current) ball.current.style.left = (stelle.current * 100) + "%";
+      if (laeuft.current) id = requestAnimationFrame(tick);
+    };
+    id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
+  }, [ruhe, halt]);
+
+  const gesamt = SCHUSS_FELDER.reduce((a, f) => a + f.w, 0);
+  const treffer = (pos) => {
+    let acc = 0;
+    for (const f of SCHUSS_FELDER) {
+      acc += f.w / gesamt;
+      if (pos <= acc) return f;
+    }
+    return SCHUSS_FELDER[SCHUSS_FELDER.length - 1];
+  };
+
+  const schiessen = () => {
+    if (halt) return;
+    laeuft.current = false;
+    const f = ruhe ? SCHUSS_FELDER[1] : treffer(stelle.current);
+    /* Das beste Feld zieht seinen Preis, statt immer Anlage zu geben. */
+    const preis = f.pot > 0 ? schussPreisZiehen() : null;
+    const lohn = f.att > 0
+      ? { att: f.att, pot: preis && preis.id === "pot" ? 1 : 0,
+          preis: preis ? preis.id : null,
+          preisName: preis ? preis.n : null, preisText: preis ? preis.t : null,
+          feld: f.n }
+      : { ...SCHUSS_TROST, feld: "daneben" };
+    setHalt({ f, lohn, bei: ruhe ? .5 : stelle.current });
+    haptik(f.att >= 2 ? "gut" : "wahl");
+  };
+
+  /* ALS POPUP, NICHT WEGDRUECKBAR (35.78, Kevins Wunsch).
+     Es ist eine Belohnung, keine Stoerung: wer sie wegwischt, verliert sie —
+     und wuesste nicht einmal, dass er das getan hat. Deshalb kein Schliessen
+     am Rand, kein Kreuz, kein Zurueck. Der einzige Ausgang ist der Schuss.
+     Der dunkle Grund liegt UEBER allem und faengt Tipps ab. Er hat bewusst
+     KEINEN onClick — ein Klick daneben soll nichts tun, nicht schliessen. */
+  /* DURCH EIN PORTAL AN DEN KOERPER. Gemessen: `.fade` animiert `transform`
+     mit `fill-mode: both`, die Transformation bleibt also stehen — und ein
+     Vorfahr mit Transformation macht aus `position: fixed` ein `absolute`.
+     Der erste Entwurf lag deshalb IM Laufzettel: der dunkle Grund deckte
+     nichts ab, und die Ueberschrift lag ueber dem Text darunter. Im Bild
+     gesehen, nicht im Code — die Regel kennt man, aber man sieht sie nicht,
+     bis es schiefgeht.
+     Ein Portal haengt das Fenster direkt an `document.body`, ausserhalb jeder
+     Transformation. */
+  /* DIE KLASSE `fl` MUSS MIT. Alle Farbvariablen — `--pan`, `--tx`, `--go`,
+     auch die des Papiers — sind auf `.fl` definiert, nicht auf `:root`. Ein
+     Portal haengt am `body`, also DANEBEN: der Kasten bekam
+     `background: var(--pan)` und das war nichts, er stand durchsichtig ueber
+     dem Text darunter. Im Bild gesehen.
+     Genau diese Falle steht seit 35.65 in der Kontrastpruefung aufgeschrieben,
+     mit denselben Worten. Aufgeschrieben ist nicht befolgt — zum zweiten Mal
+     in dieser Sitzung nach den Rueckwaerts-Anfuehrungszeichen in 35.64. */
+  const fenster = (
+    <div className="fl" style={{ position: "fixed", inset: 0, zIndex: 90,
+      background: "rgba(10,12,10,.82)", display: "flex",
+      alignItems: "center", justifyContent: "center", padding: 14 }}
+      role="dialog" aria-modal="true" aria-label="Sonderschuss">
+    <div className="pan pad rs-rein" style={{ borderColor: "var(--go)",
+      maxWidth: 420, width: "100%", boxShadow: "0 10px 40px rgba(0,0,0,.6)" }}>
+      <div className="eb" style={{ color: "var(--go)" }}>Sonderschuss</div>
+      <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
+        {grund} — dafür gibt es einen Versuch. Triff die Mitte.
+      </div>
+
+      <div style={{ position: "relative", height: 44, marginTop: 12,
+        display: "flex", borderRadius: 3, overflow: "hidden" }}>
+        {SCHUSS_FELDER.map((f, i) => (
+          /* VOLL SICHTBAR VOR DEM SCHUSS (berichtigt 35.77). Der erste Entwurf
+             dämpfte alle Segmente auf 45 % und hob erst das getroffene hervor
+             — also war der Balken ausgerechnet dann blass, wenn man das Ziel
+             sehen muss. Auf dem Laufzettel, wo das Training steht, war das
+             besonders schlimm: dort sind die Akzente dunkel und lagen als
+             blasser Schleier auf hellem Karton. Im Bild gesehen.
+             Jetzt andersherum: vorher alle voll, nachher alle bis auf das
+             getroffene zurückgenommen. */
+          <div key={i} style={{ flex: f.w, background: f.farbe,
+            opacity: !halt ? 1 : halt.f === f ? 1 : .28,
+            borderRight: i < SCHUSS_FELDER.length - 1 ? "1px solid var(--bg)" : "none" }} />))}
+        {/* Der Ball. Bei abgeschalteter Bewegung steht er still in der Mitte. */}
+        {/* EIN RICHTIGER FUSSBALL, 16 statt 20 px (35.78, Kevins Wunsch:
+            „der Ball könnte noch einen Tick kleiner sein und es wäre voll,
+            wenn der aussehen würde wie ein klassischer Fußball").
+            Als SVG gezeichnet: weißes Rund, ein Fünfeck in der Mitte, drei
+            angeschnittene am Rand — das reicht, damit man bei 16 px einen
+            Fußball erkennt. Mehr Flächen wären bei dieser Größe Matsch.
+            OHNE `calc`: jsdoms CSS-Parser bricht an `calc(47.1% - 10px)` ab,
+            und die Ablaufprüfung liest die Stile des ganzen Dokuments. Ein
+            negativer Rand rechnet dasselbe und versteht jeder. */}
+        <svg aria-hidden ref={ball} viewBox="0 0 32 32" width="16" height="16"
+          style={{ position: "absolute", top: 14,
+            left: ((halt ? halt.bei : stelle.current) * 100) + "%", marginLeft: -8,
+            filter: "drop-shadow(0 1px 2px rgba(0,0,0,.55))" }}>
+          <circle cx="16" cy="16" r="15" fill="#f4f1ea" stroke="#14171a" strokeWidth="2" />
+          <path d="M16 7 L23 12 L20 20 L12 20 L9 12 Z" fill="#14171a" />
+          <path d="M16 1 L20 4 L16 6 L12 4 Z" fill="#14171a" opacity=".85" />
+          <path d="M1 18 L6 15 L8 21 L4 24 Z" fill="#14171a" opacity=".85" />
+          <path d="M31 18 L26 15 L24 21 L28 24 Z" fill="#14171a" opacity=".85" />
+        </svg>
+      </div>
+
+      {!halt ? (
+        <button className="btn pri" style={{ marginTop: 12, width: "100%" }}
+          onClick={schiessen}>
+          {ruhe ? "Schießen (ohne Bewegung)" : "Schießen"}</button>
+      ) : (
+        <div style={{ marginTop: 12 }}>
+          <div className="d" style={{ fontSize: 22,
+            color: halt.lohn.pot ? "var(--go)" : halt.f.att ? "var(--ac)" : "var(--mu)" }}>
+            {halt.f.n === "daneben" ? "Daneben." : halt.f.n === "perfekt" ? "Perfekt!" : halt.f.n}
+          </div>
+          <div className="m" style={{ fontSize: 12, marginTop: 3 }}>
+            {halt.lohn.att > 0 ? "+" + halt.lohn.att + " Attributpunkte" : ""}
+            {halt.lohn.preisName ? " · " + halt.lohn.preisName : ""}
+            {halt.f.n === "daneben" ? " (Trost für die starke Saison)" : ""}
+          </div>
+          {halt.lohn.preisText && (
+            <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
+              {halt.lohn.preisText}</div>)}
+          <button className="btn" style={{ marginTop: 10, width: "100%" }}
+            onClick={() => onFertig(halt.lohn)}>Weiter</button>
+        </div>)}
+    </div>
+    </div>
+  );
+  /* Der Rueckfall ist kein Zierrat: der Ansichtspruefstand rendert Bauteile
+     einzeln, und dort kann `document.body` fehlen. Dann liegt das Fenster
+     eben im Baum — geprueft wird der Inhalt, nicht die Stelle. */
+  return (typeof document !== "undefined" && document.body)
+    ? createPortal(fenster, document.body)
+    : fenster;
 }
 
 /* ---------- Wendekarte ----------------------------------------------------
@@ -10286,7 +11685,9 @@ const ANLEITUNG = [
    JETZT gilt: Das Dach oeffnet ab zwei Laufbahnen. Die Akademie hat darin
    KEINE eigene Grenze mehr — wer hier steht, hat die zwei hinter sich. Die
    Profimannschaft bleibt bei fuenf.                                        */
-function VereinDach({ aka, verein, gesamt, onAka, onProfi, onZurueck, onAendern, onVAendern }) {
+function VereinDach({ aka, verein, gesamt, karten, onAka, onProfi, onPacks, onFundus,
+                     onZurueck, onAendern, onVAendern }) {
+  const kartenZahl = ((karten && karten.karten) || []).length;
   const fr = VEREIN.freigeschaltet(gesamt);
   /* Der Postkorb (35.53). Er sitzt HIER und nicht in der Akademie, weil die
      Fälle beide Seiten betreffen: freigeben ist Akademie, „in meine
@@ -10309,7 +11710,10 @@ function VereinDach({ aka, verein, gesamt, onAka, onProfi, onZurueck, onAendern,
      zuklappen. Von Kevin gemeldet. Die Kachel sagt mit „5 offen" in Gold
      deutlich genug, dass etwas anliegt; das Aufklappen bleibt eine
      Entscheidung. */
-  const [postAuf, setPostAuf] = React.useState(false);
+  /*  statt  (35.93): es klappt nicht mehr auf, es geht
+     auf. Ein anderer Name fuer ein anderes Verhalten — sonst sucht man
+     spaeter den Aufklappmechanismus, den es nicht mehr gibt. */
+  const [postOffen, setPostOffen] = React.useState(false);
   /* WELTJAHR, nicht Akademiejahr. `vertragBis`, `gestellt` und `frist` werden
      in akademie.js mit demselben `jahr` gerechnet, das `akaJahr` bekommt —
      und das ist die Weltjahreszahl. Der erste Entwurf nahm `akaJahrNr(aka)`
@@ -10383,10 +11787,62 @@ function VereinDach({ aka, verein, gesamt, onAka, onProfi, onZurueck, onAendern,
         {/* Titelzeile wie in der Ruhmeshalle: Name links, kleiner Zurückknopf
             rechts, darunter ein Satz. Kein Balken — der ist im Magazinsatz
             den Kartenköpfen vorbehalten, nicht der Seite selbst. */}
-        <div style={{ display: "flex", alignItems: "baseline",
+        <div style={{ display: "flex", alignItems: "center",
           justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
           <div className="d" style={{ fontSize: 26 }}>Dein Verein</div>
-          <button className="btn sm" onClick={onZurueck}>Zurück</button>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            {/* DAS POSTFACH ALS BRIEFSYMBOL (35.93, Kevins Wunsch).
+                Bis 35.92 war es eine volle Kachel — so gross wie Akademie und
+                Mannschaft, obwohl es meistens leer ist. Eine Kachel, die in
+                neun von zehn Faellen „nichts offen" sagt, nimmt den Platz von
+                etwas, das etwas zu sagen hat.
+                Gleiche Bauart wie das Ladensymbol im Hauptmenue: dieselbe
+                Klasse, dieselbe Groesse. Grau, wenn nichts ansteht; in Gold
+                mit Zaehler, wenn etwas liegt — dieselbe Farbe, die im ganzen
+                Spiel „hier gibt es etwas" bedeutet. */}
+            {/* DER FUNDUS NEBEN DEM POSTFACH (35.94, Kevins Wunsch: „Der
+                Spielerfundus sollte auch ueber das Menue Mein Verein
+                erreichbar sein. Ebenfalls als kleines Symbol neben dem
+                Postfach.")
+                Er ist heute nur ueber Packs → Sammlung zu finden — also hinter
+                dem Laden, obwohl er mit dem Kaufen nichts zu tun hat. Wer
+                seine Spieler ansehen will, soll nicht erst am Laden vorbei. */}
+            <button className="zahnrad" onClick={onFundus}
+              aria-label={"Fundus, " + kartenZahl + " Karten"} title="Fundus"
+              style={{ color: kartenZahl ? "var(--ac)" : undefined,
+                borderColor: kartenZahl ? "var(--ac)" : undefined, position: "relative" }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"
+                strokeLinejoin="round" aria-hidden="true">
+                {/* Zwei versetzte Karten — das Bild eines Stapels. */}
+                <rect x="7" y="3.5" width="12" height="15" rx="1.6" />
+                <path d="M4.5 7 V19 a1.6 1.6 0 0 0 1.6 1.6 H15" />
+              </svg>
+              {kartenZahl > 0 && (
+                <span aria-hidden style={{ position: "absolute", top: -5, right: -5,
+                  minWidth: 17, height: 17, borderRadius: 9, background: "var(--ac)",
+                  color: "var(--bg)", fontSize: 10, fontWeight: 700, lineHeight: "17px",
+                  textAlign: "center", padding: "0 4px" }}>{kartenZahl}</span>)}
+            </button>
+            <button className="zahnrad" onClick={() => setPostOffen(true)}
+              aria-label={offen ? offen + " Vorgänge im Postfach" : "Postfach, nichts offen"}
+              title="Postfach"
+              style={{ color: offen ? "var(--go)" : undefined,
+                borderColor: offen ? "var(--go)" : undefined, position: "relative" }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"
+                strokeLinejoin="round" aria-hidden="true">
+                <rect x="2.5" y="5" width="19" height="14" rx="2" />
+                <path d="M3 7 L12 13.5 L21 7" />
+              </svg>
+              {offen > 0 && (
+                <span aria-hidden style={{ position: "absolute", top: -5, right: -5,
+                  minWidth: 17, height: 17, borderRadius: 9, background: "var(--go)",
+                  color: "var(--bg)", fontSize: 10, fontWeight: 700, lineHeight: "17px",
+                  textAlign: "center", padding: "0 4px" }}>{offen}</span>)}
+            </button>
+            <button className="btn sm" onClick={onZurueck}>Zurück</button>
+          </div>
         </div>
         <p style={{ fontSize: 12, color: "var(--mu)", margin: "5px 0 14px" }}>
           Die Jugendakademie bildet aus, die Profimannschaft spielt. Beides läuft
@@ -10493,36 +11949,72 @@ function VereinDach({ aka, verein, gesamt, onAka, onProfi, onZurueck, onAendern,
             es nie gesehen hatte, wusste nicht, dass es existiert, und wer es
             kannte, konnte nicht nachsehen, ob gerade nichts anliegt. Ein
             Postfach, das verschwindet, wenn es leer ist, ist kein Postfach. */}
+        {/* PACKKACHEL (35.85). Sie steht bei den beiden Haeusern, weil die
+            Karten dorthin gehen — nicht im Hauptmenue, wo sie ein
+            Nebenschauplatz waere. */}
         {kachel({
-          titel: "Postfach", farbe: offen ? "var(--go)" : "var(--ln2)",
-          klick: () => setPostAuf(!postAuf),
-          kopf: offen ? offen + " offen" : "nichts offen",
-          /* Was ein Tipp bewirkt, gehoert in die Statuszeile — nicht in eine
-             Kennzahlenspalte (das war der Fehler in 35.60). Seit das Postfach
-             zubleibt, muss es aber irgendwo stehen: eine Kachel, die sich
-             aufklappt und es nicht sagt, sieht aus wie ein toter Knopf. */
-          status: offen
-            ? (postAuf ? "Antippen zum Zuklappen."
-              : "Vertragsfragen warten auf dich — antippen zum Ansehen.")
-            : (postAuf ? "Antippen zum Zuklappen."
-              : "Hier landen Vertragsangebote und Wechselwünsche — antippen."),
-          /* ZWEI Spalten, nicht drei. Der erste Entwurf hatte eine dritte mit
-             „ansehen/zu" — bei leerem Postfach stand dort nichts und die
-             Kachel hatte ein Loch. Was der Tipp bewirkt, gehört nicht in eine
-             Kennzahlenspalte. */
-          zahlen: [
-            ["Aus der Akademie", faelle.length],
-            ["Aus der Mannschaft", vfaelle.length],
-          ],
-          statusFarbe: offen ? "var(--go)" : "var(--mu)",
+          titel: "Packs", farbe: "var(--go)",
+          kopf: (aka && aka.gratisPacks) ? (aka.gratisPacks + " gratis") : ((aka && aka.vc) || 0) + " VC",
+          status: (aka && aka.gratisPacks)
+            ? "Für jede beendete Laufbahn ein Bronzepack — antippen."
+            : "Spieler ziehen, die deine Jugend ergänzen. Antippen.",
+          statusFarbe: (aka && aka.gratisPacks) ? "var(--go)" : undefined,
+          zahlen: [["Sammlung", ((karten && karten.karten) || []).length],
+                   ["im Kader", verein && verein.gegruendet ? VEREIN.packImKader(verein) : 0],
+                   ["frei", verein && verein.gegruendet ? VEREIN.packPlatz(verein) : 0]],
+          klick: onPacks,
         })}
+
+        {/* (Die Postfachkachel ist in 35.93 einem Briefsymbol in der Kopfzeile
+            gewichen. Sie war so gross wie Akademie und Mannschaft, obwohl sie
+            meistens „nichts offen" sagte — und eine Kachel, die in neun von
+            zehn Faellen nichts zu sagen hat, nimmt den Platz von etwas, das
+            etwas zu sagen hat. Der Inhalt steht jetzt im Fenster unten.) */}
 
         {/* Der Inhalt des Postfachs: aufgeklappt, wenn angetippt — oder von
             selbst, solange etwas offen ist. Wer hereinkommt und einen Fall
             hat, soll ihn sehen, nicht erst danach suchen. */}
-        {postAuf && (
-          <div className="pan" style={{ marginTop: 6, borderColor: offen ? "var(--go)" : "var(--ln2)" }}>
-            <div className="band matt"><span>Postfach · {offen} offen</span></div>
+        {/* ---- Das Postfach als ueberlappendes Fenster (35.93) --------------
+            Kevin: „Das Postfach oeffnet sich dann als ueberlappendes Fenster."
+
+            Dieselbe Bauart wie der Sonderschuss aus 35.78, mit denselben zwei
+            Fallen, die ich dort schon einmal getreten habe:
+              * `createPortal` an den Koerper, weil `.fade` eine
+                Transformation stehen laesst und `position: fixed` darin nicht
+                mehr am Bildschirm klebt
+              * die Klasse `fl` MUSS mit, weil alle Farbvariablen dort
+                definiert sind und nicht auf `:root`
+
+            ANDERS ALS BEIM SONDERSCHUSS ist dieses Fenster schliessbar: es ist
+            eine Auskunft, keine Belohnung. Ein Klick daneben und ein Kreuz
+            oben schliessen es. Wer eine Auskunft nicht wegklicken kann, ist
+            gefangen. */}
+        {postOffen && typeof document !== "undefined" && document.body
+          && createPortal(
+          <div className="fl" style={{ position: "fixed", inset: 0, zIndex: 80,
+            background: "rgba(10,12,10,.78)", display: "flex", alignItems: "center",
+            justifyContent: "center", padding: 12 }}
+            role="dialog" aria-modal="true" aria-label="Postfach"
+            onClick={() => setPostOffen(false)}>
+          <div className="pan rs-rein" onClick={(e) => e.stopPropagation()}
+            style={{ borderColor: offen ? "var(--go)" : "var(--ln2)", maxWidth: 440,
+              width: "100%", maxHeight: "86vh", overflowY: "auto", overflowX: "hidden",
+              boxShadow: "0 10px 40px rgba(0,0,0,.6)" }}>
+            {/* DAS BAND OHNE SEINE NEGATIVEN RAENDER. `.band` hat
+                `margin: -15px -16px` — es ragt bewusst ueber den Rand des
+                Kastens hinaus, in dem es sonst sitzt, und schliesst dort
+                buendig mit der Kante ab. Dieses Fenster hat aber keinen
+                `pad`-Innenabstand, an dem es sich ausrichten koennte: das Band
+                ragte links und rechts hinaus, „Postfach" wurde zu „OSTFACH"
+                und der Schliessknopf stand halb ausserhalb. Im Bild gesehen.
+                Eine Klasse, die einen bestimmten Behaelter voraussetzt, muss
+                man ihn auch geben — oder ihre Annahme aufheben. */}
+            <div className="band matt" style={{ margin: 0, padding: "7px 12px",
+              display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Postfach · {offen} offen</span>
+              <button className="btn sm" style={{ padding: "3px 10px", flexShrink: 0 }}
+                onClick={() => setPostOffen(false)}>Schließen</button>
+            </div>
             <div className="pad" style={{ paddingTop: 8 }}>
               {faelle.length > 0 && (
                 <div className="eb" style={{ color: "var(--ac)" }}>Aus der Jugendakademie</div>)}
@@ -10626,7 +12118,8 @@ function VereinDach({ aka, verein, gesamt, onAka, onProfi, onZurueck, onAendern,
                 <div className="m" style={{ fontSize: 11.5, marginTop: 9, color: "var(--go)" }}>
                   {meldung}</div>)}
             </div>
-          </div>)}
+          </div>
+          </div>, document.body)}
 
         {!fr.verein && (
           <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 10 }}>
@@ -11070,44 +12563,25 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
    sind ein festes Punktfeld, kein Zufall: dieselbe Ausgabe soll bei jedem
    Aufschlagen gleich aussehen. */
 function Titelfoto({ laeuft }) {
-  const deck = laeuft ? .15 : .34;
-  /* Eine Silhouette. Die Kurve der Schultern muss um 4/3 überhöht werden:
-     eine kubische Kurve mit beiden Kontrollpunkten auf gleicher Höhe erreicht
-     nur drei Viertel des Wegs, sonst schwebt der Kopf über dem Körper. */
-  const figur = (x, fuss, hoch, o, hocke) => {
-    const kopfR = hoch * .155;
-    const schulter = fuss - hoch * (hocke ? .52 : .66);
-    const br = hoch * (hocke ? .30 : .24);
-    const ctrl = fuss + (schulter - fuss) * (4 / 3);
-    return (
-      <g key={x + "-" + fuss} fill="var(--tx)" opacity={o}>
-        <circle cx={x} cy={schulter - kopfR * .62} r={kopfR} />
-        <path d={"M" + (x - br) + "," + fuss + " C" + (x - br) + "," + ctrl + " "
-          + (x + br) + "," + ctrl + " " + (x + br) + "," + fuss + " Z"} />
-      </g>);
-  };
+  /* ---- EIN ECHTES FOTO STATT DER ZEICHNUNG (35.100) ---------------------
+     Kevin hat ein Bild geliefert: eine Mannschaft als Silhouette unter
+     Flutlicht. Es ersetzt die gezeichnete Fassung aus 35.30 — die war ein
+     Behelf, weil es kein Bild gab.
+
+     WAS BLEIBT: die Deckung haengt weiter davon ab, ob eine Laufbahn laeuft.
+     Steht ein Spielerportraet davor, tritt das Foto zurueck (0,42); ohne
+     Portraet darf es voll wirken (0,85). Genau diese Abstufung gab es schon
+     bei der Zeichnung, und sie war der Grund, warum das Portraet nicht mit
+     dem Hintergrund um Aufmerksamkeit stritt.
+
+     `object-fit: cover` statt fester Groessen: das Titelblatt ist auf jedem
+     Geraet anders breit, und ein Foto, das sich verzerrt, faellt sofort auf.
+     Beschnitten wird von den Seiten — die Mannschaft steht in der Mitte. */
   return (
-    <svg viewBox="0 0 366 210" preserveAspectRatio="xMidYMid slice" aria-hidden="true"
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
-      {/* Rang */}
-      {[[0, 34, .10], [34, 26, .15], [60, 22, .21]].map(([y, h, o], i) =>
-        <rect key={i} x="0" y={y} width="366" height={h} fill="var(--ln2)" opacity={o} />)}
-      {ZUSCHAUER.map((z, i) =>
-        <circle key={i} cx={z[0]} cy={z[1]} r={z[2]} fill="var(--mu)" opacity={z[3]} />)}
-      {[26, 340].map((x) => (
-        <g key={x}>
-          <path d={"M" + x + ",82 L" + x + ",18"} stroke="var(--ln2)" strokeWidth="2" opacity=".35" />
-          <rect x={x - 11} y="10" width="22" height="10" fill="var(--mu)" opacity=".5" />
-        </g>))}
-      {/* Bande und Rasen */}
-      <rect x="0" y="82" width="366" height="9" fill="var(--ln2)" opacity=".55" />
-      {[0, 1, 2, 3, 4, 5].map((i) =>
-        <rect key={i} x="0" y={91 + i * 11} width="366" height="11" fill="var(--ln2)"
-          opacity={i % 2 ? .07 : .12} />)}
-      {/* Mannschaft: hinten stehend, vorne hockend */}
-      {[0, 1, 2, 3, 4, 5].map((i) => figur(38 + i * 58, 168, 74, deck, false))}
-      {[0, 1, 2, 3, 4].map((i) => figur(67 + i * 58, 200, 58, deck * 1.25, true))}
-    </svg>
+    <img src={TITELBILD} alt="" aria-hidden="true"
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%",
+        objectFit: "cover", objectPosition: "center",
+        opacity: laeuft ? .42 : .85, pointerEvents: "none" }} />
   );
 }
 
@@ -12587,7 +14061,7 @@ function TrophyView({ p }) {
 /* ---------- Ruhmeshalle und Abschluss ---------- */
 /* Sicherung: alle dauerhaften Daten als Text ausgeben und wieder einlesen.
    Damit überlebt der Fortschritt Gerätewechsel und Neuinstallationen.   */
-const SICHER_KEYS = [SAVE_KEY, HALL_KEY, SEEN_KEY, WILL_KEY, ACH_KEY, META_KEY, WC_KEY, LIFE_KEY, AKA_KEY, VER_KEY, HSV_KEY];
+const SICHER_KEYS = [SAVE_KEY, HALL_KEY, SEEN_KEY, WILL_KEY, ACH_KEY, META_KEY, WC_KEY, LIFE_KEY, AKA_KEY, VER_KEY, HSV_KEY, KARTEN_KEY];
 
 function BackupScreen({ onBack, onImport }) {
   useZurueck(onBack);
@@ -13196,11 +14670,25 @@ function EndScreen({ p, onNew }) {
           const rest = (p.akaEreignisse || []).filter((e) => e.art !== "gross" && e.art !== "titel");
           const zl = p.akaZiel;                       // nächster Ausbauschritt
           return (
+          <>
+          {/* ---- ZWEI KAESTEN STATT EINEM (35.94, von Kevin gemeldet) --------
+              „Der VC-Verdienst und die Übersicht der Jugendakademie müssen noch
+              getrennt werden. Die Kachel zur Jugendakademie darf nur kommen,
+              wenn diese auch bereits gegründet wurde."
+
+              Er hat beides richtig gesehen. Der Kasten hiess „Ein Jahr
+              Jugendakademie" und zeigte den VC-Verdienst — auch bei jemandem
+              OHNE Akademie, der dann eine Ueberschrift ueber einem Haus las,
+              das es nicht gibt. Zwei verschiedene Dinge unter einer
+              Ueberschrift sind eine Ueberschrift zu wenig.
+
+              Erster Kasten: was diese Laufbahn eingebracht hat. Zweiter: was
+              im Haus passiert ist — und der kommt nur, wenn es das Haus gibt. */}
           <div className="pan pad rs-rein" style={{ marginTop: 12, borderColor: "var(--go)",
             background: "linear-gradient(160deg,#E8B84B1A 0%,var(--pan) 58%)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
               <div>
-                <div className="eb" style={{ color: "var(--go)" }}>Ein Jahr Jugendakademie</div>
+                <div className="eb" style={{ color: "var(--go)" }}>Vermächtnis-Coins</div>
                 <div className="m" style={{ fontSize: 10, color: "var(--mu)", marginTop: 2 }}>
                   Nicht dasselbe wie Vermächtnispunkte — die bewerten die Laufbahn,
                   die Coins bauen die Akademie.</div>
@@ -13214,8 +14702,22 @@ function EndScreen({ p, onNew }) {
                   <span style={{ color: "var(--mu)" }}>{x.k}</span><span>+{x.v}</span>
                 </div>))}
             </div>
+            {!p.akaAktiv && (
+              <div className="m" style={{ fontSize: 11.5, color: "var(--go)", marginTop: 10,
+                paddingTop: 9, borderTop: "1px solid var(--ln)" }}>
+                Du hast noch keine Akademie. Die Coins liegen bereit — gegründet
+                wird kostenlos.</div>)}
+          </div>
 
-            {p.akaAktiv ? (<>
+          {/* DER ZWEITE KASTEN NUR MIT AKADEMIE. Ohne sie stand hier eine
+              Ueberschrift ueber einem leeren Haus. */}
+          {p.akaAktiv && (
+          <div className="pan pad rs-rein" style={{ marginTop: 12, borderColor: "var(--go)",
+            background: "linear-gradient(160deg,#E8B84B14 0%,var(--pan) 58%)" }}>
+            <div className="eb" style={{ color: "var(--go)" }}>Ein Jahr Jugendakademie</div>
+            <div className="d" style={{ fontSize: 17, marginTop: 2 }}>{p.akaName}</div>
+
+            <>
               {gross.length > 0 && (
                 <div style={{ marginTop: 11 }}>
                   {gross.map((e, i) => (
@@ -13234,9 +14736,7 @@ function EndScreen({ p, onNew }) {
                     <div key={i} style={{ fontSize: 12.5, color: AKA_FARBE[e.art] || "var(--tx)" }}>{e.txt}</div>))}
                 </div>
               </div>
-            </>) : (
-              <div className="m" style={{ fontSize: 11.5, color: "var(--go)", marginTop: 10 }}>
-                Du hast noch keine Akademie. Die Coins liegen bereit — gegründet wird kostenlos.</div>)}
+            </>
 
             {zl && (
               <div style={{ marginTop: 11, paddingTop: 10, borderTop: "1px solid var(--ln)" }}>
@@ -13260,7 +14760,8 @@ function EndScreen({ p, onNew }) {
                 sprang mitten aus dem Rueckblick heraus und musste sich
                 zurueckklicken. Was hier steht, ist ein BERICHT — er sagt, was
                 geschehen ist, und wo es weitergeht, weiss das Hauptmenue. */}
-          </div>); })()}
+          </div>)}
+          </>); })()}
         <div className="g2" style={{ marginTop: 14 }}>
           <Pass p={p} full />
           <div className="g3" style={{ alignContent: "start" }}>
@@ -13378,6 +14879,9 @@ function FlutlichtApp() {
   const [growth, setGrowth] = useState(null);
   const [tab, setTab] = useState("verlauf");
   const [hall, setHall] = useState([]);
+  const [karten, setKarten] = useState(() => KARTEN.leererPool());
+  /* Merkt, dass der Laden mit dem Fundus aufgehen soll (35.94). */
+  const [fundusAuf, setFundusAuf] = useState(false);
   const [save, setSave] = useState(null);
   const [seen, setSeen] = useState({});
   const [wcSeen, setWcSeen] = useState({});
@@ -13413,6 +14917,9 @@ function FlutlichtApp() {
   /* Alles Dauerhafte aus dem Speicher holen — auch nach einer Sicherung */
   const ladeAlles = async () => {
       if (!hasStore()) return;
+      try { const v = await ladeMitAltbestand(KARTEN_KEY);
+        if (v) setKarten({ ...KARTEN.leererPool(), ...JSON.parse(v) }); }
+      catch (e) { /* kein Pool, dann eben leer */ }
       try { const v = await ladeMitAltbestand(HALL_KEY); if (v) setHall(JSON.parse(v)); }
       catch (e) { /* noch keine Einträge */ }
       try { const v = await ladeMitAltbestand(SAVE_KEY); if (v) setSave(JSON.parse(v)); }
@@ -13502,6 +15009,16 @@ function FlutlichtApp() {
     setSave(null);
   };
 
+  /* Den Pool fortschreiben und sichern (35.79). Er waechst nur — geloescht
+     wird hier nichts, das ist der Sinn von „dauerhaft". Doppelte fuehrt
+     `poolErgaenzen` zusammen, auf den besseren Wert. */
+  const kartenErgaenzen = async (neue) => {
+    const p2 = KARTEN.poolErgaenzen(karten, neue);
+    setKarten(p2);
+    if (!hasStore()) return;
+    try { await store.set(KARTEN_KEY, JSON.stringify(p2)); } catch (e) { /* egal */ }
+  };
+
   const saveHall = async (e) => {
     const next = [e, ...hall].sort((a, b) => b.score - a.score).slice(0, 12);
     setHall(next);
@@ -13555,6 +15072,18 @@ function FlutlichtApp() {
     const wcN = { ...(wcSeen || {}) };
     Object.keys(wcN).forEach((k) => { const v = wcN[k] * .7; if (v >= .25) wcN[k] = v; else delete wcN[k]; });
     if (q.wc) wcN[q.wc.id] = (wcN[q.wc.id] || 0) + 1;
+    /* VC FUER NEU FREIGESCHALTETE ERRUNGENSCHAFTEN (35.81, Kevins dritte
+       Frage). Erst hier, weil erst hier feststeht, welche gefallen sind.
+       `neu` enthaelt genau die dieser Laufbahn — nicht alle je erreichten.
+       Die Betraege sind klein (1/1/2/4/7): 192 kleine Betraege sind in der
+       Summe kein kleiner Betrag, und der erste Entwurf mit 3/6/12/20/35 haette
+       fast den ganzen Vollausbau verschenkt. */
+    const erfLohn = vcAusHaeusern(null, null, neu);
+    if (erfLohn.vc > 0 && akaJetzt) {
+      const a3 = { ...akaJetzt, vc: (akaJetzt.vc || 0) + erfLohn.vc,
+        verdient: (akaJetzt.verdient || 0) + erfLohn.vc };
+      setAka(a3); speichereAka(a3);
+    }
     setGes(G); setAch(next); setMeta(frei); setWcSeen(wcN);
     q.neueErfolge = neu.map((a) => ({ id: a.id, n: a.n, s: a.s, lohn: a.lohn }));
     if (!hasStore()) return;
@@ -13666,7 +15195,9 @@ function FlutlichtApp() {
        durchgekommen — und kein Prueflauf hat ihn gefunden, weil die
        Vereinsproben immer MIT Verein laufen. */
     let vereinNachher = null;
+    let vereinErgebnis = null;   /* Rang, Aufstieg — fuer die VC-Rechnung */
     let vereinsBilanz = null;   /* nur gesetzt, wenn ein Verein fertig wird */
+    let startpaketOffen = null; /* fuer den naechsten Verein vorgemerkt */
     if (VEREIN.spieltMit(verein)) {
       const VS = VEREIN.vereinSaison(verein);
       if (!VS.fehler) {
@@ -13716,6 +15247,26 @@ function FlutlichtApp() {
              EINMAL je Verein, hier beim Abschluss. `vorbei` wird nur im
              fuenfzehnten Jahr wahr, und danach spielt der Verein nicht mehr
              (`spieltMit` ist false), also kann es sich nicht wiederholen. */
+          /* DIE SPIELER IN DEN POOL (35.79). Kevin: „wenn eine Profimannschaft
+             durchgespielt wurde, werden alle Spieler in den Pool fuer die
+             Karten mit aufgenommen, dauerhaft."
+             Hier ist die einzige richtige Stelle: der Verein ist fertig, sein
+             Kader steht fest, und gleich wird er ersetzt. Eine Saison frueher
+             waeren es die falschen Spieler, eine spaeter gibt es sie nicht
+             mehr. */
+          const poolNeu = (VS.v.kader || [])
+            .map((sp) => KARTEN.ausKader(sp, VS.v.name, VS.v.jahr));
+          if (poolNeu.length) kartenErgaenzen(poolNeu);
+          /* DAS STARTPAKET FUER DEN NAECHSTEN VEREIN (35.89, Kevins Vorgabe).
+             Es wird HIER vorgemerkt, nicht beim Gruenden: der Pool enthaelt
+             gerade jetzt den eben abgeschlossenen Kader, und genau daraus
+             sollen die drei Spieler kommen. Eine Laufbahn spaeter waere der
+             alte Verein schon ersetzt.
+             Gemerkt wird der NAME des Vorgaengers — sonst liesse sich „aus der
+             vorherigen Mannschaft" nicht mehr von „aus irgendeinem frueheren"
+             unterscheiden. */
+          startpaketOffen = { vorher: VS.v.name };
+
           const ch = VS.v.chronik || [];
           vereinsBilanz = {
             vereineFertig: 1,
@@ -13728,6 +15279,7 @@ function FlutlichtApp() {
           };
         }
         vereinNachher = VS.v;   /* fuer merkeErfolge, siehe unten */
+        vereinErgebnis = { rang: VS.rang, aufstieg: VS.aufstieg, abstieg: VS.abstieg };
       }
     } else if (verein && verein.gegruendet && verein.eingeschrieben) {
       /* Eingeschrieben, aber nicht spielbereit: das Jahr faellt aus. Das
@@ -13737,6 +15289,37 @@ function FlutlichtApp() {
     const zl = akaNaechster(AK2.a);
     q.akaZiel = zl ? { name: zl.abt.n, stufe: zl.stufe + 1, preis: zl.preis,
       fehlt: zl.fehlt, reicht: zl.reicht, anteil: zl.anteil } : null;
+    /* ---- Die neuen VC-Quellen gutschreiben (35.81) -----------------------
+       ERST HIER, nicht bei `akaVerbuchen`. Dort sind das Akademiejahr und die
+       Vereinssaison noch nicht gelaufen — es gaebe nichts zu bezahlen.
+       Gerechnet wird auf der DIFFERENZ der Bilanz: `akaVerbuchen` hat das
+       Jahr schon durchgefuehrt, also steht in `AK2.a.bilanz` der Stand
+       danach und in `aka.bilanz` der davor. Die absoluten Zahlen zu nehmen
+       waere der naheliegende Fehler — dann bekaeme man in jeder Laufbahn
+       Geld fuer alle Profis, die man je ausgebildet hat. */
+    const vorBil = (aka && aka.bilanz) || {};
+    const nachBil = (AK2.a && AK2.a.bilanz) || {};
+    const akaZuwachs = {
+      profis: (nachBil.profis || 0) - (vorBil.profis || 0),
+      weltklasse: (nachBil.weltklasse || 0) - (vorBil.weltklasse || 0),
+      nationalspieler: (nachBil.nationalspieler || 0) - (vorBil.nationalspieler || 0),
+      turniere: (nachBil.turniere || 0) - (vorBil.turniere || 0),
+    };
+    const haus = vcAusHaeusern(akaZuwachs, vereinErgebnis, null);
+    /* EIN GRATISPACK JE LAUFBAHN (35.85, Kevins Vorgabe). Es wird
+       GEZAEHLT, nicht sofort geoeffnet: wer drei Laufbahnen am Stueck spielt,
+       soll drei Packs vorfinden und nicht zwei verlieren. */
+    AK2.a = { ...AK2.a, gratisPacks: ((AK2.a && AK2.a.gratisPacks) || 0) + 1 };
+    if (startpaketOffen) {
+      AK2.a = { ...AK2.a, startpaket: startpaketOffen };
+    }
+    if (haus.vc > 0) {
+      AK2.a = { ...AK2.a, vc: (AK2.a.vc || 0) + haus.vc,
+        verdient: (AK2.a.verdient || 0) + haus.vc };
+      q.vcGewinn = (q.vcGewinn || 0) + haus.vc;
+      q.vcPosten = [...(q.vcPosten || []), ...haus.posten];
+    }
+
     setAka(AK2.a); speichereAka(AK2.a);
     setRueckblick(null); setJubel([]); setMarken([]); setSchluss(null); setSimLauf(false);
     setKarriereRueck({ ...q, lauf: q.lauf });
@@ -14123,13 +15706,68 @@ function FlutlichtApp() {
       return <VereinGruenden art="kennung" aka={aka} verein={verein}
         onFertig={(nv) => vereinSichern(nv)}
         onZurueck={() => setPhase("menu")} />;
-    return <VereinDach aka={aka} verein={verein} gesamt={ges}
+    return <VereinDach aka={aka} verein={verein} gesamt={ges} karten={karten}
+      onPacks={() => setPhase("packs")}
+      onFundus={() => { setFundusAuf(true); setPhase("packs"); }}
       onAka={() => setPhase("akademie")}
       onProfi={() => setPhase("verein")}
       onAendern={(n) => { setAka(n); speichereAka(n); }}
       onVAendern={vereinSichern}
       onZurueck={() => setPhase(p && p.retired ? "end" : "menu")} />;
   }
+  if (phase === "packs") return <Packladen
+    startReiter={fundusAuf ? "sammlung" : "laden"}
+    onReiterGesehen={() => setFundusAuf(false)}
+    vc={(aka && aka.vc) || 0} pool={karten} verein={verein}
+    gratis={(aka && aka.gratisPacks) || 0}
+    startpaket={(aka && aka.startpaket) || null}
+    onStartpaket={(neue) => {
+      const a6 = { ...aka }; delete a6.startpaket;
+      setAka(a6); speichereAka(a6);
+      kartenErgaenzen(neue);
+    }}
+    onKauf={(packId, neue) => {
+      const pk = KARTEN.packById(packId);
+      const a4 = { ...aka, vc: Math.max(0, (aka.vc || 0) - pk.preis) };
+      setAka(a4); speichereAka(a4);
+      kartenErgaenzen(neue);
+    }}
+    onGratis={(neue) => {
+      const a4 = { ...aka, gratisPacks: Math.max(0, (aka.gratisPacks || 0) - 1) };
+      setAka(a4); speichereAka(a4);
+      kartenErgaenzen(neue);
+    }}
+    onEinsetzen={(k) => {
+      const r = VEREIN.karteEinsetzen(verein, k);
+      if (r.fehler) return r.fehler;
+      vereinSichern(r.v);
+      return null;
+    }}
+    onEntfernen={(k) => {
+      const r = VEREIN.karteEntfernen(verein, k.kid);
+      if (r.fehler) return r.fehler;
+      vereinSichern(r.v);
+      return null;
+    }}
+    onVerkauf={(k) => {
+      /* ERST AUS DEM KADER, DANN VERKAUFEN. Sonst stuende ein Spieler im
+         Kader, den es in der Sammlung nicht mehr gibt — und die Obergrenze
+         zaehlte einen Platz, der zu nichts gehoert. */
+      let v2 = verein;
+      if (verein && (verein.kader || []).some((sp) => sp.id === k.kid)) {
+        const w = VEREIN.karteEntfernen(verein, k.kid);
+        if (!w.fehler) v2 = w.v;
+      }
+      const r = KARTEN.verkaufen(karten, k.kid);
+      if (r.fehler) return r.fehler;
+      if (v2 !== verein) vereinSichern(v2);
+      setKarten(r.pool);
+      if (hasStore()) { try { store.set(KARTEN_KEY, JSON.stringify(r.pool)); } catch (e) {} }
+      const a5 = { ...aka, vc: (aka.vc || 0) + r.vc };
+      setAka(a5); speichereAka(a5);
+      return null;
+    }}
+    onZurueck={() => setPhase("vereindach")} />;
   if (phase === "akademie") return <AkademieScreen aka={aka} verein={verein} onKauf={akaKaufen}
     onAendern={(n) => { setAka(n); speichereAka(n); }}
     onGruenden={(n) => { const x = akaGruenden(aka, n, (aka && aka.jahr) || 2026);
@@ -14279,6 +15917,77 @@ function FlutlichtApp() {
                     onReroll={() => { const q = rerollWildcard(clone(p)); setP(q); saveGame(q, "training");
                       if (q.wc) setEnthuellung(q.wc); }} />
                 </div>)}
+              {/* DER SONDERSCHUSS steht VOR der Entwicklung und vor der Wahl
+                  des Schwerpunkts (35.76): er gehört zur letzten Saison, nicht
+                  zur nächsten, und seine Punkte sollen in der Aufstellung
+                  darunter schon sichtbar sein. */}
+              {p.sonderchance && (
+                <Sonderschuss grund={p.sonderchance.grund} ruhe={ruhe}
+                  onFertig={(lohn) => {
+                    const q = clone(p);
+                    delete q.sonderchance;
+                    /* Attributpunkte gehen auf die WICHTIGSTEN Werte der
+                       Position, nicht gleichmäßig auf alle: ein Torwart, der
+                       Punkte in Abschluss bekommt, hat nichts gewonnen.
+                       Die Rangfolge steht in `POS[pos].w` — dort liegt das
+                       Gewicht jedes Werts für die Gesamtstärke. Der erste
+                       Entwurf griff auf ein Feld `key` zu, das es nicht gibt;
+                       der Ausdruck wäre still auf „alle Werte" zurückgefallen
+                       und hätte genau den Torwartfall erzeugt. Vierter
+                       erfundener Name in dieser Sitzung — nachgesehen, bevor
+                       er lief. */
+                    const grenzeVor = wertGrenze(q);
+                    const gew = (POS[q.pos] && POS[q.pos].w) || {};
+                    const kern = Object.keys(gew).sort((x, y) => gew[y] - gew[x]);
+                    /* KEIN PUNKT DARF VERPUFFEN (berichtigt 35.94, von Kevin
+                       gemeldet: „ich habe das Gefühl, dass die gewonnenen
+                       Attributpunkte manchmal nicht verteilt werden").
+                       Er hatte recht, und der Grund war sichtbar: stand ein
+                       Wert schon an der Grenze — bei einem starken Stürmer ist
+                       `sho` irgendwann 99 —, dann tat `clamp(… + 1)` nichts,
+                       und der Punkt war lautlos weg.
+                       Jetzt wird weitergesucht: der Punkt geht auf den
+                       nächsten Wert, der noch Luft hat. Sind ALLE voll, sagt
+                       die Meldung es — besser eine ehrliche Absage als eine
+                       stille. */
+                    let vergeben = 0;
+                    let voll = false;
+                    for (let i = 0; i < lohn.att; i++) {
+                      const frei = kern.filter((k2) => q.attrs[k2] < grenzeVor);
+                      if (!frei.length) { voll = true; break; }
+                      const k = frei[i % frei.length];
+                      q.attrs[k] = clamp(q.attrs[k] + 1, 1, grenzeVor);
+                      vergeben++;
+                    }
+                    if (voll && vergeben < lohn.att) {
+                      lohn.hinweis = "Alle Kernwerte stehen am Maximum — "
+                        + (lohn.att - vergeben) + " Punkt(e) konnten nicht vergeben werden.";
+                    }
+                    /* DIE GRENZE KOMMT AUS `wertGrenze`, nicht aus einer festen
+                       99 (35.78, von Kevin gefordert: „es sollte auch möglich
+                       sein, das Einzelpotenzial über 99 zu pushen").
+                       Die Mechanik gibt es seit Langem: mit der freigeschalteten
+                       Regel `mx_ueber99` sind 112 erlaubt. Mein Sonderschuss
+                       hat sie schlicht ignoriert und hart bei 99 gedeckelt —
+                       eine zweite Wahrheit über dieselbe Sache, und die
+                       schlechtere.
+                       Wer die Regel NICHT freigeschaltet hat, bleibt bei 99.
+                       Das ist Absicht: sonst wäre die Freischaltung entwertet. */
+                    if (lohn.pot) q.potential = clamp(q.potential + lohn.pot, 42, grenzeVor);
+                    /* DIE ANDEREN DREI PREISE (35.94). Jeder greift an einer
+                       Zahl, die es schon gibt — kein neues System fuer eine
+                       Belohnung, die viermal im Spielerleben faellt.
+                       `sonderSchutz` ist die einzige neue Marke: sie zaehlt
+                       die Saison mit, in der der Schutz gilt, und wird beim
+                       Verletzungswurf gelesen. */
+                    if (lohn.preis === "form") q.form = clamp(100, 1, 100);
+                    if (lohn.preis === "gesund") q.sonderSchutz = q.seasons.length;
+                    if (lohn.preis === "ruf") q.rep = clamp(q.rep + 9, 0, 100);
+                    q.ovr = ovrOf(q.attrs, q.pos);
+                    q.schussLog = [...(q.schussLog || []),
+                      { jahr: p.sonderchance.jahr, feld: lohn.feld, att: lohn.att, pot: lohn.pot }];
+                    setP(q); saveGame(q, "training");
+                  }} />)}
               {growth && Object.keys(growth).length > 0 && (
                 <div className="up" style={{ padding: "8px 11px" }}>
                   <span className="eb">Entwicklung</span>{" "}

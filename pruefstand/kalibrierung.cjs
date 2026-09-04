@@ -5,7 +5,14 @@
    endet das Skript mit einem Fehler. Wenn eine Kennzahl bewusst verschoben
    werden soll, gehört die Änderung HIER hinein, nicht in einen Kommentar.  */
 const ZIEL = {
-  laufbahnenBisVollausbau: [25, 35],   // wie viele Karrieren der volle Ausbau kostet
+  /* 20-30 STATT 25-35 (35.81, Kevins Entscheidung). Bis dahin kamen VC nur
+     aus der Spielerlaufbahn; seit 35.81 zahlen auch Akademie, Verein und
+     Errungenschaften. Das Band wird deshalb ABSICHTLICH gesenkt — nicht,
+     weil die Messung nicht passte, sondern weil sich das Spiel geaendert hat.
+     Der Unterschied ist wichtig: ein Band, das man verschiebt, damit es
+     wieder gruen wird, hueetet nichts mehr. Dieses hier wurde verschoben,
+     nachdem die Entscheidung gefallen war, und die steht in STAND.md. */
+  laufbahnenBisVollausbau: [20, 30],   // wie viele Karrieren der volle Ausbau kostet
   weltklasseStufe6Median:  [3,  8],    // Weltklassespieler in 25 Jahren, Stufe 6
   rautekarteMedian:        [28, 42],   // Laufbahnen bis zur Rautekarte (Ausgleichszähler)
   /* 35.13: von [1400,1700] auf [2700,3100] angehoben. Das ist KEINE stille
@@ -26,7 +33,7 @@ const E = require("/tmp/ps/motor.js");
 const {
   createPlayer, develop, drawEvents, applyFx, simulateSeason, makeOffers, marketValue,
   ovrOf, verdict, makeSquad, pick, CONT, POS, NATIONS, TYPES, MODES, CLUBS,
-  leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, akaBonus,
+  leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, akaBonus, vcAusHaeusern,
   ABTEILUNGEN, akaStufe, akaPreis, akaRestkosten, akaRuhm, talentBauen,
 } = E;
 
@@ -103,11 +110,57 @@ console.log("  Saisons    Mittel " + z(J.mit, 1) + " · Median " + z(J.med, 0));
 console.log("  VC         Mittel " + z(V.mit, 1) + " · Median " + z(V.med, 0)
   + " · P10 " + z(V.p10, 0) + " · P90 " + z(V.p90, 0) + " · Spanne " + V.min + "–" + V.max);
 
+/* DIE NEUEN QUELLEN MITZAEHLEN (35.81). Bis dahin rechnete dieses Band nur
+   mit `vcFuer` — den Coins aus der Spielerlaufbahn. Seit 35.81 zahlen auch
+   die Akademie, der Verein und die Errungenschaften.
+   Ohne diese Zeilen haette das Band weiter 28 gemeldet, waehrend das Spiel
+   19 liefert. EIN BAND, DAS EINE QUELLE NICHT KENNT, HUETET NICHTS — es
+   meldet gruen ueber einen Zustand, den es gar nicht misst. Das ist
+   schlimmer als kein Band, weil man sich darauf verlaesst. */
+const akaJeLaufbahn = (() => {
+  /* Eine Akademie ueber N Jahre mitlaufen lassen und zaehlen, was sie
+     abwirft. Ein Akademiejahr entspricht einer beendeten Laufbahn. */
+  let a2 = akaGruenden(leereAkademie(), "Kalibrierung", 2026);
+  a2 = { ...a2, vc: 999999 };
+  let vor = { profis: 0, weltklasse: 0, nationalspieler: 0, turniere: 0 };
+  let summe = 0, n2 = 0;
+  for (let j = 0; j < 60; j++) {
+    const z2 = E.akaNaechster(a2);
+    if (z2) a2 = { ...a2, stufen: { ...a2.stufen, [z2.abt.id]: (a2.stufen[z2.abt.id] || 1) + 1 } };
+    const r2 = akaJahr(a2, 2026 + j + 1);
+    a2 = r2.a || r2;
+    const b2 = a2.bilanz || {};
+    summe += E.vcAusHaeusern({
+      profis: (b2.profis || 0) - vor.profis,
+      weltklasse: (b2.weltklasse || 0) - vor.weltklasse,
+      nationalspieler: (b2.nationalspieler || 0) - vor.nationalspieler,
+      turniere: (b2.turniere || 0) - vor.turniere,
+    }, null, null).vc;
+    vor = { profis: b2.profis || 0, weltklasse: b2.weltklasse || 0,
+      nationalspieler: b2.nationalspieler || 0, turniere: b2.turniere || 0 };
+    n2++;
+  }
+  return n2 ? summe / n2 : 0;
+})();
+/* Errungenschaften: alle zusammen, verteilt auf dreissig Laufbahnen. Grob,
+   aber die Groessenordnung stimmt — und darum geht es hier. */
+const erfJeLaufbahn = (E.ACHIEVEMENTS || [])
+  .reduce((s2, x) => s2 + E.vcAusHaeusern(null, null, [x]).vc, 0) / 30;
+/* Der Verein: nicht jede Saison ist eine Meistersaison. Mittelmass zahlt
+   nichts, ein Drittel der Saisons unter den ersten drei. */
+const vereinJeLaufbahn = E.vcAusHaeusern(null, { rang: 3 }, null).vc / 3;
+
+const vcGesamt = V.mit + akaJeLaufbahn + erfJeLaufbahn + vereinJeLaufbahn;
+console.log("  dazu je Laufbahn: Akademie " + z(akaJeLaufbahn, 1)
+  + " · Errungenschaften " + z(erfJeLaufbahn, 1)
+  + " · Verein " + z(vereinJeLaufbahn, 1)
+  + "  → zusammen " + z(vcGesamt, 1) + " VC");
+
 const vollausbau = akaRestkosten(leereAkademie());
 console.log("  Voller Ausbau kostet " + vollausbau + " VC");
 console.log("  → nötige Laufbahnen: " + z(vollausbau / V.mit, 1) + " (im Mittel), "
   + z(vollausbau / V.med, 1) + " (im Median)");
-console.log(band("Laufbahnen bis Vollausbau", vollausbau / V.mit, ZIEL.laufbahnenBisVollausbau));
+console.log(band("Laufbahnen bis Vollausbau", vollausbau / vcGesamt, ZIEL.laufbahnenBisVollausbau));
 console.log(band("Kosten des Vollausbaus", vollausbau, ZIEL.vollausbauKosten, 0));
 
 /* ============ 2. Akademie über 25 Jahre, je Ausbaustufe ============ */

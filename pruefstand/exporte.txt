@@ -22,6 +22,7 @@ export {
   WEIBLICH, autoTraining, TRAINING, AK, FLAGGENART, flaggenBild, Rueckblickkarte, noteColK,
   STUFEN, stufeDunkel, stufeSchrift, Rangblock, VCLADEN, SHOP_BILD, shopFuer,
   ladenGesperrt, ladenKaufbar, VCLadenAnsicht, tauschRest, tauschMax, rerollWildcard,
+  Sonderschuss, SCHUSS_FELDER, SCHUSS_TROST, SCHUSS_PREISE, KARTEN, vcAusHaeusern, Spielerkarte, MERKSYMBOL, Merkzeichen, Packladen, Elfkarte, Boosterpack, TITELBILD, KARTEN_KEY,
   rahmenFuer, rahmenOffen, RAHMEN, grundAufhellen, kontrast, haarDunkelste, GRUND_MIN, mischFarbe, shade, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY,
   AKA_MAX, bilanzErgaenzen, roleFor, evCtx, nochGueltig, setSpeedmodus, setSchwierigkeit,
   genName, KARTEI, hsvChance, EVENTS, META, LEAGUES, INVEST, WILDCARDS, VERSION,

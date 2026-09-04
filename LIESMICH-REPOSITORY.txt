@@ -1,8 +1,8 @@
-RASENSCHACH XI — vollstaendiger Stand 35.75
-===========================================
+RASENSCHACH XI — vollstaendiger Stand 35.100
+============================================
 
-Das ist der KOMPLETTE Arbeitsbaum, so wie er ins Repository gehoert. 59
-Dateien mit Verzeichnisstruktur — nicht nur die geaenderten.
+Der KOMPLETTE Arbeitsbaum, so wie er ins Repository gehoert. 62 Dateien mit
+Verzeichnisstruktur — nicht nur die geaenderten.
 
 Zum Einspielen: den Inhalt dieses Ordners ueber das Repository legen. Alles,
 was hier liegt, ist der geprueft aktuelle Stand.
@@ -10,81 +10,93 @@ was hier liegt, ist der geprueft aktuelle Stand.
 
 WAS NICHT DRIN IST (und auch nicht hineingehoert)
 -------------------------------------------------
-  node_modules/   wird mit `npm ci` aus package-lock.json hergestellt
-  dist/           entsteht beim Bauen
-  .git/           gehoert dem Repository selbst
+  node_modules/     wird mit `npm ci` aus package-lock.json hergestellt
+  dist/             entsteht beim Bauen
+  symbol/erzeugt/   erzeugt der APK-Bau selbst aus symbol/appicon.png
+  .git/             gehoert dem Repository selbst
 
 
 AUFBAU
 ------
-  App.jsx                 die Anwendung, 14.500+ Zeilen
+  App.jsx                 die Anwendung, rund 15.500 Zeilen
   akademie.js             Jugendakademie (seit 35.48 ausgelagert)
-  verein.js               eigener Verein, Spielmaschine, Vertraege
+  verein.js               eigener Verein, Spielmaschine, Kader, Feldreihen
+  karten.js               NEU seit 35.79 — das Kartensystem: Seltenheit,
+                          dauerhafter Pool, Packs, Verkauf, Startpaket
+  titelbild.js            NEU seit 35.100 — Aufmacherfoto als WebP (16 kB)
   namen.js                Namenskartei, 212 Nationen
   ereignisse.js           520 Ereignisse
   schriften.js            zwei eingebettete WOFF2-Schriften
   storage.js              Speicherschicht (Capacitor Preferences)
   main.jsx · index.html · vite.config.js · package.json
-  package-lock.json       NEU seit 35.46 — gehoert eingecheckt
-  capacitor.config.json · .gitignore
-  schriften-lizenz.txt
+  package-lock.json       gehoert eingecheckt
+  capacitor.config.json · .gitignore · schriften-lizenz.txt
   STAND.md                das Gedaechtnis des Projekts
   LIESMICH.md · UEBERSICHT.md
-  .github/workflows/apk.yml   APK-Bau
-  symbol/appicon.py
-  pruefstand/             38 Dateien: Pruefungen und Werkzeuge
+  .github/workflows/apk.yml   APK-Bau (erzeugt auch den Symbolsatz)
+  symbol/appicon.py       erzeugt den Symbolsatz
+  symbol/appicon.png      NEU seit 35.100 — das neue App-Symbol
+  pruefstand/             die Pruefungen und Werkzeuge
 
 
-ABNAHME
--------
+DAS APP-SYMBOL
+--------------
+symbol/appicon.png ist die Quelle. Der APK-Bau ruft appicon.py auf und legt
+fuenf Dichten samt Zusammensetzungsvorschrift nach
+android/app/src/main/res/mipmap-*. Du musst nichts weiter tun.
+
+Seit 35.100 liegt das Bild auf 66 von 108 Einheiten (der SICHEREN Maskenflaeche)
+statt auf 72 — sonst schnitt die Kreismaske die Schrift ab.
+
+
+ABNAHME — ZWEI LAEUFE (seit 35.98)
+----------------------------------
   npm ci
-  bash pruefstand/pruefen.sh App.jsx
-  bash pruefstand/sicht.sh   App.jsx
+  bash pruefstand/pruefen.sh App.jsx                    ~101 s
+  TEILE=aufbau,bau,sicher bash pruefstand/pruefen.sh App.jsx   ~11 s
+  bash pruefstand/sicht.sh App.jsx
 
-Beide Rueckgabecode 0. Erwartete Zahlen fuer 35.75:
+Die Sicherheitspruefung laeuft absichtlich getrennt: sie fragt eine Datenbank
+im Netz ab und schwankt zwischen 0 und 160 Sekunden. Zusammen mit dem Rest lag
+der Lauf frueher an der Zeitgrenze und brach gelegentlich ab.
+
+Alle drei Rueckgabecode 0. Erwartete Zahlen fuer 35.100:
 
   Baudateien:       7 von 7
-  Beidateien:       5 (akademie ereignisse namen schriften verein)
+  Beidateien:       7 (akademie ereignisse karten namen schriften titelbild verein)
   Ereignisse:       520
-  Ansichten:        679 Prüfungen bestanden
-  Verein:           250 Prüfungen bestanden
-  Namen:            6 Proben ohne Befund · 212 von 212 Nationen
+  Ansichten:        814 Prüfungen bestanden
+  Verein:           322 Prüfungen bestanden
+  Namen:            212 von 212 Nationen
   Schriftzeichen:   40 Proben ohne Befund
-  Kontrast:         145 Textstellen · 32 Klassenfälle · 0 Befunde
+  Kontrast:         145 Textstellen · 0 Befunde
   Ruecktritt:       6 Proben, alle grün
   Knoepfe:          154 lesbar und im Bild
-  Passhoehe:        348,1 px konstant
   Sicherheitslage:  0 Funde
+  Laufbahnen bis Vollausbau: 20-30 (Band seit 35.81 gesenkt)
 
-Die Browsertestdatei zum Spielen baut man so:
+Die Browsertestdatei zum Spielen:
 
   WERKSTATT=1 bash pruefstand/browsertest.sh App.jsx
 
-Die Ausgabe muss "Werkstatt: eingebaut" enthalten. Ohne den Schalter entsteht
-die Pruefstandfassung ohne Werkzeugkasten — das ist Absicht, ihre dreizehn
-Knoepfe wuerden sonst in jeder Knopfzaehlung mitlaufen.
+Die Ausgabe muss "Werkstatt: eingebaut" enthalten.
 
 
-NEU SEIT 35.44 (dem Stand im Projektwissen)
--------------------------------------------
-  akademie.js                     Akademie aus App.jsx ausgelagert
-  package-lock.json               reproduzierbarer Bau
-  pruefstand/gleichheit.cjs       Gleichheitsnachweis bei Umschichtungen
-  pruefstand/kontrast.cjs         Kontrast im echten Browser, beide Farbwelten
-  pruefstand/ruecktritt.cjs       Laufbahn ohne Verein beenden
-  pruefstand/schriftabdeckung.cjs Zeichentabelle der WOFF2-Schriften
-  pruefstand/sicherheit-bekannt.txt
+NEU SEIT 35.75 (dem bisherigen Stand im Projektwissen)
+------------------------------------------------------
+  karten.js           das ganze Kartensystem
+  titelbild.js        das Aufmacherfoto
+  symbol/appicon.png  das neue App-Symbol
 
-Geaendert: App.jsx · verein.js · namen.js · STAND.md · LIESMICH.md ·
-apk.yml · pruefen.sh · sicht.sh · browsertest.sh · werkstatt.js ·
-ansichten.jsx · vereinpruefung.cjs · namenpruefung.cjs · exporte.txt
+Geaendert: App.jsx · verein.js · STAND.md · LIESMICH.md · appicon.py ·
+pruefen.sh · ansichten.jsx · vereinpruefung.cjs · kalibrierung.cjs ·
+exporte.txt · werkstatt.js
 
 
 NOCH OFFEN (aus STAND.md)
 -------------------------
    1. Seitenscheitel (Frisur 2)             braucht Augen
    3. Farbe gegen Bedeutungsfarbe           braucht Augen
-   5. Symbol bei 48 dp nicht lesbar         braucht Augen
-  10. App.jsx ist zu gross                  14.500+ Zeilen
+  10. App.jsx ist zu gross                  rund 15.500 Zeilen
   13. Langzeittest ab 34.15                 steht aus
   20. Abbruchmeldung passt nicht zu jedem Grund

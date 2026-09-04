@@ -25,6 +25,9 @@ ARBEIT="${ARBEIT:-/home/claude/rs}"
 LAEUFE="${LAEUFE:-6}"
 LAUFBAHNEN="${LAUFBAHNEN:-300}"
 TEILE="${TEILE:-aufbau,kalib,ansicht,ereignis,stimmig,namen,verein,rueck,bau}"
+#  ist ABSICHTLICH nicht in der Vorgabe: sie haengt am Netz und
+# schwankt zwischen 0 und 160 Sekunden. Vor einer Auslieferung:
+#   TEILE=sicher bash pruefstand/pruefen.sh App.jsx
 hat() { case ",$TEILE," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
 titel() { echo; echo "########## $1 ##########"; }
 FEHLER=0
@@ -167,6 +170,34 @@ cat "$PS/exporte.txt" >> "$BAU/probe.jsx"
 # Muster, die in diesem Projekt wiederholt Fehler erzeugt haben. Sie stehen
 # in STAND.md Abschnitt 6 als Stolperfallen — hier werden sie nachgerechnet,
 # weil eine Regel, an die man sich erinnern muss, keine Regel ist.
+
+# Rueckwaerts-Anfuehrungszeichen im CSS-Schablonentext. DRITTER Fall derselben
+# Art (35.58, 35.64, 35.83): ein Backtick in einem Kommentar beendet den
+# Schablonentext mitten im Satz, und esbuild meldet einen Folgefehler, der nach
+# etwas ganz anderem aussieht ("Expected ; but found prefers").
+#
+# HIER, VOR DEM BAU. Mein erster Anlauf legte die Pruefung in die
+# Vereinspruefung — die laeuft NACH dem Aufbau, und der bricht in genau diesem
+# Fall ab. Eine Pruefung, die erst nach dem Zusammenbruch laeuft, prueft nichts.
+CSSZEILE=$(grep -n 'const CSS = `' "$QUELLE" | head -1 | cut -d: -f1)
+if [ -n "$CSSZEILE" ]; then
+  # Vom Beginn des Blocks bis zur ersten Zeile, die nur aus einem Backtick und
+  # einem Semikolon besteht — das ist das gewollte Ende.
+  ENDE=$(awk -v s="$CSSZEILE" 'NR>s && /^`;/{print NR; exit}' "$QUELLE")
+  if [ -z "$ENDE" ]; then
+    echo "FEHLER: der CSS-Block hat kein sauberes Ende (\`; in eigener Zeile)."
+    FEHLER=$((FEHLER+1))
+  else
+    STREU=$(awk -v s="$CSSZEILE" -v e="$ENDE" 'NR>s && NR<e' "$QUELLE" | grep -c '`')
+    if [ "$STREU" != "0" ]; then
+      echo "FEHLER: $STREU Rückwärts-Anführungszeichen INNERHALB des CSS-Blocks."
+      awk -v s="$CSSZEILE" -v e="$ENDE" 'NR>s && NR<e && /`/{print "        Zeile "NR": "substr($0,1,72)}' "$QUELLE"
+      echo "        Sie beenden den Schablonentext mitten im Satz. esbuild meldet"
+      echo "        danach einen Folgefehler, der nach etwas anderem aussieht."
+      FEHLER=$((FEHLER+1))
+    fi
+  fi
+fi
 
 # VERWORFEN: eine Pruefung auf doppelt ausgeschriebene Farbwerte. Sie meldete
 # 49 Werte, fast alle legitim — Vereinsfarben und die 212 Flaggen nennen
@@ -682,6 +713,34 @@ if [ -f "$ARBEIT/package.json" ] && [ -f "$ARBEIT/main.jsx" ]; then
   fi
 
   # ---- Sicherheitslage des Auslieferungspfads (seit 35.47) ----------------
+  # EIGENER TEIL SEIT 35.98. Kevins Frage: „Woran hat es gehakt, dass die
+  # Pruefung am Ende so abnormal lange gedauert hat? Wie verhindern wir das in
+  # Zukunft?"
+  #
+  # GEMESSEN, Teil fuer Teil:
+  #   aufbau 5 s · kalib 16 · ansicht 30 · ereignis 1 · stimmig 0
+  #   namen 0 · verein 1 · rueck 38 · bau 54          = 145 Sekunden
+  # Der Pruefstand ist also NICHT langsam. Das Audit dagegen, dreimal
+  # gemessen: 116 s, 156 s, 0 s (aus dem Zwischenspeicher). Es fragt eine
+  # Datenbank im Netz ab, und wie lange das dauert, entscheidet nicht dieses
+  # Projekt.
+  #
+  # Zusammen sind das 145 bis 300 Sekunden — und damit liegt der ganze Lauf
+  # genau an der Zeitgrenze eines einzelnen Aufrufs. Die Schwankung des Audits
+  # kippt ihn mal darueber und mal nicht. Das ist keine Sache, die man durch
+  # eine hoehere Zeitsperre loest: DER FEHLER IST, EINEN SCHRITT MIT
+  # UNBEKANNTER DAUER IN EINEN LAUF MIT FESTER GRENZE ZU LEGEN.
+  #
+  # Deshalb laeuft die Sicherheitspruefung jetzt nur noch, wenn sie
+  # ausdruecklich verlangt wird (TEILE=...,sicher). Der uebliche Lauf bleibt
+  # damit weit unter der Grenze, und vor einer Auslieferung ruft man sie
+  # einmal getrennt auf. Zwei kurze Laeufe sind besser als einer, der
+  # gelegentlich abbricht.
+  if [ "${TEILE#*sicher}" = "$TEILE" ]; then
+    echo "Sicherheitslage: uebersprungen (TEILE=...,sicher ruft sie auf)"
+    echo "  Vor einer Auslieferung getrennt fahren — sie haengt am Netz und"
+    echo "  braucht zwischen 0 und 160 Sekunden."
+  else
   # `--omit=dev` ist der ganze Witz: von 212 Paketen sind 202 reine
   # Bauwerkzeuge. Ein Fund in vite oder esbuild betrifft den
   # Entwicklungsserver auf dem eigenen Rechner, nicht das Telefon. Wuerde hier
@@ -695,7 +754,17 @@ if [ -f "$ARBEIT/package.json" ] && [ -f "$ARBEIT/main.jsx" ]; then
   # haelt: kein bestandener Lauf, nur ein fehlender.
   if [ -f "$ARBEIT/package-lock.json" ]; then
     PRUEFLOG=$(mktemp)
-    ( cd "$ARBEIT" && timeout 120 npm audit --omit=dev --json > "$PRUEFLOG" 2>/dev/null ) || true
+    # 300 STATT 120 SEKUNDEN (35.95). Gemessen: das Audit fragt die
+    # Schwachstellendatenbank im Netz ab und brauchte hier 188 Sekunden. Bei
+    # 120 lief es dreimal in eine Zeitsperre, und der Pruefstand meldete
+    # „NICHT GEPRUEFT — kein auswertbares Ergebnis".
+    #
+    # Das war KEIN Fehlalarm im schlechten Sinn: die Meldung sagte die
+    # Wahrheit, es lag wirklich kein Ergebnis vor, und sie hat sich zu Recht
+    # nicht als bestanden ausgegeben. Aber eine Grenze, die der normale Fall
+    # regelmaessig reisst, erzeugt Rauschen — und nach dem dritten Mal sieht
+    # man beim vierten nicht mehr hin.
+    ( cd "$ARBEIT" && timeout 300 npm audit --omit=dev --json > "$PRUEFLOG" 2>/dev/null ) || true
     python3 - "$PRUEFLOG" "$PS/sicherheit-bekannt.txt" <<'PYEOF' || SICHER=$((SICHER+1))
 import json, os, sys
 log, ackdatei = sys.argv[1], sys.argv[2]
@@ -750,6 +819,7 @@ if tot:
     print("  HINWEIS: abgenickt, aber nicht mehr gemeldet: %s" % " ".join(sorted(tot)))
     print("           Zeile(n) aus pruefstand/sicherheit-bekannt.txt entfernen.")
 PYEOF
+  fi
     rm -f "$PRUEFLOG"
   fi
 else

@@ -142,6 +142,45 @@
     melde("Verein eingeschrieben — spielt ab jetzt bei jeder beendeten Laufbahn.");
   }
 
+  /* ---- Sonderschuss sofort (35.77) ---------------------------------------
+     Kevin: „kannst du mir ins Werkzeug einbauen, dass ich dort auswaehlen
+     kann, dass das Minispiel sofort kommt, um es zu testen."
+
+     Der Sonderschuss kommt sonst erst nach einer Saison mit Note 2,1 oder
+     einer Auszeichnung — im Median siebenmal je Laufbahn, aber eben verteilt.
+     Um das TEMPO des Balls zu beurteilen, muesste man dafuer jedes Mal eine
+     Saison spielen. Das ist genau die Art Wartezeit, fuer die es die
+     Werkstatt gibt.
+
+     Gesetzt wird die Marke `sonderchance` im laufenden Spielstand — dasselbe
+     Feld, das `simulateSeason` setzt. Kein Sonderweg im Spiel, also kann auch
+     nichts auseinanderlaufen: was hier ausgeloest wird, ist derselbe Ablauf
+     wie im Ernstfall.
+
+     Sichtbar wird er im TRAINING, dem ersten Schritt einer Saison. Wer gerade
+     im Ereignis- oder Vertragsschritt steht, sieht ihn erst nach dem naechsten
+     Anpfiff — deshalb sagt die Meldung das auch. */
+  function sonderschuss() {
+    var st = lies(K.save, null);
+    /* DER SPIELSTAND ENTSTEHT ERST NACH DER ERSTEN SAISON. Gemessen: nach
+       „Neue Laufbahn" und dem ganzen Spielerpass steht unter
+       `rasenschach:stand` noch nichts — `saveGame` laeuft erst beim
+       Saisonergebnis. Das ist die Bauart des Spiels, kein Fehler.
+       Mein erster Entwurf meldete deshalb „Keine laufende Laufbahn", waehrend
+       eine lief. Eine Meldung, die etwas Falsches behauptet, schickt in die
+       Irre — jetzt sagt sie, was wirklich fehlt und was zu tun ist. */
+    if (!st || !st.p) {
+      melde("Noch kein gespeicherter Stand. Der entsteht erst nach der ERSTEN "
+        + "gespielten Saison — spiel eine durch, dann geht es hier.");
+      return;
+    }
+    st.p.sonderchance = { grund: "Werkstatt-Testschuss", jahr: (st.p.year || 0) + 1 };
+    if (!schreib(K.save, st)) return;
+    melde("Sonderschuss gesetzt für " + (st.p.name || "den Spieler")
+      + ". Jetzt „Neu laden\u201C drücken, dann Spielstand fortsetzen — "
+      + "er steht im TRAINING ganz oben. Beliebig oft wiederholbar.");
+  }
+
   function willkommenZeigen() {
     try { localStorage.removeItem(K.will); } catch (e) {}
     melde("Willkommensschirm erscheint beim nächsten Laden wieder.");
@@ -237,6 +276,9 @@
 
   tafel.appendChild(reihe("VEREIN"));
   tafel.appendChild(knopf("Einschreiben", vereinEinschreiben));
+
+  tafel.appendChild(reihe("SPIELERLAUFBAHN"));
+  tafel.appendChild(knopf("Sonderschuss sofort", sonderschuss));
 
   tafel.appendChild(reihe("SONSTIGES"));
   tafel.appendChild(knopf("Willkommen wieder zeigen", willkommenZeigen));
