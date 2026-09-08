@@ -97,7 +97,36 @@ const stat = (arr) => {
 const z = (x, k = 1) => (Math.round(x * Math.pow(10, k)) / Math.pow(10, k)).toFixed(k);
 
 /* ============ 1. Vermächtnis-Coins je Laufbahn ============ */
-const N = require("./argumente.cjs").anzahl(250);   // --anzahl=  oder reine Zahl
+/* 600 STATT 250 (35.118) — GEMESSEN, NICHT GERATEN. „Laufbahnen bis
+   Vollausbau" liegt dicht an seiner Untergrenze von 20 (offener Punkt 21),
+   und bei 250 Laufbahnen streute der Wert so weit, dass die Pruefung
+   gelegentlich rot meldete, ohne dass etwas kaputt war — in dieser Fassung
+   einmal genau auf 20,0.
+
+   Fuenf Laeufe je Stichprobe, dieselbe Quelle:
+
+       N=250   21,0 · 20,8 · 20,4 · 20,1 · 20,8      Spanne 0,9
+       N=600   21,1 · 20,6 · 20,8 · 21,2 · 20,6      Spanne 0,6
+
+   UND WAS DAS NICHT LOEST: fuenf Laeufe ueber `pruefen.sh` ergaben danach
+   20,4 · 20,2 · 20,3 · 21,1 · 20,2 — Spanne 0,9, also nicht besser als
+   vorher. Fuenf Laeufe sind zu wenig, um eine Streuung nachzuweisen; die
+   groessere Stichprobe MUSS rechnerisch helfen (Streuung faellt mit der
+   Wurzel), aber belegt ist es hier nicht. Was belegt ist: der niedrigste
+   gemessene Wert stieg von 19,9 auf 20,2.
+
+   Das eigentliche Problem bleibt offener Punkt 21: das Band liegt zu dicht
+   an seiner Untergrenze. Eine groessere Stichprobe verschiebt die Kante
+   nicht, sie macht nur das Zittern kleiner. Ob 20 die richtige Untergrenze
+   ist, ist eine Balancing-Entscheidung fuer Kevin.
+
+   Kosten: rund 10 s mehr je Lauf (15 s auf 25 s).
+
+   ACHTUNG BEIM NACHMESSEN: `pruefen.sh` reicht `--anzahl` NICHT durch. Ein
+   Vergleich ueber `TEILE=kalib bash pruefstand/pruefen.sh App.jsx
+   --anzahl=1000` misst dreimal dieselbe Stichprobe und sieht nach einer
+   Verbesserung aus, die es nicht gibt. Direkt `kalibrierung.cjs` aufrufen. */
+const N = require("./argumente.cjs").anzahl(600);   // --anzahl=  oder reine Zahl
 console.log("=== Vermächtnis-Coins über " + N + " Laufbahnen (ohne Akademiebonus) ===");
 const vcs = [], scores = [], jahre = [];
 for (let i = 0; i < N; i++) {
@@ -158,9 +187,18 @@ console.log("  dazu je Laufbahn: Akademie " + z(akaJeLaufbahn, 1)
 
 const vollausbau = akaRestkosten(leereAkademie());
 console.log("  Voller Ausbau kostet " + vollausbau + " VC");
-console.log("  → nötige Laufbahnen: " + z(vollausbau / V.mit, 1) + " (im Mittel), "
+/* ZWEI ZAHLEN, ZWEI FRAGEN — bis 35.101 hiessen sie fast gleich (35.102).
+   Die Zeile hier teilt nur durch `V.mit`, also durch die VC AUS DER LAUFBAHN
+   ALLEIN; die Zeile darunter teilt durch `vcGesamt`, wo Akademie,
+   Errungenschaften und Verein mitzaehlen. Beide sind richtig, aber sie
+   beantworten Verschiedenes, und nur die zweite wird gegen das Zielband
+   geprueft. In der externen Bewertung vom 4.9.2026 wurde die erste als
+   Kennzahl des Projekts zitiert (27,6 statt 20,7) — kein Lesefehler, sondern
+   zwei fast gleich klingende Zeilen zwei Zeilen auseinander. */
+console.log("  → nur aus Laufbahn-VC, ohne die anderen Quellen: "
+  + z(vollausbau / V.mit, 1) + " Laufbahnen (im Mittel), "
   + z(vollausbau / V.med, 1) + " (im Median)");
-console.log(band("Laufbahnen bis Vollausbau", vollausbau / vcGesamt, ZIEL.laufbahnenBisVollausbau));
+console.log(band("Laufbahnen bis Vollausbau (alle Quellen)", vollausbau / vcGesamt, ZIEL.laufbahnenBisVollausbau));
 console.log(band("Kosten des Vollausbaus", vollausbau, ZIEL.vollausbauKosten, 0));
 
 /* ============ 2. Akademie über 25 Jahre, je Ausbaustufe ============ */

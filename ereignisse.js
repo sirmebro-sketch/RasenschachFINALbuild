@@ -22,9 +22,191 @@
    dann schlicht nicht definiert.
    ========================================================================== */
 export const machEreignisse = (H) => {
-  const { T, fehler, heldentat, istTraum, lastS, sameClub, sameLeague, confOf, eur, ligaInfo, COL, POKAL, TIER, TOP5 } = H;
+  const { T, fehler, heldentat, istTraum, lastS, sameClub, sameLeague, confOf, eur, ligaInfo, COL, POKAL, TIER, TOP5, her } = H;
   return [
 
+
+/* --- Krisenpfade (35.112) -------------------------------------------------
+   Stufe F aus dem Konzeptpapier: „Bei schweren sportlichen Krisen sollen sich
+   alternative Wege oeffnen. Der Spieler verliert durch Rueckschlaege
+   Moeglichkeiten, erhaelt aber andere interessante Moeglichkeiten."
+
+   UND DIE WARNUNG DAZU, WOERTLICH: „Krisenpfade duerfen keinen versteckten
+   Erfolgsautomaten erzeugen. Eine schlechte Karriere muss schlecht bleiben
+   duerfen. Keine automatische Rettung, kein kostenloser OVR-Ausgleich."
+
+   Deshalb hat hier JEDE Option einen Preis. Keine einzige ist rein positiv —
+   und das ist nicht nur eine Absicht, sondern eine Pruefung: der Pruefstand
+   rechnet die Wirkungen jeder Option zusammen und meldet, wenn eine nur
+   Vorteile bringt. Ohne diese Zeile waere „Krisenpfad" ein anderes Wort fuer
+   Geschenk.
+
+   WANN IST EINE KRISE EINE KRISE? Gemessen ueber 200 Laufbahnen: mindestens
+   zwei schlechte Zeichen gleichzeitig (schwere Verletzung, unter zwoelf
+   Einsaetze, acht Punkte unter der Hoechststaerke, Rollenverlust, Note ab
+   4,2) treffen 20 % aller Saisons; 187 von 200 Laufbahnen erleben das
+   mindestens einmal. Ein einzelnes Zeichen ist noch keine Krise — sonst
+   kaeme der Pfad staendig und waere kein Ausweg mehr, sondern Alltag.
+
+   VIER WEGE, wie im Papier: aggressives Comeback, eine Liga tiefer,
+   kleinere Rolle annehmen, Spielweise umbauen.                             */
+
+{ id:"kr_comeback", tag:"Verletzung", w:11, ph:2,
+  cond:p=>{ const s=lastS(p); return !!s && !!s.injury && s.injury.sev==="schwer"
+    && (s.apps||0)<15 && p.age>=20; },
+  title:T("Zurück, bevor sie dich abschreiben"),
+  text:T("Die Reha läuft nach Plan, aber der Plan endet erst im Winter. Der Arzt sagt vier Monate, dein Berater sagt, im Winter erinnert sich niemand mehr an dich."),
+  choices:[
+    {label:"Früher zurück, als der Arzt erlaubt",hint:"Schneller im Kader — auf eigenes Risiko",
+     roll:[{p:.45,text:"Es hält. Du spielst sechs Wochen früher und rechtfertigst jede Minute.",fx:{form:14,trust:12,morale:10,injuryProne:9}},
+           {p:.55,text:"Nach vier Spielen macht es wieder zu. Diesmal dauert es länger als beim ersten Mal.",fx:{forceInjury:"schwer",injuryProne:14,morale:-18,trust:-8}}]},
+    {label:"Die Reha zu Ende bringen",hint:"Die Saison ist damit gelaufen",
+     roll:[{p:1,text:"Du ziehst es durch, verpasst den Rest der Saison und stehst im Sommer sauber da. Deine Rolle hat in der Zwischenzeit ein anderer.",fx:{fitness:12,injuryProne:-10,trust:-14,form:-10,morale:-6}}]}]},
+
+{ id:"kr_tiefer", tag:"Transfer", w:11, ph:2,
+  cond:p=>{ const s=lastS(p); return !!s && (s.apps||0)<12 && p.age>=23
+    && (p.peakOvr||0)-(p.ovr||0)>=6 && !p.flags.neuanfangTief; },
+  title:T("Eine Liga tiefer würden sie dich sofort nehmen"),
+  text:T("Zwei Vereine aus der Etage darunter fragen an. Beide sagen dasselbe: bei uns spielst du, und zwar jede Woche."),
+  choices:[
+    {label:"Nach unten gehen und spielen",hint:"Weniger Geld und weniger Bühne, dafür Einsätze",
+     roll:[{p:1,text:"Du unterschreibst zwei Ligen unter deinem alten Anspruch. In der ersten Woche schaut dich niemand komisch an — das kommt erst später.",fx:{wantMove:true,flag:"neuanfangTief",cut:.35,rep:-16,form:16,morale:8,trust:10}}]},
+    {label:"Es hier zu Ende bringen",hint:"",
+     roll:[{p:.4,text:"Du beisst dich zurück in den Kader. Es kostet ein halbes Jahr und jedes Training.",fx:{form:10,trust:8,fitness:-8,morale:-4}},
+           {p:.6,text:"Es ändert sich nichts. Du sitzt weiter, und der Markt merkt es sich.",fx:{morale:-14,rep:-8,trust:-6}}]}]},
+
+{ id:"kr_kleinerolle", tag:"Führung", w:11, ph:2,
+  cond:p=>{ const s=lastS(p); return !!s && p.trust<45 && (s.note||0)>=3.9
+    && p.age>=26 && sameClub(p); },
+  title:T("Der Trainer bietet dir eine andere Rolle an"),
+  text:T("Nicht mehr von Anfang an, dafür als der Mann, der von der Bank kommt und das Spiel dreht. Er sagt es freundlich, aber er sagt es deutlich."),
+  choices:[
+    {label:"Die Rolle annehmen",hint:"Weniger Startelf, mehr Rückhalt im Verein",
+     roll:[{p:1,text:"Du sagst zu, ohne lange zu verhandeln. Im Kader spricht sich das herum, und der Trainer vergisst es nicht.",fx:{trust:22,morale:6,form:-8,rep:-6,legacy:8}}]},
+    {label:"Um den Stammplatz kämpfen",hint:"",
+     roll:[{p:.35,text:"Du holst ihn dir zurück. Drei starke Wochen, und die Frage stellt sich nicht mehr.",fx:{form:16,trust:10,morale:12,fitness:-6}},
+           {p:.65,text:"Es wird zäh. Am Ende sitzt du trotzdem, und jetzt ist es persönlich.",fx:{trust:-16,morale:-14,form:-6}}]}]},
+
+{ id:"kr_umbau", tag:"Training", w:11, ph:2,
+  cond:p=>p.age>=29 && (p.peakOvr||0)-(p.ovr||0)>=7 && p.pos!=="TW"
+    && !p.flags.spielweiseNeu,
+  title:T("Das Tempo kommt nicht zurück"),
+  text:T("Der Athletiktrainer legt dir zwei Kurven hin. Auf der einen dein Antritt vor vier Jahren, auf der anderen heute. Er sagt, man könne anders spielen."),
+  choices:[
+    {label:"Auf Übersicht und Passspiel umbauen",hint:"Tempo gibst du endgültig auf",
+     roll:[{p:1,text:"Ein halbes Jahr Umgewöhnung, in dem gar nichts läuft. Danach stehst du zehn Meter tiefer und siehst Dinge, die du vorher überlaufen hast.",fx:{pac:-7,pas:6,def:4,flag:"spielweiseNeu",form:-12,morale:6}}]},
+    {label:"Weiter am Antritt arbeiten",hint:"",
+     roll:[{p:.3,text:"Du holst ein Stück zurück. Nicht alles, aber genug für zwei Jahre.",fx:{pac:3,fitness:-8,morale:8}},
+           {p:.7,text:"Es bringt nichts. Die Beine entscheiden das, nicht der Wille.",fx:{fitness:-10,morale:-12,form:-6}}]}]},
+
+/* --- Erinnerungsmomente (35.108) -----------------------------------------
+   Stufe C aus dem Konzeptpapier: „Ein kleiner Teil wichtiger Entscheidungen
+   soll Jahre spaeter wieder aufgegriffen werden. Nicht jede Wahl braucht eine
+   Folge; wenige starke Rueckbezuege sind wertvoller als permanente
+   Mikrokonsequenzen."
+
+   Deshalb SECHS und nicht sechzig. Jedes greift ein Flag auf, das bis 35.107
+   gesetzt, aber von keiner einzigen Bedingung gelesen wurde — zwoelf solche
+   gab es, gemessen. Der Zeitabstand kommt aus `her(p, id)`, das die
+   Saisonnummer aus `p.evLog` gegen heute rechnet.
+
+   ZWEI BEDINGUNGEN, KEINE EINE: das Flag sagt, WAS damals entschieden wurde,
+   der Abstand sagt, dass es lange her ist. Ohne den Abstand waere es eine
+   Folgeszene, kein Rueckbezug — und der Spieler saehe sie im Jahr darauf.
+
+   Keines von ihnen rettet etwas. Ein Rueckbezug soll erinnern, nicht
+   ausgleichen.
+
+   ALLE MIT GEWICHT 12 — GEMESSEN, NICHT GESCHAETZT. Der erste Entwurf gab
+   ihnen 3 bis 6 wie gewoehnlichen Ereignissen. Ueber 200 Laufbahnen kam
+   daraufhin GENAU EINE Erinnerung zustande, obwohl die Quellereignisse 97-mal
+   gezogen worden waren: die Bedingung ist ohnehin extrem selektiv (richtiges
+   Flag UND mindestens vier bis sechs Saisons Abstand), und ein kleines
+   Gewicht macht daraus rechnerisch nie. Ein Feature, das im Spiel nicht
+   ankommt, ist im Projekt als eigene Fehlerklasse geführt.
+
+   12 ist kein Ausreisser: die Reaktionsereignisse (`r_abstieg` 14, `r_meister`
+   13, `r_erstesjahr` 12) liegen genauso hoch, aus demselben Grund. Wenn ihre
+   Bedingung greift, SOLL es kommen. Spam entsteht dadurch nicht — die
+   Bedingung greift bei den allermeisten Laufbahnen nie.
+
+   EINE QUELLE WURDE AUSGETAUSCHT. Der erste Entwurf haengte eine Erinnerung
+   an `sesshaft` (aus `umzug`). Gemessen ueber 200 Laufbahnen stand dieses
+   Flag am Ende bei GENAU NULL — `umzug` verlangt Kinder, feste Beziehung und
+   Alter ab 27 zugleich. Die Erinnerung waere toter Code gewesen, dieselbe
+   Klasse wie `a_akaF_jg50` in 35.102 und „Die langen Jahre" in 35.105.
+   Ersetzt durch `rueckkehr` (4 %). Haeufigkeit der uebrigen Flags am
+   Laufbahnende, gemessen: plan_b 11 % · steuermodell 5 % · rueckkehr 4 % ·
+   manipuliert 3 % · vertragsschlau 3 % · exkapitaen 1 %.
+
+   `er_exkapitaen` bleibt trotz 1 % drin: `kp_bindeabgabe` verlangt Kapitaen
+   ab 32, das ist selten, aber es kommt vor — und wer es erlebt, soll die
+   Fortsetzung bekommen. Null waere ein Fehler, selten ist eine Eigenschaft. */
+
+{ id:"er_manipulation", tag:"Zwielichtig", w:12, ph:3,
+  cond:p=>!!p.flags.manipuliert && her(p,"manipulation")>=6,
+  title:T("Die beiden Männer von damals"),
+  text:T("Sechs Jahre ist das her, und du hast lange geglaubt, es sei vorbei. Jetzt steht einer von ihnen am Spielereingang und fragt, wie es dir geht."),
+  choices:[
+    {label:"Selbst anzeigen",hint:"Es kommt heraus, aber zu deinen Bedingungen",
+     roll:[{p:.6,text:"Du gehst zum Verband, bevor jemand anderes geht. Es wird hässlich, aber du bestimmst die Reihenfolge.",fx:{rep:-18,morale:14,trust:-8,legacy:8}},
+           {p:.4,text:"Die Ermittler glauben dir die späte Reue nicht. Eine Sperre über sechs Spiele, und die Schlagzeilen bleiben.",fx:{rep:-30,ban:true,morale:-12}}]},
+    {label:"Ihn abwimmeln",hint:"",
+     roll:[{p:.5,text:"Er geht. Du siehst ihn nie wieder und wartest trotzdem jahrelang darauf.",fx:{morale:-14}},
+           {p:.5,text:"Zwei Wochen später liegt ein Umschlag in deinem Fach. Alte Fotos, neue Forderung.",fx:{money:-.8,morale:-20}}]}]},
+
+{ id:"er_steuermodell", tag:"Zwielichtig", w:12, ph:3,
+  cond:p=>!!p.flags.steuermodell && her(p,"zw_steuermodell")>=5,
+  title:T("Post von der Steuerfahndung"),
+  text:T("Das Modell aus deinen besten Jahren wird geprüft. Fünf Jahre rückwirkend, sagt der Brief, und dein Steuerberater von damals ist nicht mehr erreichbar."),
+  choices:[
+    {label:"Alles offenlegen und nachzahlen",hint:"Teuer, aber es endet",
+     roll:[{p:1,text:"Die Nachzahlung tut weh. Dafür steht am Ende kein Verfahren, sondern ein Kontoauszug.",fx:{money:-1.8,morale:8,rep:-6}}]},
+    {label:"Einen Anwalt dagegenstellen",hint:"",
+     roll:[{p:.45,text:"Er handelt die Summe fast zur Hälfte herunter. Das Modell war grenzwertig, aber nicht verboten.",fx:{money:-.9,rep:-4}},
+           {p:.55,text:"Es zieht sich zwei Jahre, kostet Anwaltshonorare und endet trotzdem mit voller Nachzahlung.",fx:{money:-2.4,morale:-16,rep:-14}}]}]},
+
+{ id:"er_planb", tag:"Zukunft", w:12, ph:3,
+  cond:p=>!!p.flags.plan_b && her(p,"ew_lebensplan")>=5 && p.age>=30,
+  title:T("Der Plan von damals wird konkret"),
+  text:T("Was du vor Jahren nebenbei angefangen hast, liegt jetzt als richtiges Angebot auf dem Tisch. Sie wollen eine Antwort, bevor deine Karriere endet."),
+  choices:[
+    {label:"Zusagen und parallel weiterspielen",hint:"Zwei Leben gleichzeitig",
+     roll:[{p:1,text:"Es funktioniert, aber es kostet. Du bist müder als die anderen und ruhiger als sie alle.",fx:{legacy:20,money:.5,fitness:-8,morale:12}}]},
+    {label:"Warten, bis Schluss ist",hint:"",
+     roll:[{p:1,text:"Sie halten dir die Tür offen. Du weißt jetzt, dass danach etwas kommt, und das reicht schon.",fx:{morale:16,legacy:10}}]}]},
+
+{ id:"er_exkapitaen", tag:"Führung", w:12, ph:3,
+  cond:p=>!!p.flags.exkapitaen && her(p,"kp_bindeabgabe")>=3,
+  title:T("Dein Nachfolger steht in der Kritik"),
+  text:T("Der Jüngere, dem du die Binde gegeben hast, hat eine schwere Zeit. Die Kurve pfeift ihn aus, und er sucht nicht das Gespräch."),
+  choices:[
+    {label:"Dich vor ihn stellen",hint:"",
+     roll:[{p:1,text:"Du sagst vor den Kameras zwei Sätze, die niemand vergisst. Die Kurve schweigt, er atmet.",fx:{rep:8,trust:14,legacy:16,morale:8}}]},
+    {label:"Ihn machen lassen",hint:"",
+     roll:[{p:.5,text:"Er kommt allein heraus und ist danach stärker. Manchmal ist Nichtstun die Führung.",fx:{trust:6,legacy:6}},
+           {p:.5,text:"Er kommt nicht heraus. Im Winter gibt er die Binde ab, und im Kader wissen alle, dass du dabeigestanden hast.",fx:{trust:-14,morale:-10}}]}]},
+
+{ id:"er_rueckkehr", tag:"Transfer", w:12, ph:3,
+  cond:p=>!!p.flags.rueckkehr && her(p,"rueckkehr")>=3 && p.age>=32,
+  title:T("Sie erinnern sich an die Zusage"),
+  text:T("Damals hast du deinem Jugendverein versprochen, am Ende zurückzukommen. Jetzt steht der Vorsitzende vor der Tür und hat den Vertrag schon dabei."),
+  choices:[
+    {label:"Das Versprechen einlösen",hint:"Deutlich weniger Geld, zwei Ligen tiefer",
+     roll:[{p:1,text:"Du unterschreibst für ein Zehntel dessen, was du gewohnt bist. Sie streichen deinen Namen frisch auf die Wand der Kabine.",fx:{money:-.4,morale:22,rep:6,legacy:30,trust:12}}]},
+    {label:"Es doch nicht tun",hint:"",
+     roll:[{p:.5,text:"Du erklärst es ihm ehrlich, und er versteht es sogar. Trotzdem fährt er allein zurück.",fx:{morale:-12,legacy:-8}},
+           {p:.5,text:"Die Lokalzeitung schreibt darüber, und in deinem Heimatort reden sie noch Jahre davon.",fx:{morale:-16,rep:-10,legacy:-14}}]}]},
+
+{ id:"er_vertragsschlau", tag:"Vertrag", w:12, ph:2,
+  cond:p=>!!p.flags.vertragsschlau && her(p,"a_ausbildungsvertrag")>=6,
+  title:T("Der Anwalt von damals meldet sich"),
+  text:T("Der Mann, der deinen ersten Fördervertrag durchgelesen hat, arbeitet inzwischen für eine große Kanzlei. Er erinnert sich an jede Klausel."),
+  choices:[
+    {label:"Ihn deine Verträge machen lassen",hint:"Kostet, spart aber",
+     roll:[{p:1,text:"Er streicht drei Absätze, die du nie bemerkt hättest, und setzt einen hinein, der dir gehört.",fx:{money:-.15,raise:.06,legacy:6,morale:8}}]},
+    {label:"Beim bisherigen Berater bleiben",hint:"",
+     roll:[{p:1,text:"Du bleibst, wo du bist. Er nimmt es sportlich und sagt, du sollst dich melden, wenn etwas komisch klingt.",fx:{morale:4}}]}]},
 
 /* --- Storystrang: Das Buch (35.15) ---------------------------------------
    Drei Stufen, drei Wege. Ein Journalist will ein Buch ueber dich schreiben —

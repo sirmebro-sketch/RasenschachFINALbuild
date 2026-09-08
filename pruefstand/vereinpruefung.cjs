@@ -565,7 +565,16 @@ console.log("=== Vereinsprüfung ===\n");
     const vielG = { vereineFertig: 12, vereinSaisons: 180, vereinMeister: 20,
       vereinAufstiege: 14, vereinTore: 1400, vereinPunkteBest: 1200,
       vereinPunkteSumme: 9000 };
+    /* `jahrgaenge` NACHGETRAGEN in 35.102, und der Grund gehoert hierher:
+       solange `a_akaF_jg50` auf `chronik.length` sah, reichte das gefuellte
+       `chronik`-Feld — die Probe war gruen, waehrend die Errungenschaft im
+       Spiel unerreichbar war. Nach der Berichtigung fiel sie sofort rot aus,
+       weil dieser gebaute Zustand das Feld gar nicht kannte. Ein Zustand, der
+       „weit ueber allen Schwellen" liegen soll, muss JEDES Feld tragen, das
+       eine Bedingung liest; sonst prueft er die Form der Bedingung statt ihrer
+       Erfuellbarkeit. Die Probe darunter faengt genau diese Luecke ab. */
     const vielA = { ruhm: 500, chronik: new Array(60).fill({ jahr: 1 }),
+      jahrgaenge: 60,
       bilanz: { aufgenommen: 300, profis: 140, weltklasse: 14,
         nationalspieler: 26, turniere: 12, abbrecher: 40 } };
     const nie = fleiss.filter((x) => {
@@ -586,6 +595,100 @@ console.log("=== Vereinsprüfung ===\n");
     }).map((x) => x.n);
     pr("Fleiss: bei leerem Konto schnappt keine zu", sofort.length === 0,
        sofort.length ? "sofort wahr: " + sofort.join(", ") : "alle verlangen etwas");
+
+    /* ---- ERREICHBARKEIT AUS ECHTEN ZUSTAENDEN (35.102) -------------------
+       Die drei Proben darueber bauen ihren Zustand von Hand (`vielA`,
+       `leerA`). Das ist fuer Schwellwerte richtig, hat aber eine Luecke, die
+       35.101 teuer bezahlt hat: eine Bedingung kann fuer einen GEBAUTEN
+       Zustand korrekt sein, obwohl der echte Spielverlauf ihn nie erzeugt.
+
+       `a_akaF_jg50` las bis 35.101 `chronik.length >= 50`. `vielA` enthielt
+       `chronik: new Array(60)` — also meldete die Probe gruen. Im Spiel
+       kappt `akaJahr` die Chronik auf 25, die Errungenschaft war unerreichbar
+       und mit ihr die Wildcard `mw_werkbank`. Beide Richtungen der Gegenprobe
+       liefen ueber denselben synthetischen Zustand und konnten es deshalb
+       nicht sehen.
+
+       Diese Probe fuehrt die Akademie stattdessen wirklich fort und prueft
+       DANACH. Was hier gruen ist, ist im Spiel erreichbar. */
+    {
+      /* WARUM MEHRERE LAEUFE UND NICHT EINER (gemessen 35.102): ein einzelner
+         Lauf ueber 60 Jahre verfehlte die Schwelle von `a_akaF_wk10` (zehn
+         Weltklassespieler) in 6 von 25 Faellen — die Probe waere also in
+         knapp einem Viertel aller Laeufe rot geworden, ohne dass etwas kaputt
+         ist. Eine Pruefung, die zufaellig rot meldet, ist schlimmer als keine:
+         sie erzieht dazu, rote Meldungen zu uebergehen.
+
+         Gemessene Streuung der Weltklassezahl bei vollem Ausbau, 25 Laeufe je
+         Zeile:
+
+             25 Jahre   min  1 · Median  4 · max  7    unter 10: 25 von 25
+             40 Jahre   min  3 · Median  8 · max 15    unter 10: 19 von 25
+             60 Jahre   min  5 · Median 11 · max 15    unter 10:  6 von 25
+             80 Jahre   min  7 · Median 15 · max 25    unter 10:  2 von 25
+            100 Jahre   min 11 · Median 20 · max 28    unter 10:  0 von 25
+
+         Laenger laufen zu lassen haette das Flattern nur verkleinert, nicht
+         beseitigt. Deshalb ist die FRAGE anders gestellt: erreichbar heisst
+         „in wenigstens einem echten Verlauf erreicht", nicht „in jedem". Das
+         ist ohnehin die richtige Frage — ein Langzeitziel darf schwer sein.
+         `a_akaF_jg50` faellt trotzdem auf, weil die Chronik in JEDEM Lauf bei
+         25 stehen bleibt. */
+      const LAEUFE_R = 5, JAHRE_R = 100;
+      const staende = [];
+      for (let k = 0; k < LAEUFE_R; k++) {
+        let A = App.akaGruenden(App.leereAkademie(), "Erreichbarkeit", 2026);
+        const st = {}; App.ABTEILUNGEN.forEach((x) => { st[x.id] = App.AKA_MAX; });
+        A = { ...A, stufen: { ...A.stufen, ...st } };
+        for (let j = 0; j < JAHRE_R; j++) { const r = App.akaJahr(A, 2027 + j); A = (r && r.a) || r; }
+        staende.push(A);
+      }
+      const E = staende[0];
+
+      /* Erst die Grundlage: hat der Lauf ueberhaupt stattgefunden? Ohne diese
+         Zeile koennte ein kaputter Aufbau alles rot melden und wie ein Fund
+         aussehen — genau der Fehler, der beim Vereinsteil dieser Suche
+         passiert ist. */
+      pr("Erreichbar: " + LAEUFE_R + "×" + JAHRE_R + " echte Akademiejahre sind gelaufen",
+         staende.every((A) => (A.jahrgaenge || 0) === JAHRE_R && (A.bilanz.profis || 0) > 0),
+         staende.map((A) => (A.bilanz.profis || 0) + " Profis").join(" · "));
+
+      /* Und die Kappung ausdruecklich festhalten: sie ist gewollt, aber jede
+         Bedingung, die `chronik.length` als Langzeitzaehler benutzt, ist damit
+         falsch. Faellt der Deckel je weg, meldet sich diese Zeile. */
+      pr("Erreichbar: die Chronik bleibt gedeckelt — kein Langzeitzähler",
+         staende.every((A) => (A.chronik || []).length === 25),
+         "chronik 25 nach " + JAHRE_R + " Jahrgängen, in allen " + LAEUFE_R + " Läufen");
+
+      /* Jede Bedingung, die AUSSCHLIESSLICH Akademiefelder liest, muss in
+         wenigstens einem der Laeufe zutreffen. Wer mehr braucht, gehoert
+         nicht in diese Familie. */
+      const nurAka = ACH2.filter((x) => {
+        const q = String(x.ok);
+        return /\bA\./.test(q) && !/\bG\.|\bp\.|\bV\./.test(q);
+      });
+      const trifft = (x, A) => { try { return !!x.ok({}, {}, A, null); } catch (e) { return false; } };
+      const nie2 = nurAka.filter((x) => !staende.some((A) => trifft(x, A)))
+                         .map((x) => x.id + " (" + x.n + ")");
+      pr("Erreichbar: jedes reine Akademieziel ist in " + JAHRE_R + " vollen Jahren drin",
+         nie2.length === 0,
+         nie2.length ? "in KEINEM von " + LAEUFE_R + " Läufen: " + nie2.join(", ")
+                     : nurAka.length + " von " + nurAka.length);
+
+      /* GEGENPROBE. Ohne sie beweist die Zeile darueber nichts: sie koennte
+         auch gruen sein, weil `nurAka` leer ist oder der Filter nicht greift.
+         Die alte, kaputte Bedingung wird hier absichtlich nachgestellt und
+         MUSS in jedem Lauf durchfallen. */
+      const alteBedingung = (A2) => !!A2 && (A2.chronik || []).length >= 50;
+      pr("Erreichbar: Gegenprobe — die alte Bedingung fällt auf",
+         staende.every((A) => alteBedingung(A) === false),
+         "chronik.length >= 50 bleibt in allen Läufen bei 25");
+      pr("Erreichbar: Gegenprobe — der Filter greift überhaupt",
+         nurAka.length >= 10, nurAka.length + " reine Akademieziele gefunden");
+      pr("Erreichbar: Gegenprobe — ein unerfüllbares Ziel würde auffallen",
+         !staende.some((A) => (A.jahrgaenge || 0) >= JAHRE_R * 10),
+         "eine Schwelle zehnmal über dem Lauf trifft in keinem Stand zu");
+    }
 
     /* Keine darf abstuerzen, wenn Akademie oder Verein fehlen — der
        Normalfall in den ersten Laufbahnen. */
@@ -642,13 +745,18 @@ console.log("=== Vereinsprüfung ===\n");
       /* Aus allen drei Quellen muss eine Karte werden — mit Herkunft, denn
          ohne sie laesst sich „3 aus der Vorgaengermannschaft, 1 aus der
          Halle" nicht ziehen. */
-      const t = K.ausTalent({ id: "t1", name: "Talent", pos: "ST", ovr: 64, pot: 78,
-        alter: 18, flag: "🇩🇪", nat: "GER", ruf: 40, vertragBis: 2030 }, 2029);
+      /* `ausAbsolvent` statt `ausTalent` (35.124): die Funktion nimmt jetzt
+         einen ABSOLVENTEN entgegen, nicht ein laufendes Talent — erst der hat
+         eine Geschichte (Jahrgang, Abgangsjahr, erreichte Höchststärke).
+         Der Absolvent führt `peak` und `raus`, nicht `ovr` und `alter`. */
+      const t = K.ausAbsolvent({ id: "t1", name: "Absolvent", pos: "ST",
+        peak: 64, ein: 2026, raus: 2029, flag: "🇩🇪", nat: "GER",
+        klub: "Erster FC", ns: false });
       const s2 = K.ausKader({ id: "k1", name: "Profi", pos: "IV", ovr: 74, pot: 80,
         alter: 25, flag: "🇩🇪", spiele: 200, tore: 8, jahreImVerein: 6 }, "Testelf", 12);
       const h = K.ausHalle({ name: "Legende", pos: "ZM", nat: "🇩🇪", age: 36,
         peak: 88, score: 900, titles: 9, goals: 300, caps: 80, bis: 2050 }, 0);
-      pr("Karten: Talent, Kaderspieler und Halleneintrag werden Karten",
+      pr("Karten: Absolvent, Kaderspieler und Halleneintrag werden Karten",
          !!(t.kid && s2.kid && h.kid),
          t.stufe + " / " + s2.stufe + " / " + h.stufe);
       pr("Karten: die Herkunft steht drauf",
@@ -1007,8 +1115,1849 @@ console.log("=== Vereinsprüfung ===\n");
          alleErf < 1456,
          alleErf + " VC gegen 2912 Vollausbau");
 
-      /* Die Posten muessen benannt sein — eine Gutschrift ohne Grund ist
-         eine Zahl, die vom Himmel faellt. */
+      /* ---- WIRTSCHAFTS-INVARIANTE (35.103) ------------------------------
+         Vorschlag B aus der externen Konsolidierung: bei jedem bezahlten
+         Vorgang muss `vc vorher − vc nachher = Preis` gelten, und derselbe
+         Betrag muss in `ausgegeben` erscheinen.
+
+         Vorgeschichte: `ausgegeben` und `verdient` liefen seit ihrer
+         Einfuehrung mit und wurden nie gelesen — deshalb fiel auch nie auf,
+         dass von acht VC-Bewegungen ZWEI nichts fortschrieben (Packkauf,
+         Verkaufserloes). Seit 35.103 haben die Zaehler eine Anzeige im Dach,
+         und damit muessen sie stimmen.
+
+         Geprueft wird der MOTOR, nicht ein gespeicherter Stand: alte
+         Spielstaende koennen die Invariante nicht erfuellen, weil die
+         Packkaeufe vor 35.103 fehlen und sich nicht rekonstruieren lassen. */
+      {
+        let a = App.akaGruenden(App.leereAkademie(), "Kasse", 2026);
+        a = { ...a, vc: 0, verdient: 0, ausgegeben: 0 };
+
+        /* Zugang ueber den einzigen Weg, der im Motor liegt. */
+        const nachGut = App.akaVerbuchen(a, 500, 2027);
+        const g = nachGut.a || nachGut;
+        pr("Kasse: eine Gutschrift erhöht Kasse UND `verdient` um denselben Betrag",
+           (g.vc || 0) === 500 && (g.verdient || 0) === 500,
+           "vc " + (g.vc || 0) + " · verdient " + (g.verdient || 0));
+
+        /* GEGENPROBE: eine Gutschrift von 0 darf nichts bewegen. Ohne sie
+           koennte die Zeile darueber auch gruen sein, weil beide Zaehler
+           blind mitlaufen. */
+        const null0 = App.akaVerbuchen({ ...a, vc: 77, verdient: 77 }, 0, 2027);
+        const n0 = null0.a || null0;
+        pr("Kasse: Gegenprobe — eine Gutschrift von 0 bewegt nichts",
+           (n0.vc || 0) === 77 && (n0.verdient || 0) === 77,
+           "vc " + (n0.vc || 0) + " · verdient " + (n0.verdient || 0));
+
+        /* Und die Buchhaltungsregel selbst, an allen Ausgabestellen des
+           Quelltexts nachgezaehlt statt behauptet. Jede Stelle, die `aka.vc`
+           VERRINGERT, muss im selben Ausdruck `ausgegeben` erhoehen. */
+        /* Quelle nach demselben Muster wie die Nachbarprueungen einlesen.
+           Kommentare bleiben HIER absichtlich drin: gesucht werden Zuweisungen
+           wie `vc: aka.vc - preis`, und die stehen nie in einem Kommentar —
+           wohl aber stehen erklaerende Kommentare DAZWISCHEN, und die duerfen
+           den Dreizeilenblock nicht zerreissen. Deshalb wird der Block unten
+           auf 6 Zeilen gefasst statt auf 3. */
+        const fsK = require("fs");
+        const ARGK = require("./argumente.cjs");
+        const kK = [ARGK.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+          .filter(Boolean).find((k) => { try { return fsK.statSync(k).isFile(); }
+            catch (e) { return false; } });
+        const roh = kK ? fsK.readFileSync(kK, "utf8") : "";
+        pr("Kasse: App.jsx für die Buchungsprüfung gefunden", !!roh,
+           kK || "nicht gefunden — die zwei Prüfungen darunter laufen NICHT");
+        if (roh) {
+          const zeilen = roh.split("\n");
+          const abgang = [], ohneBuchung = [];
+          zeilen.forEach((z, i) => {
+            if (!/vc:\s*(aka\.vc|kasse|hat)\s*-|vc:\s*Math\.max\(0,\s*\(aka\.vc/.test(z)) return;
+            abgang.push(i + 1);
+            const block = zeilen.slice(i, i + 6).join(" ");
+            if (!/ausgegeben:/.test(block)) ohneBuchung.push(i + 1);
+          });
+          pr("Kasse: jede Stelle, die VC abzieht, bucht `ausgegeben` mit",
+             abgang.length > 0 && ohneBuchung.length === 0,
+             abgang.length + " Abgangsstellen"
+             + (ohneBuchung.length ? ", OHNE Buchung: Zeile " + ohneBuchung.join(", ") : ", alle gebucht"));
+
+          const zugang = [], ohneVerdient = [];
+          zeilen.forEach((z, i) => {
+            if (!/vc:\s*\((aka|akaJetzt|AK2\.a)\.vc\s*\|\|\s*0\)\s*\+/.test(z)) return;
+            zugang.push(i + 1);
+            const block = zeilen.slice(i, i + 6).join(" ");
+            if (!/verdient:/.test(block)) ohneVerdient.push(i + 1);
+          });
+          pr("Kasse: jede Stelle, die VC gutschreibt, bucht `verdient` mit",
+             zugang.length > 0 && ohneVerdient.length === 0,
+             zugang.length + " Zugangsstellen"
+             + (ohneVerdient.length ? ", OHNE Buchung: Zeile " + ohneVerdient.join(", ") : ", alle gebucht"));
+        }
+      }
+
+    /* Eine echte Laufbahn, gemeinsam genutzt von der Schlagzeilen- und der
+       Kapitelprüfung (35.105). Aufbau aus `kalibrierung.cjs`: ein eigener
+       Versuch alterte den Spieler NICHT, weil `age += 1` im Aufrufer sitzt
+       (`App.jsx`) und nicht in `simulateSeason` — 22 Saisons lang blieb der
+       Prüfling 16 Jahre alt. Wer hier etwas nachbaut, prüft seinen eigenen
+       Aufbau mit. */
+    /* Und ueber ECHTE Laufbahnen: nichts leer, nichts beherrschend.
+       Aufbau wie in `kalibrierung.cjs` — ein eigener Versuch alterte den
+       Spieler nicht, weil `age += 1` im Aufrufer sitzt und nicht in
+       `simulateSeason`. Fuenfzehn Laeufe kosten rund eine Sekunde. */
+    const laufbahnFuerZeilen = () => {
+      const POSL = Object.keys(App.POS || { ST: 1 });
+      const nat = App.pick(App.NATIONS);
+      const pos = App.pick(POSL);
+      const typen = App.TYPES.filter((t) => !t.pos || t.pos.includes(pos));
+      let q = App.createPlayer({ name: "Zeile", nation: nat.id, pos,
+        foot: "rechts", number: 10, type: (App.pick(typen) || App.TYPES[0]).id,
+        mode: "normal", gender: "m", statur: "normal", aka: null });
+      for (let i = 0; i < 40; i++) {
+        if (q.age >= 41) break;
+        App.develop(q); q.mv = App.marketValue(q);
+        App.drawEvents(q, 2).forEach((e) => {
+          q.evLog[e.id] = q.seasons.length;
+          const ch = App.pick(e.choices); let out;
+          if (ch.roll) { const r = Math.random(); let acc = 0; out = ch.roll[ch.roll.length - 1];
+            for (const o of ch.roll) { acc += o.p; if (r <= acc) { out = o; break; } } }
+          else out = { fx: ch.fx };
+          App.applyFx(q, out.fx); q.ovr = App.ovrOf(q.attrs, q.pos);
+        });
+        if (q.endNow) break;
+        App.simulateSeason(q);
+        const of = App.makeOffers(q); if (!of.length) break;
+        const best = [...of].sort((a, b) => { const w = (x) =>
+          (x.roleKey === "star" || x.roleKey === "start" ? 30 : x.roleKey === "rot" ? 10 : 0)
+          + x.club.s; return w(b) - w(a); })[0];
+        if (best.type === "transfer" || best.type === "loan") {
+          q.club = best.club; q.squad = App.makeSquad(best.club, q.g); q.trust = 52;
+          q.flags.kapitaen = false;
+          if (best.type === "transfer") { q.contract = best.years; q.wage = best.wage; }
+          q.europeNext = best.club.s >= 74 ? App.CONT(best.club, 4) : null;
+        } else if (best.type === "renew") { q.contract = best.years; q.wage = best.wage; }
+        q.age += 1; q.year += 1; q.mv = App.marketValue(q);
+        if (q.age >= 41 || (q.age >= 35 && q.ovr < 58)) break;
+      }
+      return q;
+    };
+
+    /* ---- SAISON-SCHLAGZEILEN (35.104) ---------------------------------
+       Stufe A1 aus dem Konzeptpapier. Geprueft wird nicht, ob die Zeilen
+       „schoen" sind — das kann keine Messung —, sondern drei Dinge, die
+       messbar sind: dass keine Saison leer ausgeht, dass keine Zeile das
+       Feld beherrscht, und dass die Regeln wirklich unterscheiden.
+
+       Die dritte ist die wichtige. Eine Regelkette, die immer dieselbe
+       Zeile liefert, waere fehlerfrei und trotzdem wertlos. */
+    {
+      const SZ = App.saisonSchlagzeile;
+      if (typeof SZ !== "function") {
+        pr("Schlagzeile: saisonSchlagzeile ist ausgeführt", false,
+           "nicht im Bündel — die Proben darunter laufen NICHT");
+      } else {
+        /* Feste Zustaende, jeder mit einer erwarteten Zeile. Das ist die
+           Gegenprobe gegen „alles liefert dasselbe": neun verschiedene
+           Eingaben muessen neun verschiedene Ausgaben ergeben. */
+        const F = [
+          [{ role: "Stammspieler", kapitaen: true, kapiNeu: "auf", apps: 30, note: 2.6, age: 27, club: "A", year: "30/31" },
+           { role: "Tribüne", apps: 3, club: "A" }, "Vom Reservisten zum Kapitän"],
+          [{ role: "Stammspieler", trophies: ["Meister", "Pokal"], apps: 40, note: 2.4, age: 26, club: "A", year: "30/31" },
+           { role: "Stammspieler", apps: 38, club: "A" }, "Das Jahr der Titel"],
+          [{ role: "Stammspieler", apps: 33, note: 3.0, age: 21, club: "A", year: "30/31" },
+           { role: "Tribüne", apps: 2, club: "A" }, "Durchbruch"],
+          [{ role: "Stammspieler", apps: 28, note: 3.1, age: 29, club: "A", year: "30/31" },
+           { role: "Stammspieler", apps: 30, club: "A", injury: { n: "Kreuzband" } }, "Zurückgeschrieben"],
+          [{ role: "Stammspieler", apps: 30, note: 2.5, age: 35, club: "A", year: "30/31" },
+           { role: "Stammspieler", apps: 30, club: "A" }, "Der alte Mann ist noch da"],
+          [{ role: "Rotationsspieler", apps: 4, note: 3.5, age: 27, club: "A", year: "30/31" },
+           { role: "Stammspieler", apps: 32, club: "A" }, "Das verlorene Jahr"],
+          [{ role: "Stammspieler", apps: 30, note: 4.5, age: 27, club: "A", year: "30/31" },
+           { role: "Stammspieler", apps: 30, club: "A" }, "Ein Jahr zum Vergessen"],
+          [{ role: "Stammspieler", apps: 30, note: 2.2, age: 27, club: "B", year: "30/31" },
+           { role: "Stammspieler", apps: 30, club: "A" }, "Sofort angekommen"],
+          [{ role: "Stammspieler", apps: 30, note: 3.0, age: 27, club: "A", year: "30/31" },
+           null, "Der Anfang"],
+        ];
+        const daneben = [];
+        F.forEach(([s, vor, soll]) => {
+          const r = SZ(s, vor, { seasons: [] });
+          if (!r || r.kopf !== soll) daneben.push(soll + " → " + (r ? r.kopf : "nichts"));
+        });
+        pr("Schlagzeile: neun feste Lagen ergeben neun verschiedene Zeilen",
+           daneben.length === 0,
+           daneben.length ? daneben.join(" · ") : F.length + " von " + F.length);
+
+        /* GEGENPROBE zur Gegenprobe: liefern die neun wirklich VERSCHIEDENE
+           Zeilen? Waeren zwei gleich, haette die Liste oben eine Luecke. */
+        const kopfe = F.map(([s, vor]) => (SZ(s, vor, { seasons: [] }) || {}).kopf);
+        pr("Schlagzeile: Gegenprobe — die neun Zeilen sind wirklich verschieden",
+           new Set(kopfe).size === F.length,
+           new Set(kopfe).size + " verschiedene aus " + F.length + " Lagen");
+
+        /* Und ueber ECHTE Laufbahnen: nichts leer, nichts beherrschend.
+           `laufbahnFuerZeilen` steht weiter oben — dieselbe Funktion nutzt
+           auch die Kapitelprüfung. Zwei Kopien liefen beim nächsten Umbau
+           auseinander; dasselbe Muster wie die zweite Ablaufliste in 35.29. */
+        const alle = [];
+        let laeufe = 0;
+        try {
+          for (let i = 0; i < 15; i++) {
+            const q = laufbahnFuerZeilen(); laeufe++;
+            q.seasons.forEach((s, k) => alle.push(SZ(s, k ? q.seasons[k - 1] : null, q)));
+          }
+        } catch (e) { /* faellt unten als „0 Saisons" auf */ }
+
+        /* ERST die Grundlage. Ohne sie koennten die zwei Proben darunter
+           gruen sein, weil der Aufbau gar nichts erzeugt hat — genau der
+           Fehler, der beim Vereins-Reachability-Versuch passiert ist. */
+        pr("Schlagzeile: der Laufbahn-Aufbau hat wirklich Saisons erzeugt",
+           laeufe === 15 && alle.length >= 100,
+           laeufe + " Laufbahnen · " + alle.length + " Saisons");
+
+        if (alle.length) {
+          const leer = alle.filter((r) => !r || !r.kopf).length;
+          const ohneSatz = alle.filter((r) => r && !r.satz).length;
+          const z = {}; alle.forEach((r) => { if (r && r.kopf) z[r.kopf] = (z[r.kopf] || 0) + 1; });
+          const top = Object.entries(z).sort((a, b) => b[1] - a[1])[0];
+          /* `ohneSatz` zaehlt mit: eine Zeile ohne Begruendung ist eine halbe
+             Schlagzeile. Gemessen greift das auf Regel 12 („Neuer Verein"),
+             die haeufigste ueberhaupt — die letzte Rueckfallzeile ist ueber
+             echte Laufbahnen unerreichbar und taugt deshalb NICHT als Ziel
+             einer Gegenprobe. */
+          pr("Schlagzeile: keine Saison bleibt ohne Zeile", leer === 0 && ohneSatz === 0,
+             alle.length + " Saisons · " + leer + " ohne Zeile · " + ohneSatz + " ohne Satz");
+          pr("Schlagzeile: keine Zeile beherrscht das Feld",
+             top && top[1] / alle.length <= 0.6,
+             top ? "häufigste " + (100 * top[1] / alle.length).toFixed(1)
+                   + " % · " + Object.keys(z).length + " verschiedene" : "—");
+        }
+
+        /* Robustheit: die Funktion darf an keinem unvollstaendigen Zustand
+           abstuerzen — im Spiel kommt sie auch bei alten Spielstaenden vorbei,
+           in denen Felder fehlen. */
+        let krachte = null;
+        [[null, null], [{}, {}], [{ apps: 0 }, null], [{ role: "Unbekannt" }, { role: "Auchnicht" }]]
+          .forEach(([a, b]) => { try { SZ(a, b, null); } catch (e) { krachte = krachte || e.message; } });
+        pr("Schlagzeile: unvollständige Zustände stürzen nicht ab",
+           krachte === null, krachte || "vier Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- VEREINSSTATIONEN ALS KAPITEL (35.105) ------------------------
+       Stufe A2. Drei Dinge sind messbar: dass Abschnitte richtig gebildet
+       werden (eine Rueckkehr ist ZWEI Stationen), dass jedes Kapitel im
+       echten Verlauf vorkommt, und dass keines das Feld beherrscht.
+
+       Die mittlere ist die Lehre aus 35.102 und 35.104: eine Regel, die nie
+       greift, ist toter Code. Beim Bauen dieser Funktion ist das zweimal
+       passiert — „Die langen Jahre" stand hinter den Rollenzeilen und wurde
+       in 726 Stationen kein einziges Mal vergeben. */
+    {
+      const VK = App.vereinsKapitel;
+      if (typeof VK !== "function") {
+        pr("Kapitel: vereinsKapitel ist ausgeführt", false,
+           "nicht im Bündel — die Proben darunter laufen NICHT");
+      } else {
+        /* Abschnittsbildung. DAS ist der eigentliche Fund hinter 35.105:
+           bis 35.104 stand im Rueckblick eine Vereins-MENGE, in der eine
+           Rueckkehr verschwand. */
+        const folge = [
+          { club: "A", land: "DE", year: "26/27", apps: 30, note: 3.0, role: "Stammspieler" },
+          { club: "A", land: "DE", year: "27/28", apps: 30, note: 3.0, role: "Stammspieler" },
+          { club: "B", land: "ES", year: "28/29", apps: 30, note: 3.0, role: "Stammspieler" },
+          { club: "A", land: "DE", year: "29/30", apps: 30, note: 3.0, role: "Stammspieler" },
+        ];
+        const st = VK(folge, {});
+        pr("Kapitel: eine Rückkehr ergibt eine EIGENE Station",
+           st.length === 3 && st[0].club === "A" && st[1].club === "B" && st[2].club === "A",
+           st.length + " Stationen aus 4 Saisons bei 2 Vereinen");
+        pr("Kapitel: die zweite Zeit bei einem Verein heißt „Die Rückkehr“",
+           st.length === 3 && st[2].kapitel === "Die Rückkehr",
+           st.length === 3 ? st.map((x) => x.club + "=" + x.kapitel).join(" · ") : "—");
+
+        /* GEGENPROBE: ohne Rueckkehr duerfen es NICHT drei sein. Sonst
+           koennte die Zeile darueber auch gruen sein, weil die Funktion
+           jede Saison zu einer eigenen Station macht. */
+        const ohne = VK(folge.slice(0, 3), {});
+        pr("Kapitel: Gegenprobe — ohne Rückkehr bleiben es zwei Stationen",
+           ohne.length === 2 && ohne[1].kapitel !== "Die Rückkehr",
+           ohne.length + " Stationen · zweites Kapitel: " + (ohne[1] ? ohne[1].kapitel : "—"));
+
+        /* Zahlen je Abschnitt muessen stimmen, nicht nur die Zahl der
+           Abschnitte. */
+        pr("Kapitel: die Zahlen je Station werden richtig summiert",
+           st.length === 3 && st[0].jahre === 2 && st[0].apps === 60 && st[2].jahre === 1,
+           st.length === 3 ? st.map((x) => x.jahre + "J/" + x.apps + "Sp").join(" · ") : "—");
+
+        /* Und ueber echte Laufbahnen: Erreichbarkeit und Verteilung. */
+        const alleSt = [];
+        let lb = 0;
+        try {
+          for (let i = 0; i < 12; i++) {
+            const q = laufbahnFuerZeilen(); lb++;
+            VK(q.seasons, q).forEach((x) => alleSt.push(x));
+          }
+        } catch (e) { /* faellt unten auf */ }
+        pr("Kapitel: der Laufbahn-Aufbau hat wirklich Stationen erzeugt",
+           lb === 12 && alleSt.length >= 60,
+           lb + " Laufbahnen · " + alleSt.length + " Stationen");
+
+        /* ERREICHBARKEIT: jede Regel der Tabelle muss VOR ihren Nachfolgern
+           greifen koennen. Deterministisch geprueft, nicht ueber Zufallslaeufe:
+           „Der lange Abschied" trifft 0,5 % aller Stationen, ueber zwoelf
+           Laufbahnen waere die Probe also mal rot und mal gruen — und eine
+           Pruefung, die zufaellig rot wird, ist schlimmer als keine (die Lehre
+           aus 35.104). Die Namen kommen aus `App.KAPITEL`, DERSELBEN Tabelle,
+           aus der die Funktion schoepft. Ein frueherer Entwurf las sie aus
+           `String(vereinsKapitel)` und bekam den GEBUENDELTEN Text, in dem
+           Umlaute als Escape stehen — „Die R\\xFCckkehr" ist nicht „Die
+           Rückkehr", und die Probe meldete sechs Kapitel als nie vergeben,
+           die es alle gab. Eine Pruefung, die den Quelltext ihres Prueflings
+           parst, misst den Uebersetzer mit. */
+        const TAB = App.KAPITEL || [];
+        const unerreichbar = [];
+        TAB.forEach(([pruef, name], i) => {
+          /* Eine Lage, die genau diese Regel erfuellt und keine davor.
+             Gesucht wird durch Ausprobieren ueber die echten Stationen plus
+             gezielte Bausteine — findet sich keine, ist die Regel toter Code. */
+          const kandidaten = alleSt.concat([
+            { rueckkehr: true, erste: false, letzte: false, jahre: 2, apps: 40, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: true, letzte: false, jahre: 7, apps: 200, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: true, letzte: false, jahre: 1, apps: 20, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 9, apps: 300, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 3, apps: 90, titel: 4, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 3, apps: 90, titel: 0, note: 3, rangMit: 2, rangAuf: 3, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 3, apps: 90, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: true },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 2, apps: 8, titel: 0, note: 3, rangMit: 0.5, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 1, apps: 5, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: true, jahre: 2, apps: 40, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: true, jahre: 3, apps: 60, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 2, apps: 40, titel: 0, note: 2.2, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 2, apps: 40, titel: 0, note: 4.4, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 5, apps: 150, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 2, apps: 40, titel: 0, note: 3, rangMit: 4, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 2, apps: 40, titel: 0, note: 3, rangMit: 3, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 2, apps: 40, titel: 0, note: 3, rangMit: 2, rangAuf: 0, kapitaen: false },
+            { rueckkehr: false, erste: false, letzte: false, jahre: 2, apps: 40, titel: 0, note: 3, rangMit: null, rangAuf: 0, kapitaen: false },
+          ]);
+          const geht = kandidaten.some((x) => {
+            for (const e of [true, false]) {
+              if (!pruef(x, e)) continue;
+              if (!TAB.slice(0, i).some(([f]) => f(x, e))) return true;
+            }
+            return false;
+          });
+          if (!geht) unerreichbar.push(name);
+        });
+        pr("Kapitel: jede Regel der Tabelle ist erreichbar",
+           TAB.length > 0 && unerreichbar.length === 0,
+           unerreichbar.length ? "toter Code: " + unerreichbar.join(", ")
+                               : TAB.length + " Regeln, jede mit eigener Lage");
+
+        if (alleSt.length) {
+          const z = {}; alleSt.forEach((x) => { z[x.kapitel] = (z[x.kapitel] || 0) + 1; });
+          const top = Object.entries(z).sort((a, b) => b[1] - a[1])[0];
+          /* Ueber echte Laufbahnen wird nur die BREITE geprueft, nicht jedes
+             einzelne Kapitel — sonst flattert es an den seltenen. */
+          pr("Kapitel: über echte Laufbahnen kommt die Mehrzahl auch vor",
+             Object.keys(z).length >= Math.ceil(TAB.length * 0.6),
+             Object.keys(z).length + " von " + TAB.length + " · " + alleSt.length + " Stationen");
+          pr("Kapitel: kein Kapitel beherrscht das Feld",
+             top && top[1] / alleSt.length <= 0.35,
+             top ? "häufigstes " + (100 * top[1] / alleSt.length).toFixed(1) + " % (Grenze 35 %)" : "—");
+        }
+
+        /* Robustheit gegen alte und lueckenhafte Staende. */
+        let krach = null;
+        [[null, null], [[], {}], [[{}], null], [[{ club: "X" }, { club: "X" }], {}]]
+          .forEach(([a, b]) => { try { VK(a, b); } catch (e) { krach = krach || e.message; } });
+        pr("Kapitel: unvollständige Zustände stürzen nicht ab",
+           krach === null, krach || "vier Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- MARKEN FÜR BEGRENZTE LAUFBAHNEN (35.106) ---------------------
+       Stufe B. Gemessen war die Lücke: über 80 Laufbahnen erreichte eine
+       schwache (Höchststärke unter 75) SECHS der 22 alten Marken nie —
+       beide Torgrenzen, 100 Vorlagen und alle drei Stärkemarken. Was blieb,
+       waren Spielzahlen. */
+    {
+      const MS = App.MILESTONES || [];
+      const NEUE = ["j10", "j20", "a300", "treu100", "welt3", "alt35",
+                    "binde", "comeback", "stamm10", "heimkehr"];
+      pr("Marken: die zehn neuen sind alle in der Liste",
+         NEUE.every((id) => MS.some((m) => m.id === id)),
+         MS.length + " Marken insgesamt · " + NEUE.filter((id) => MS.some((m) => m.id === id)).length + " von 10 neu");
+
+      /* WIRTSCHAFTSGRENZE. `leg` fliesst ueber `p.legacyBonus` in
+         `verdict().score`, und daraus wird mit `score / 26` die
+         VC-Ausschuettung gerechnet. „Laufbahnen bis Vollausbau" stand vor
+         35.106 bei 20,5 bei einer Untergrenze von 20 — grosszuegige Punkte
+         haetten das Band gesprengt, ohne dass es jemand mit dieser Fassung in
+         Verbindung gebracht haette. Die Kalibrierung prueft das Band selbst;
+         diese Zeile prueft die URSACHE, damit ein spaeterer Zuwachs hier
+         auffaellt und nicht erst dort. */
+      const legNeu = MS.filter((m) => NEUE.includes(m.id)).reduce((a, m) => a + m.leg, 0);
+      const legAlt = MS.filter((m) => !NEUE.includes(m.id)).reduce((a, m) => a + m.leg, 0);
+      pr("Marken: die neuen Punkte bleiben klein gegen die alten",
+         legNeu > 0 && legNeu <= legAlt * 0.25,
+         legNeu + " gegen " + legAlt + " (Grenze " + Math.round(legAlt * 0.25) + ")");
+
+      /* TITELTREUE. Der erste Entwurf von „Nach schwerer Verletzung zurück"
+         prüfte nur `s.injury` — also auch „leicht, 4 Spiele". Über 25
+         Saisons ist irgendwann jeder mal angeschlagen, entsprechend traf die
+         Marke 99 % aller Laufbahnen statt 43 %. Ein Text, der mehr zusagt
+         als die Mechanik prüft, ist im Projekt eine eigene Fehlerklasse. */
+      const schwerMarke = MS.find((m) => m.id === "comeback");
+      pr("Marken: wer „schwer“ verspricht, prüft auch die Schwere",
+         !!schwerMarke && /sev/.test(String(schwerMarke.ok)),
+         schwerMarke ? (/sev/.test(String(schwerMarke.ok)) ? "prüft `injury.sev`" : "prüft nur, OB eine Verletzung war") : "—");
+
+      /* Erreichbarkeit und Wirkung über echte Laufbahnen. */
+      const LM = [];
+      let lm = 0;
+      try { for (let i = 0; i < 12; i++) { LM.push(laufbahnFuerZeilen()); lm++; } }
+      catch (e) { /* faellt unten auf */ }
+      pr("Marken: der Laufbahn-Aufbau hat wirklich Laufbahnen erzeugt",
+         lm === 12 && LM.every((q) => (q.seasons || []).length >= 5),
+         lm + " Laufbahnen · Saisons " + LM.map((q) => (q.seasons || []).length).join("/"));
+
+      if (LM.length) {
+        const nie = NEUE.filter((id) => !LM.some((q) => (q.milestones || []).includes(id)));
+        pr("Marken: jede neue Marke wird im echten Verlauf auch erreicht",
+           nie.length === 0,
+           nie.length ? "nie erreicht: " + nie.join(", ") : "10 von 10");
+
+        /* Der eigentliche Zweck: hebt es eine begrenzte Laufbahn? Gemessen
+           vor 35.106: schwach 9 Marken, stark 11. */
+        const zahl = (q) => (q.milestones || []).length;
+        const schwach = LM.filter((q) => (q.peakOvr || 0) < 78);
+        /* MEDIAN, NICHT MINIMUM (berichtigt 35.109). Der erste Entwurf nahm
+           `Math.min` über zwölf Laufbahnen — und meldete rot, sobald eine
+           kurze dabei war, die nach fünf Saisons endete. Nichts war kaputt,
+           die Probe flatterte nur. Dieselbe Lehre wie bei der Reachability in
+           35.104: eine Prüfung, die zufällig rot wird, erzieht dazu, roten
+           Meldungen nicht mehr zu glauben. Der Median sagt dasselbe und hält
+           einen Ausreißer aus. */
+        const mZahlen = schwach.map(zahl).sort((x, y) => x - y);
+        const mMedian = mZahlen.length ? mZahlen[Math.floor(mZahlen.length / 2)] : 0;
+        pr("Marken: auch eine begrenzte Laufbahn sammelt jetzt etwas",
+           !schwach.length || mMedian >= 8,
+           schwach.length ? schwach.length + " unter Höchststärke 78 · Marken Median "
+             + mMedian + " (Spanne " + mZahlen[0] + "–" + mZahlen[mZahlen.length - 1] + ")"
+             : "keine schwache im Lauf");
+
+        /* GEGENPROBE: eine absichtlich unerfuellbare Marke MUSS auffallen.
+           Ohne sie koennte die Erreichbarkeitszeile auch gruen sein, weil
+           `NEUE` gar nicht geprueft wird. */
+        const erfundene = "gibtesnicht";
+        const nie2 = [erfundene].filter((id) => !LM.some((q) => (q.milestones || []).includes(id)));
+        pr("Marken: Gegenprobe — eine erfundene Marke fällt durch",
+           nie2.length === 1, "„" + erfundene + "“ wird in 12 Laufbahnen nicht erreicht");
+      }
+    }
+
+    /* ---- DAS EINE PERSÖNLICHE ZIEL (35.107) ---------------------------
+       Stufe B, zweiter Teil. Das Ziel ist eine Marke, die es ohnehin gibt —
+       keine zweite Liste, keine eigene Belohnung, kein neues Feld. */
+    {
+      const NZ = App.naechstesZiel, MS2 = App.MILESTONES || [];
+      if (typeof NZ !== "function") {
+        pr("Ziel: naechstesZiel ist ausgeführt", false, "nicht im Bündel");
+      } else {
+        const mitMass = MS2.filter((m) => m.mess && m.soll);
+        pr("Ziel: genug Marken taugen als Ziel", mitMass.length >= 15,
+           mitMass.length + " von " + MS2.length + " haben `mess` und `soll`");
+
+        /* DIE WICHTIGSTE PROBE. `mess(p) >= soll` muss DASSELBE bedeuten wie
+           `ok(p)`. Liefen die beiden auseinander, zeigte die Anzeige „500 von
+           500" waehrend die Marke ungeloest bliebe — oder das Ziel
+           verschwaende, ohne dass etwas erreicht wurde. Beides waere ein
+           Text, der etwas anderes sagt als die Mechanik tut. */
+        const LZ = [];
+        try { for (let i = 0; i < 10; i++) LZ.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+        const uneins = [];
+        mitMass.forEach((m) => {
+          LZ.forEach((q) => {
+            let a, b;
+            try { a = !!m.ok(q); b = (m.mess(q) || 0) >= m.soll; } catch (e) { return; }
+            if (a !== b && !uneins.includes(m.id)) uneins.push(m.id);
+          });
+        });
+        pr("Ziel: `mess >= soll` bedeutet dasselbe wie `ok`",
+           LZ.length === 10 && uneins.length === 0,
+           LZ.length !== 10 ? "Aufbau lieferte nur " + LZ.length + " Laufbahnen"
+             : uneins.length ? "auseinander: " + uneins.join(", ")
+             : mitMass.length + " Marken über " + LZ.length + " Laufbahnen geprüft");
+
+        /* Ein bereits erreichtes Ziel darf nicht noch einmal kommen. */
+        const fertig = LZ.length ? LZ[0] : null;
+        const zf = fertig ? NZ(fertig) : null;
+        pr("Ziel: was schon erreicht ist, wird nicht mehr angeboten",
+           !zf || !(fertig.milestones || []).includes(zf.id),
+           zf ? "angeboten: " + zf.titel + " (" + zf.ist + "/" + zf.soll + ")" : "keines offen");
+
+        /* Unter 40 % wird nichts angeboten — „noch 98 bis 100" entmutigt,
+           statt Orientierung zu geben. */
+        const frisch = { seasons: [], milestones: [], tot: { apps: 1, goals: 0, assists: 0, cs: 0, seasons: 1 },
+                         nt: { caps: 0 } };
+        pr("Ziel: ein Anfänger bekommt kein unerreichbares Fernziel",
+           NZ(frisch) === null, "bei einem Spiel und null Toren: " + (NZ(frisch) ? NZ(frisch).titel : "keines"));
+
+        /* GEGENPROBE dazu: knapp UEBER der Schwelle muss eines kommen.
+           Ohne sie koennte die Zeile darueber auch gruen sein, weil die
+           Funktion NIE etwas liefert. */
+        const nah = { seasons: [], milestones: [], tot: { apps: 30, goals: 0, assists: 0, cs: 0, seasons: 1 },
+                      nt: { caps: 0 } };
+        const zn = NZ(nah);
+        pr("Ziel: Gegenprobe — wer nah dran ist, bekommt eines",
+           !!zn && zn.id === "a50",
+           zn ? zn.titel + " (" + zn.ist + "/" + zn.soll + ")" : "keines — die Funktion liefert nie etwas");
+
+        /* Über echte Laufbahnen: Dichte und Streuung. */
+        if (LZ.length) {
+          const alleZ = LZ.map((q) => NZ(q)).filter(Boolean);
+          const arten = new Set(alleZ.map((z) => z.id));
+          pr("Ziel: über echte Laufbahnen streut die Auswahl",
+             alleZ.length === 0 || arten.size >= Math.min(3, alleZ.length),
+             alleZ.length + " Laufbahnen mit Ziel · " + arten.size + " verschiedene");
+        }
+
+        /* Robustheit gegen alte und lueckenhafte Staende. */
+        let krachZ = null;
+        [null, {}, { seasons: [] }, { seasons: [], tot: {} }].forEach((x) => {
+          try { NZ(x); } catch (e) { krachZ = krachZ || e.message; } });
+        pr("Ziel: unvollständige Zustände stürzen nicht ab",
+           krachZ === null, krachZ || "vier Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- ERINNERUNGSMOMENTE (35.108) ----------------------------------
+       Stufe C. Sechs Ereignisse greifen Jahre später eine frühere
+       Entscheidung auf. `p.flags` sagt WAS, `p.evLog` sagt WANN — beides gab
+       es längst, `evLog` wurde nur nie für einen Rückbezug gelesen. */
+    {
+      const EV = App.EVENTS || [];
+      const ERIN = EV.filter((e) => /^er_/.test(e.id));
+      pr("Erinnerung: die sechs Rückbezüge sind da", ERIN.length === 6,
+         ERIN.length + " Ereignisse mit Kennung `er_`");
+
+      /* DIE WICHTIGSTE PROBE: jede Quell-Kennung in `her(p, "…")` muss ein
+         Ereignis sein, das es WIRKLICH gibt. Ein Tippfehler wäre vollkommen
+         stumm — `her` lieferte -1, die Bedingung würde nie wahr, und das
+         Ereignis wäre toter Code, ohne dass irgendetwas rot meldet. Genau
+         diese Klasse hat 35.102 (`a_akaF_jg50`) und 35.105 („Die langen
+         Jahre") gekostet. */
+      const ids = new Set(EV.map((e) => e.id));
+      const falsch = [];
+      ERIN.forEach((e) => {
+        const q = String(e.cond || "");
+        /* `her\d*\(` und nicht `her\(`: esbuild benennt die Funktion im Bündel
+           in `her2` um. Der erste Entwurf suchte `her(` und fand deshalb GAR
+           NICHTS — die Probe war grün, auch als in der Gegenprobe eine
+           Quell-Kennung absichtlich verfälscht wurde. Zweimal dieselbe Falle
+           in derselben Fassung: eine Prüfung, die den Quelltext ihres
+           Prüflings liest, muss damit rechnen, dass der Übersetzer Namen
+           ändert. Zeichenketten ändert er nicht — die Kennung in
+           Anführungszeichen bleibt, worauf sich diese Probe stützt. */
+        for (const m of q.matchAll(/her\d*\(\s*p\s*,\s*"([^"]+)"\s*\)/g))
+          if (!ids.has(m[1])) falsch.push(e.id + " → „" + m[1] + "“");
+      });
+      pr("Erinnerung: jede Quelle ist ein Ereignis, das es gibt",
+         falsch.length === 0,
+         falsch.length ? "kennt niemand: " + falsch.join(", ")
+                       : ERIN.length + " Rückbezüge geprüft");
+
+      /* Jede braucht BEIDES: das Flag und den Abstand. Mit nur einem wäre es
+         eine Folgeszene, kein Rückbezug — der Spieler sähe sie im Jahr darauf.
+
+         GEPRÜFT WIRD DAS VERHALTEN, NICHT DER TEXT. Der erste Entwurf suchte
+         `/her\(/` im Quelltext der Bedingung und meldete alle sechs rot:
+         esbuild benennt die Funktion im Bündel in `her2` um. Dieselbe Falle
+         wie bei den Kapitelnamen in 35.105 — eine Prüfung, die den Quelltext
+         ihres Prüflings parst, misst den Übersetzer mit. Jetzt wird die
+         Bedingung dreimal AUSGEFÜHRT: mit nichts, mit nur dem Flag, mit
+         beidem. Nur die letzte darf wahr sein. */
+      const zuFrueh = [], nieWahr = [];
+      ERIN.forEach((e) => {
+        const q = String(e.cond || "");
+        const fl = (q.match(/flags\.([A-Za-z_0-9]+)/) || [])[1];
+        const src = [...q.matchAll(/"([A-Za-z_0-9]+)"/g)].map((m) => m[1]).find((x) => ids.has(x));
+        if (!fl || !src) {
+          /* Getrennt melden, sonst schickt die Zeile in die Irre: fehlt der
+             Zeitabstand, ist das ein ANDERER Fehler als ein fehlendes Flag —
+             ohne Abstand wäre es eine Folgeszene, ohne Flag ein Ereignis für
+             jeden. */
+          nieWahr.push(e.id + (fl ? " (kein Zeitabstand in der Bedingung)"
+                                  : " (kein Flag in der Bedingung)"));
+          return;
+        }
+        const bau = (mitFlag, abstand) => ({
+          age: 36, ovr: 78, trust: 60, money: 5, morale: 60, form: 60,
+          pos: "ST", life: { status: "ledig", kids: 0 }, nt: { caps: 0, majors: [], level: 0 },
+          seasons: new Array(20).fill({ apps: 30, role: "Stammspieler" }),
+          flags: mitFlag ? { [fl]: true } : {},
+          evLog: abstand == null ? {} : { [src]: 20 - abstand },
+          milestones: [], trophies: [], awards: [], tot: { apps: 400, seasons: 20 },
+        });
+        const test = (x) => { try { return !!e.cond(x); } catch (err) { return null; } };
+        const leer = test(bau(false, null));
+        const nurFlag = test(bau(true, null));
+        const beides = test(bau(true, 12));
+        if (leer === true || nurFlag === true) zuFrueh.push(e.id);
+        if (beides !== true) nieWahr.push(e.id + " (greift auch mit beidem nicht)");
+      });
+      pr("Erinnerung: keine greift ohne das Flag oder ohne Abstand",
+         zuFrueh.length === 0,
+         zuFrueh.length ? "zu früh: " + zuFrueh.join(", ") : ERIN.length + " geprüft");
+      pr("Erinnerung: jede greift, wenn Flag und Abstand da sind",
+         nieWahr.length === 0,
+         nieWahr.length ? nieWahr.join(", ") : ERIN.length + " von " + ERIN.length);
+
+      /* `her` selbst. Der -1-Fall ist der kritische: mit 0 wäre
+         `her(p, x) >= 6` bei einem alten Spielstand ohne `evLog`-Eintrag
+         versehentlich… nein, mit 0 wäre es FALSCH herum — `seasons.length - 0`
+         ergäbe die volle Laufbahnlänge und die Bedingung würde für jemanden
+         wahr, der das Ereignis nie gesehen hat. */
+      const herF = App.her;
+      if (typeof herF !== "function") {
+        pr("Erinnerung: `her` ist ausgeführt", false, "nicht im Bündel");
+      } else {
+        const lang = { seasons: new Array(20).fill({}), evLog: { x: 4 } };
+        const nie = { seasons: new Array(20).fill({}), evLog: {} };
+        pr("Erinnerung: `her` rechnet den Abstand richtig",
+           herF(lang, "x") === 16, "20 Saisons, Ereignis in Saison 4 → " + herF(lang, "x"));
+        pr("Erinnerung: `her` meldet -1, wenn das Ereignis nie kam",
+           herF(nie, "x") === -1 && herF(null, "x") === -1,
+           "ohne Eintrag: " + herF(nie, "x") + " · ohne Spieler: " + herF(null, "x"));
+
+        /* GEGENPROBE zum -1: mit 0 statt -1 würde eine 20-Saison-Laufbahn
+           ohne jeden Eintrag die Bedingung `>= 6` erfüllen. Diese Zeile hält
+           fest, dass genau das NICHT passiert. */
+        pr("Erinnerung: Gegenprobe — wer die Quelle nie erlebt hat, fällt durch",
+           !(herF(nie, "x") >= 6),
+           "her = " + herF(nie, "x") + ", Schwelle 6 → " + (herF(nie, "x") >= 6 ? "ERFÜLLT" : "nicht erfüllt"));
+      }
+
+      /* Gewichte: eine so selektive Bedingung braucht ein hohes Gewicht,
+         sonst kommt das Ereignis rechnerisch nie. Gemessen: mit 3 bis 6 kam
+         über 200 Laufbahnen genau EINE Erinnerung zustande. */
+      const zuLeicht = ERIN.filter((e) => (e.w || 2) < 10).map((e) => e.id);
+      pr("Erinnerung: alle haben ein Gewicht, das sie auch ankommen lässt",
+         zuLeicht.length === 0,
+         zuLeicht.length ? "zu leicht: " + zuLeicht.join(", ")
+                         : "alle bei " + Math.min(...ERIN.map((e) => e.w)) + " oder höher");
+    }
+
+    /* ---- ARCHETYPEN (35.109) ------------------------------------------
+       Stufe D. Der Archetyp wird bei jedem Aufruf neu aus dem Verlauf
+       gerechnet — kein neues Feld, keine Wahl am Anfang. */
+    {
+      const AT = App.archetyp, TAB = App.ARCHETYPEN || [];
+      if (typeof AT !== "function") {
+        pr("Archetyp: die Funktion ist ausgeführt", false, "nicht im Bündel");
+      } else {
+        pr("Archetyp: die Tabelle hat genug Einträge", TAB.length >= 8,
+           TAB.length + " Archetypen");
+
+        /* BESTIMMT, NICHT ZUFÄLLIG. Derselbe Verlauf muss immer dieselbe
+           Einordnung ergeben — sonst wäre es keine Biografie, sondern eine
+           Lotterie. */
+        const LA = [];
+        try { for (let i = 0; i < 14; i++) LA.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+        pr("Archetyp: der Laufbahn-Aufbau hat wirklich Laufbahnen erzeugt",
+           LA.length === 14, LA.length + " Laufbahnen");
+        const wackelt = LA.filter((q) => {
+          const a = AT(q), b = AT(q);
+          return !a !== !b || (a && b && a.haupt !== b.haupt);
+        }).length;
+        pr("Archetyp: derselbe Verlauf ergibt immer dieselbe Einordnung",
+           wackelt === 0, wackelt ? wackelt + " wackeln" : LA.length + " zweimal geprüft");
+
+        /* ERREICHBARKEIT deterministisch, wie bei den Kapiteln in 35.105.
+           Über Zufallsläufe würde eine Probe auf „Das Wunderkind" (1,3 %)
+           flattern. Gesucht wird zu jedem Archetyp ein Merkmalssatz, bei dem
+           er gewinnt — findet sich keiner, ist die Zeile toter Code. */
+        const roh = { saisons: 12, stationen: 3, laender: 1, treu: 4, rueck: 0,
+          peakAlter: 27, verletzt: 0, comeback: 0, absturz: 5, caps: 0,
+          ntTitel: 0, titel: 0, kapi: 0 };
+        const extrem = [
+          { treu: 14, rueck: 2, stationen: 2 },            /* Ikone */
+          { stationen: 20, laender: 9, treu: 1 },          /* Wandervogel */
+          { peakAlter: 33 },                               /* Spätstarter */
+          { peakAlter: 19 },                               /* Wunderkind */
+          { verletzt: 5, absturz: 25 },                    /* Pechvogel */
+          { comeback: 1, verletzt: 3, absturz: 0 },        /* Wiederauferstandene */
+          { saisons: 26 },                                 /* ewiger Profi */
+          { caps: 160, ntTitel: 3 },                       /* Nationalheld */
+          { titel: 30 },                                   /* Titelsammler */
+          { kapi: 16 },                                    /* Anführer */
+        ];
+        const gewinner = new Set();
+        extrem.forEach((e) => {
+          const m = { ...roh, ...e };
+          let best = null;
+          TAB.forEach(([n, f]) => {
+            let w = 0; try { w = f(m) || 0; } catch (x) { w = 0; }
+            if (!best || w > best.w) best = { n, w };
+          });
+          if (best && best.w > 0) gewinner.add(best.n);
+        });
+        const nieAT = TAB.map((x) => x[0]).filter((n) => !gewinner.has(n));
+        pr("Archetyp: jeder kann bei passendem Verlauf auch gewinnen",
+           nieAT.length === 0,
+           nieAT.length ? "nie erreichbar: " + nieAT.join(", ")
+                        : gewinner.size + " von " + TAB.length);
+
+        /* Und über echte Laufbahnen: keiner darf das Feld beherrschen. */
+        if (LA.length) {
+          const z = {}; LA.forEach((q) => { const a = AT(q); if (a) z[a.haupt] = (z[a.haupt] || 0) + 1; });
+          const top = Object.entries(z).sort((a, b) => b[1] - a[1])[0];
+          pr("Archetyp: keiner beherrscht das Feld",
+             !top || top[1] / LA.length <= 0.6,
+             top ? "häufigster " + Math.round(100 * top[1] / LA.length) + " % · "
+                   + Object.keys(z).length + " verschiedene" : "—");
+        }
+
+        /* Zu früh gibt es kein Urteil — nach zwei Saisons ist noch keine
+           Biografie entstanden. */
+        pr("Archetyp: unter drei Saisons gibt es keine Einordnung",
+           AT({ seasons: [{}, {}], peakOvr: 70, ovr: 70, nt: {}, trophies: [] }) === null,
+           "zwei Saisons → " + JSON.stringify(AT({ seasons: [{}, {}], peakOvr: 70, ovr: 70, nt: {}, trophies: [] })));
+
+        let krachA = null;
+        [null, {}, { seasons: [] }, { seasons: [{}, {}, {}] }].forEach((x) => {
+          try { AT(x); } catch (e) { krachA = krachA || e.message; } });
+        pr("Archetyp: unvollständige Zustände stürzen nicht ab",
+           krachA === null, krachA || "vier Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- BIOGRAFISCHER GRUND AM ANGEBOT (35.110) ----------------------
+       Stufe E. Der Grund erzaehlt, warum dieser Verein anruft — er rechnet
+       NICHTS. Das Papier warnt ausdruecklich: „Die vorhandene Transferlogik
+       soll nicht durch Storyzwang verfaelscht werden." */
+    {
+      const AG = App.angebotsGrund, GTAB = App.ANGEBOTSGRUND || [];
+      if (typeof AG !== "function") {
+        pr("Angebotsgrund: die Funktion ist ausgeführt", false, "nicht im Bündel");
+      } else {
+        pr("Angebotsgrund: die Tabelle hat Einträge", GTAB.length >= 5,
+           GTAB.length + " Gründe");
+
+        /* DIE WICHTIGSTE PROBE: der Grund darf die Zahlen nicht anfassen.
+           Zweimal dieselben Angebote erzeugen, einmal mit und einmal ohne
+           Grund gelesen — Gehalt, Ablöse, Rolle und Laufzeit muessen gleich
+           bleiben. Geprueft wird an den fertigen Angeboten selbst: kein Feld
+           ausser `grund` darf sich zwischen zwei Aufrufen unterscheiden, und
+           `grund` haengt nur an Wechseln. */
+        const LG = [];
+        try { for (let i = 0; i < 8; i++) LG.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+        pr("Angebotsgrund: der Laufbahn-Aufbau hat Laufbahnen erzeugt",
+           LG.length === 8, LG.length + " Laufbahnen");
+
+        let anAlten = 0, gesamt = 0, mitGrund = 0;
+        LG.forEach((q) => {
+          let of = [];
+          try { of = App.makeOffers({ ...q, contract: 0 }); } catch (e) { return; }
+          of.forEach((o) => {
+            gesamt++;
+            if (o.grund) {
+              mitGrund++;
+              if (o.type === "stay" || o.type === "renew") anAlten++;
+            }
+          });
+        });
+        pr("Angebotsgrund: kein Grund an „Erfüllen“ oder „Verlängern“",
+           anAlten === 0,
+           anAlten ? anAlten + " Eigenangebote tragen einen Grund"
+                   : gesamt + " Angebote geprüft · " + mitGrund + " mit Grund");
+
+        /* Erreichbarkeit deterministisch, wie bei den Kapiteln und
+           Archetypen: zu jedem Grund eine Lage, in der er greift — und keine
+           davor. Ueber Zufallslaeufe wuerde „Dein Ausbildungsverein"
+           flattern, weil `p.bei` im Pruefaufbau leer bleibt. */
+        const basis = {
+          age: 26, wage: 1, bei: "", nation: { id: "DE" },
+          club: { n: "Jetzt", c: "DE", l: "Bundesliga", s: 75 },
+          seasons: [{ club: "Erster", land: "DE", league: "Bundesliga" },
+                    { club: "Jetzt", land: "DE", league: "Bundesliga" }],
+        };
+        const lagen = [
+          [{ bei: "Zielklub" }, { n: "Zielklub", c: "DE", l: "2. Liga", s: 60 }, { roleKey: "start", years: 3, wage: 1 }],
+          [{}, { n: "Erster", c: "DE", l: "Bundesliga", s: 70 }, { roleKey: "start", years: 3, wage: 1 }],
+          /* Der Verein muss in der MITTE liegen, nicht am Anfang: sonst
+             greift „Der Verein deiner ersten Saison" davor, und diese Lage
+             prüft nicht das, was sie prüfen soll. Beim ersten Entwurf war
+             genau das der Fall — die Probe meldete „Du warst schon einmal
+             hier" als unerreichbar, obwohl die Regel in Ordnung ist. */
+          [{ seasons: [{ club: "Erster", land: "DE", league: "Bundesliga" },
+                       { club: "Mitte", land: "DE", league: "Bundesliga" },
+                       { club: "Jetzt", land: "DE", league: "Bundesliga" }] },
+           { n: "Mitte", c: "DE", l: "Bundesliga", s: 70 }, { roleKey: "start", years: 3, wage: 1 }],
+          [{}, { n: "Riese", c: "ES", l: "La Liga", s: 88 }, { roleKey: "bench", years: 3, wage: 1 }],
+          [{}, { n: "Ausland", c: "ES", l: "La Liga", s: 70 }, { roleKey: "start", years: 3, wage: 1 }],
+          [{ age: 33 }, { n: "Spaet", c: "DE", l: "Bundesliga", s: 70 }, { roleKey: "start", years: 4, wage: 2 }],
+          [{ age: 38 }, { n: "Letzt", c: "DE", l: "Bundesliga", s: 72 }, { roleKey: "star", years: 3, wage: 1 }],
+        ];
+        const getroffen = new Set();
+        lagen.forEach(([extra, club, ang]) => {
+          const g = AG({ ...basis, ...extra }, club, ang);
+          if (g) getroffen.add(g);
+        });
+        const nieG = GTAB.map((x) => x[0]).filter((n) => !getroffen.has(n));
+        pr("Angebotsgrund: jeder Grund ist bei passender Lage erreichbar",
+           nieG.length === 0,
+           nieG.length ? "nie: " + nieG.join(", ") : getroffen.size + " von " + GTAB.length);
+
+        /* Gegenprobe: eine gewoehnliche Lage darf GAR KEINEN Grund ergeben —
+           sonst traegt jedes Angebot eine Zeile und sie sagt nichts mehr. */
+        pr("Angebotsgrund: Gegenprobe — die gewöhnliche Lage bleibt ohne",
+           AG(basis, { n: "Fremd", c: "DE", l: "Bundesliga", s: 70 },
+              { roleKey: "start", years: 3, wage: 1 }) === null,
+           "26 Jahre, fremder Verein, gleiches Land → "
+             + (AG(basis, { n: "Fremd", c: "DE", l: "Bundesliga", s: 70 },
+                   { roleKey: "start", years: 3, wage: 1 }) || "kein Grund"));
+
+        /* ER RECHNET NICHTS — das ist die Zusage aus dem Papier, und sie
+           gehoert geprueft. `makeOffers` wuerfelt, ein Vorher/Nachher-
+           Vergleich zweier Aufrufe taugt also nicht. Stattdessen wird das
+           Angebotsobjekt SELBST beobachtet: `angebotsGrund` bekommt es
+           uebergeben und darf es nicht anfassen.
+
+           Die Luecke fiel beim Gegenpruefen auf: ein Versuch, im Anhaengen
+           heimlich `o.wage * 1.2` einzubauen, waere von keiner einzigen Probe
+           bemerkt worden. */
+        const vorher = { roleKey: "star", years: 3, wage: 1.5, fee: 2, signOn: .1 };
+        const kopie = JSON.stringify(vorher);
+        AG({ ...basis, age: 38 }, { n: "X", c: "DE", l: "Bundesliga", s: 72 }, vorher);
+        pr("Angebotsgrund: er fasst das Angebot nicht an",
+           JSON.stringify(vorher) === kopie,
+           JSON.stringify(vorher) === kopie ? "Gehalt, Ablöse, Rolle, Laufzeit unverändert"
+                                            : "verändert: " + JSON.stringify(vorher));
+
+        /* Und dieselbe Frage an der Kette: zwischen dem fertigen Angebot und
+           einem ohne Grund darf sich AUSSER `grund` nichts unterscheiden.
+           Geprueft ueber die Felder, die Geld und Rolle tragen. */
+        const felder = ["wage", "fee", "signOn", "years", "role", "roleKey", "type"];
+        let verbogen = 0;
+        LG.forEach((q) => {
+          let of = [];
+          try { of = App.makeOffers({ ...q, contract: 0 }); } catch (e) { return; }
+          of.filter((o) => o.grund).forEach((o) => {
+            /* Ein Angebot mit Grund muss in allen Zahlenfeldern dieselbe Form
+               haben wie eines ohne — kein Feld darf fehlen oder NaN sein. */
+            felder.forEach((f) => {
+              if (o[f] === undefined || (typeof o[f] === "number" && !isFinite(o[f]))) verbogen++;
+            });
+          });
+        });
+        pr("Angebotsgrund: Angebote mit Grund tragen dieselben Zahlenfelder",
+           verbogen === 0, verbogen ? verbogen + " Felder fehlen oder sind unbrauchbar"
+                                    : felder.length + " Felder je Angebot geprüft");
+
+        /* DIE STELLE, DIE DEN GRUND ANHAENGT, DARF NUR `grund` SETZEN.
+           Die Probe darueber prueft `angebotsGrund` selbst — und war blind,
+           als in der Gegenprobe im AUFRUFER heimlich `o.wage * 1.2` eingebaut
+           wurde. Die Funktion war unschuldig, die Kette nicht.
+
+           Geprueft wird die QUELLDATEI, nicht das Buendel: dort stehen die
+           Namen unveraendert. `makeOffers` wuerfelt, ein Vorher/Nachher-
+           Vergleich zweier Aufrufe taugt hier nicht. */
+        const fsG = require("fs");
+        const ARGG = require("./argumente.cjs");
+        const kG = [ARGG.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+          .filter(Boolean).find((k) => { try { return fsG.statSync(k).isFile(); }
+            catch (e) { return false; } });
+        const qG = kG ? fsG.readFileSync(kG, "utf8") : "";
+        pr("Angebotsgrund: App.jsx für die Kettenprüfung gefunden", !!qG,
+           kG || "nicht gefunden — die Zeile darunter läuft NICHT");
+        if (qG) {
+          const i = qG.indexOf("const g = angebotsGrund(");
+          const block = i >= 0 ? qG.slice(i, i + 320) : "";
+          /* Alles, was im Anhaenge-Block an `o.` zugewiesen wird. */
+          const zuw = [...block.matchAll(/\bo\.([A-Za-z_0-9]+)\s*=(?!=)/g)].map((m) => m[1]);
+          const fremd = zuw.filter((f) => f !== "grund");
+          pr("Angebotsgrund: beim Anhängen wird NUR `grund` gesetzt",
+             i >= 0 && fremd.length === 0,
+             i < 0 ? "Anhänge-Stelle nicht gefunden"
+                   : fremd.length ? "setzt außerdem: " + [...new Set(fremd)].join(", ")
+                                  : "eine Zuweisung, und die heißt `grund`");
+        }
+
+        let krachG = null;
+        [[null, null, null], [{}, {}, {}], [basis, null, {}]].forEach(([a, b, c]) => {
+          try { AG(a, b, c); } catch (e) { krachG = krachG || e.message; } });
+        pr("Angebotsgrund: unvollständige Zustände stürzen nicht ab",
+           krachG === null, krachG || "drei Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- WAS AUS DEM ALTEN VEREIN WURDE (35.111) ----------------------
+       Stufe E, zweiter Teil. Neutral formuliert, ohne Bewertung — das Papier
+       will Erinnerung, keine nachträgliche Bestrafung. */
+    {
+      const SP = App.alterVereinSpiegel;
+      if (typeof SP !== "function") {
+        pr("Spiegel: die Funktion ist ausgeführt", false, "nicht im Bündel");
+      } else {
+        const tab = (n) => Array.from({ length: n }, (_, i) => ({
+          pos: i + 1, pts: 80 - i * 3, club: { n: "Club" + (i + 1) } }));
+        const basisS = { seasons: [{ club: "Club1" }, { club: "Club18" }, { club: "Jetzt" }] };
+
+        /* Nur echte frühere Vereine — der AKTUELLE zählt nicht, sonst stünde
+           bei jedem „dein alter Verein" der Verein, bei dem man gerade ist. */
+        pr("Spiegel: der aktuelle Verein zählt nicht als alter",
+           SP({ seasons: [{ club: "Jetzt" }] },
+              { club: "Jetzt", rank: 5, N: 18, table: tab(18) }) === null,
+           "nur der eigene Verein in der Historie → kein Spiegel");
+
+        /* Meister hat Vorrang vor Absteiger: wer beides in der Historie hat,
+           liest die größere Nachricht. */
+        const m = SP(basisS, { club: "Jetzt", rank: 9, N: 18, table: tab(18) });
+        pr("Spiegel: Meister geht vor Abstiegsplatz",
+           !!m && m.club === "Club1" && /Meister/.test(m.text),
+           m ? m.club + " " + m.text : "kein Spiegel");
+
+        /* Ohne auffälligen Verlauf schweigt sie. Ein alter Verein direkt
+           neben einem in der Tabelle ist keine Geschichte. */
+        pr("Spiegel: ohne Auffälligkeit bleibt es still",
+           SP({ seasons: [{ club: "Club8" }, { club: "Jetzt" }] },
+              { club: "Jetzt", rank: 9, N: 18, table: tab(18) }) === null,
+           "alter Verein auf 8, eigener auf 9 → kein Spiegel");
+
+        /* GEGENPROBE dazu: fünf Plätze davor MUSS eine Zeile ergeben, sonst
+           wäre die Zeile darüber auch grün, weil die Funktion nie etwas
+           liefert. */
+        const w = SP({ seasons: [{ club: "Club4" }, { club: "Jetzt" }] },
+                     { club: "Jetzt", rank: 9, N: 18, table: tab(18) });
+        pr("Spiegel: Gegenprobe — fünf Plätze davor ergibt eine Zeile",
+           !!w && w.club === "Club4", w ? w.club + " " + w.text : "keine — Funktion liefert nie etwas");
+
+        /* Ohne Tabelle gar nichts — alte Spielstände könnten sie nicht haben. */
+        pr("Spiegel: ohne Tabelle bleibt es still",
+           SP(basisS, { club: "Jetzt", rank: 5, N: 18 }) === null,
+           "kein `s.table` → kein Spiegel");
+
+        /* Die Tabelle im Rückblick zeigt jetzt ECHTE Namen. Bis 35.110 stand
+           dort ein Gedankenstrich, weil ein Kommentar behauptete, es gebe
+           keine Vereinsnamen — `s.table` trägt sie seit jeher. */
+        const fsS = require("fs");
+        const ARGS = require("./argumente.cjs");
+        const kS = [ARGS.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+          .filter(Boolean).find((k) => { try { return fsS.statSync(k).isFile(); }
+            catch (e) { return false; } });
+        const qS = kS ? fsS.readFileSync(kS, "utf8") : "";
+        pr("Spiegel: die Tabelle im Rückblick zeigt keine Gedankenstriche mehr",
+           !!qS && !/\{ich \? s\.club : "—"\}/.test(qS),
+           !qS ? "App.jsx nicht gefunden — LÄUFT NICHT"
+               : (/\{ich \? s\.club : "—"\}/.test(qS) ? "zeigt weiter „—“" : "zeigt `zeile.club.n`"));
+
+        let krachS = null;
+        [[null, null], [{}, {}], [basisS, {}], [{ seasons: [] }, { table: [] }]]
+          .forEach(([a, b]) => { try { SP(a, b); } catch (e) { krachS = krachS || e.message; } });
+        pr("Spiegel: unvollständige Zustände stürzen nicht ab",
+           krachS === null, krachS || "vier Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- KRISENPFADE (35.112) -----------------------------------------
+       Stufe F, der Punkt mit dem hoechsten Balancing-Risiko. Das Papier
+       woertlich: „Krisenpfade duerfen keinen versteckten Erfolgsautomaten
+       erzeugen. Eine schlechte Karriere muss schlecht bleiben duerfen."
+
+       DIESE PRUEFUNG IST DIE ABSICHERUNG DAZU. Ohne sie waere „jede Option
+       hat einen Preis" eine Absicht, keine Eigenschaft — und die erste
+       Fassung, die eine Zeile nachbessert, koennte sie unbemerkt aufheben. */
+    {
+      const EVK = App.EVENTS || [];
+      const KR = EVK.filter((e) => /^kr_/.test(e.id));
+      pr("Krisenpfad: die vier Wege sind da", KR.length === 4,
+         KR.length + " Ereignisse mit Kennung `kr_`");
+
+      /* Welche Wirkungen sind fuer den Spieler gut, welche schlecht? Nur
+         Felder mit eindeutiger Richtung — `flag`, `wantMove` und dergleichen
+         bleiben aussen vor, weil ihr Wert von der Lage abhaengt. */
+      const GUT = ["morale", "trust", "rep", "form", "fitness", "legacy", "money",
+                   "pot", "pac", "sho", "pas", "dri", "def", "phy", "raise", "caps"];
+      const SCHLECHT = ["injuryProne", "cut", "penalty", "ntPenalty", "suspend"];
+      const wert = (fx) => {
+        if (!fx) return { plus: 0, minus: 0 };
+        let plus = 0, minus = 0;
+        Object.entries(fx).forEach(([k, v]) => {
+          if (GUT.includes(k) && typeof v === "number") { if (v > 0) plus += v; else if (v < 0) minus -= v; }
+          if (SCHLECHT.includes(k) && typeof v === "number") { if (v > 0) minus += v; else if (v < 0) plus -= v; }
+          if (k === "forceInjury" || k === "ban" || k === "ban2" || k === "endCareer") minus += 25;
+        });
+        return { plus, minus };
+      };
+
+      /* Eine Option ist „rein positiv", wenn KEIN moeglicher Ausgang einen
+         Preis hat. Bei einer Wuerfeloption reicht ein schlechter Ausgang —
+         dann ist es ein Risiko und kein Geschenk. */
+      const geschenke = [];
+      KR.forEach((e) => {
+        (e.choices || []).forEach((c, i) => {
+          const ausgaenge = c.roll && c.roll.length ? c.roll.map((r) => r.fx) : [c.fx];
+          const ohnePreis = ausgaenge.every((fx) => wert(fx).minus === 0);
+          if (ohnePreis) geschenke.push(e.id + " Wahl " + (i + 1) + " „" + (c.label || "?") + "“");
+        });
+      });
+      pr("Krisenpfad: keine Option ist rein positiv",
+         KR.length > 0 && geschenke.length === 0,
+         geschenke.length ? "ohne Preis: " + geschenke.join(" · ")
+                          : KR.reduce((a, e) => a + (e.choices || []).length, 0) + " Optionen geprüft");
+
+      /* GEGENPROBE zur Zeile darueber: die Bewertung muss ein Geschenk auch
+         ERKENNEN. Ohne sie koennte `wert` immer 0 liefern und alles waere
+         still gruen. */
+      pr("Krisenpfad: Gegenprobe — die Bewertung erkennt ein Geschenk",
+         wert({ morale: 20, form: 15 }).minus === 0 && wert({ morale: 20, form: -15 }).minus > 0,
+         "nur Plus → kein Preis · Plus mit Minus → Preis erkannt");
+
+      /* Jede Krise braucht MEHR als ein schlechtes Zeichen, sonst kaeme der
+         Pfad staendig. Geprueft an der Bedingung: sie muss mindestens zwei
+         Groessen lesen. */
+      const zuEinfach = KR.filter((e) => {
+        const q = String(e.cond || "");
+        const zeichen = ["injury", "apps", "peakOvr", "trust", "note", "age", "role"]
+          .filter((z) => q.indexOf(z) >= 0).length;
+        return zeichen < 2;
+      }).map((e) => e.id);
+      pr("Krisenpfad: jede Bedingung liest mehrere Zeichen",
+         zuEinfach.length === 0,
+         zuEinfach.length ? "zu einfach: " + zuEinfach.join(", ") : "alle mindestens zwei");
+
+      /* Und: ein gesunder Spieler in guter Lage darf KEINEN Krisenpfad
+         bekommen. Sonst waeren es keine Auswege, sondern Alltag. */
+      const gesund = { age: 27, ovr: 80, peakOvr: 80, trust: 70, morale: 70, form: 70,
+        pos: "ST", injuryProne: 20, flags: {}, life: { status: "ledig", kids: 0 },
+        nt: { caps: 0, majors: [] }, laden: {}, club: { n: "A", l: "L", s: 78, c: "DE" },
+        seasons: [{ club: "A", apps: 34, note: 2.4, role: "Stammspieler", age: 26 },
+                  { club: "A", apps: 33, note: 2.3, role: "Stammspieler", age: 27 }] };
+      const treffen = KR.filter((e) => { try { return !!e.cond(gesund); } catch (x) { return false; } })
+        .map((e) => e.id);
+      pr("Krisenpfad: ein gesunder Spieler bekommt keinen",
+         treffen.length === 0,
+         treffen.length ? "greift trotzdem: " + treffen.join(", ") : "keiner von " + KR.length);
+    }
+
+    /* ---- ARCHETYP VERSCHIEBT GEWICHTE (35.113) ------------------------
+       Das Papier erlaubt es und warnt zugleich: „Die Ereignisgewichtung darf
+       nicht so deterministisch werden, dass der Spieler nach wenigen Jahren
+       seinen gesamten zukuenftigen Storypfad vorhersagen kann." */
+    {
+      const AG2 = App.ARCHETYP_GEWICHT || {}, ATAB = App.ARCHETYPEN || [];
+      const namen = ATAB.map((x) => x[0]);
+      pr("Gewicht: jeder Archetyp hat eine Gewichtstabelle",
+         namen.length > 0 && namen.every((n) => AG2[n] && Object.keys(AG2[n]).length),
+         Object.keys(AG2).length + " Tabellen für " + namen.length + " Archetypen");
+
+      /* KEIN POOL WIRD GESCHLOSSEN. Ein Faktor von 0 wuerde ein Thema
+         aussperren — dann waere jedes Ereignis darin fuer diesen Spieler
+         unerreichbar, und das ist genau der Determinismus, vor dem das Papier
+         warnt. Nach oben ebenso: ab etwa 2 draengt ein Thema alles andere weg. */
+      const wild = [];
+      Object.entries(AG2).forEach(([n, t]) => Object.entries(t).forEach(([tag, f]) => {
+        if (!(f >= .75 && f <= 1.55)) wild.push(n + "/" + tag + " = " + f);
+      }));
+      pr("Gewicht: kein Faktor sperrt aus oder reißt alles an sich",
+         wild.length === 0,
+         wild.length ? "außerhalb 0,75–1,55: " + wild.join(", ")
+                     : Object.values(AG2).reduce((a, t) => a + Object.keys(t).length, 0)
+                       + " Faktoren, alle im Band");
+
+      /* Die Themen muessen existieren — ein Tippfehler waere vollkommen
+         stumm: der Faktor griffe nie, und niemand merkte es. */
+      const tags = new Set((App.EVENTS || []).map((e) => e.tag));
+      const unbekannt = [];
+      Object.entries(AG2).forEach(([n, t]) => Object.keys(t).forEach((tag) => {
+        if (!tags.has(tag)) unbekannt.push(n + "/" + tag);
+      }));
+      pr("Gewicht: jedes gewichtete Thema gibt es auch",
+         unbekannt.length === 0,
+         unbekannt.length ? "kennt niemand: " + unbekannt.join(", ")
+                          : tags.size + " Themen im Spiel");
+
+      /* NICHT VORHERSAGBAR. Wenn der Archetyp einer Laufbahn von Anfang an
+         feststuende, waere auch der Pool festgelegt. Gemessen ueber echte
+         Verlaeufe: er wechselt. */
+      const LD = [];
+      try { for (let i = 0; i < 10; i++) LD.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+      let mehrfach = 0, gezaehlt = 0;
+      LD.forEach((q) => {
+        const folge = [];
+        for (let i = 5; i <= q.seasons.length; i += 3) {
+          const zw = { ...q, seasons: q.seasons.slice(0, i),
+            peakOvr: Math.max(...q.seasons.slice(0, i).map((x) => x.ovr || 0)),
+            ovr: q.seasons[i - 1].ovr || q.ovr };
+          const a = App.archetyp(zw); if (a) folge.push(a.haupt);
+        }
+        if (folge.length < 2) return;
+        gezaehlt++;
+        if (new Set(folge).size >= 2) mehrfach++;
+      });
+      pr("Gewicht: der Archetyp steht nicht von Anfang an fest",
+         gezaehlt === 0 || mehrfach / gezaehlt >= 0.5,
+         gezaehlt ? mehrfach + " von " + gezaehlt + " Laufbahnen wechseln ihn mindestens einmal"
+                  : "keine Laufbahn lang genug");
+    }
+
+    /* ---- ABGELEHNTE ANGEBOTE (35.114) ---------------------------------
+       Das erste und einzige neue persistente Feld dieser Reihe. Deshalb liegt
+       der Schwerpunkt hier auf ALTEN SPIELSTAENDEN: der Spielstand wird mit
+       `JSON.parse` roh geladen, ohne Vervollstaendigung — bei einem Stand von
+       vor 35.114 ist `abgelehnt` schlicht `undefined`. */
+    {
+      const SP2 = App.alterVereinSpiegel;
+      const tab2 = (n) => Array.from({ length: n }, (_, i) => ({
+        pos: i + 1, pts: 80 - i * 3, club: { n: "Club" + (i + 1) } }));
+
+      /* DIE WICHTIGSTE: ein alter Spielstand ohne das Feld darf nicht
+         abstuerzen und nichts Falsches zeigen. */
+      const alt = { seasons: [{ club: "Club3" }, { club: "Jetzt" }] };   /* kein `abgelehnt` */
+      let krachAlt = null, ergAlt;
+      try { ergAlt = SP2(alt, { club: "Jetzt", rank: 9, N: 18, table: tab2(18) }); }
+      catch (e) { krachAlt = e.message; }
+      pr("Abgelehnt: ein Spielstand ohne das neue Feld läuft weiter",
+         krachAlt === null,
+         krachAlt || "kein Absturz · Ergebnis: " + (ergAlt ? ergAlt.club + " " + ergAlt.text : "kein Spiegel"));
+
+      /* Und mit leerem Feld genauso. */
+      let krachLeer = null;
+      try { SP2({ seasons: [{ club: "Jetzt" }], abgelehnt: [] },
+                { club: "Jetzt", rank: 9, N: 18, table: tab2(18) }); }
+      catch (e) { krachLeer = e.message; }
+      pr("Abgelehnt: ein leeres Feld läuft ebenfalls",
+         krachLeer === null, krachLeer || "kein Absturz");
+
+      /* Ein abgelehnter Verein, der Meister wird — der Satz, mit dem das
+         Papier „Was wäre wenn" ueberhaupt einfuehrt. */
+      const mit = { seasons: [{ club: "Jetzt" }],
+        abgelehnt: [{ club: "Club1", jahr: 2030 }] };
+      const em = SP2(mit, { club: "Jetzt", rank: 9, N: 18, table: tab2(18) });
+      pr("Abgelehnt: der abgelehnte Klub, der Meister wird, taucht auf",
+         !!em && em.club === "Club1" && em.abgelehnt === true,
+         em ? em.club + " " + em.text + (em.abgelehnt ? " (abgelehnt)" : " (alter Verein)") : "kein Spiegel");
+
+      /* KEINE SCHADENFREUDE. Steht der abgelehnte Verein UNTEN, bleibt es
+         still — „das soll keine nachtraegliche Bestrafung sein". */
+      const unten = { seasons: [{ club: "Jetzt" }],
+        abgelehnt: [{ club: "Club17", jahr: 2030 }] };
+      pr("Abgelehnt: wer unten steht, wird nicht vorgeführt",
+         SP2(unten, { club: "Jetzt", rank: 3, N: 18, table: tab2(18) }) === null,
+         "abgelehnter Verein auf 17, eigener auf 3 → kein Spiegel");
+
+      /* Ein Verein, bei dem man SPAETER doch war, zaehlt als alter Verein und
+         nicht als abgelehnter — sonst stuende „den du abgelehnt hast" unter
+         einem, bei dem man drei Jahre gespielt hat. */
+      const doch = { seasons: [{ club: "Club1" }, { club: "Jetzt" }],
+        abgelehnt: [{ club: "Club1", jahr: 2030 }] };
+      const ed = SP2(doch, { club: "Jetzt", rank: 9, N: 18, table: tab2(18) });
+      pr("Abgelehnt: wer später doch dort war, gilt als alter Verein",
+         !!ed && !ed.abgelehnt,
+         ed ? (ed.abgelehnt ? "als abgelehnt gezeigt — falsch" : "als alter Verein gezeigt") : "kein Spiegel");
+
+      /* Das Feld darf nicht unbegrenzt wachsen — ein Spielstand ist ein
+         Speicher, kein Protokoll. Geprueft am Quelltext, weil die Kappung
+         beim Annehmen sitzt. */
+      const fsA = require("fs");
+      const ARGA = require("./argumente.cjs");
+      const kA = [ARGA.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsA.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qA = kA ? fsA.readFileSync(kA, "utf8") : "";
+      /* Der erste Regex hier war `\[[^\]]*\]\.slice` und fand nichts: die
+         Zuweisung enthaelt selbst eine leere Klammer (`p.abgelehnt || []`),
+         an der `[^\]]*` abbricht. Jetzt wird der Abschnitt ab `q.abgelehnt =`
+         genommen und darin nach der Kappung gesucht — robuster und leichter
+         zu lesen als ein Regex, der Klammern zaehlen muss. */
+      const iA = qA.indexOf("q.abgelehnt =");
+      const blockA = iA >= 0 ? qA.slice(iA, iA + 140) : "";
+      const gekappt = /\.slice\(\s*-\s*\d+\s*\)/.test(blockA);
+      pr("Abgelehnt: die Liste wird beim Anhängen gekappt",
+         !!qA && iA >= 0 && gekappt,
+         !qA ? "App.jsx nicht gefunden — LÄUFT NICHT"
+             : iA < 0 ? "Zuweisung nicht gefunden"
+             : gekappt ? "`.slice(-n)` steht dabei" : "KEINE Kappung — das Feld wüchse unbegrenzt");
+    }
+
+    /* ---- GROESSE DES SPIELSTANDS (35.115) -----------------------------
+       Es gab bis hierher KEINE Pruefung, die misst, wie gross ein Spielstand
+       wird. Das Meta-Konzeptpapier nennt Savegame-Groesse als Kernrisiko und
+       will Museum, Zeitleiste und Vereinslegenden speichern — ohne eine
+       Obergrenze merkt niemand, wenn der naechste Punkt den Speicher
+       verdoppelt.
+
+       Gemessen wird an einer ECHTEN Langzeitlaufbahn, nicht an einem
+       gebauten Zustand: nur so faellt auf, wenn ein neues Feld je Saison
+       mitwaechst statt einmalig zu sein. */
+    {
+      const LS = [];
+      try { for (let i = 0; i < 6; i++) LS.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+      pr("Speicher: der Laufbahn-Aufbau hat Langzeitläufe erzeugt",
+         LS.length === 6 && LS.every((q) => (q.seasons || []).length >= 12),
+         LS.length + " Laufbahnen · Saisons "
+           + LS.map((q) => (q.seasons || []).length).join("/"));
+
+      if (LS.length) {
+        const byte = (o) => JSON.stringify(o).length;
+        const jeSaison = LS.map((q) => byte(q.seasons) / Math.max(1, q.seasons.length));
+        const schnitt = jeSaison.reduce((a, b) => a + b, 0) / jeSaison.length;
+        const groesste = Math.max(...LS.map((q) => byte(q)));
+
+        /* JE SAISON ist die richtige Groesse, nicht der Gesamtstand: eine
+           lange Laufbahn darf mehr wiegen, aber nicht mehr JE JAHR. Vor der
+           Verdichtung in 35.115 waren es rund 4.240 Byte, danach 3.735.
+           Die Grenze liegt bewusst knapp darueber — sie soll anschlagen,
+           bevor ein neues Feld sich einnistet, nicht erst wenn es weh tut. */
+        pr("Speicher: eine Saison bleibt unter 4,3 KB im Spielstand",
+           schnitt <= 4400,
+           Math.round(schnitt) + " Byte je Saison (Grenze 4.400 · vor der Verdichtung 4.240)");
+
+        pr("Speicher: eine ganze Laufbahn bleibt unter 130 KB",
+           groesste <= 133120,
+           Math.round(groesste / 1024) + " KB im größten Lauf");
+
+        /* Und die Verdichtung selbst: in der Tabelle darf kein volles
+           Vereinsobjekt mehr stehen. Ein Rueckfall waere still — der
+           Spielstand waechst einfach wieder, und niemand sieht es. */
+        let volleObjekte = 0, zeilen = 0;
+        LS.forEach((q) => (q.seasons || []).forEach((x) => (x.table || []).forEach((t) => {
+          zeilen++;
+          if (t.club && typeof t.club === "object") volleObjekte++;
+        })));
+        pr("Speicher: die Tabelle trägt nur noch Vereinsnamen",
+           zeilen > 0 && volleObjekte === 0,
+           zeilen ? volleObjekte + " volle Objekte in " + zeilen + " Zeilen"
+                  : "keine Tabellenzeilen im Lauf");
+
+        /* GEGENPROBE: die Zaehlung muss ein volles Objekt auch ERKENNEN.
+           Ohne sie waere die Zeile darueber gruen, weil `zeilen` falsch
+           gezaehlt wird oder die Bedingung nie greift. */
+        const probe = [{ club: "Nur ein Name" }, { club: { n: "Volles Objekt", s: 70 } }];
+        pr("Speicher: Gegenprobe — ein volles Objekt würde auffallen",
+           probe.filter((t) => t.club && typeof t.club === "object").length === 1,
+           "eine von zwei Testzeilen als volles Objekt erkannt");
+
+        /* Und die Leseform muss BEIDE verstehen — alte Spielstaende tragen
+           das volle Objekt weiter. */
+        const TV = App.tabVerein;
+        pr("Speicher: alte Spielstände mit vollem Objekt bleiben lesbar",
+           typeof TV === "function"
+             && TV({ club: { n: "Alt" } }) && TV({ club: { n: "Alt" } }).n === "Alt"
+             && TV({ club: "Neu" }) && TV({ club: "Neu" }).n === "Neu"
+             && TV({}) === null,
+           typeof TV !== "function" ? "`tabVerein` nicht im Bündel"
+             : "Objektform, Namensform und Leerfall geprüft");
+      }
+    }
+
+    /* ---- DAS EWIGE REKORDBUCH (35.116) --------------------------------
+       Stufe B. Kein neues Feld: `leereBilanz()` fuehrt 49 Zahlen mit, die
+       bisher NUR die Errungenschaften speisten und nirgends zu sehen waren. */
+    {
+      const RK = App.REKORDE || [], RL = App.rekordListe;
+      pr("Rekorde: die Liste hat die richtige Groessenordnung",
+         RK.length >= 15 && RK.length <= 25,
+         RK.length + " Rekorde (Papier: 15 bis 25)");
+
+      /* JEDES FELD MUSS ES IN DER BILANZ GEBEN. Ein Tippfehler waere still:
+         die Zeile laese `undefined`, `|| 0` machte 0 daraus, und der Rekord
+         verschwaende einfach aus der Anzeige. */
+      const G0 = App.leereBilanz ? App.leereBilanz() : null;
+      const voll = {}; if (G0) Object.keys(G0).forEach((k) => { voll[k] = 7; });
+      const leer = [];
+      RK.forEach(([titel, hol]) => {
+        let w = null; try { w = hol(voll); } catch (e) { w = null; }
+        if (w !== 7) leer.push(titel);
+      });
+      pr("Rekorde: jeder liest ein Feld, das die Bilanz auch führt",
+         !!G0 && leer.length === 0,
+         !G0 ? "`leereBilanz` nicht im Bündel"
+             : leer.length ? "liest nichts Vorhandenes: " + leer.join(", ")
+                           : RK.length + " Felder gegen " + Object.keys(G0).length + " in der Bilanz");
+
+      /* NULL IST KEIN REKORD. Eine frische Welt darf keine Seite voller
+         Nullen zeigen — das saehe nach Versagen aus statt nach offener
+         Rechnung. */
+      pr("Rekorde: eine frische Welt zeigt keine leeren Zeilen",
+         typeof RL === "function" && G0 && RL(G0).length === 0,
+         typeof RL !== "function" ? "`rekordListe` nicht im Bündel"
+           : G0 ? RL(G0).length + " Zeilen bei einer leeren Bilanz" : "—");
+
+      /* GEGENPROBE: mit Werten MUSS die Liste voll sein. Ohne sie waere die
+         Zeile darueber auch gruen, wenn `rekordListe` immer nichts liefert. */
+      pr("Rekorde: Gegenprobe — mit Werten kommen alle",
+         typeof RL === "function" && RL(voll).length === RK.length,
+         typeof RL === "function" ? RL(voll).length + " von " + RK.length : "—");
+
+      /* Halbvoll: nur die gefuellten Zeilen erscheinen. */
+      if (G0 && typeof RL === "function") {
+        const halb = { ...G0, apps: 300, goals: 40, titel: 2 };
+        pr("Rekorde: nur was einen Wert hat, steht auch da",
+           RL(halb).length === 3,
+           RL(halb).length + " Zeilen bei drei gefüllten Feldern");
+      }
+
+      let krachR = null;
+      [null, {}, { apps: 0 }].forEach((x) => {
+        try { if (typeof RL === "function") RL(x); } catch (e) { krachR = krachR || e.message; } });
+      pr("Rekorde: unvollständige Bilanzen stürzen nicht ab",
+         krachR === null, krachR || "drei Lücken-Lagen abgefangen");
+    }
+
+    /* ---- RUHMESHALLE ALS MUSEUM (35.117) ------------------------------
+       Stufe C. Drei Felder je Eintrag: Archetyp, Vereinsstationen mit
+       Kapiteln, eine praegende Schlagzeile. Alle aus dem abgeleitet, was
+       35.104 bis 35.113 gebaut haben. */
+    {
+      const fsM = require("fs");
+      const ARGM = require("./argumente.cjs");
+      const kM = [ARGM.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsM.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qM = kM ? fsM.readFileSync(kM, "utf8") : "";
+      pr("Museum: App.jsx für die Prüfung gefunden", !!qM,
+         kM || "nicht gefunden — die Zeilen darunter laufen NICHT");
+
+      if (qM) {
+        /* Die drei Felder muessen im Eintrag stehen. */
+        const iH = qM.indexOf("saveHall({");
+        const block = iH >= 0 ? qM.slice(iH, iH + 3000) : "";
+        const fehlen = ["at:", "stat:", "sz:"].filter((f) => block.indexOf(f) < 0);
+        pr("Museum: der Eintrag trägt Archetyp, Stationen und Schlagzeile",
+           iH >= 0 && fehlen.length === 0,
+           iH < 0 ? "`saveHall({` nicht gefunden" :
+             fehlen.length ? "fehlt: " + fehlen.join(" ") : "alle drei Felder");
+
+        /* GEKAPPT. Vier Stationen, nicht alle — ein Ruhmeshallen-Eintrag ist
+           eine Wuerdigung, kein Karriereprotokoll. Ohne Kappung waechst der
+           Speicher mit der Laenge jeder Laufbahn. */
+        pr("Museum: die Stationsliste wird gekappt",
+           /vereinsKapitel\(q\.seasons, q\)\s*\.slice\(0,\s*\d+\)/.test(qM),
+           /vereinsKapitel\(q\.seasons, q\)\s*\.slice\(0,\s*\d+\)/.test(qM)
+             ? "`.slice(0, n)` vorhanden" : "KEINE Kappung — der Eintrag wüchse mit der Laufbahn");
+      }
+
+      /* DIE AUSWAHL DARF NICHT IMMER DASSELBE LIEFERN. Der erste Entwurf nahm
+         die SELTENSTE Schlagzeile einer Laufbahn — und dabei gewann praktisch
+         immer „Der Anfang", weil die erste Saison zwangslaeufig einmalig ist.
+         Der zweite ordnete nach Gefuehl und liess „Kapitän seines Landes" in
+         74 % gewinnen. Diese Probe faehrt echte Laufbahnen und zaehlt. */
+      const LM2 = [];
+      try { for (let i = 0; i < 12; i++) LM2.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+      const RANG2 = ["Vom Reservisten zum Kapitän", "Nach hinten durchgereicht",
+        "Das verlorene Jahr", "Der alte Mann ist noch da", "Sofort angekommen",
+        "Kapitän seines Landes", "Durchbruch", "Der Mann, auf den sie bauen",
+        "Zurückgeschrieben", "Das Jahr der Titel", "Die Binde",
+        "Das Jahr der Verletzung", "Eine große Spielzeit", "Ein Jahr zum Vergessen"];
+      const SZ2 = App.saisonSchlagzeile;
+      const gewinner = {};
+      LM2.forEach((q) => {
+        const alle = q.seasons.map((x, i) => SZ2(x, i ? q.seasons[i - 1] : null, q)).filter(Boolean);
+        for (const r of RANG2) if (alle.some((x) => x.kopf === r)) { gewinner[r] = (gewinner[r] || 0) + 1; break; }
+      });
+      const arten = Object.keys(gewinner).length;
+      const top = Object.entries(gewinner).sort((a, b) => b[1] - a[1])[0];
+      pr("Museum: die Schlagzeile im Eintrag streut",
+         LM2.length === 12 && arten >= 3 && top && top[1] / LM2.length <= 0.6,
+         LM2.length !== 12 ? "nur " + LM2.length + " Laufbahnen"
+           : arten + " verschiedene · häufigste "
+             + (top ? Math.round(100 * top[1] / LM2.length) : 0) + " % (Grenze 60 %)");
+
+      /* GEGENPROBE zur Rangfolge: jede Zeile darin muss es als Schlagzeile
+         auch geben — ein Tippfehler waere still, die Zeile wuerde nie
+         gewaehlt und niemand merkte es. */
+      const echte = new Set();
+      LM2.forEach((q) => q.seasons.forEach((x, i) => {
+        const z = SZ2(x, i ? q.seasons[i - 1] : null, q); if (z) echte.add(z.kopf); }));
+      const unbekannt2 = RANG2.filter((r) => !echte.has(r));
+      pr("Museum: Gegenprobe — jede Zeile der Rangfolge gibt es wirklich",
+         LM2.length === 0 || unbekannt2.length <= 3,
+         unbekannt2.length ? unbekannt2.length + " kamen in 12 Läufen nicht vor: "
+             + unbekannt2.join(", ") : "alle " + RANG2.length + " gesehen");
+    }
+
+    /* ---- FUENFZEHN JAHRE IN KAPITELN (35.118) -------------------------
+       Stufe D. Anders als bei der Spielerlaufbahn schneidet hier die LIGA,
+       nicht der Vereinswechsel — ein Vereinsrun hat keinen. */
+    {
+      const VP = App.vereinsPhasen, VTAB = App.VEREINSPHASEN || [];
+      if (typeof VP !== "function") {
+        pr("Vereinsphase: die Funktion ist ausgeführt", false, "nicht im Bündel");
+      } else {
+        const j = (jahr, liga, rang, extra) => ({ jahr, liga, rang, N: 18, ...(extra || {}) });
+
+        /* Die Liga schneidet. Zwei Jahre unten, dann Aufstieg, dann oben. */
+        const ch = [j(1, "3. Liga", 5), j(2, "3. Liga", 2, { aufstieg: true }),
+                    j(3, "2. Liga", 9), j(4, "2. Liga", 7)];
+        const ph = VP(ch);
+        pr("Vereinsphase: ein Ligawechsel beginnt ein neues Kapitel",
+           ph.length === 2 && ph[0].liga === "3. Liga" && ph[1].liga === "2. Liga",
+           ph.length + " Phasen aus 4 Jahren in 2 Ligen");
+
+        /* GEGENPROBE: ohne Ligawechsel bleibt es EIN Kapitel. Sonst koennte
+           die Funktion jedes Jahr zu einer Phase machen. */
+        const eine = VP([j(1, "2. Liga", 5), j(2, "2. Liga", 4), j(3, "2. Liga", 6)]);
+        pr("Vereinsphase: Gegenprobe — ohne Ligawechsel bleibt es ein Kapitel",
+           eine.length === 1 && eine[0].jahre === 3,
+           eine.length + " Phase(n) aus 3 Jahren in derselben Liga");
+
+        /* „Der Absturz nach dem Titel" braucht den Blick zurueck. Ohne ihn
+           waere jeder Abstieg derselbe. */
+        const nachTitel = VP([j(0, "1. Liga", 8), j(1, "1. Liga", 1), j(2, "1. Liga", 1),
+                              j(3, "1. Liga", 18, { abstieg: true }), j(4, "2. Liga", 8)]);
+        const hatAbsturz = nachTitel.some((x) => x.kapitel === "Der Absturz nach dem Titel");
+        pr("Vereinsphase: ein Abstieg nach Titeln heißt anders als einer ohne",
+           hatAbsturz,
+           nachTitel.map((x) => x.kapitel).join(" · "));
+
+        /* Jede Regel muss erreichbar sein — deterministisch, wie bei den
+           Kapiteln in 35.105. Ueber Zufallslaeufe wuerden die seltenen
+           flattern. */
+        /* JEDE LAGE BRAUCHT EINE ERSTE PHASE ALS VORLAUF. Der erste Entwurf
+           dieser Liste bestand aus Ein-Phasen-Lagen — und die erste Phase
+           heisst immer „Der Anfang" oder „Die Gründerjahre". Ergebnis: zehn
+           von zwoelf Regeln wurden als toter Code gemeldet, obwohl nur die
+           Testlagen zu kurz waren. Jede Lage beginnt jetzt mit einem
+           belanglosen Vorlauf, damit die geprueste Phase die ZWEITE ist. */
+        const vorlauf = [j(0, "Vorlauf-Liga", 9)];
+        const L2 = (rest) => vorlauf.concat(rest);
+        const lagen = [
+          [j(1, "3. Liga", 8), j(2, "3. Liga", 7), j(3, "3. Liga", 6), j(4, "3. Liga", 9)],
+          [j(1, "3. Liga", 8)],
+          L2([j(1, "1. Liga", 1), j(2, "1. Liga", 1), j(3, "1. Liga", 1)]),
+          L2([j(1, "2. Liga", 1, { aufstieg: true })]),
+          L2([j(1, "2. Liga", 3, { aufstieg: true })]),
+          L2([j(1, "1. Liga", 1)]).concat([j(2, "1. Liga", 17, { abstieg: true })]),
+          L2([j(1, "1. Liga", 18, { abstieg: true })]),
+          L2([j(1, "1. Liga", 1)]),
+          L2([j(1, "2. Liga", 9), j(2, "2. Liga", 8), j(3, "2. Liga", 10),
+              j(4, "2. Liga", 9), j(5, "2. Liga", 11)]),
+          L2([j(1, "1. Liga", 2), j(2, "1. Liga", 3)]),
+          L2([j(1, "1. Liga", 17), j(2, "1. Liga", 16)]),
+          L2([j(1, "1. Liga", 9), j(2, "1. Liga", 8)]),
+        ];
+        const gesehen = new Set();
+        lagen.forEach((c) => VP(c).forEach((x) => gesehen.add(x.kapitel)));
+        const nieVP = VTAB.map((x) => x[1]).filter((n) => !gesehen.has(n));
+        pr("Vereinsphase: jede Regel ist bei passendem Verlauf erreichbar",
+           VTAB.length > 0 && nieVP.length === 0,
+           nieVP.length ? "toter Code: " + nieVP.join(", ")
+                        : gesehen.size + " von " + VTAB.length + " Kapiteln");
+
+        let krachV = null;
+        [null, [], [{}], [{ jahr: 1 }]].forEach((c) => {
+          try { VP(c); } catch (e) { krachV = krachV || e.message; } });
+        pr("Vereinsphase: unvollständige Chroniken stürzen nicht ab",
+           krachV === null, krachV || "vier Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- DIE ZEITLEISTE DER WELT (35.119) -----------------------------
+       Stufe E. NICHTS wird gespeichert — das Papier warnt ausdruecklich, die
+       Zeitleiste duerfe Savegames nicht aufblasen. Sie wird bei jedem Oeffnen
+       aus Ruhmeshalle, Akademie- und Vereinschronik gerechnet. */
+    {
+      const MZ = App.metaZeitleiste;
+      if (typeof MZ !== "function") {
+        pr("Zeitleiste: die Funktion ist ausgeführt", false, "nicht im Bündel");
+      } else {
+        const hall = [{ name: "Erster", bis: 2040, score: 800 },
+                      { name: "Bester", bis: 2055, score: 1600 }];
+        const aka = { gegruendet: 2042, ehrentafel: [{ name: "Talent", jahr: 2049, ovr: 88 }] };
+        const ver = { gegruendet: 2048, name: "FC Test",
+          chronik: [{ jahr: 1, liga: "3. Liga", rang: 5 },
+                    { jahr: 2, liga: "3. Liga", rang: 1, aufstieg: true },
+                    { jahr: 3, liga: "2. Liga", rang: 8 }] };
+        const zl = MZ(hall, aka, ver);
+        pr("Zeitleiste: alle drei Systeme kommen vor",
+           new Set(zl.map((e) => e.was)).size === 3,
+           zl.length + " Einträge · " + [...new Set(zl.map((e) => e.was))].join(", "));
+
+        /* NACH JAHR SORTIERT. Eine Zeitleiste, die springt, ist keine. */
+        const jahre = zl.map((e) => e.jahr).filter((x) => x != null);
+        const sortiert = jahre.every((x, i) => i === 0 || jahre[i - 1] <= x);
+        pr("Zeitleiste: die Einträge stehen in der richtigen Reihenfolge",
+           sortiert, jahre.join(" · "));
+
+        /* Vereinsjahre sind RELATIV (1…15) und muessen auf das Gruendungsjahr
+           gerechnet werden — sonst stuende der Aufstieg im Jahr 2. */
+        const auf = zl.find((e) => /Aufstieg/.test(e.text));
+        pr("Zeitleiste: Vereinsjahre werden auf Kalenderjahre gerechnet",
+           !!auf && auf.jahr === 2049,
+           auf ? "erster Aufstieg im Jahr " + auf.jahr + " (Gründung 2048 + Vereinsjahr 2 − 1)" : "nicht gefunden");
+
+        /* ALTE VEREINE: `gegruendet: true` statt einer Zahl. Sie duerfen
+           nicht an erfundener Stelle stehen, sondern ohne Jahr am Ende. */
+        const altV = { ...ver, gegruendet: true };
+        const zlAlt = MZ(hall, aka, altV);
+        const ohneJahr = zlAlt.filter((e) => e.jahr == null);
+        const amEnde = ohneJahr.length > 0
+          && zlAlt.slice(-ohneJahr.length).every((e) => e.jahr == null);
+        pr("Zeitleiste: ein Verein ohne Kalenderjahr steht am Ende, nicht mittendrin",
+           ohneJahr.length === 3 && amEnde,
+           ohneJahr.length + " ohne Jahr · am Ende: " + amEnde);
+
+        /* GEGENPROBE: mit Jahr stehen sie NICHT am Ende. Ohne sie waere die
+           Zeile darueber auch gruen, wenn alle Eintraege jahrlos waeren. */
+        pr("Zeitleiste: Gegenprobe — mit Jahr sortieren sie sich ein",
+           zl.every((e) => e.jahr != null),
+           zl.filter((e) => e.jahr == null).length + " ohne Jahr bei vollständigen Daten");
+
+        /* Ohne Daten gar nichts — kein leeres Gerüst. */
+        pr("Zeitleiste: eine leere Welt ergibt keine Einträge",
+           MZ([], null, null).length === 0, MZ([], null, null).length + " Einträge");
+
+        let krachZ = null;
+        [[null, null, null], [[], {}, {}], [[{}], { gegruendet: 2030 }, { gegruendet: 2030 }]]
+          .forEach(([a, b, c]) => { try { MZ(a, b, c); } catch (e) { krachZ = krachZ || e.message; } });
+        pr("Zeitleiste: unvollständige Daten stürzen nicht ab",
+           krachZ === null, krachZ || "drei Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- FLAECHENFARBEN AUF KARTON (35.121) ---------------------------
+       Von Kevin auf dem S24 Ultra gefunden: „DER NATIONALHELD" stand im
+       Karriererueckblick als fast schwarze Schrift auf dunkelbraunem Grund.
+       Gemessener Kontrast 1,13 bei einer Grenze von 3.
+
+       DIE URSACHE WAR STRUKTURELL. Die Kartonblaetter `.karteikarte` und
+       `.laufzettel` loesen `--tx` und `--mu` zur Kartonfassung auf — die
+       FLAECHENFARBEN aber nicht. Ein `.up`-Kasten innerhalb einer
+       Karteikarte trug damit Tinte auf #262218.
+
+       WARUM DER KONTRASTTEST ES NICHT FAND: `kontrast.cjs` prueft drei
+       Ansichten (Titelblatt, Hauptmenue, Spielerpass). Der Karriere-
+       rueckblick ist nicht dabei — und genau dort sind in den letzten
+       zwanzig Fassungen die meisten neuen Anzeigen entstanden.
+
+       Diese Probe deckt die KLASSE ab statt einer weiteren Ansicht: wer
+       `--tx` umdefiniert, muss auch jede Flaeche umdefinieren, auf der
+       dieser Text landen kann. Das faengt auch den naechsten Fall, ohne
+       dass jemand eine vierte Ansicht nachtraegt. */
+    {
+      const fsF = require("fs");
+      const ARGF = require("./argumente.cjs");
+      const kF = [ARGF.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsF.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qF = kF ? fsF.readFileSync(kF, "utf8") : "";
+      pr("Karton: App.jsx für die Farbprüfung gefunden", !!qF,
+         kF || "nicht gefunden — die Zeilen darunter laufen NICHT");
+
+      if (qF) {
+        /* NUR `up` — BERICHTIGT NACH DEM ZWEITEN GERAETEBEFUND (35.122).
+           Der erste Entwurf dieser Probe verlangte alle vier Flaechen, weil
+           sie rechnerisch denselben Kontrast hatten. Genau das hat 35.121 zu
+           breit gemacht: die Wildcard-Karte setzt in `.wkarte` absichtlich
+           helle Schrift und traegt eine eigene Ausnahme, die ihr innerhalb
+           der Kartonblaetter den DUNKLEN `--pan` zurueckgibt. Mit `--pan` auf
+           Karton lief die Ausnahme ins Leere — helle Schrift auf hellem
+           Papier.
+
+           Eine Probe, die eine Regel erzwingt, muss die Ausnahmen kennen.
+           Diese hier prueft deshalb `--up`, wo Tinte wirklich landet, und
+           daneben, dass die Wildcard-Ausnahme UEBERHAUPT NOCH DA IST. */
+        const FLAECHEN = ["up"];
+        const luecken = [];
+        ["laufzettel", "karteikarte"].forEach((blatt) => {
+          const i = qF.indexOf("." + blatt + "{");
+          if (i < 0) { luecken.push(blatt + " nicht gefunden"); return; }
+          const block = qF.slice(i, i + 420);
+          /* Nur Blaetter pruefen, die `--tx` ueberhaupt umdefinieren — nur
+             dann kippt der Kontrast. */
+          if (block.indexOf("--tx:") < 0) return;
+          FLAECHEN.forEach((v) => {
+            if (block.indexOf("--" + v + ":") < 0) luecken.push(blatt + "/--" + v);
+          });
+        });
+        pr("Karton: wer die Textfarbe umstellt, stellt auch die Flächen um",
+           luecken.length === 0,
+           luecken.length ? "nicht aufgelöst: " + luecken.join(", ")
+                          : "beide Blätter lösen " + FLAECHEN.length + " Flächenfarben auf");
+
+        /* GEGENPROBE: die Suche muss eine fehlende Farbe auch ERKENNEN. */
+        const probeBlock = "--ac:x; --tx:y;";
+        pr("Karton: Gegenprobe — eine fehlende Flächenfarbe fällt auf",
+           ["up"].filter((v) => probeBlock.indexOf("--" + v + ":") < 0).length === 1,
+           "in einem Block ohne `--up` wird es erkannt");
+
+        /* DIE AUSNAHME MUSS BLEIBEN. Sie ist der Grund, warum `--pan` in den
+           Kartonblaettern NICHT aufgeloest werden darf. Wer sie entfernt,
+           macht die Wildcard-Karte wieder unlesbar — und diesmal faellt es
+           auf, bevor jemand ein Telefon in die Hand nimmt. */
+        const ausnahme = /\.laufzettel\s+\.wkarte\s*,\s*\.karteikarte\s+\.wkarte\s*\{[^}]*background:\s*var\(--pan\)/.test(qF);
+        pr("Karton: die Wildcard-Karte behält auf Karton ihren dunklen Grund",
+           ausnahme,
+           ausnahme ? "`.laufzettel .wkarte` setzt `background:var(--pan)`"
+                    : "Ausnahme fehlt — helle Schrift auf hellem Papier");
+
+        /* Und dass sie ueberhaupt helle Schrift setzt — sonst waere die
+           Ausnahme sinnlos und jemand koennte sie fuer ueberfluessig halten. */
+        const iW = qF.indexOf(".wkarte{");
+        const wBlock = iW >= 0 ? qF.slice(iW, iW + 200) : "";
+        pr("Karton: die Wildcard-Karte setzt eigene helle Schrift",
+           iW >= 0 && /--tx:\s*#[EFef]/.test(wBlock),
+           iW < 0 ? "`.wkarte` nicht gefunden"
+                  : (/--tx:\s*#[EFef]/.test(wBlock) ? "eigene helle `--tx`" : "keine eigene Schriftfarbe"));
+      }
+    }
+
+    /* ---- FAST GESCHAFFT (35.123) --------------------------------------
+       Stufe G. Der Fortschritt wird aus der Bedingung ABGELEITET, nicht
+       gepflegt — bei 192 Errungenschaften waere eine Handliste eine zweite
+       Liste, die beim naechsten neuen Erfolg stumm auseinanderlaeuft. */
+    {
+      const FG = App.fastGeschafft, LB = App.leereBilanz;
+      if (typeof FG !== "function" || typeof LB !== "function") {
+        pr("Fast: die Funktion ist ausgeführt", false, "nicht im Bündel");
+      } else {
+        /* DIE WICHTIGSTE PROBE: das Ablesen aus der Bedingung muss im
+           GEBUENDELTEN Code funktionieren. Das Parsen von Funktionstext ist
+           in 35.105 und 35.108 zweimal danebengegangen — dort wurden aber
+           NAMEN gelesen, die esbuild umbenennt. Feldnamen und Zahlen
+           benennt er nicht um. Diese Zeile haelt genau das fest. */
+        const G1 = { ...LB(), karrieren: 8, apps: 2400, goals: 470, caps: 190,
+          titel: 22, vereine: 38, laender: 8, saisons: 140, treueMax: 8 };
+        const f1 = FG(G1, []);
+        pr("Fast: der Fortschritt lässt sich im Bündel wirklich ablesen",
+           f1.length > 0,
+           f1.length ? f1.length + " Treffer · " + f1.map((x) => x.ist + "/" + x.soll).join(" ")
+                     : "KEINER — das Ablesen greift im Bündel nicht");
+
+        /* Hoechstens drei. Das Papier sagt „2 bis 3", nicht „alles was
+           passt" — sonst ist es wieder eine Liste. */
+        const G2 = { ...LB(), karrieren: 15, apps: 4600, goals: 900, caps: 360,
+          titel: 44, vereine: 70, laender: 12, saisons: 265, treueMax: 11,
+          meister: 17, pokale: 12, kapitaen: 50, aufstiege: 9 };
+        pr("Fast: es werden höchstens drei gezeigt",
+           FG(G2, []).length <= 3, FG(G2, []).length + " bei einer weit fortgeschrittenen Welt");
+
+        /* Unter 60 % nichts — wer bei 12 von 500 steht, liest das nicht. */
+        const dünn = { ...LB(), apps: 12, karrieren: 1 };
+        pr("Fast: was weit weg ist, wird nicht gezeigt",
+           FG(dünn, []).length === 0,
+           "bei 12 Pflichtspielen: " + FG(dünn, []).length + " Einträge");
+
+        /* GEGENPROBE dazu: knapp DAVOR muss etwas kommen. Ohne sie waere die
+           Zeile darueber auch gruen, wenn die Funktion nie etwas liefert. */
+        const nah = { ...LB(), karrieren: 8 };
+        const fn = FG(nah, []);
+        pr("Fast: Gegenprobe — wer nah dran ist, wird gezeigt",
+           fn.length > 0 && fn[0].soll === 10,
+           fn.length ? fn[0].titel + " " + fn[0].ist + "/" + fn[0].soll : "nichts bei 8 von 10");
+
+        /* Erledigte kommen nicht mehr. */
+        const ids = FG(nah, []).map((x) => x.id);
+        pr("Fast: was schon erreicht ist, verschwindet",
+           FG(nah, ids).length === 0,
+           "nach dem Erledigen: " + FG(nah, ids).length + " Einträge");
+
+        /* Nur die Gesamtbilanz `G` — `p` und `A` sind beim Anschauen der
+           Seite nicht dieselben wie beim Erfuellen. */
+        const mitP = App.ACHIEVEMENTS.filter((a) => {
+          const q = String(a.ok).replace(/\s+/g, " ").trim();
+          const m = q.match(/^\(\s*p\s*,\s*G\s*(?:,[^)]*)?\)\s*=>\s*\(?\s*([A-Za-z]+)\.([A-Za-z]+)\s*(?:\|\|\s*0\s*\))?\s*>=\s*(\d+)\s*$/);
+          return m && m[1] !== "G";
+        }).length;
+        pr("Fast: nur die Gesamtbilanz wird gelesen, nicht p oder A",
+           FG(G2, []).every((x) => typeof G2[Object.keys(G2).find((k) => G2[k] === x.ist)] !== "undefined"),
+           mitP + " Bedingungen lesen ein anderes Objekt und bleiben außen vor");
+
+        let krachFG = null;
+        [[null, []], [{}, null], [LB(), []]].forEach(([a, b]) => {
+          try { FG(a, b); } catch (e) { krachFG = krachFG || e.message; } });
+        pr("Fast: unvollständige Bilanzen stürzen nicht ab",
+           krachFG === null, krachFG || "drei Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- AUS DER JUGEND IN DIE SAMMLUNG (35.125) ----------------------
+       Stufe H des Meta-Papiers: „Ein Talent kann die Akademie verlassen,
+       Profi werden, spaeter als Karte auftauchen."
+
+       Geprueft ueber ECHTE Zustandsuebergaenge, nicht ueber gebaute Objekte:
+       Akademie gruenden, Jahre laufen lassen, Absolventen einsammeln, Karten
+       daraus machen, in den Pool legen. Nur so faellt auf, wenn die Kette an
+       einer Stelle reisst — und sie hat lange gerissen: `ausAbsolvent` hiess
+       `ausTalent` und wurde NIE aufgerufen. */
+    {
+      const K2 = App.KARTEN;
+      let a = App.akaGruenden(App.leereAkademie(), "Kette", 2026);
+      const st2 = {}; App.ABTEILUNGEN.forEach((x) => { st2[x.id] = App.AKA_MAX; });
+      a = { ...a, stufen: { ...a.stufen, ...st2 } };
+      for (let i = 0; i < 14; i++) { const r = App.akaJahr(a, 2027 + i); a = (r && r.a) || r; }
+
+      const abs = a.absolventen || [];
+      pr("Kette: die Akademie bringt überhaupt Absolventen hervor",
+         abs.length > 0, abs.length + " nach 14 vollen Jahren");
+
+      if (abs.length) {
+        const karten = abs.map((x) => K2.ausAbsolvent(x));
+        pr("Kette: aus jedem Absolventen wird eine Karte mit Herkunft",
+           karten.every((k) => k.kid && k.name && k.herkunft === "akademie"),
+           karten.length + " Karten · Beispiel " + karten[0].kid + " (" + karten[0].stufe + ")");
+
+        /* DIE KENNUNG IST DIE VERBINDUNG. Derselbe Spieler muss in Akademie
+           und Sammlung denselben String tragen — sonst ist es nicht derselbe
+           Spieler, sondern nur einer mit demselben Namen. */
+        pr("Kette: die Kennung führt auf das Talent zurück",
+           karten.every((k, i) => k.kid === "t:" + abs[i].id),
+           "z. B. " + karten[0].kid + " ← Absolvent " + abs[0].id);
+
+        /* Und im Pool: zweimal dieselbe Karte bleibt eine. */
+        let pool = K2.poolErgaenzen(K2.leererPool(), karten);
+        const n1 = pool.karten.length;
+        pool = K2.poolErgaenzen(pool, karten);
+        pr("Kette: derselbe Absolvent landet nicht zweimal im Pool",
+           pool.karten.length === n1,
+           n1 + " Karten, nach dem zweiten Einlegen " + pool.karten.length);
+
+        /* Die Staerke kommt aus `peak`, nicht aus einem Momentwert — ein
+           Absolvent, der mit 34 aufhoert, darf keine 58er-Karte werden. */
+        const mitPeak = abs.filter((x) => x.peak);
+        pr("Kette: die Karte trägt die Höchststärke, nicht den Endwert",
+           mitPeak.every((x) => K2.ausAbsolvent(x).ovr === x.peak),
+           mitPeak.length + " mit `peak` geprüft");
+
+        /* Der Jahrgang macht die Karte erzaehlbar — „Eigengewaechs,
+           Jahrgang 2030". Ohne ihn waere es eine Karte wie jede andere. */
+        pr("Kette: der Jahrgang steht auf der Karte",
+           karten.every((k) => k.zusatz && k.zusatz.jahrgang),
+           "Beispiel Jahrgang " + karten[0].zusatz.jahrgang);
+      }
+
+      /* GEGENPROBE: eine Akademie ohne Jahre bringt nichts hervor — sonst
+         waere die erste Zeile auch gruen, wenn die Absolventenliste aus
+         irgendetwas anderem gefuellt wuerde. */
+      const frisch = App.akaGruenden(App.leereAkademie(), "Frisch", 2026);
+      pr("Kette: Gegenprobe — eine frische Akademie hat keine Absolventen",
+         (frisch.absolventen || []).length === 0,
+         (frisch.absolventen || []).length + " direkt nach der Gründung");
+    }
+
+    /* ---- SAMMLUNGSSEITEN (35.126) -------------------------------------
+       Stufe I. Abgeleitet aus dem vorhandenen Pool — kein neues Feld, kein
+       Fortschrittsspeicher, keine zweite Liste. */
+    {
+      const K3 = App.KARTEN, SE = (K3 && K3.SETS) || [];
+      pr("Sets: es gibt Sammlungsseiten", SE.length >= 4,
+         SE.length + " über Bedingungen plus „Weltreise“ (zählt Länder)");
+
+      const leer = K3.setStand(K3.leererPool());
+      pr("Sets: eine leere Sammlung steht überall auf null",
+         leer.every((x) => x.habe === 0 && !x.voll),
+         leer.length + " Seiten, alle bei 0");
+
+      /* JEDE SEITE MUSS FÜLLBAR SEIN. Eine Seite, die niemand vollkriegt,
+         ist keine Sammelseite, sondern eine Sackgasse — und genau das war
+         „Aus eigener Kraft" bis 35.125, als Absolventen noch keine Karten
+         wurden. */
+      const bau = [];
+      for (let i = 0; i < 12; i++) bau.push({ kid: "a" + i, nat: "DE", stufe: "gold",
+        herkunft: "akademie", name: "J" + i, pos: "ST", ovr: 80 });
+      for (let i = 0; i < 6; i++) bau.push({ kid: "h" + i, nat: "FR", stufe: "legende",
+        herkunft: "halle", name: "H" + i, pos: "ZM", ovr: 88 });
+      for (let i = 0; i < 12; i++) bau.push({ kid: "v" + i, nat: "ES", stufe: "silber",
+        herkunft: "verein", name: "V" + i, pos: "IV", ovr: 70 });
+      for (let i = 0; i < 6; i++) bau.push({ kid: "s" + i, nat: "IT", stufe: "gold",
+        herkunft: "pack", name: "S" + i, pos: "LM", ovr: 82, sonderkarte: true });
+      const LAND = ["DE","FR","ES","IT","NL","PT","BR","AR","EN","BE","HR","DK","SE","NO","PL","AT"];
+      LAND.forEach((l, i) => bau.push({ kid: "w" + i, nat: l, stufe: "bronze",
+        herkunft: "pack", name: "W" + i, pos: "ST", ovr: 60 }));
+      const voll = K3.setStand({ karten: bau });
+      const nichtVoll = voll.filter((x) => !x.voll).map((x) => x.n + " " + x.habe + "/" + x.soll);
+      pr("Sets: jede Seite lässt sich wirklich vollmachen",
+         nichtVoll.length === 0,
+         nichtVoll.length ? "bleibt offen: " + nichtVoll.join(" · ")
+                          : voll.length + " Seiten voll");
+
+      /* GEGENPROBE: mit einem duennen Pool darf KEINE voll sein — sonst
+         waere die Zeile darueber auch gruen, wenn `voll` immer true ist. */
+      const duenn = K3.setStand({ karten: bau.slice(0, 3) });
+      pr("Sets: Gegenprobe — drei Karten füllen keine Seite",
+         duenn.every((x) => !x.voll),
+         duenn.filter((x) => x.voll).length + " Seiten voll bei drei Karten");
+
+      /* Nie mehr als das Soll — sonst stuende „14/11" da. */
+      const zuviel = K3.setStand({ karten: bau.concat(bau) });
+      pr("Sets: der Zähler läuft nicht über das Soll hinaus",
+         zuviel.every((x) => x.habe <= x.soll),
+         "bei doppeltem Pool: " + zuviel.map((x) => x.habe + "/" + x.soll).join(" "));
+
+      let krachSE = null;
+      [null, {}, { karten: null }, { karten: [{}] }].forEach((x) => {
+        try { K3.setStand(x); } catch (e) { krachSE = krachSE || e.message; } });
+      pr("Sets: unvollständige Pools stürzen nicht ab",
+         krachSE === null, krachSE || "vier Lücken-Lagen abgefangen");
+    }
+
+    /* ---- ENTWICKLUNGSTYPEN (35.127) -----------------------------------
+       Stufe J. Ein Feld am Talent, sechs Typen, ein Drittel bekommt einen. */
+    {
+      const TT = App.TALENTTYPEN || [], TV = App.typVon;
+      pr("Typen: es gibt Entwicklungstypen", TT.length >= 5,
+         TT.length + " Typen");
+
+      /* JEDER TYP MUSS ETWAS TUN. Ein Merkmal, das nur auf der Karte steht,
+         waere ein Text ohne Mechanik — die Fehlerklasse, die dieses Projekt
+         am haeufigsten getroffen hat. */
+      const wirkungslos = TT.filter((ty) => {
+        const jung = { alter: 16 }, alt = { alter: 19 };
+        let a1, a2;
+        try { a1 = ty.f(jung, 10); a2 = ty.f(alt, 10); } catch (e) { return true; }
+        /* `sorge` wuerfelt — dort reicht, dass ueberhaupt etwas anderes
+           herauskommen KANN. */
+        if (ty.id === "sorge") {
+          const proben = []; for (let i = 0; i < 40; i++) proben.push(ty.f(alt, 10));
+          return new Set(proben).size < 2;
+        }
+        return a1 === 10 && a2 === 10;
+      }).map((ty) => ty.n);
+      pr("Typen: jeder verändert den Zuwachs wirklich",
+         wirkungslos.length === 0,
+         wirkungslos.length ? "ohne Wirkung: " + wirkungslos.join(", ")
+                            : TT.length + " Typen geprüft");
+
+      /* SPAET und FRUEH duerfen sich nicht gleich verhalten — sonst waeren
+         es zwei Namen fuer dasselbe. */
+      const sp = TT.find((x) => x.id === "spaet"), fr = TT.find((x) => x.id === "frueh");
+      pr("Typen: Spätentwickler und Frühreif laufen gegenläufig",
+         !!sp && !!fr && sp.f({ alter: 16 }, 10) < fr.f({ alter: 16 }, 10)
+           && sp.f({ alter: 19 }, 10) > fr.f({ alter: 19 }, 10),
+         sp && fr ? "mit 16: " + sp.f({ alter: 16 }, 10).toFixed(1) + " gegen "
+           + fr.f({ alter: 16 }, 10).toFixed(1) + " · mit 19: "
+           + sp.f({ alter: 19 }, 10).toFixed(1) + " gegen " + fr.f({ alter: 19 }, 10).toFixed(1) : "—");
+
+      /* DER TYP MUSS DEN UEBERGANG ZUM ABSOLVENTEN UEBERLEBEN. Beim ersten
+         Entwurf blieb er beim Talent zurueck: 315 Absolventen, ALLE ohne Typ,
+         obwohl ein Drittel der Talente einen trug. Er waere genau in dem
+         Moment verschwunden, in dem der Spieler erinnerungswuerdig wird. */
+      let ak = App.akaGruenden(App.leereAkademie(), "Typen", 2026);
+      const stT = {}; App.ABTEILUNGEN.forEach((x) => { stT[x.id] = App.AKA_MAX; });
+      ak = { ...ak, stufen: { ...ak.stufen, ...stT } };
+      for (let i = 0; i < 14; i++) { const r = App.akaJahr(ak, 2027 + i); ak = (r && r.a) || r; }
+      const absT = ak.absolventen || [];
+      const mitTyp = absT.filter((x) => x && x.typ).length;
+      pr("Typen: der Typ überlebt den Weg zum Absolventen",
+         absT.length > 0 && mitTyp > 0,
+         mitTyp + " von " + absT.length + " Absolventen tragen einen Typ");
+
+      /* Aber NICHT alle — sonst ist der Typ die Regel und sagt nichts mehr. */
+      pr("Typen: die Mehrheit bleibt bewusst ohne",
+         absT.length === 0 || mitTyp / absT.length <= 0.55,
+         absT.length ? Math.round(100 * mitTyp / absT.length) + " % mit Typ (Grenze 55 %)" : "—");
+
+      /* Alte Spielstaende: ein Talent ohne `typ` muss durchlaufen. */
+      pr("Typen: ein Talent ohne Typ wird unverändert behandelt",
+         TV({ alter: 17 }) === null && TV(null) === null && TV({ typ: "gibtesnicht" }) === null,
+         "ohne Feld, ohne Talent und mit unbekanntem Typ: jeweils kein Treffer");
+    }
+
+    /* Die Posten muessen benannt sein — eine Gutschrift ohne Grund ist
+       eine Zahl, die vom Himmel faellt. */
       const mitPosten = vc({ profis: 2 }, { rang: 1 }, null);
       pr("VC: jede Gutschrift wird benannt",
          mitPosten.posten.length === 2

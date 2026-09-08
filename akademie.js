@@ -155,6 +155,57 @@ export const machAkademie = (H) => {
     (t && t.vertragBis != null) ? t.vertragBis : jahr + VERTRAG_JAHRE[0];
   const unterVertrag = (t, jahr) => vertragVon(t, jahr) > jahr;
 
+  /* ---------------------------------------- Entwicklungstypen -------------
+     Stufe J des Meta-Papiers: „Akademiespieler sollen gelegentlich
+     erkennbare Entwicklungsidentitaeten erhalten. Keine zweite
+     Spielerkarriere im Kleinformat und keine Flut neuer Attribute."
+
+     EIN FELD, NICHT SIEBEN. `t.typ` traegt eine Kennung oder fehlt. Alte
+     Spielstaende haben es nicht — dann verhaelt sich das Talent wie bisher,
+     und die Anzeige laesst die Zeile weg. Keine Migration.
+
+     NUR EIN DRITTEL BEKOMMT EINEN. Wenn jedes Talent einen Typ traegt, ist
+     der Typ die Regel und sagt nichts mehr; die uebrigen bleiben bewusst
+     namenlos. Das ist dieselbe Ueberlegung wie beim Nebenarchetyp in 35.109,
+     der von 83 % auf 40 % gestrafft wurde.
+
+     JEDER TYP AENDERT ETWAS AM ZUWACHS. Ein Merkmal, das nur auf der Karte
+     steht und nichts tut, waere ein Text ohne Mechanik — die Fehlerklasse,
+     die dieses Projekt am haeufigsten getroffen hat. `f` greift in dieselbe
+     Zuwachsrechnung ein, die es seit jeher gibt; `spaet` und `frueh`
+     verschieben nur, WANN der Zuwachs kommt, nicht wie viel insgesamt. */
+  const TALENTTYPEN = [
+    { id: "monster", n: "Trainingsmonster", w: 3,
+      t: "Arbeitet mehr als alle anderen.",
+      f: (t, z) => z * 1.35 },
+    { id: "spaet", n: "Spätentwickler", w: 3,
+      t: "Braucht länger — und kommt dann.",
+      f: (t, z) => (t.alter <= 17 ? z * .55 : z * 1.5) },
+    { id: "frueh", n: "Frühreif", w: 2,
+      t: "War immer der Beste im Jahrgang.",
+      f: (t, z) => (t.alter <= 17 ? z * 1.55 : z * .7) },
+    { id: "glas", n: "Verletzungsanfällig", w: 2,
+      t: "Kommt aus der Reha kaum heraus.",
+      f: (t, z) => z * .85 },
+    { id: "sorge", n: "Sorgenkind", w: 2,
+      t: "Talent ja, Zuverlässigkeit nein.",
+      f: (t, z) => z * (chance(.5) ? 1.3 : .5) },
+    { id: "fuehrung", n: "Kapitänstyp", w: 2,
+      t: "Die Jüngeren hören auf ihn.",
+      f: (t, z) => z * 1.1 },
+  ];
+
+  const typWaehlen = () => {
+    /* Zwei Drittel bleiben ohne Typ. */
+    if (!chance(.34)) return null;
+    const summe = TALENTTYPEN.reduce((x, y) => x + y.w, 0);
+    let r = Math.random() * summe;
+    for (const ty of TALENTTYPEN) { r -= ty.w; if (r <= 0) return ty.id; }
+    return null;
+  };
+
+  const typVon = (t) => (t && t.typ) ? TALENTTYPEN.find((x) => x.id === t.typ) || null : null;
+
   function talentBauen(a, jahr, wunschPos) {
     const S = { ...leereAkademie().stufen, ...((a && a.stufen) || {}) };
     const natId = pick(REGION_KEYS);
@@ -165,7 +216,7 @@ export const machAkademie = (H) => {
     return {
       id: "t" + jahr + "_" + Math.floor(Math.random() * 1e6).toString(36),
       name: genName(natId, "m"), nat: natId, flag: nat.flag,
-      pos, alter: 15, ovr, pot, ein: jahr, verletzt: 0, ruf: 0,
+      pos, alter: 15, ovr, pot, ein: jahr, verletzt: 0, ruf: 0, typ: typWaehlen(),
       /* Zwei oder drei Jahre. Laenger nicht: ein Jahr ist eine abgeschlossene
          Spielerlaufbahn, ein Fuenfjahresvertrag liefe nie ab. */
       vertragBis: jahr + (chance(.5) ? VERTRAG_JAHRE[0] : VERTRAG_JAHRE[1]),
@@ -188,9 +239,16 @@ export const machAkademie = (H) => {
         nationalspieler: a0.bilanz.nationalspieler + (f.ns ? 1 : 0) },
       talente: (a0.talente || []).filter((x) => x.id !== f.talentId),
       faelle: (a0.faelle || []).filter((x) => x.id !== fallId),
+      /* `typ` MUSS MIT (35.127). Beim ersten Entwurf blieb er beim Talent
+         zurueck: 315 Absolventen aus zwoelf Akademien, ALLE ohne Typ, obwohl
+         ein Drittel der Talente einen trug. Der Entwicklungstyp haette dann
+         nur waehrend der Ausbildung existiert und waere genau in dem Moment
+         verschwunden, in dem der Spieler erinnerungswuerdig wird — auf der
+         Karte, in der Ehrentafel, in der Zeitleiste. */
       absolventen: [...(a0.absolventen || []), { id: f.talentId, name: f.name, flag: f.flag,
         nat: t ? t.nat : null, pos: f.pos, ein: t ? t.ein : null, raus: f.gestellt,
-        peak: f.peak, ns: f.ns, klub: f.klub, klubLiga: f.klubLiga }],
+        peak: f.peak, ns: f.ns, klub: f.klub, klubLiga: f.klubLiga,
+        typ: (t && t.typ) || null }],
     };
     return { a, fehler: null,
       text: f.name + " unterschreibt bei " + f.klub + "." };
@@ -307,13 +365,22 @@ export const machAkademie = (H) => {
         return;
       }
       let mult = 1;
-      if (chance(clamp(.13 - S.medizin * .019, .008, .2))) {
+      /* „Verletzungsanfaellig" heisst genau das — sonst waere es ein Name
+         ohne Inhalt. Die Grundgefahr wird verdoppelt, die Medizin wirkt
+         weiterhin dagegen. */
+      const glas = t.typ === "glas" ? 2 : 1;
+      if (chance(clamp((.13 - S.medizin * .019) * glas, .008, .35))) {
         mult = .3; t.verletzt++;
         E.push({ art: "pech", txt: t.name + " fällt fast das ganze Jahr aus." });
       }
       /* Videoanalyse (35.13) wirkt hier mit — sie ist die dritte Quelle des
            Zuwachses neben Plaetzen und Ausbildung. */
-        const zuwachs = (ri(1, 3) + S.plaetze * .35 + S.lehre * .2 + S.analyse * .26) * mult;
+        let zuwachs = (ri(1, 3) + S.plaetze * .35 + S.lehre * .2 + S.analyse * .26) * mult;
+      /* Der Entwicklungstyp greift HIER ein, in dieselbe Rechnung (35.127) —
+         nicht in einer eigenen daneben. Talente ohne Typ (zwei Drittel) und
+         Spielstaende von vor 35.127 gehen unveraendert durch. */
+      const ty = typVon(t);
+      if (ty) { try { zuwachs = ty.f(t, zuwachs); } catch (e) { /* Typ unbekannt */ } }
       t.ovr = clamp(Math.round(t.ovr + zuwachs), t.ovr, t.pot);
       /* Automatische Verlaengerung — „das machen quasi Angestellte fuer mich".
          Nur solange er noch nicht 19 ist: danach entscheidet ein Angebot,
@@ -413,7 +480,8 @@ export const machAkademie = (H) => {
       if (peak >= 85) a.bilanz.weltklasse++;
       if (ns) a.bilanz.nationalspieler++;
       a.absolventen.push({ id: t.id, name: t.name, flag: t.flag, nat: t.nat, pos: t.pos,
-        ein: t.ein, raus: jahr, peak, ns, klub: verein.n, klubLiga: verein.l });
+        ein: t.ein, raus: jahr, peak, ns, klub: verein.n, klubLiga: verein.l,
+        typ: t.typ || null });
       E.push({ art: peak >= 85 ? "gross" : "profi",
         txt: t.name + " unterschreibt bei " + verein.n
           + (peak >= 85 ? " — daraus wird ein Weltklassespieler." : ".") });
@@ -434,7 +502,8 @@ export const machAkademie = (H) => {
       if (f.peak >= 85) a.bilanz.weltklasse++;
       if (f.ns) a.bilanz.nationalspieler++;
       a.absolventen.push({ id: t.id, name: t.name, flag: t.flag, nat: t.nat, pos: t.pos,
-        ein: t.ein, raus: jahr, peak: f.peak, ns: f.ns, klub: f.klub, klubLiga: f.klubLiga });
+        ein: t.ein, raus: jahr, peak: f.peak, ns: f.ns, klub: f.klub, klubLiga: f.klubLiga,
+        typ: t.typ || null });
       const i = bleibenNach.indexOf(t);
       if (i >= 0) bleibenNach.splice(i, 1);
       E.push({ art: "weg", txt: t.name + " hat lange genug gewartet und bei "
@@ -621,6 +690,7 @@ export const machAkademie = (H) => {
     leereAkademie, akaJahrNr, akaJahrgang, akaStufe, akaSumme, akaAusbau,
     akaPreis, akaRestkosten, akaSpanne, akaLeistbar,
     akaJahr, akaBonus, akaBonusText, akaNaechsteGabe, akaNaechster,
+    TALENTTYPEN, typVon,
     akaVerbuchen, akaGruenden,
     freigeben, behalten, unterVertrag, vertragVon, AKA_HOECHSTALTER,
     talentAuslaufen, aussortieren,

@@ -1,0 +1,112 @@
+RASENSCHACH XI 35.128 — FÜRS REPOSITORY
+========================================
+
+61 Dateien · Stand 6. September 2026
+
+
+ZWEI DATEIEN SIND BEWUSST NICHT DRIN
+------------------------------------
+
+Beide liegen in DEINEM Repository und muessen dort bleiben. Ich habe sie
+nicht und kann sie nicht erzeugen.
+
+  signing/debug.keystore
+
+      DER WICHTIGE. `apk.yml` erzeugt ihn, wenn er fehlt — und dann hat die
+      neue APK einen ANDEREN FINGERABDRUCK. Android verweigert dann jede
+      Aktualisierung ueber die installierte App: sie muss deinstalliert
+      werden, und DER SPIELSTAND GEHT DABEI VERLOREN.
+
+      Wenn du dieses Paket ueber dein Repository legst, achte darauf, dass
+      `signing/` unangetastet bleibt. Am sichersten: die Dateien einzeln
+      kopieren, nicht den Ordner ersetzen.
+
+  symbol/appicon.png
+
+      Das Originalbild fuer die App-Symbole. `apk.yml` erzeugt daraus mit
+      `symbol/appicon.py` den ganzen Satz. Fehlt es, meldet der Bau nur
+      einen Hinweis und nimmt die Standardsymbole — die APK entsteht
+      trotzdem, sieht aber falsch aus.
+
+      In meinem Arbeitsordner liegt nur `appicon-klein.png` (512 px,
+      128 Farben), eine komprimierte Fassung zum Nachschlagen. Sie ist NICHT
+      das Original und liegt deshalb auch nicht bei.
+
+
+SO LEGST DU ES EIN
+------------------
+
+    1. Entpacken.
+    2. Den Inhalt von `rasenschach-xi/` ueber dein Repository kopieren —
+       aber `signing/` und `symbol/appicon.png` auslassen.
+    3. `git status` ansehen. Erwartet: Aenderungen an den Quelldateien,
+       an STAND.md und im pruefstand/. KEINE Aenderung an signing/.
+    4. Einchecken. Die Aktion baut die APK.
+
+Die Ordnerstruktur stimmt bereits — kein Umsortieren.
+
+
+WAS DIE AKTION BRAUCHT UND HIER DRIN IST
+----------------------------------------
+
+    package.json · package-lock.json    `npm ci` installiert daraus GENAU
+                                        die gesperrten Fassungen
+    vite.config.js · index.html         `npm run build`
+    main.jsx · App.jsx und die Modul-
+      dateien daneben                   das Spiel
+    capacitor.config.json               `npx cap sync android`
+    symbol/appicon.py                   erzeugt die Symbole
+    .github/workflows/apk.yml           die Aktion selbst
+    .gitignore                          node_modules · dist · android ·
+                                        symbol/erzeugt
+
+`android/` steht in .gitignore und wird bei jedem Bau neu angelegt
+(`npx cap add android`). Nicht mitliefern und nicht einchecken.
+
+
+DER PRUEFSTAND IST DABEI
+------------------------
+
+39 Werkzeuge in `pruefstand/`. Die Aktion braucht sie nicht — sie laufen
+lokal. Sie gehoeren trotzdem ins Repository: sie sind der Grund, warum die
+letzten achtundzwanzig Fassungen keinen Rueckschritt enthalten haben.
+
+    bash pruefstand/pruefen.sh App.jsx                          ~102 s
+    TEILE=aufbau,bau,sicher bash pruefstand/pruefen.sh App.jsx   ~10 s
+    bash pruefstand/sicht.sh App.jsx                             ~51 s
+    WERKSTATT=1 bash pruefstand/browsertest.sh App.jsx           ~14 s
+
+`sicht.sh` braucht Chromium und
+`NODE_PATH=/pfad/zu/.npm-global/lib/node_modules`.
+
+
+GEPRUEFT — AUS DEM PAKET HERAUS
+-------------------------------
+
+    Fassung:           35.128
+    Baudateien:        7 von 7 gefunden
+    Ereignisse:        530 Eintraege
+    Ansichten:         814 Pruefungen, 0 Fehler
+    Verein:            469 Pruefungen, 0 Fehler
+    Stimmigkeit:       17 Proben, 0 harte Fehler
+    Rueckwaerts:       6 x 63 Ansichten fehlerfrei
+    Kontrast:          145 Textstellen, 0 Befunde
+    Knoepfe:           154 · Passhoehe 385,9 px
+    Sicherheitslage:   0 Funde
+    Browsertest:       14 von 14
+    Buendel:           1.461,43 kB, gzip 541,06 kB
+
+"Baudateien: 7 von 7" ist die Zeile, die beweist dass die Ablage stimmt.
+
+
+WAS OFFEN IST
+-------------
+
+1. OFFENER PUNKT 21 — das Zielband "Laufbahnen bis Vollausbau" liegt zu
+   dicht an seiner Untergrenze und hat in fuenf Fassungen zweimal grundlos
+   rot gemeldet. Drei Moeglichkeiten stehen in STAND.md.
+
+2. EIN GERAETETEST UEBER ALLES. Seit 35.44 ist nichts vollstaendig auf
+   einem Telefon durchgespielt worden.
+
+3. Kleinere offene Punkte 1, 3, 5, 10, 13 in STAND.md.

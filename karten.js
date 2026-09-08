@@ -64,12 +64,33 @@ export const machKarten = (H) => {
      DIE HERKUNFT WIRD MITGESCHRIEBEN. Sie ist kein Zierrat: Kevin will, dass
      ein neuer Verein „mind. 3 aus der vorherigen Mannschaft und mind. 1 aus
      der Ruhmeshalle" bekommt. Ohne Herkunft laesst sich das nicht ziehen.   */
-  const ausTalent = (t, jahr) => ({
+  /* AUS EINEM ABSOLVENTEN, NICHT AUS EINEM TALENT (35.124).
+
+     Diese Funktion hiess `ausTalent`, nahm ein laufendes Talent entgegen —
+     und WURDE NIE AUFGERUFEN. Sie stand seit ihrer Einfuehrung als toter
+     Code da, waehrend die Kartenansicht bereits „· aus der Jugend" fuer
+     `herkunft === "akademie"` vorsah: eine Anzeige, die auf Karten wartete,
+     die nie entstanden.
+
+     Der Grund war der falsche Zeitpunkt. Ein laufendes Talent hat noch keine
+     Geschichte; erst der ABSOLVENT hat eine — Jahrgang, Abgangsjahr,
+     erreichte Hoechststaerke, erster Profiklub. Genau das steht in
+     `a.absolventen`, und genau daraus wird jetzt die Karte.
+
+     DIE KENNUNG BLEIBT `t:` + id. Der Absolvent traegt dieselbe `id` wie das
+     Talent, aus dem er wurde. Damit ist die Identitaet ueber alle Systeme
+     hinweg derselbe String, ohne neues Feld und ohne Aenderung an der
+     Zusammenfuehrung im Pool — die Antwort auf Frage 4 des Meta-Papiers. */
+  const ausAbsolvent = (t) => ({
     kid: "t:" + t.id,
-    name: t.name, pos: t.pos, ovr: t.ovr, pot: t.pot,
-    alter: t.alter, flag: t.flag || "", nat: t.nat || "",
-    stufe: stufeFuer(t.ovr), herkunft: "akademie", jahr: jahr || null,
-    zusatz: { ruf: t.ruf, vertragBis: t.vertragBis },
+    name: t.name, pos: t.pos, ovr: t.peak || t.ovr || 0, pot: t.peak || t.pot || 0,
+    alter: (t.raus && t.ein) ? (t.raus - t.ein) + 17 : (t.alter || 21),
+    flag: t.flag || "", nat: t.nat || "",
+    stufe: stufeFuer(t.peak || t.ovr || 0), herkunft: "akademie",
+    jahr: t.raus || t.ein || null,
+    /* Der Jahrgang ist das, was die Karte erzaehlbar macht: „Eigengewaechs,
+       Jahrgang 2030". Der erste Profiklub steht daneben, wenn es ihn gibt. */
+    zusatz: { jahrgang: t.ein || null, klub: t.klub || "", ns: !!t.ns },
   });
 
   const ausKader = (s, vereinName, jahr) => ({
@@ -123,7 +144,20 @@ export const machKarten = (H) => {
       const i = wo[k.kid];
       if (i == null) { wo[k.kid] = nach.karten.length; nach.karten.push(k); return; }
       const alt = nach.karten[i];
+      /* DER SONDERKARTEN-MARKER UEBERLEBT DIE ZUSAMMENFUEHRUNG (35.103).
+         Bis 35.102 ging er hier IMMER verloren: eine Sonderkarte wird als
+         Kopie einer Poolkarte gezogen (`nachHerkunft(pool, …)` weiter unten),
+         hat also dieselbe `kid` UND denselben `ovr` — die Bedingung darunter
+         greift nie, die alte Karte bleibt stehen, und mit ihr das fehlende
+         Merkmal. Die goldene Zeile „Sonderkarte" und der Jubel waren damit
+         nur waehrend des Oeffnens zu sehen, im Fundus nie.
+         Der Marker wird ODER-verknuepft, nicht ueberschrieben: einmal
+         veredelt bleibt veredelt, auch wenn spaeter dieselbe Karte ohne
+         Marker aus einer neuen Laufbahn nachkommt. */
+      const veredelt = !!(alt.sonderkarte || k.sonderkarte);
       if ((k.ovr || 0) > (alt.ovr || 0)) nach.karten[i] = { ...alt, ...k };
+      if (veredelt && !nach.karten[i].sonderkarte)
+        nach.karten[i] = { ...nach.karten[i], sonderkarte: true };
     });
     nach.stand = nach.karten.length;
     return nach;
@@ -263,7 +297,16 @@ export const machKarten = (H) => {
       const ausHalleP = nachHerkunft(pool, "halle");
       const ausVerein = nachHerkunft(pool, "verein");
       const topf = ausHalleP.length ? ausHalleP : ausVerein;
-      if (topf.length) sonder = { ...pick(topf), sonderkarte: true };
+      /* NOCH NICHT VEREDELTE ZUERST (35.103). Seit der Marker dauerhaft ist,
+         waere die blosse Zufallswahl ein Selbstlaeufer ins Leere: wer schon
+         drei Sonderkarten hat, zoege sie immer wieder und bekaeme nichts.
+         Solange es unveredelte Hallen- oder Vereinskarten gibt, kommt eine
+         davon. Erst wenn alles veredelt ist, faellt es auf den ganzen Topf
+         zurueck — dann ist die Sonderkarte wieder nur ein Moment, aber der
+         Spieler hat dann auch jede Karte, die es zu veredeln gab. */
+      const frisch = topf.filter((k) => !k.sonderkarte);
+      const woraus = frisch.length ? frisch : topf;
+      if (woraus.length) sonder = { ...pick(woraus), sonderkarte: true };
     }
     return { fehler: null, karten: raus, sonder, pack: pk };
   };
@@ -451,7 +494,60 @@ export const machKarten = (H) => {
     };
   };
 
-  return { STUFEN, REIHE, stufeFuer, ausTalent, ausKader, ausHalle,
+  /* ---------------------------------------- Sammlungsseiten ---------------
+     Stufe I des Meta-Papiers: „Die Kartensammlung kann kleine thematische
+     Seiten erhalten. Das soll sich eher wie Stickeralbum anfuehlen als wie
+     ein weiteres Questlog."
+
+     ABGELEITET, NICHT GESPEICHERT. Jede Seite ist eine Bedingung ueber den
+     vorhandenen Pool — Herkunft, Stufe, Land, Sonderkarten-Marker. Kein
+     neues Feld, kein Fortschrittsspeicher, keine zweite Liste, die
+     auseinanderlaufen koennte.
+
+     KEIN QUESTLOG. Es gibt keine Belohnung fuer eine volle Seite und keine
+     Frist. Wer sie vollkriegt, hat eine volle Seite — das ist der Zweck.
+     Deshalb steht auch ueberall die Zahl und kein Haekchen.
+
+     SECHS, NICHT ZWANZIG. Jede Seite muss ohne Erklaerung verstaendlich sein
+     und aus dem entstehen, was man ohnehin tut. „Aus eigener Kraft" gibt es
+     erst, seit Absolventen in 35.125 wirklich zu Karten werden — vorher
+     waere die Seite dauerhaft leer geblieben. */
+  const SETS = [
+    { id: "jugend", n: "Aus eigener Kraft", soll: 11,
+      t: "Elf Spieler aus der eigenen Jugend.",
+      passt: (k) => k.herkunft === "akademie" },
+    { id: "halle", n: "Die Unsterblichen", soll: 5,
+      t: "Fuenf Karten aus der Ruhmeshalle.",
+      passt: (k) => k.herkunft === "halle" },
+    { id: "gold11", n: "Die goldene Elf", soll: 11,
+      t: "Elf Karten in Gold oder besser.",
+      passt: (k) => k.stufe === "gold" || k.stufe === "legende" },
+    { id: "treue", n: "Vereinstreue", soll: 11,
+      t: "Elf Spieler aus dem eigenen Verein.",
+      passt: (k) => k.herkunft === "verein" },
+    { id: "sonder", n: "Sonderausgaben", soll: 5,
+      t: "Fuenf veredelte Karten.",
+      passt: (k) => !!k.sonderkarte },
+  ];
+
+  /* „Weltreise" zaehlt LAENDER, nicht Karten — deshalb steht sie nicht in
+     der Tabelle oben, sondern wird eigens gerechnet. Eine Bedingung je Karte
+     koennte das nicht ausdruecken. */
+  const setStand = (pool) => {
+    const K = (pool && pool.karten) || [];
+    const liste = SETS.map((s) => {
+      const habe = K.filter(s.passt).length;
+      return { id: s.id, n: s.n, t: s.t, soll: s.soll,
+        habe: Math.min(habe, s.soll), voll: habe >= s.soll };
+    });
+    const laender = new Set(K.map((k) => k.nat).filter(Boolean)).size;
+    liste.push({ id: "welt", n: "Weltreise", t: "Karten aus fuenfzehn Laendern.",
+      soll: 15, habe: Math.min(laender, 15), voll: laender >= 15 });
+    return liste;
+  };
+
+  return { STUFEN, REIHE, stufeFuer, ausAbsolvent, ausKader, ausHalle,
+    SETS, setStand,
            STARTPAKET, startpaket,
            flaeche, MERKMALE, merkmaleVon,
            VERKAUF, verkaeuflich, erloes, verkaufen,

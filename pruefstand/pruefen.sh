@@ -18,6 +18,14 @@ QUELLE="${1:-/mnt/project/App.jsx}"
 PS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BAU=/tmp/ps
 QUELLDIR="$(cd "$(dirname "$QUELLE")" && pwd)"
+# Quelle absolut aufloesen (35.101). Die Pruefwerkzeuge laufen nach `cd /tmp/ps`;
+# ein relativ uebergebener Pfad zeigt von dort ins Leere. `sicht.sh` tut das
+# seit jeher (Zeile 26), `pruefen.sh` tat es nicht — deshalb meldete der im
+# Abnahmeblock vorgeschriebene Aufruf `pruefen.sh App.jsx` sieben Fehler, die
+# keine waren, und liess 18 Pruefungen still ausfallen (322 → 297+7).
+# Bleibt QUELLDIR leer, weil es das Verzeichnis nicht gibt, bleibt QUELLE
+# unveraendert stehen — dann nennt die Meldung unten den eingegebenen Pfad.
+[ -n "$QUELLDIR" ] && QUELLE="$QUELLDIR/$(basename "$QUELLE")"
 # Arbeitsverzeichnis. IMMER beschreibbar und getrennt von der Quelle: das
 # Projektwissen unter /mnt/project ist nur lesbar, dort wuerde npm install
 # scheitern. Die Baudateien werden hineinkopiert, die Quelle bleibt unberuehrt.
@@ -34,6 +42,39 @@ FEHLER=0
 # Papierbefunde (Pruefungen 7-9): faerben das Ergebnis rot, loesen aber den
 # Bauabbruch nicht aus. Siehe Begruendung dort.
 DOK=0
+
+# ---- Einen Pruefteil fahren und ABSTURZ von FEHLSCHLAG unterscheiden ------
+#
+#   Gefunden in 35.124: nach einer Umbenennung stuerzte `vereinpruefung.cjs`
+#   mit `TypeError: K.ausTalent is not a function` ab. Der Lauf meldete am
+#   Ende nur „MINDESTENS EIN TEIL IST FEHLGESCHLAGEN" — OHNE eine einzige rote
+#   Zeile, weil der Teil starb, bevor er eine ausgeben konnte. Die Suche nach
+#   der Ursache kostete mehrere Anlaeufe: erst der Einzelaufruf zeigte sie.
+#
+#   Ein abgestuerzter Teil sieht im Gesamtlauf fast aus wie ein bestandener.
+#   Beide geben Nicht-Null zurueck, aber nur der eine sagt, was los ist.
+#
+#   Deshalb wird die Ausgabe hier mitgelesen: fehlt am Ende die Abschlusszeile
+#   („N Pruefungen bestanden" oder „N Proben ohne Befund"), war es kein
+#   Fehlschlag, sondern ein Absturz — und das wird ausdruecklich gesagt, samt
+#   dem Befehl zum Nachstellen.
+teil_fahren() {
+  local NAME="$1" WERKZEUG="$2"
+  local AUS RC
+  AUS=$( cd "$BAU" && node "$WERKZEUG" --quelle="$ARBEIT/App.jsx" 2>&1 )
+  RC=$?
+  printf '%s\n' "$AUS"
+  if [ "$RC" != 0 ]; then
+    FEHLER=1
+    if ! printf '%s' "$AUS" | grep -qE "Pruefungen bestanden|Prüfungen bestanden|Proben ohne Befund"; then
+      echo
+      echo "  ABGESTUERZT: $NAME ist stehengeblieben, bevor ein Ergebnis kam."
+      echo "  Das ist KEIN fehlgeschlagener Test, sondern ein Fehler im Pruefwerkzeug"
+      echo "  oder eine Funktion, die es nicht mehr gibt. Zum Nachstellen:"
+      echo "      cd $BAU && node $WERKZEUG --quelle=$ARBEIT/App.jsx"
+    fi
+  fi
+}
 # Sicherheitsfunde im Auslieferungspfad (nicht abgenickte). Eigener Zaehler,
 # damit im Ergebnis steht, WORAN ein Lauf gescheitert ist.
 SICHER=0
@@ -602,7 +643,7 @@ fi
 if hat stimmig; then
 echo
 if [ -f "$BAU/motor.js" ]; then
-  ( cd "$BAU" && node "$PS/stimmigkeit.cjs" --quelle="$ARBEIT/App.jsx" ) || FEHLER=1
+  teil_fahren "Stimmigkeit" "$PS/stimmigkeit.cjs"
 else
   echo "########## STIMMIGKEIT ##########"
   echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
@@ -630,7 +671,11 @@ fi
 if hat verein; then
 titel "VEREIN"
 if [ -f "$BAU/motor.js" ]; then
-  ( cd "$BAU" && node "$PS/vereinpruefung.cjs" --quelle="$QUELLE" ) || FEHLER=1
+  # `$ARBEIT/App.jsx` wie bei den drei Nachbarn oben (Ereignisse, Stimmigkeit,
+  # Namen). Zeile 46 stellt sicher, dass das dieselbe Datei ist wie $QUELLE.
+  # Bis 35.100 stand hier als einzige `--quelle="$QUELLE"` — genau diese
+  # Uneinheitlichkeit hat den Falschalarm ueberhaupt erst uebersehen lassen.
+  teil_fahren "Verein" "$PS/vereinpruefung.cjs"
 else
   echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
   FEHLER=1

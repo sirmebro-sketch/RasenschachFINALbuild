@@ -9,18 +9,25 @@
     verein.js               der eigene Verein, ausgelagert seit 35.17
     karten.js               Sammelkarten und dauerhafter Spielerpool, seit 35.79
     titelbild.js            das Aufmacherfoto des Titelblatts, seit 35.100
+    symbol/appicon-klein.png  Symbolquelle fuers Projektwissen (512 px, 96 kB)
     namen.js                die Namenskartei, ein Eintrag je Land (seit 35.43)
     akademie.js             die Jugendakademie, ausgelagert seit 35.48
     schriften.js            Anton und Archivo als Base64
     schriften-lizenz.txt    SIL OFL — muss mit der App ausgeliefert werden
 
-Alle fünf gehören im Verzeichnis **flach neben `App.jsx`**, zusammen mit
-`storage.js` — nicht in `pruefstand/`, nicht in einem `src`-Ordner. Sie stehen
-mit `storage.js` in den `import`-Zeilen **2 bis 7** der `App.jsx`; wer wissen
-will, was dazugehört, zählt dort nach. (Bis 35.44 stand hier „2 bis 5" — die
-Angabe stammte aus der Zeit vor `namen.js` und hat den fünften Import
-unterschlagen. Größen standen hier auch; sie sind weg, der Prüfstand misst
-sie bei jedem Lauf.)
+Sie alle gehören im Verzeichnis **flach neben `App.jsx`**, zusammen mit
+`storage.js` — nicht in `pruefstand/`, nicht in einem `src`-Ordner. Wer wissen
+will, was dazugehört, liest die `import`-Zeilen am Anfang der `App.jsx`:
+
+    grep -n 'from "\./' App.jsx
+
+**Hier stand bis 35.101 „Alle fünf … Zeilen 2 bis 7". Beide Zahlen waren
+falsch** — gemessen sind es acht eigene Importe in den Zeilen 8 bis 15. Und es
+ist der zweite Anlauf: bis 35.44 stand da „2 bis 5", damals um `namen.js` zu
+knapp. Eine Zahl, die bei jedem neuen Import und jeder neuen Kommentarzeile
+altert, gehört nicht in eine Anleitung — dieselbe Lehre wie „**Keine
+Zeilennummer merken**" im Kopf von `STAND.md`. Größen standen hier auch; sie
+sind weg, der Prüfstand misst sie bei jedem Lauf.
 
 Fehlt `schriften.js`, bricht der Prüfstand mit einer klaren Meldung ab, und die
 App fällt stumm auf die Gerätefonts zurück. Fehlen `ereignisse.js` oder
@@ -106,7 +113,8 @@ aufrufen lässt sich alles davon:
                       bei 412 und 360 px, über alle blätterbaren Tafeln
                       (mit knopfbogen.jsx und knopfmessung.cjs)
     werkstatt.js      Abkürzungen im Browsertest: Laufbahnen, Coins, Ausbau,
-                      Einschreiben. Nur bei ERSTSTART=1, nie in der APK
+                      Einschreiben. Bei WERKSTATT=1 ODER ERSTSTART=1,
+                      nie in der APK
     argumente.cjs     ein Muster für alle Werkzeuge: --quelle= --ziel=
                       --anzahl=; fehlt die Quelle, wird abgebrochen
     portraetbogen.cjs Porträts als Bildtafel (auch: frau …)

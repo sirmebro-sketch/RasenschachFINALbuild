@@ -19,8 +19,8 @@ import { machAkademie } from "./akademie.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "35.100";
-const VERSION_INFO = "Neues App-Symbol und ein echtes Mannschaftsfoto auf dem Titel.";
+const VERSION = "35.128";
+const VERSION_INFO = "Ein abgestürzter Prüfteil sagt jetzt, dass er abgestürzt ist.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -3775,29 +3775,89 @@ const namensVorschlag = (natId, g, kennung) => {
 };
 
 const MILESTONES = [
-  { id:"a50",  t:"50 Pflichtspiele",       leg:4,  ok:(p)=>p.tot.apps>=50 },
-  { id:"a100", t:"100 Pflichtspiele",      leg:8,  ok:(p)=>p.tot.apps>=100 },
-  { id:"a250", t:"250 Pflichtspiele",      leg:16, ok:(p)=>p.tot.apps>=250 },
-  { id:"a500", t:"500 Pflichtspiele",      leg:32, ok:(p)=>p.tot.apps>=500 },
-  { id:"g25",  t:"25 Tore",                leg:5,  ok:(p)=>p.tot.goals>=25 },
-  { id:"g100", t:"100 Tore",               leg:18, ok:(p)=>p.tot.goals>=100 },
-  { id:"g200", t:"200 Tore",               leg:38, ok:(p)=>p.tot.goals>=200 },
-  { id:"as50", t:"50 Vorlagen",            leg:9,  ok:(p)=>p.tot.assists>=50 },
-  { id:"as100",t:"100 Vorlagen",           leg:20, ok:(p)=>p.tot.assists>=100 },
-  { id:"cs50", t:"50 Spiele ohne Gegentor",leg:12, ok:(p)=>p.tot.cs>=50 },
-  { id:"n10",  t:"10 Länderspiele",        leg:6,  ok:(p)=>p.nt.caps>=10 },
-  { id:"n50",  t:"50 Länderspiele",        leg:16, ok:(p)=>p.nt.caps>=50 },
-  { id:"n100", t:"100 Länderspiele",       leg:34, ok:(p)=>p.nt.caps>=100 },
+  { id:"a50",  t:"50 Pflichtspiele",       leg:4,  mess:(p)=>p.tot.apps, soll:50,  ok:(p)=>p.tot.apps>=50 },
+  { id:"a100", t:"100 Pflichtspiele",      leg:8,  mess:(p)=>p.tot.apps, soll:100,  ok:(p)=>p.tot.apps>=100 },
+  { id:"a250", t:"250 Pflichtspiele",      leg:16, mess:(p)=>p.tot.apps, soll:250, ok:(p)=>p.tot.apps>=250 },
+  { id:"a500", t:"500 Pflichtspiele",      leg:32, mess:(p)=>p.tot.apps, soll:500, ok:(p)=>p.tot.apps>=500 },
+  { id:"g25",  t:"25 Tore",                leg:5,  mess:(p)=>p.tot.goals, soll:25,  ok:(p)=>p.tot.goals>=25 },
+  { id:"g100", t:"100 Tore",               leg:18, mess:(p)=>p.tot.goals, soll:100, ok:(p)=>p.tot.goals>=100 },
+  { id:"g200", t:"200 Tore",               leg:38, mess:(p)=>p.tot.goals, soll:200, ok:(p)=>p.tot.goals>=200 },
+  { id:"as50", t:"50 Vorlagen",            leg:9,  mess:(p)=>p.tot.assists, soll:50,  ok:(p)=>p.tot.assists>=50 },
+  { id:"as100",t:"100 Vorlagen",           leg:20, mess:(p)=>p.tot.assists, soll:100, ok:(p)=>p.tot.assists>=100 },
+  { id:"cs50", t:"50 Spiele ohne Gegentor",leg:12, mess:(p)=>p.tot.cs, soll:50, ok:(p)=>p.tot.cs>=50 },
+  { id:"n10",  t:"10 Länderspiele",        leg:6,  mess:(p)=>p.nt.caps, soll:10,  ok:(p)=>p.nt.caps>=10 },
+  { id:"n50",  t:"50 Länderspiele",        leg:16, mess:(p)=>p.nt.caps, soll:50, ok:(p)=>p.nt.caps>=50 },
+  { id:"n100", t:"100 Länderspiele",       leg:34, mess:(p)=>p.nt.caps, soll:100, ok:(p)=>p.nt.caps>=100 },
   { id:"o80",  t:"Gesamtstärke 80",        leg:10, ok:(p)=>p.peakOvr>=80 },
   { id:"o88",  t:"Gesamtstärke 88",        leg:24, ok:(p)=>p.peakOvr>=88 },
   { id:"o93",  t:"Gesamtstärke 93",        leg:46, ok:(p)=>p.peakOvr>=93 },
   { id:"loyal",t:"Zehn Jahre bei einem Verein", leg:26, ok:(p)=>{
       const m={}; p.seasons.forEach(s=>{m[s.club]=(m[s.club]||0)+1;}); return Object.values(m).some(v=>v>=10); } },
-  { id:"welt", t:"Fünf Länder bespielt",   leg:14, ok:(p)=>new Set(p.seasons.map(s=>s.land)).size>=5 },
-  { id:"treu5",  t:"Fünf Jahre in Folge bei einem Verein", leg:12, ok:(p)=>loyalty(p)>=5 },
-  { id:"treu10", t:"Vereinslegende (zehn Jahre)",          leg:30, ok:(p)=>loyalty(p)>=10 },
+  { id:"welt", t:"Fünf Länder bespielt",   leg:14, mess:(p)=>new Set(p.seasons.map(s=>s.land)).size, soll:5, ok:(p)=>new Set(p.seasons.map(s=>s.land)).size>=5 },
+  { id:"treu5",  t:"Fünf Jahre in Folge bei einem Verein", leg:12, mess:(p)=>loyalty(p), soll:5, ok:(p)=>loyalty(p)>=5 },
+  { id:"treu10", t:"Vereinslegende (zehn Jahre)",          leg:30, mess:(p)=>loyalty(p), soll:10, ok:(p)=>loyalty(p)>=10 },
   { id:"treu200",t:"200 Spiele für einen Verein",          leg:22, ok:(p)=>{
       const m={}; p.seasons.forEach(s=>{m[s.club]=(m[s.club]||0)+s.apps;}); return Object.values(m).some(v=>v>=200); } },
+
+  /* ---- Marken für Laufbahnen, die keine Weltkarriere werden (35.106) ----
+     Stufe B aus dem Konzeptpapier. Die 22 Marken darueber sind an
+     Spitzenwerten ausgerichtet, und das war messbar: ueber 80 Laufbahnen
+     erreichte eine schwache (Höchststärke unter 75) SECHS davon nie —
+     100 Tore, 200 Tore, 100 Vorlagen und alle drei Staerkemarken. Die
+     letzten drei pruefen genau das, was eine schwache Laufbahn ausmacht.
+
+     Was blieb, waren Spielzahlen. Eine OVR-72-Laufbahn sammelte dieselben
+     „250 Pflichtspiele" wie eine Weltkarriere und sonst nichts. Genau das
+     nennt das Papier als Kernproblem: eine schwache Karriere darf nicht wie
+     die gescheiterte Fassung einer starken wirken.
+
+     DIE PUNKTE SIND BEWUSST KLEIN. `leg` fliesst ueber `p.legacyBonus` in
+     `verdict().score`, und daraus wird mit `score / 26` die VC-Ausschuettung
+     gerechnet. „Laufbahnen bis Vollausbau" stand vor dieser Fassung bei 20,5
+     bei einer Untergrenze von 20 — grosszuegige Punkte haetten das Band
+     gesprengt, ohne dass es jemand mit dem Spiel in Verbindung gebracht
+     haette. Zusammen bringen die zehn neuen Marken 37 Punkte; die drei
+     Staerkemarken darueber allein bringen 80.
+
+     ERST HALBIERT NACH DER MESSUNG. Mit den urspruenglichen Werten (68
+     Punkte) stand „Laufbahnen bis Vollausbau" in drei Laeufen bei 20,6 · 20,7
+     · **20,0** — der letzte genau auf der Untergrenze. Die Pruefung war noch
+     gruen, haette aber beim naechsten Lauf rot gemeldet, ohne dass jemand es
+     mit diesen Marken in Verbindung gebracht haette. Halbiert.
+
+     Keine davon belohnt Erfolg. Sie belohnen Dauer, Treue, Rueckkehr und
+     Widerstand — Dinge, die eine begrenzte Laufbahn wirklich schafft. */
+  { id:"j10",  t:"Zehn Jahre als Profi",   leg:3,  mess:(p)=>p.tot.seasons, soll:10,  ok:(p)=>p.tot.seasons>=10 },
+  { id:"j20",  t:"Zwanzig Jahre als Profi",leg:6,  mess:(p)=>p.tot.seasons, soll:20, ok:(p)=>p.tot.seasons>=20 },
+  { id:"a300", t:"300 Pflichtspiele",      leg:5,  mess:(p)=>p.tot.apps, soll:300,  ok:(p)=>p.tot.apps>=300 },
+  { id:"treu100",t:"100 Spiele für einen Verein", leg:3, ok:(p)=>{
+      const m={}; p.seasons.forEach(s=>{m[s.club]=(m[s.club]||0)+s.apps;}); return Object.values(m).some(v=>v>=100); } },
+  { id:"welt3",t:"Drei Länder bespielt",   leg:2,  mess:(p)=>new Set(p.seasons.map(s=>s.land)).size, soll:3,  ok:(p)=>new Set(p.seasons.map(s=>s.land)).size>=3 },
+  { id:"alt35",t:"Mit 35 noch auf dem Platz", leg:4, ok:(p)=>
+      p.seasons.some(s=>(s.age||0)>=35 && (s.apps||0)>0) },
+  { id:"binde",t:"Die Binde getragen",     leg:3,  ok:(p)=>p.seasons.some(s=>s.kapitaen) },
+  /* Zurueck nach schwerer Verletzung: eine Saison mit SCHWEREM Ausfall, und
+     DANACH eine volle. Zwei Dinge, die beim ersten Entwurf falsch waren:
+
+     `sev === "schwer"` statt nur `s.injury`. Der Titel sagt „schwere
+     Verletzung", die Bedingung nahm aber jede — auch „leicht, 4 Spiele".
+     Ueber 25 Saisons ist irgendwann jeder mal angeschlagen, entsprechend
+     traf die Marke 99 % aller Laufbahnen. Ein Text, der mehr zusagt als die
+     Mechanik prueft, ist im Projekt als eigene Fehlerklasse geführt; hier
+     war er es in der eigenen Neuerung.
+
+     Die Reihenfolge zaehlt: wer sich am Ende verletzt und aufhoert, hat
+     nichts zurueckgeholt. Deshalb `slice(i + 1)` und nicht `some` ueber
+     alles. */
+  { id:"comeback",t:"Nach schwerer Verletzung zurück", leg:4, ok:(p)=>{
+      const i=p.seasons.findIndex(s=>s.injury && s.injury.sev==="schwer");
+      return i>=0 && p.seasons.slice(i+1).some(s=>(s.apps||0)>=25); } },
+  { id:"stamm10",t:"Zehn Saisons als Stammspieler", leg:4, mess:(p)=>p.seasons.filter(s=>(ROLLENRANG[s.role]||0)>=3).length, soll:10, ok:(p)=>
+      p.seasons.filter(s=>(ROLLENRANG[s.role]||0)>=3).length>=10 },
+  /* Nutzt dieselbe Abschnittsbildung wie die Vereinskapitel aus 35.105 —
+     nicht `new Set`, sonst waere eine Rueckkehr auch hier unsichtbar. */
+  { id:"heimkehr",t:"Zu einem alten Verein zurückgekehrt", leg:3, ok:(p)=>
+      vereinsKapitel(p.seasons, p).some(x=>x.rueckkehr) },
 ];
 
 /* ---------------- Wettbewerbssimulation ---------------- */
@@ -3832,6 +3892,31 @@ function wdl(pts, games) {
   }
   return [0, 0, games, 0];
 }
+/* ---------------------------------------- Die Tabelle im Spielstand -------
+   `s.table` speichert nur noch den NAMEN eines Vereins, nicht das ganze
+   Vereinsobjekt (35.115).
+
+   WARUM: gemessen an einer Laufbahn über 23 Saisons war der Spielstand
+   112,8 KB gross — davon 107,8 KB `p.seasons`, davon wiederum 63,6 KB
+   `s.table`. Jede Tabellenzeile trug das volle Objekt:
+
+       { "n":"Kilmarnock FC", "c":"SCO", "l":"Championship (SCO)", "s":51, "g":"m" }
+
+   Gelesen wurde davon an ALLEN vier Stellen nur `.n` — auch vom Wappen:
+   `Crest` liest `club.n`, und `clubColors` ebenfalls. Die vier übrigen Felder
+   lagen bei rund achtzehn Vereinen in fünfundzwanzig Saisons redundant im
+   Speicher: etwa 24 KB, ein Fünftel des Spielstands, für Daten, die niemand
+   anfasst.
+
+   `tabVerein` versteht BEIDE Formen. Alte Spielstände tragen das volle
+   Objekt und bleiben lesbar; neue schreiben nur den Namen. Keine Migration,
+   kein Umschreiben gespeicherter Daten — die Ersparnis wächst mit jeder
+   neuen Saison hinein. */
+const tabVerein = (t) => {
+  if (!t || !t.club) return null;
+  return typeof t.club === "string" ? { n: t.club } : t.club;
+};
+
 function simTable(club, myRank) {
   const arr = leagueClubs(club);
   const N = arr.length, games = Math.max(2, (N - 1) * 2);
@@ -3850,7 +3935,8 @@ function simTable(club, myRank) {
     if (raw >= last) raw = Math.max(0, last - ri(0, 2));
     const [w, d, l, pts] = wdl(raw, games);
     last = pts;
-    return { club: c, pos: i + 1, games, w, d, l, pts, me: c.n === club.n,
+    /* NUR DER NAME (35.115) — siehe `tabVerein` oben. */
+    return { club: c.n, pos: i + 1, games, w, d, l, pts, me: c.n === club.n,
       gf: Math.max(3, Math.round(games * (.82 + (1 - t) * 1.3) + gauss(0, 4))),
       ga: Math.max(3, Math.round(games * (.78 + t * 1.3) + gauss(0, 4))) };
   });
@@ -4112,7 +4198,28 @@ const offeneWahlen = (e, p) => (e.choices || []).filter((c) => wahlOffen(c, p));
 /* Die Ereignisse liegen seit 35.6 in einer eigenen Datei — 2.236 der bis
    dahin 14.271 Zeilen. Die Helfer werden uebergeben statt importiert, sonst
    entstuende ein Ringimport; die Begruendung steht in ereignisse.js. */
-const EVENTS = machEreignisse({ T, fehler, heldentat, istTraum, lastS, sameClub, sameLeague, confOf, eur, ligaInfo, COL, POKAL, TIER, TOP5 });
+/* WIE LANGE IST DAS HER? (35.108) Liefert den Abstand in Saisons zwischen
+   heute und dem Ereignis `id` — oder -1, wenn es nie gezogen wurde.
+
+   `p.evLog[id]` gibt es seit Langem: `drawEvents` schreibt dort die
+   Saisonnummer hinein, in der ein Ereignis kam. Benutzt wurde das bisher NUR
+   für die Wiederholungssperre und die Gewichtung. **Keine einzige Bedingung
+   hat je gelesen, wie lange etwas her ist** — alle Zeitbedingungen im Spiel
+   sind absolut (Alter, Saisonzahl), keine relativ zu einer Entscheidung.
+
+   Damit ist Stufe C aus dem Konzeptpapier ohne jedes neue persistente Feld
+   zu haben: `p.flags` sagt, WAS entschieden wurde, `p.evLog` sagt, WANN.
+
+   `-1` statt `0` bei fehlendem Eintrag, damit `her(p, x) >= 6` nicht
+   versehentlich für jemanden wahr wird, der das Ereignis nie gesehen hat —
+   `0` wäre bei einem alten Spielstand ohne `evLog` genau das passiert. */
+const her = (p, id) => {
+  const e = p && p.evLog ? p.evLog[id] : null;
+  if (e == null) return -1;
+  return Math.max(0, (p.seasons ? p.seasons.length : 0) - e);
+};
+
+const EVENTS = machEreignisse({ T, fehler, heldentat, istTraum, lastS, sameClub, sameLeague, confOf, eur, ligaInfo, COL, POKAL, TIER, TOP5, her });
 const EV_BY_ID = {}; EVENTS.forEach((e) => { EV_BY_ID[e.id] = e; });
 
 /* Der eigene Verein (35.17) liegt in einer eigenen Datei — dieselbe Bauweise
@@ -4704,6 +4811,8 @@ function drawEvents(p, n) {
   /* Gewicht: kürzlich gezogene Themen werden zurückgestellt, damit sich
      nicht Saison für Saison dieselben Situationen wiederholen. */
   p.tagLog = p.tagLog || {};
+  const atJetzt = archetyp(p);
+  const atG = atJetzt ? ARCHETYP_GEWICHT[atJetzt.haupt] : null;
   const weigh = (e) => {
     let w = e.w || 2;
     const lastTag = p.tagLog[e.tag];
@@ -4713,6 +4822,11 @@ function drawEvents(p, n) {
     }
     const lastId = p.evLog[e.id];
     if (lastId != null) w *= .45;                       // schon einmal erlebt
+    /* Der Archetyp verschiebt (35.113) — er sperrt nichts aus. `at` wird
+       EINMAL je Zug bestimmt, nicht je Ereignis: `archetyp()` kostet 0,045 ms
+       gegen 0,231 ms für einen ganzen `drawEvents`-Aufruf, und je Ereignis
+       wäre das mal fünfhundert. */
+    if (atG) { const f = atG[e.tag]; if (f) w *= f; }
     /* Was in den letzten Laufbahnen schon vorkam, tritt zurück, damit sich
        nicht über Karrieren hinweg dieselben Situationen wiederholen.      */
     /* GEMESSEN, nicht vermutet (ereignisse.cjs, 30 Laufbahnen): eine stärkere
@@ -5500,6 +5614,76 @@ function shiftRole(r, up) {
   return { key: ROLE_ORDER[j], label: lab[ROLE_ORDER[j]] };
 }
 
+/* ---------------------------------------- Warum gerade dieser Verein? -----
+   Stufe E aus dem Konzeptpapier: „Angebote sollen gelegentlich einen
+   biografischen Grund erhalten. Damit können zwei mathematisch ähnliche
+   Angebote völlig unterschiedliche Entscheidungen erzeugen."
+
+   ES RECHNET NICHTS. Das Papier warnt im selben Absatz: „Die vorhandene
+   Transferlogik soll dabei nicht durch Storyzwang verfälscht werden."
+   Deshalb kommt der Grund NACH der Angebotserstellung dazu und rührt weder
+   Gehalt noch Ablöse noch Rolle an. Er erzählt, warum dieser Verein anruft —
+   die Zahlen daneben sind dieselben wie ohne ihn.
+
+   Das unterscheidet ihn von `KIND` (`kind: "Deutlich mehr Geld"`), das seit
+   jeher Gehalt und Ablöse mitverschiebt. Beide können nebeneinander stehen:
+   ein Verein kann deutlich mehr zahlen UND dein alter Ausbildungsklub sein.
+
+   Kein neues persistentes Feld — alles steht in `p.seasons`, `p.bei` und den
+   Vereinsdaten.                                                            */
+const ANGEBOTSGRUND = [
+  /* Reihenfolge ist Bedeutung: der erste zutreffende gewinnt. Oben stehen
+     die, die eine eigene Geschichte tragen. */
+  ["Dein Ausbildungsverein", (p, c) =>
+    !!p.bei && c.n === p.bei && c.n !== p.club.n],
+  /* SPEZIFISCHER ZUERST. „Der Verein deiner ersten Saison" stand im ersten
+     Entwurf UNTER „Du warst schon einmal hier" und wurde deshalb nie
+     vergeben — jede erste Station ist auch eine frühere. */
+  ["Der Verein deiner ersten Saison", (p, c) =>
+    !!p.seasons.length && c.n === p.seasons[0].club && c.n !== p.club.n],
+  ["Du warst schon einmal hier", (p, c) =>
+    c.n !== p.club.n && p.seasons.some((s) => s.club === c.n)],
+  ["Großer Name, kleine Rolle", (p, c, o) =>
+    c.s >= 80 && (o.roleKey === "bench" || o.roleKey === "tribune" || o.roleKey === "rot")],
+  ["Dein erstes Land außerhalb der Heimat", (p, c) =>
+    c.c !== p.nation.id && !p.seasons.some((s) => s.land && s.land !== p.nation.id)],
+  /* DIE BEIDEN SPÄTPHASEN-ZEILEN MUSSTEN GETRENNT WERDEN. Im ersten Entwurf
+     überschnitten sie sich (33+ mit Laufzeit gegen 34+ mit Rolle) und machten
+     zusammen 89 % aller Gründe aus. Jetzt trennt sie das Alter sauber, und
+     beide verlangen mehr als vorher: hier eine lange Laufzeit UND mehr Geld,
+     unten eine echte Stammrolle statt nur „keine Bank". */
+  ["Vielleicht dein letzter großer Vertrag", (p, c, o) =>
+    p.age >= 32 && p.age <= 34 && o.years >= 3 && o.wage >= p.wage * 1.1],
+  /* AB 36 UND MIT ANSPRUCH. Mit „ab 35 und Stammrolle" trug in der Messung
+     JEDES Angebot der Spätphase diese Zeile — 100 %. Eine Zeile, die immer
+     kommt, wird zur Tapete und sagt nichts mehr. Jetzt braucht es einen
+     36-Jährigen, den jemand für mehrere Jahre als Stammspieler holt.
+
+     ZWISCHENDURCH ÜBERKORRIGIERT: mit zusätzlich `c.s >= 70` wurde die Zeile
+     GAR NICHT mehr vergeben — ab 36 bieten kaum noch starke Vereine an. Von
+     100 % auf 0 % ist kein Fortschritt, sondern der Fehler auf der anderen
+     Seite. Die Vereinsstärke wieder heraus. */
+  ["Sie holen dich für die letzten Jahre", (p, c, o) =>
+    p.age >= 37 && o.years >= 3
+    && (o.roleKey === "star" || o.roleKey === "start")],
+  /* HIER STAND „Eine Liga, in der du noch nie gespielt hast". Gemessen über
+     5.522 Angebote traf das 79,2 % ALLER Gründe und hob den Anteil begründeter
+     Angebote auf 81 % — bei 1.239 Vereinen in dutzenden Ligen ist es fast
+     immer wahr und sagt deshalb nichts. Das Papier will „gelegentlich einen
+     biografischen Grund", nicht bei jedem zweiten Angebot eine Zeile.
+     Gestrichen; ohne sie tragen 17 % der Angebote einen Grund. */
+];
+
+function angebotsGrund(p, c, o) {
+  if (!p || !c || !o) return null;
+  for (const [text, pruef] of ANGEBOTSGRUND) {
+    let t = false;
+    try { t = !!pruef(p, c, o); } catch (e) { t = false; }
+    if (t) return text;
+  }
+  return null;
+}
+
 function makeOffers(p) {
   const free = p.contract <= 0;
   const last = p.seasons[p.seasons.length - 1];
@@ -5763,7 +5947,16 @@ function makeOffers(p) {
   /* Das Versprechen gilt genau für DIESES Fenster. Ohne das Löschen bekäme
      man den Verein bis ans Karriereende jedes Jahr wieder angeboten. */
   if (versprochen) p.flags.rueckkehrZu = null;
-  return (list.length ? list : out).slice(0, 12);
+  /* DER BIOGRAFISCHE GRUND KOMMT ZULETZT (35.110) — nach allen Rechnungen,
+     damit er keine verschiebt. Nur für echte Wechsel: bei „Vertrag erfüllen"
+     oder „Verlängern" wäre „Du warst schon einmal hier" albern. */
+  const fertig = (list.length ? list : out).slice(0, 12);
+  fertig.forEach((o) => {
+    if (o.type === "stay" || o.type === "renew") return;
+    const g = angebotsGrund(p, o.club, o);
+    if (g) o.grund = g;
+  });
+  return fertig;
 }
 
 /* Vermächtnistitel für außergewöhnliche Laufbahnen. Nach Seltenheit sortiert —
@@ -5879,6 +6072,7 @@ const { ABTEILUNGEN, AKA_MAX, AKA_STUFEN,
         leereAkademie, akaJahrNr, akaJahrgang, akaStufe, akaSumme, akaAusbau,
         akaPreis, akaRestkosten, akaSpanne, akaLeistbar,
         akaJahr, akaBonus, akaBonusText, akaNaechsteGabe, akaNaechster,
+        TALENTTYPEN, typVon,
         akaVerbuchen, akaGruenden,
         AKA_SCHWELLE, akaRuhm, talentBauen,
         freigeben, behalten, unterVertrag,
@@ -6333,6 +6527,11 @@ function AkademieScreen({ aka, verein, onKauf, onGruenden, onBack, onAendern }) 
           <div className="d" style={{ fontSize: 18, marginTop: 4 }}>{akaName}</div>
           <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
             Der Name kommt von deinem Verein — die Jugend gehört ihm.</div>
+          {/* Zweite Stelle für dieselbe Ansage (35.103). Die Anleitung liest
+              nicht jeder; dieser Schirm schon, denn ohne ihn gibt es keine
+              Akademie. */}
+          <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
+            Die Talente sind Jungen — die Akademie spielt Männerfußball.</div>
           <button className="btn pri" style={{ marginTop: 10 }} onClick={() => onGruenden(akaName)}>
             <span className="d" style={{ fontSize: 16 }}>Akademie gründen</span>
             <span className="m" style={{ fontSize: 10.5, color: "#04050A", opacity: .8, display: "block" }}>
@@ -6419,6 +6618,27 @@ function AkademieScreen({ aka, verein, onKauf, onGruenden, onBack, onAendern }) 
           <Stat k="Jugendturniere" v={<Zahl v={a.bilanz.turniere} dauer={1000} />} />
           <Stat k="Ansehen" v={<Zahl v={a.ruhm} dauer={1500} />} acc />
         </div>
+
+        {/* DIE KASSE (35.103). `verdient` und `ausgegeben` liefen seit ihrer
+            Einfuehrung mit und wurden NIE gelesen — vier bzw. zwei Schreiber,
+            null Leser, dieselbe Klasse wie `hsvZaehler` in den Stolperfallen.
+            Kevins Entscheidung: sichtbar machen statt loeschen.
+
+            BEWUSST KEINE BILANZ. Es waere naheliegend, hier
+            „verdient − ausgegeben = Kasse" hinzuschreiben. Das waere fuer
+            alte Spielstaende gelogen: bis 35.102 buchten Packkaeufe nicht mit
+            und Verkaufserloese auch nicht, die Differenz geht dort also nicht
+            auf. Rueckwirkend laesst sich das nicht rekonstruieren — man weiss
+            nicht, wie viele Packs jemand gekauft hat. Deshalb stehen die
+            beiden Zahlen nebeneinander und behaupten nichts ueber ihre
+            Differenz. Ab 35.103 stimmt sie; das aber im Prüfstand zu zeigen
+            ist ehrlicher, als es hier zu versprechen. */}
+        {a.gegruendet && ((a.verdient || 0) > 0 || (a.ausgegeben || 0) > 0) && (
+          <div className="g2" style={{ marginTop: 12 }}>
+            <Stat k="Coins verdient" v={<Zahl v={a.verdient || 0} dauer={1200} />} />
+            <Stat k="Coins ausgegeben" v={<Zahl v={a.ausgegeben || 0} dauer={1200} />} />
+          </div>
+        )}
 
         {/* 35.39: der Kasten erschien BISHER nur, wenn schon etwas da war
             (`bt.length > 0`) — also ausgerechnet in der Phase nicht, in der man
@@ -6682,6 +6902,31 @@ const CSS = SCHRIFTEN + `
  --stoerer:#D93A2B;
  /* Zweitwerte für helle Flächen (Karton). Ohne die ist auf Papier nichts lesbar. */
  --karton:#E9E2D3;--karton2:#DBD2BF;--tinte:#14171A;--tinte2:#565C58;
+ /* AUFSATZFLAECHE AUF KARTON (35.121, von Kevin auf dem Geraet gefunden).
+    Die Variable up ist mit #262218 fuer dunklen Grund gedacht. Die Blaetter
+    karteikarte und laufzettel loesen tx und mu zur Kartonfassung auf, up
+    aber nicht — ein up-Kasten INNERHALB einer Karteikarte trug damit Tinte
+    auf Dunkelbraun: Kontrast 1,13 bei einer Grenze von 3. Praktisch
+    unsichtbar, und genau so hat Kevin es auf dem S24 Ultra gesehen.
+    Diese Fassung gehoert in dieselbe Aufloesung wie die uebrigen.
+
+    NUR up, NICHT pan/pan2/bg (berichtigt 35.122). Der erste Entwurf hat alle
+    vier Flaechen mit aufgeloest, weil sie rechnerisch denselben Kontrast
+    hatten (1,01 bis 1,16). Das war zu breit: die Wildcard-Karte setzt in
+    .wkarte ABSICHTLICH helle Schrift und traegt dafuer eine eigene Ausnahme
+    weiter unten, die ihr innerhalb der Kartonblaetter den DUNKLEN pan
+    zurueckgibt. Mit pan auf Karton lief diese Ausnahme ins Leere: helle
+    Schrift auf hellem Papier, von Kevin sofort auf dem Geraet gesehen.
+
+    Die Rechnung stimmte, die Wirkung nicht — Tinte landet auf up, aber nicht
+    auf pan, weil dort Bausteine mit eigenen Farben sitzen. Ein gemessener
+    Kontrastwert allein sagt nicht, ob ein Text diese Flaeche ueberhaupt
+    beruehrt.
+
+    KEINE RUECKWAERTS-ANFUEHRUNGSZEICHEN HIER: der Block ist ein CSS-
+    Vorlagenliteral, und die Hygienepruefung des Aufbaus hat den ersten
+    Entwurf zu Recht abgewiesen. */
+ --up-k:#DFD8C7;
  --ac-k:#15558F;--go-k:#7A5600;--ok-k:#146B33;--bad-k:#A81C13;
  /* Eigener Goldton für die Markenzahl auf dem Pass. --go-k ist auf Lesbarkeit
     bei kleiner Schrift gerechnet (Kontrast 5,2) und wirkt dadurch bronzefarben.
@@ -6930,6 +7175,7 @@ table.led td.r,table.led th.r{text-align:right;}
 .laufzettel{
   --ac:var(--ac-k); --go:var(--go-k); --ok:var(--ok-k); --bad:var(--bad-k);
   --mu:var(--tinte2); --tx:var(--tinte);
+  --up:var(--up-k);
   --ln:rgba(20,23,26,.16); --ln2:rgba(20,23,26,.30);
   background:var(--karton);color:var(--tinte);
   border:1px solid var(--karton2);
@@ -7005,6 +7251,7 @@ table.led td.r,table.led th.r{text-align:right;}
 .karteikarte{
   --ac:var(--ac-k); --go:var(--go-k); --ok:var(--ok-k); --bad:var(--bad-k);
   --mu:var(--tinte2); --tx:var(--tinte);
+  --up:var(--up-k);
   --ln:rgba(20,23,26,.16); --ln2:rgba(20,23,26,.30);
   background:var(--karton);color:var(--tinte);border:1px solid var(--karton2);
   box-shadow:4px 5px 0 rgba(0,0,0,.55);
@@ -7732,7 +7979,15 @@ const ACHIEVEMENTS = [
 { id:"a_akaF_tur10",s:"gold",   n:"Der Pokalschrank",      t:"Zehn Jugendturniere gewinnen",
   ok:(p,G,A)=>!!A&&(A.bilanz.turniere||0)>=10 },
 { id:"a_akaF_jg50", s:"legende",n:"Fünfzig Jahrgänge",     t:"Fünfzig Jahrgänge ausbilden",
-  ok:(p,G,A)=>!!A&&(A.chronik||[]).length>=50, lohn:"mw_werkbank" },
+  /* `jahrgaenge`, NICHT `chronik.length` (berichtigt 35.102). Die Chronik ist
+     in `akaJahr` auf 25 Eintraege gekappt (`slice(0, 25)`) — die Bedingung war
+     damit im echten Spiel unerreichbar, und mit ihr die Wildcard `mw_werkbank`.
+     Gemessen: nach 120 echten Akademiejahren stand `chronik.length` immer noch
+     auf 25, `jahrgaenge` auf 120. Bis Jahr 24 laufen beide fast gleich
+     (chronik = jahrgaenge + 1 wegen des Gruendungseintrags) — deshalb sah die
+     Bedingung lange plausibel aus. Der richtige Zaehler stand die ganze Zeit
+     sieben Zeilen tiefer in `a_aka_erbe`. */
+  ok:(p,G,A)=>!!A&&(A.jahrgaenge||0)>=50, lohn:"mw_werkbank" },
 { id:"a_akaF_ruf",  s:"platin", n:"Weit über die Stadt",   t:"Ansehen von 400 erreichen",
   ok:(p,G,A)=>!!A&&(A.ruhm||0)>=400, lohn:"mk_rahmen50" },
 { id:"a_akaF_auf200",s:"gold",  n:"Zweihundert Jungen",    t:"200 Talente aufnehmen",
@@ -8499,8 +8754,12 @@ function VereinGruenden({ aka, verein, art = "voll", onFertig, onZurueck }) {
                 return;
               }
               const grund = verein && verein.gekannt ? verein : VEREIN.leererVerein();
+              /* `weltjahr` reicht das Kalenderjahr durch (35.119) — die
+                 Akademie führt es in `a.jahr`. Ohne Akademie bleibt es
+                 undefined, und `gruenden` setzt dann `true` wie bisher. */
               const r = VEREIN.gruenden(grund,
-                nurLiga ? { land, liga } : { name, stadt, land, liga, farben });
+                nurLiga ? { land, liga, weltjahr: aka && aka.jahr }
+                        : { name, stadt, land, liga, farben, weltjahr: aka && aka.jahr });
               if (!r.fehler) onFertig(nurLiga ? r.v : { ...r.v, wappen, muster });
             }}>
             {!bereit ? (nurLiga ? "Liga wählen" : "Name fehlt")
@@ -9124,13 +9383,116 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
 }
 
 /* ------------------------------------------------------- Abschlussbilanz */
-function VereinAbschluss({ v, ergebnis, onNeu, onZurueck }) {
+/* ---------------------------------------- Fünfzehn Jahre als Kapitel ------
+   Stufe D aus dem Prüfbericht zum Meta-Papier: „Ein 15-jähriger Vereinsrun
+   soll rückblickend Kapitel erzeugen können: Gründerjahre, erster Aufstieg,
+   Stagnation, goldene Generation, Absturz nach dem Titel, Wunderjahr."
+
+   NICHT DIESELBE ZERLEGUNG WIE BEI DER SPIELERLAUFBAHN. `vereinsKapitel()`
+   aus 35.105 schneidet nach VEREINSWECHSEL — ein Vereinsrun hat keine. Hier
+   schneidet die LIGA: solange der Verein in derselben Spielklasse bleibt,
+   ist es dasselbe Kapitel; ein Auf- oder Abstieg beginnt ein neues. Das ist
+   die Zäsur, die ein Vereinsleben wirklich teilt.
+
+   KEIN NEUES FELD. `v.chronik` wird nicht gekappt (`[...v.chronik, {…}]` in
+   `verein.js`) und trägt je Jahr Liga, Rang, Punkte, Tore und die
+   Auf-/Abstiegsmarke. Mehr braucht es nicht.                               */
+const VEREINSPHASEN = [
+  /* Erste zutreffende gewinnt; oben die einschneidenden. */
+  [(f) => f.erste && f.jahre >= 4,                    "Die Gründerjahre"],
+  [(f) => f.erste,                                    "Der Anfang"],
+  [(f) => f.meister >= 3,                             "Die goldene Generation"],
+  [(f) => f.aufstieg && f.meister >= 1,               "Aufstieg und Durchmarsch"],
+  [(f) => f.aufstieg,                                 "Der Aufstieg"],
+  [(f) => f.abstieg && f.vorherMeister,               "Der Absturz nach dem Titel"],
+  [(f) => f.abstieg,                                  "Der Absturz"],
+  [(f) => f.meister >= 1,                             "Das Wunderjahr"],
+  [(f) => f.jahre >= 5,                               "Die langen Jahre"],
+  [(f) => f.schnitt <= 3,                             "Ganz oben dran"],
+  [(f) => f.schnitt >= f.N - 2,                       "Der Abstiegskampf"],
+  [() => true,                                        "Die ruhigen Jahre"],
+];
+
+function vereinsPhasen(chronik) {
+  const C = chronik || [];
+  if (!C.length) return [];
+  /* ZWEI ZAESUREN, NICHT EINE. Der erste Entwurf schnitt nur nach Liga —
+     und wer fuenfzehn Jahre in derselben Spielklasse bleibt, bekam EIN
+     einziges Kapitel. Die Pruefung hat es gezeigt: zehn von zwoelf Regeln
+     waren damit unerreichbar, weil die erste Phase immer „Der Anfang" heisst
+     und keine zweite entstand.
+
+     Jetzt teilt auch der ERFOLG: ein Meisterjahr nach einem titellosen
+     beginnt ein neues Kapitel, und ein titelloses nach einem Meisterjahr
+     ebenso. Damit hat auch ein Verein, der nie auf- oder absteigt, eine
+     Geschichte mit Hoch und Tief statt einer geraden Linie. */
+  const ph = [];
+  C.forEach((c, i) => {
+    const letzte = ph[ph.length - 1];
+    const vor = i > 0 ? C[i - 1] : null;
+    const titelWende = vor && ((c.rang === 1) !== (vor.rang === 1));
+    if (letzte && letzte.liga === c.liga && !titelWende) letzte.jahreListe.push(c);
+    else ph.push({ liga: c.liga, jahreListe: [c] });
+  });
+  ph.forEach((x, i) => {
+    const J = x.jahreListe;
+    x.von = J[0].jahr; x.bis = J[J.length - 1].jahr;
+    x.jahre = J.length;
+    x.meister = J.filter((c) => c.rang === 1).length;
+    x.aufstieg = J.some((c) => c.aufstieg);
+    x.abstieg = J.some((c) => c.abstieg);
+    x.tore = J.reduce((a, c) => a + (c.tore || 0), 0);
+    x.beste = Math.min(...J.map((c) => c.rang || 99));
+    x.schnitt = J.reduce((a, c) => a + (c.rang || 0), 0) / J.length;
+    x.N = J[J.length - 1].N || 18;
+    x.erste = i === 0;
+    /* „Absturz nach dem Titel" braucht den Blick zurück — sonst wäre jeder
+       Abstieg derselbe. */
+    x.vorherMeister = i > 0 && ph[i - 1].meister > 0;
+  });
+  ph.forEach((x) => {
+    const t = VEREINSPHASEN.find(([pruef]) => pruef(x));
+    x.kapitel = t ? t[1] : "Die ruhigen Jahre";
+    delete x.jahreListe;   /* nur zum Rechnen gebraucht */
+  });
+  return ph;
+}
+
+function VereinAbschluss({ v, ergebnis, ges, onNeu, onZurueck }) {
   return (
     <Shell wide blatt="verein">
       <div className="fade">
         <div className="eb">Nach {VEREIN.VEREIN_JAHRE} Jahren</div>
         <div className="d" style={{ fontSize: "clamp(26px,7vw,44px)" }}>{ergebnis.urteil}</div>
         <div className="m" style={{ fontSize: 12, marginBottom: 10 }}>{v.name} · {v.liga}</div>
+
+        {/* DIE FÜNFZEHN JAHRE ALS KAPITEL (35.118). Steht ganz oben, weil es
+            die Geschichte ist — die Kennzahlen darunter sind der Beleg. */}
+        {(() => {
+          const ph = vereinsPhasen(v.chronik);
+          if (ph.length < 2) return null;
+          return (
+            <div className="pan pad" style={{ marginBottom: 10 }}>
+              <div className="eb" style={{ color: "var(--ac)" }}>Fünfzehn Jahre in Kapiteln</div>
+              <div style={{ marginTop: 6 }}>
+                {ph.map((x, i) => (
+                  <div key={x.liga + x.von + i} style={{ padding: "4px 0",
+                    borderBottom: i < ph.length - 1 ? "1px solid var(--ln)" : "none" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between",
+                      alignItems: "baseline", gap: 8 }}>
+                      <span style={{ fontSize: 13.5 }}>{x.kapitel}</span>
+                      <span className="m" style={{ fontSize: 11, color: "var(--mu)", whiteSpace: "nowrap" }}>
+                        Jahr {x.von}{x.bis !== x.von ? "–" + x.bis : ""}</span>
+                    </div>
+                    <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 1 }}>
+                      {x.liga}
+                      {x.meister ? " · " + x.meister + (x.meister === 1 ? " Titel" : " Titel") : ""}
+                      {x.beste < 99 ? " · beste Platzierung " + x.beste : ""}
+                    </div>
+                  </div>))}
+              </div>
+            </div>);
+        })()}
 
         <div className="pan pad" style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Stat k="Aufstiege" v={v.bilanz.aufstiege} acc />
@@ -9145,6 +9507,19 @@ function VereinAbschluss({ v, ergebnis, onNeu, onZurueck }) {
           <div className="d" style={{ fontSize: 30, color: "var(--go)" }}>
             <Zahl v={ergebnis.vc} dauer={900} suffix=" VC" /></div>
           <div className="m" style={{ fontSize: 11.5 }}>{ergebnis.punkte} Vermächtnispunkte</div>
+          {/* DER DRITTE TOTE ZAEHLER BEKOMMT EINEN LESER (35.103).
+              `vereinPunkteSumme` wurde seit 35.74 fortgeschrieben und von
+              niemandem gelesen — nicht einmal von einer Errungenschaft, anders
+              als die sechs anderen `verein*`-Zaehler. Hier ist die einzige
+              Stelle, an der die Zahl etwas bedeutet: neben den Punkten DIESES
+              Vereins steht, was alle zusammen ergeben haben. Erst ab dem
+              zweiten abgeschlossenen Verein, vorher waere es dieselbe Zahl
+              zweimal. `ges` wird dafuer durchgereicht; die Summe enthaelt
+              diesen Verein bereits, weil sie beim Abschluss gebucht wird. */}
+          {(ges && (ges.vereineFertig || 0) >= 2) && (
+            <div className="m" style={{ fontSize: 11.5, marginTop: 2 }}>
+              {ges.vereinPunkteSumme} aus {ges.vereineFertig} Vereinen zusammen
+            </div>)}
         </div>
 
         <div className="pan pad" style={{ marginTop: 10 }}>
@@ -9897,6 +10272,330 @@ function TitelJubel({ titel, club, land, onFertig }) {
    Jahresrückblick. Es geht nichts verloren, es kommt nur nacheinander.   */
 /* Der Rückblick auf die ganze Laufbahn — dieselbe Machart wie nach einer
    Saison, nur über alles. Danach folgt die gewohnte Abschlussbilanz.    */
+/* ---------------------------------------- Vereinsstationen als Kapitel ----
+   Stufe A2 aus dem Konzeptpapier. Eine Laufbahn liest sich als Folge von
+   Stationen, und jede bekommt eine Einordnung aus echten Zahlen.
+
+   WARUM STATIONEN UND NICHT VEREINE. Bis 35.104 stand im Rueckblick
+   `[...new Set(S.map((x) => x.club))]` — eine Menge. Wer nach acht Jahren zu
+   seinem alten Verein zurueckkehrt, erschien darin EINMAL, und beide
+   Zeitabschnitte wurden zu einer Zeile verrechnet. Ausgerechnet die Rueckkehr,
+   die das Papier als biografischen Moment nennt, war damit unsichtbar. Diese
+   Funktion baut zusammenhaengende Abschnitte: wer zweimal da war, hat zwei
+   Stationen, und die zweite heisst „Die Rückkehr".
+
+   Die Einordnung ist Beschreibung, kein Urteil. „Die Bankzeit" ist nicht
+   schlechter als „Die goldenen Jahre" — sie ist ein anderes Kapitel. Genau
+   darum geht es dem Papier: eine schwache Laufbahn soll eigene Geschichten
+   haben, nicht die schlechtere Fassung einer starken.                     */
+/* Die Kapitel in ihrer Reihenfolge. Erste zutreffende Regel gewinnt, deshalb
+   ist die Reihenfolge Bedeutung und nicht Geschmack. Gemessen ueber 726
+   echte Stationen: kein Kapitel unter 0,5 %, keines ueber 22 %, und keines
+   unerreichbar — „Die langen Jahre" stand im ersten Entwurf HINTER den
+   Rollenzeilen und wurde deshalb nie vergeben, weil jede lange Station auch
+   eine Rolle hat. Bei einer Fuenfjahresstation ist die Dauer die Nachricht. */
+const KAPITEL = [
+  [(x) => x.rueckkehr,                                    "Die Rückkehr"],
+  [(x) => x.erste && x.jahre >= 6,                        "Wo alles begann"],
+  [(x) => x.erste,                                        "Der Anfang"],
+  [(x) => x.jahre >= 8,                                   "Die Heimat"],
+  [(x) => x.titel >= 3,                                   "Die goldenen Jahre"],
+  [(x) => x.rangAuf >= 2,                                 "Der Durchbruch"],
+  [(x) => x.kapitaen && x.jahre >= 3,                     "Die Jahre als Kapitän"],
+  [(x) => x.rangMit != null && x.rangMit <= 1 && x.jahre >= 2, "Die Bankzeit"],
+  [(x) => x.jahre === 1 && x.apps < 12,                   "Ein kurzes Gastspiel"],
+  [(x, e) => x.letzte && e && x.jahre <= 2,               "Die letzte Station"],
+  [(x, e) => x.letzte && e,                               "Der lange Abschied"],
+  [(x) => x.note > 0 && x.note <= 2.6,                    "Die starken Jahre"],
+  [(x) => x.note >= 4.0,                                  "Die schwere Zeit"],
+  [(x) => x.jahre >= 4,                                   "Die langen Jahre"],
+  [(x) => x.rangMit != null && x.rangMit >= 3.5,          "Als Leistungsträger"],
+  [(x) => x.rangMit != null && x.rangMit >= 2.5,          "Die Stammplatzjahre"],
+  [(x) => x.rangMit != null && x.rangMit >= 1.5,          "Die Rotationsjahre"],
+  [() => true,                                            "Eine Zwischenstation"],
+];
+
+function vereinsKapitel(seasons, p) {
+  const S = seasons || [];
+  if (!S.length) return [];
+
+  /* 1. In Abschnitte zerlegen. Ein Wechsel beendet den Abschnitt. */
+  const st = [];
+  S.forEach((s) => {
+    const letzte = st[st.length - 1];
+    if (letzte && letzte.club === s.club) letzte.saisons.push(s);
+    else st.push({ club: s.club, land: s.land, liga: s.league, saisons: [s] });
+  });
+
+  /* 2. Zahlen je Abschnitt. */
+  st.forEach((x, i) => {
+    const ss = x.saisons;
+    x.von = String(ss[0].year || "").slice(0, 4);
+    x.bis = String(ss[ss.length - 1].year || "").slice(0, 4);
+    x.jahre = ss.length;
+    x.apps = ss.reduce((a, s) => a + (s.apps || 0), 0);
+    x.goals = ss.reduce((a, s) => a + (s.goals || 0), 0);
+    x.assists = ss.reduce((a, s) => a + (s.assists || 0), 0);
+    x.cs = ss.reduce((a, s) => a + (s.cs || 0), 0);
+    x.titel = ss.reduce((a, s) => a + ((s.trophies || []).length), 0);
+    const noten = ss.map((s) => s.note).filter((n) => n > 0);
+    x.note = noten.length ? noten.reduce((a, b) => a + b, 0) / noten.length : 0;
+    const raenge = ss.map((s) => ROLLENRANG[s.role]).filter((r) => r != null);
+    x.rangMit = raenge.length ? raenge.reduce((a, b) => a + b, 0) / raenge.length : null;
+    x.rangAuf = raenge.length >= 2 ? raenge[raenge.length - 1] - raenge[0] : 0;
+    x.kapitaen = ss.some((s) => s.kapitaen);
+    /* Wiederkehr: kam derselbe Verein FRUEHER schon einmal vor? */
+    x.rueckkehr = st.slice(0, i).some((y) => y.club === x.club);
+    x.erste = i === 0;
+    x.letzte = i === st.length - 1;
+  });
+
+  /* 3. Das Kapitel. Erste zutreffende Regel gewinnt; die biografisch
+        einschneidenden stehen oben.
+
+        ALS TABELLE, NICHT ALS KETTE (35.105). Der erste Entwurf war ein
+        verschachtelter Bedingungsausdruck. Der Pruefstand musste die
+        moeglichen Kapitelnamen dann aus `String(vereinsKapitel)` heraus-
+        klauben — und bekam den GEBUENDELTEN Text, in dem Umlaute als `\xFC`
+        stehen. „Die R\xFCckkehr" ist nicht „Die Rückkehr", also meldete die
+        Erreichbarkeitsprobe sechs Kapitel als nie vergeben, die es alle gab.
+        Eine Pruefung, die den Quelltext ihres Prueflings parst, misst den
+        Uebersetzer mit. Mit der Tabelle liest sie stattdessen `KAPITEL[i][1]`
+        — dieselbe Quelle, aus der auch die Funktion schoepft. */
+  /* „Beendet" heisst: die Laufbahn ist vorbei oder erkennbar am Ende. Nur
+     dann darf eine Station „Die letzte Station" heissen — mitten in der
+     Laufbahn waere das eine Vorhersage, keine Einordnung. */
+  const beendet = !!(p && (p.endNow || p.retired || (p.age || 0) >= 34));
+  st.forEach((x) => {
+    const treffer = KAPITEL.find(([pruef]) => pruef(x, beendet));
+    x.kapitel = treffer ? treffer[1] : "Eine Zwischenstation";
+  });
+  return st;
+}
+
+/* ---------------------------------------- Das eine persönliche Ziel ------
+   Stufe B aus dem Konzeptpapier, zweiter Teil. Eine Laufbahn mit begrenzter
+   Weltklasseperspektive soll nicht jahrelang implizit an denselben Maßstäben
+   scheitern, sondern etwas haben, worauf sie zuarbeiten kann.
+
+   DREI ENTSCHEIDUNGEN, DIE DAS PAPIER VORGIBT:
+
+   1. „Höchstens ein stark kontextuelles Ziel gleichzeitig." Deshalb liefert
+      diese Funktion genau EINES und nicht die drei naechstliegenden. Kein
+      Questlog, keine Liste, kein Haekchenraster.
+
+   2. „Sie duerfen die Karriere nicht kuenstlich erfolgreich rechnen." Deshalb
+      gibt es KEINE eigene Belohnung. Das Ziel ist eine Marke, die es ohnehin
+      gibt; wer sie erreicht, bekommt genau das, was er auch ohne Anzeige
+      bekommen haette. Die Anzeige benennt nur, was sowieso in Reichweite ist.
+
+   3. Kein neues persistentes Feld. Das Ziel wird bei jedem Aufruf neu aus dem
+      Verlauf abgeleitet — wie die Saison-Schlagzeile und die Vereinskapitel.
+      Ist es erreicht, faellt es aus der Auswahl und das naechste rueckt nach.
+      Alte Spielstaende haben sofort eines.
+
+   WARUM DIE MARKEN UND KEINE EIGENE ZIELLISTE: eine zweite Liste liefe beim
+   naechsten neuen Ziel stumm auseinander — dasselbe Muster wie die zweite
+   Ablaufliste in 35.29 und die zweite Geraetetest-Liste in 35.101. Marken mit
+   `mess` und `soll` taugen als Ziel, die ohne nicht; „Die Binde getragen"
+   laesst sich nicht anteilig erreichen und waere als Fortschrittsbalken
+   albern.                                                                  */
+/* ---------------------------------------- Fast geschafft ------------------
+   Stufe G aus dem Prüfbericht zum Meta-Papier: „Eine kleine Fast-geschafft-
+   Fläche kann 2 bis 3 naheliegende Fortschritte zeigen, ohne versteckte
+   Bedingungen vollständig offenzulegen. Beispiel: 499/500 Profispiele."
+
+   ABGELEITET STATT GEPFLEGT. Bei 192 Errungenschaften wäre eine Handliste
+   mit Messfunktion und Schwelle je Eintrag nicht nur Arbeit, sondern eine
+   zweite Liste, die beim nächsten neuen Erfolg stumm auseinanderläuft —
+   dasselbe Muster wie schon dreimal in diesem Projekt.
+
+   Stattdessen wird die Bedingung GELESEN. Gemessen: 71 der 192 haben die
+   reine Form `(G.feld || 0) >= Zahl` und geben Feld und Schwelle damit
+   selbst preis. Die übrigen 121 bleiben außen vor — sie prüfen mehrere
+   Größen oder gehen über die Historie, und ein halb erratener Fortschritt
+   wäre schlechter als keiner.
+
+   WARUM DAS HIER ERLAUBT IST, obwohl das Parsen von Funktionstext in 35.105
+   und 35.108 zweimal danebengegangen ist: dort wurden NAMEN gelesen, die
+   esbuild umbenennt (`her` → `her2`, Kapitelnamen mit Escape-Sequenzen).
+   Feldnamen von Objekteigenschaften und Zahlen benennt der Übersetzer NICHT
+   um — `G.apps >= 500` steht im Bündel genauso da. Eine Probe hält das fest.
+
+   KEIN FOMO. Angezeigt werden höchstens drei, alle mindestens zu 60 %
+   erreicht, und nur solche, deren Schwelle wirklich in Reichweite ist. Wer
+   bei 12 von 500 steht, liest das nicht. */
+const FASTRX = /^\(\s*p\s*,\s*G\s*(?:,[^)]*)?\)\s*=>\s*\(?\s*([A-Za-z]+)\.([A-Za-z]+)\s*(?:\|\|\s*0\s*\))?\s*>=\s*(\d+)\s*$/;
+
+function fastGeschafft(G, erledigt) {
+  if (!G) return [];
+  const hab = new Set(erledigt || []);
+  const offen = [];
+  ACHIEVEMENTS.forEach((a) => {
+    if (hab.has(a.id)) return;
+    const q = String(a.ok).replace(/\s+/g, " ").trim();
+    const m = q.match(FASTRX);
+    if (!m) return;
+    /* Nur die Gesamtbilanz — `p` und `A` sind beim Anschauen der
+       Errungenschaftsseite nicht dieselben wie beim Erfüllen. */
+    if (m[1] !== "G") return;
+    const ist = G[m[2]];
+    const soll = Number(m[3]);
+    if (typeof ist !== "number" || !soll || ist >= soll) return;
+    const anteil = ist / soll;
+    if (anteil < 0.6) return;
+    offen.push({ id: a.id, titel: a.n, ist, soll, anteil });
+  });
+  return offen.sort((x, y) => y.anteil - x.anteil).slice(0, 3);
+}
+
+function naechstesZiel(p) {
+  if (!p || !p.seasons) return null;
+  const offen = MILESTONES.filter((m) =>
+    m.mess && m.soll && !(p.milestones || []).includes(m.id));
+  let best = null;
+  offen.forEach((m) => {
+    let ist = 0;
+    try { ist = m.mess(p) || 0; } catch (e) { return; }
+    if (ist >= m.soll) return;                       /* zaehlt schon, greift gleich */
+    const anteil = ist / m.soll;
+    /* UNTER 40 % IST KEIN ZIEL, SONDERN EINE ANKUENDIGUNG. Wer zwei
+       Laenderspiele hat, braucht nicht „noch 98 bis 100" zu lesen — das
+       entmutigt, statt Orientierung zu geben. */
+    if (anteil < 0.4) return;
+    if (!best || anteil > best.anteil) best = { m, ist, anteil };
+  });
+  if (!best) return null;
+  return { id: best.m.id, titel: best.m.t, ist: best.ist, soll: best.m.soll,
+           rest: best.m.soll - best.ist, anteil: best.anteil };
+}
+
+/* ---------------------------------------- Was für eine Laufbahn war das? --
+   Stufe D aus dem Konzeptpapier: „Das Spiel soll intern erkennen, welche Art
+   Fußballerbiografie tatsächlich entstanden ist. Diese Archetypen werden
+   nicht vorab gewählt."
+
+   RELATIV, NICHT ÜBER SCHWELLEN. Der naheliegende Weg wären feste Grenzen
+   („ab 8 Jahren an einem Ort ist er eine Ikone"). Gemessen über 300
+   Laufbahnen wäre das falsch kalibriert gewesen: „20+ Saisons" träfe 94 %,
+   „8+ Stationen" 79 %, „Absturz ab 12" 78 % — und das nur, weil der
+   Prüfaufbau jede Laufbahn bis Alter 41 ausspielt. Schwellen, die an einem
+   Automaten geeicht sind, passen nicht auf einen Menschen, der mit 33
+   aufhört.
+
+   Deshalb bekommt jeder Archetyp einen KENNWERT, und der höchste gewinnt.
+   Damit ist die Einordnung ein Vergleich innerhalb der eigenen Laufbahn und
+   nicht gegen eine Zahl, die jemand vor zwei Jahren geraten hat. Wer zwanzig
+   Saisons spielt UND achtmal wechselt, ist Wandervogel und nicht „ewiger
+   Profi", weil das Wechseln stärker ausgeprägt ist.
+
+   KEINE KLASSE, KEIN VORAB. Der Archetyp wird bei jedem Aufruf neu aus dem
+   Verlauf gerechnet — kein neues persistentes Feld, keine Wahl am Anfang. Er
+   kann sich im Laufe einer Karriere ändern, und genau das will das Papier.
+
+   ER TUT NICHTS. Diese Fassung leitet ihn ab und zeigt ihn im Rückblick.
+   Ereignisgewichte rührt er NICHT an — das wäre Balancing und gehört in eine
+   eigene Fassung mit eigener Messung.                                      */
+const ARCHETYPEN = [
+  ["Die Vereinsikone",  (m) => m.treu * 1.4 + m.rueck * 3 - m.stationen * 0.5],
+  ["Der Wandervogel",   (m) => m.stationen * 0.55 + m.laender * 0.9 - m.treu * 0.8],
+  ["Der Spätstarter",   (m) => Math.max(0, m.peakAlter - 27) * 4.0],
+  ["Das Wunderkind",    (m) => Math.max(0, 28 - m.peakAlter) * 2.6],
+  ["Der Pechvogel",     (m) => m.verletzt * 4.5 + Math.max(0, m.absturz - 10) * 0.35],
+  ["Der Wiederaufer­standene", (m) => m.comeback * 7 + m.verletzt * 2.5 - Math.max(0, m.absturz - 16) * 0.5],
+  ["Der ewige Profi",   (m) => Math.max(0, m.saisons - 16) * 1.5],
+  ["Der Nationalheld",  (m) => m.caps * 0.09 + m.ntTitel * 4],
+  ["Der Titelsammler",  (m) => m.titel * 1.1],
+  ["Der Anführer",      (m) => m.kapi * 1.6],
+];
+
+/* Was ein Archetyp im Ereignispool verschiebt (35.113).
+
+   DAS PAPIER ERLAUBT ES UND WARNT ZUGLEICH: „Archetypen koennen
+   Ereignisgewichtung beeinflussen" — aber „die Ereignisgewichtung darf nicht
+   so deterministisch werden, dass der Spieler nach wenigen Jahren seinen
+   gesamten zukuenftigen Storypfad vorhersagen kann."
+
+   Deshalb GEWICHTE VERSCHIEBEN, KEINE POOLS OEFFNEN ODER SCHLIESSEN. Jeder
+   Faktor liegt zwischen 0,75 und 1,55; keiner ist 0 und keiner sperrt etwas
+   aus. Jedes Ereignis, das ein Spieler ohne Archetyp bekommen kann, kann er
+   auch mit bekommen — nur die Haeufigkeit verschiebt sich. Der Pruefstand
+   rechnet das nach: ein Faktor von 0 oder ueber 2 faellt auf.
+
+   Ein Archetyp entsteht aus dem Verlauf und kann sich aendern. Wer aufhoert
+   zu wechseln, ist irgendwann keine Wandervogel mehr, und der Pool dreht mit.
+
+   Der ZWEITE Archetyp wirkt bewusst NICHT mit. Zwei ueberlagerte Gewichtungen
+   waeren schwer nachvollziehbar, und der Nebenzug ist ohnehin nur eine
+   Beschriftung. */
+const ARCHETYP_GEWICHT = {
+  "Die Vereinsikone":  { Treue: 1.55, Fans: 1.4, Verein: 1.3, Führung: 1.25, Transfer: .75 },
+  "Der Wandervogel":   { Transfer: 1.5, Ausland: 1.45, Wechselfrage: 1.4, Land: 1.3, Herkunft: 1.25, Treue: .75 },
+  "Der Spätstarter":   { Sportlich: 1.35, Vertrag: 1.3, Konkurrenz: 1.25, Nachwuchs: .8 },
+  "Das Wunderkind":    { Nachwuchs: 1.5, Medien: 1.35, Geschäft: 1.3, Alter: .8 },
+  "Der Pechvogel":     { Verletzung: 1.5, Körper: 1.45, Nachwirkung: 1.3, Risiko: 1.2 },
+  /* DAS WEICHE TRENNZEICHEN MUSS MIT. Der Name in `ARCHETYPEN` traegt eines
+     (`Wiederaufer\u00adstandene`), damit die lange Zeile im Rueckblick sauber
+     umbricht. Hier stand er ohne — der Schluessel haette NIE gegriffen, und
+     dieser eine Archetyp waere als einziger ohne Wirkung geblieben. Kein
+     Absturz, keine Warnung, nur eine Tabelle, die ins Leere zeigt.
+     Die Pruefung „jeder Archetyp hat eine Gewichtstabelle" hat es gefangen. */
+  ["Der Wiederaufer\u00adstandene"]: { Körper: 1.4, Nachwirkung: 1.35, Sportlich: 1.25, Medien: 1.2 },
+  "Der ewige Profi":   { Alter: 1.5, Zukunft: 1.35, Vermächtnis: 1.3, Kabine: 1.2, Nachwuchs: .8 },
+  "Der Nationalheld":  { Nationalteam: 1.5, Land: 1.35, Medien: 1.25, Herkunft: 1.2 },
+  "Der Titelsammler":  { Pokal: 1.45, Europa: 1.4, Sportlich: 1.25, Medien: 1.2 },
+  "Der Anführer":      { Führung: 1.5, Kabine: 1.4, Verein: 1.2, Taktik: 1.2 },
+};
+
+function archetypMerkmale(p) {
+  const S = (p && p.seasons) || [];
+  const st = vereinsKapitel(S, p);
+  let bestOvr = 0, peakAlter = 26;
+  S.forEach((s) => { if ((s.ovr || 0) > bestOvr) { bestOvr = s.ovr; peakAlter = s.age || 26; } });
+  const verletzt = S.filter((s) => s.injury && s.injury.sev === "schwer").length;
+  /* Comeback: nach einer schweren Verletzung wieder eine volle Saison —
+     dieselbe Regel wie bei der Marke aus 35.106, damit nicht zwei Stellen
+     dasselbe verschieden zählen. */
+  const iV = S.findIndex((s) => s.injury && s.injury.sev === "schwer");
+  const comeback = iV >= 0 && S.slice(iV + 1).some((s) => (s.apps || 0) >= 25) ? 1 : 0;
+  return {
+    saisons: S.length,
+    stationen: st.length,
+    laender: new Set(S.map((s) => s.land)).size,
+    treu: st.length ? Math.max(...st.map((x) => x.jahre)) : 0,
+    rueck: st.filter((x) => x.rueckkehr).length,
+    peakAlter, verletzt, comeback,
+    absturz: Math.max(0, (p.peakOvr || 0) - (p.ovr || 0)),
+    caps: (p.nt && p.nt.caps) || 0,
+    /* `p.nt.titel` GIBT ES NICHT — die Turniere stehen in `p.nt.majors`, und
+       ein Titel ist dort `res === "Titel"` bei einem Turnier ohne `u`
+       (Jugendturniere zaehlen nicht). Der erste Entwurf las `p.nt.titel` und
+       waere still immer 0 geblieben: kein Absturz, keine Warnung, nur ein
+       Merkmal, das nie greift. Dieselbe Zaehlweise wie in `leereBilanz` bei
+       `g.ntTitel`. */
+    ntTitel: ((p.nt && p.nt.majors) || []).filter((x) => !x.u && x.res === "Titel").length,
+    titel: (p.trophies || []).length,
+    kapi: S.filter((s) => s.kapitaen).length,
+  };
+}
+
+function archetyp(p) {
+  if (!p || !p.seasons || p.seasons.length < 3) return null;   /* zu früh für ein Urteil */
+  const m = archetypMerkmale(p);
+  const punkte = ARCHETYPEN.map(([n, f]) => {
+    let w = 0; try { w = f(m) || 0; } catch (e) { w = 0; }
+    return { n, w };
+  }).sort((a, b) => b.w - a.w);
+  if (punkte[0].w <= 0) return null;
+  const haupt = punkte[0];
+  /* Ein zweiter Zug nur, wenn er wirklich nah dran ist. „Fließend" heißt
+     nicht „alles ein bisschen": mit 0,7 trugen 83 % von 300 Laufbahnen einen
+     zweiten Archetyp, und damit sagte er nichts mehr. Mit 0,88 sind es rund
+     ein Drittel — dann ist er eine Aussage. */
+  const neben = punkte[1] && punkte[1].w >= haupt.w * 0.88 ? punkte[1].n : null;
+  return { haupt: haupt.n, neben, merkmale: m };
+}
+
 function KarriereRueckblick({ p, onFertig }) {
   useZurueck(onFertig);
   /* Solange der Rückblick offen ist, rollt die Seite darunter nicht mit. */
@@ -9917,6 +10616,22 @@ function KarriereRueckblick({ p, onFertig }) {
         {S.length
           ? POS[p.pos].label + " · mit " + S[0].age + " angefangen, mit " + p.age + " aufgehört"
           : POS[p.pos].label + " · aufgehört, bevor es losging"}</div>
+      {/* DER ARCHETYP (35.109). Keine Klasse, kein Titel, kein Abzeichen —
+          eine Einordnung, die aus dem entsteht, was passiert ist. Sie steht
+          hier und nicht auf einer eigenen Seite, weil sie zur Kopfzeile der
+          Laufbahn gehört und keinen zusätzlichen Wisch wert ist. Der zweite
+          Zug erscheint nur, wenn er wirklich nah dran ist. */}
+      {(() => {
+        const a = archetyp(p);
+        if (!a) return null;
+        return (
+          <div className="up pad" style={{ marginTop: 16, maxWidth: 330, marginLeft: "auto", marginRight: "auto" }}>
+            <div className="eb" style={{ color: "var(--ac)" }}>Was für eine Laufbahn</div>
+            <div className="d" style={{ fontSize: 17, marginTop: 2 }}>{a.haupt}</div>
+            {a.neben && <div className="m" style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 2 }}>
+              und zugleich: {a.neben}</div>}
+          </div>);
+      })()}
     </div>), "var(--ac)");
 
   if (p.tot.apps > 0) K("Auf dem Platz", "Alles zusammengerechnet", (
@@ -9957,21 +10672,35 @@ function KarriereRueckblick({ p, onFertig }) {
     </div>), "var(--ac)");
 
   const laender = [...new Set(S.map((x) => x.land))];
+  const stationen = vereinsKapitel(S, p);
+  /* `stationen.length` statt der alten Vereinsmenge: wer zweimal beim selben
+     Verein war, hat zwei Stationen. Die Unterzeile nennt deshalb beide Zahlen,
+     wenn sie auseinandergehen — sonst stuende „7 Vereine" ueber sieben Zeilen,
+     von denen zwei denselben Namen tragen, und das saehe nach Fehler aus. */
   const vereine = [...new Set(S.map((x) => x.club))];
-  if (vereine.length) K("Deine Stationen", vereine.length + " Vereine in " + laender.length + (laender.length === 1 ? " Land" : " Ländern"), (
+  if (stationen.length) K("Deine Stationen",
+    (stationen.length === vereine.length
+      ? vereine.length + (vereine.length === 1 ? " Verein" : " Vereine")
+      : stationen.length + " Stationen bei " + vereine.length + " Vereinen")
+    + " in " + laender.length + (laender.length === 1 ? " Land" : " Ländern"), (
     <div className="g1" style={{ maxWidth: 400, margin: "0 auto", maxHeight: "46vh", overflowY: "auto" }}>
-      {vereine.slice(0, 10).map((cn, k) => {
-        const dort = S.filter((x) => x.club === cn);
-        return (
-          <Reihe key={cn} i={k} takt={80}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline",
-              padding: "6px 0", borderBottom: "1px solid var(--ln)" }}>
-              <span style={{ fontSize: 13, textAlign: "left" }}>{cn}</span>
-              <span className="m" style={{ fontSize: 11.5, color: "var(--mu)" }}>
-                {dort.length} {dort.length === 1 ? "Saison" : "Saisons"} · {dort.reduce((a, x) => a + x.apps, 0)} Spiele</span>
+      {stationen.slice(0, 12).map((x, k) => (
+        <Reihe key={x.club + ":" + x.von + ":" + k} i={k} takt={70}>
+          <div style={{ padding: "7px 0", borderBottom: "1px solid var(--ln)", textAlign: "left" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+              <span style={{ fontSize: 13 }}>{x.club}</span>
+              <span className="m" style={{ fontSize: 11, color: "var(--mu)", whiteSpace: "nowrap" }}>
+                {x.von}{x.bis !== x.von ? "–" + x.bis : ""}</span>
             </div>
-          </Reihe>); })}
-      {vereine.length > 10 && <div className="m" style={{ fontSize: 11, color: "var(--mu)" }}>und {vereine.length - 10} weitere</div>}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, marginTop: 2 }}>
+              <span className="eb" style={{ fontSize: 10.5, color: "var(--ac)" }}>{x.kapitel}</span>
+              <span className="m" style={{ fontSize: 11, color: "var(--mu)", whiteSpace: "nowrap" }}>
+                {x.apps} Spiele{isTW ? (x.cs ? " · " + x.cs + " zu Null" : "") : (x.goals ? " · " + x.goals + " Tore" : "")}
+                {x.titel ? " · " + x.titel + (x.titel === 1 ? " Titel" : " Titel") : ""}</span>
+            </div>
+          </div>
+        </Reihe>))}
+      {stationen.length > 12 && <div className="m" style={{ fontSize: 11, color: "var(--mu)" }}>und {stationen.length - 12} weitere</div>}
     </div>), "var(--ac)");
 
   if (p.nt.caps > 0 || (p.nt.uCaps || 0) > 0) K("Für dein Land", p.nation.flag + " " + p.nation.name, (
@@ -10076,6 +10805,205 @@ function KarriereRueckblick({ p, onFertig }) {
   );
 }
 
+/* ---------------------------------------- Die Schlagzeile einer Saison ----
+   Stufe A1 aus Kevins Konzeptpapier: jede Saison bekommt eine redaktionelle
+   Hauptaussage, abgeleitet aus dem, was wirklich passiert ist. Kein Zufall,
+   keine Vorlagenlotterie — dieselben Zahlen ergeben immer dieselbe Zeile.
+
+   KEINE ZUSAETZLICHE SEITE. Der Rueckblick hat vier feste und zwei bedingte
+   Seiten; eine siebte waere ein Wisch mehr in JEDER Saison. Der schnelle
+   Saisonloop ist ein Kernwert (Papier, Abschnitt 6), also traegt die erste
+   Seite die Schlagzeile im Kopf, wo vorher „Die Saison 2031/32" stand. Die
+   Jahreszahl rutscht in die Unterzeile zum Verein. Kein Wisch mehr, eine
+   Seite staerker.
+
+   REIHENFOLGE IST BEDEUTUNG. Die erste zutreffende Regel gewinnt, deshalb
+   stehen die seltenen und die einschneidenden oben. Wer die Binde bekommt UND
+   zwei Titel holt, liest von der Binde — das ist die groessere Geschichte im
+   eigenen Leben.
+
+   Was NICHT hier steht: „war eine gute Saison" als Urteil. Die Note hat schon
+   eine eigene Seite. Diese Zeile soll benennen, WAS passiert ist, nicht wie
+   gut es war.                                                              */
+const ROLLENRANG = { "Tribüne": 0, "Ergänzungsspieler": 1, "Rotationsspieler": 2,
+  "Stammspieler": 3, "Leistungsträger": 4 };
+
+function saisonSchlagzeile(s, vor, p) {
+  if (!s) return { kopf: "Die Saison", satz: null };
+  const rang = (x) => (x && ROLLENRANG[x.role] != null ? ROLLENRANG[x.role] : null);
+  const jetzt = rang(s), vorher = rang(vor);
+  const sprung = (jetzt != null && vorher != null) ? jetzt - vorher : 0;
+  const titel = (s.trophies || []).length;
+  const apps = s.apps || 0, vorApps = vor ? (vor.apps || 0) : 0;
+  const note = s.note || 0;
+  const alter = s.age || (p && p.age) || 0;
+  const erste = !vor;
+
+  /* 1. Die Binde. Das groesste Einzelereignis einer Vereinssaison. */
+  if (s.kapitaen && s.kapiNeu === "auf") {
+    if (vorher != null && vorher <= 1) return { kopf: "Vom Reservisten zum Kapitän",
+      satz: "Vor einem Jahr saß er noch draußen. Jetzt trägt er die Binde." };
+    return { kopf: "Die Binde", satz: "Sie haben ihn zum Kapitän gemacht." };
+  }
+  if (s.kapiNeu === "ntauf") return { kopf: "Kapitän seines Landes",
+    satz: "Die Nationalmannschaft führt jetzt er an." };
+
+  /* 2. Titel. Zwei oder mehr in einem Jahr sind ein eigenes Kapitel. */
+  if (titel >= 2) return { kopf: "Das Jahr der Titel",
+    satz: titel + " Titel in einer einzigen Spielzeit." };
+
+  /* 3. Durchbruch: mindestens zwei Rollenstufen nach oben, oder von ganz
+        unten in die Startelf. */
+  if (sprung >= 2 || (vorher != null && vorher <= 1 && jetzt >= 3))
+    return { kopf: "Durchbruch",
+      satz: "Aus dem " + (vor.role || "Kader") + " in die erste Elf — " + apps + " Pflichtspiele." };
+
+  /* 4. Zurueckgeschrieben: im Vorjahr verletzt, jetzt wieder eine volle
+        Saison. Das ist der wichtigste Satz fuer eine Laufbahn mit Rueckschlaegen. */
+  if (vor && vor.injury && apps >= 25)
+    return { kopf: "Zurückgeschrieben",
+      satz: "Nach der Verletzung wieder " + apps + " Spiele. Er ist zurück." };
+
+  /* 5. Der alte Mann. Ab 34 und noch gut — eine Geschichte, die sonst
+        niemand erzaehlt. */
+  if (alter >= 34 && note > 0 && note <= 2.8)
+    return { kopf: "Der alte Mann ist noch da",
+      satz: "Mit " + alter + " eine Saisonnote von " + note.toFixed(1).replace(".", ",") + "." };
+
+  /* 6. Ein grosses Turnier mit der Nationalmannschaft. */
+  if (s.ntMajor && s.ntMajor.n) return { kopf: s.ntMajor.n,
+    satz: "Der Sommer gehörte dem Nationaltrikot." };
+
+  /* 7. Das verlorene Jahr: Einsatzzeit auf ein Drittel eingebrochen. Nur
+        wenn es vorher etwas zu verlieren gab. */
+  if (vorApps >= 15 && apps < vorApps / 3)
+    return { kopf: "Das verlorene Jahr",
+      satz: "Von " + vorApps + " Spielen auf " + apps + ". Mehr war nicht drin." };
+
+  /* 8. Verletzung als Hauptthema. */
+  if (s.injury && apps < 20) return { kopf: "Das Jahr der Verletzung",
+    satz: "Nur " + apps + " Pflichtspiele — der Rest war Reha." };
+
+  /* 9. Nach hinten durchgereicht. */
+  if (sprung <= -2) return { kopf: "Nach hinten durchgereicht",
+    satz: "Vom " + vor.role + " zum " + s.role + "." };
+
+  /* 10. Jahr zum Vergessen — sportlich, nicht organisatorisch. */
+  if (note >= 4.2) return { kopf: "Ein Jahr zum Vergessen",
+    satz: "Saisonnote " + note.toFixed(1).replace(".", ",") + ". Das war nichts." };
+
+  /* 11. Die erste Saison ueberhaupt. */
+  if (erste) return { kopf: "Der Anfang",
+    satz: "Die erste Spielzeit als Profi." + (apps ? " " + apps + " Einsätze." : "") };
+
+  /* 12. Ein Wechsel. Wer sofort einschlaegt, bekommt die staerkere Zeile —
+         gemessen fiel „Eine große Spielzeit" sonst auf 0,8 %, weil der
+         Wechsel jede gute erste Saison ueberdeckte. */
+  if (vor && vor.club && s.club && vor.club !== s.club) {
+    if (note > 0 && note <= 2.5) return { kopf: "Sofort angekommen",
+      satz: "Erste Saison bei " + s.club + ", und gleich Note "
+        + note.toFixed(1).replace(".", ",") + "." };
+    return { kopf: "Neuer Verein, neues Jahr",
+      satz: "Erste Saison bei " + s.club + " nach " + vor.club + "." };
+  }
+
+  /* 13. Rueckfall nach Leistung. Kein Urteil, eine Einordnung — und immer
+         eine Zeile, damit keine Saison ohne Schlagzeile bleibt. */
+  if (note > 0 && note <= 2.3) return { kopf: "Eine große Spielzeit",
+    satz: "Note " + note.toFixed(1).replace(".", ",") + " über " + apps + " Spiele." };
+  if (jetzt === 4) return { kopf: "Der Mann, auf den sie bauen",
+    satz: "Leistungsträger, " + apps + " Pflichtspiele." };
+  if (jetzt != null && jetzt <= 1) return { kopf: "Warten auf die Chance",
+    satz: s.role + " — " + apps + (apps === 1 ? " Einsatz." : " Einsätze.") };
+
+  /* 14. Die ruhige Saison. HIER STAND BIS ZUR MESSUNG nur „Die Saison
+         2044/45" — also genau das, was vorher schon im Kopf stand, und das
+         in 8,5 % aller Spielzeiten. Eine Rueckfallzeile, die nichts sagt,
+         ist keine Schlagzeile. Jetzt zaehlt sie die Jahre beim selben Verein
+         und macht aus dem Nichts-Passiert eine Zugehoerigkeit. Rueckwaerts
+         gezaehlt, weil `s` in `p.seasons` stehen kann oder nicht. */
+  const reihe = (() => {
+    const alle = (p && p.seasons) || [];
+    let i = alle.indexOf(s);
+    if (i === -1) i = alle.length;          /* s noch nicht angehängt */
+    let n = 1;
+    for (let k = i - 1; k >= 0; k--) { if (alle[k].club !== s.club) break; n++; }
+    return n;
+  })();
+  const WORT = ["", "erste", "zweite", "dritte", "vierte", "fünfte", "sechste",
+    "siebte", "achte", "neunte", "zehnte"];
+  if (reihe >= 2 && s.club) return {
+    kopf: reihe <= 10 ? "Das " + WORT[reihe] + " Jahr" : "Jahr " + reihe + " am selben Ort",
+    satz: reihe + " Spielzeiten bei " + s.club + " · " + apps + " Spiele in diesem Jahr." };
+  /* SICHERHEITSNETZ, kein normaler Weg. Gemessen: diese Zeile ist ueber
+     echte Laufbahnen NICHT erreichbar — wer einen Verein hat, faellt vorher
+     in Regel 14, wer keinen Vorjahreseintrag hat, in „Der Anfang". Sie greift
+     nur ohne `s.club`, also bei einem vereinslosen Eintrag. Sie bleibt
+     trotzdem stehen, weil eine Funktion, die manchmal nichts liefert,
+     schlimmer ist als eine langweilige Zeile — aber sie ist ausdruecklich
+     nicht Teil der Erzaehlung. Eine Gegenprobe auf DIESE Zeile schlaegt
+     deshalb nie an; die Proben im Pruefstand zielen bewusst auf Regel 12. */
+  return { kopf: "Die Saison " + (s.year || ""),
+    satz: (s.role || "") + (apps ? " · " + apps + " Pflichtspiele" : "") };
+}
+
+/* ---------------------------------------- Was aus dem alten Verein wurde --
+   Stufe E, zweiter Teil („Was wäre wenn"). Das Papier: „Der verlassene Verein
+   wird Meister; der gewählte Klub steigt ab. Das soll KEINE nachträgliche
+   Bestrafung sein — der Zweck ist, Entscheidungen im Gedächtnis zu halten."
+
+   Deshalb ist die Zeile neutral formuliert und wertet nicht. Sie sagt, was
+   passiert ist, und überlässt den Rest dem Spieler.
+
+   OHNE NEUES FELD. `s.table` trägt seit jeher die vollständige Liga mit Namen
+   und Punkten, `p.seasons` die eigenen Stationen — mehr braucht es nicht. Was
+   NICHT geht: abgelehnte Angebote spiegeln. Die werden nirgends festgehalten,
+   dafür bräuchte es echte Persistenz. Das ist eine Entscheidung für Kevin und
+   steht bewusst nicht in dieser Fassung.
+
+   NUR WENN ES ETWAS ZU ERZÄHLEN GIBT: Meister, Absturz, oder der alte Verein
+   steht deutlich besser da als der eigene. Ein alter Verein auf Platz 9,
+   während man selbst Achter ist, ist keine Geschichte.                     */
+function alterVereinSpiegel(p, s) {
+  if (!p || !s || !s.table || !s.table.length) return null;
+  const eigene = new Set((p.seasons || []).map((x) => x.club));
+  const frueher = [...eigene].filter((c) => c && c !== s.club);
+  /* Abgelehnte Vereine zählen mit (35.114) — „der abgelehnte Klub gewinnt
+     einen großen Titel" ist der erste Satz, den das Papier zu „Was wäre wenn"
+     schreibt. `|| []` fängt alte Spielstände ab, die das Feld nicht haben. */
+  const abgelehnt = [...new Set((p.abgelehnt || []).map((x) => x && x.club))]
+    .filter((c) => c && c !== s.club && !eigene.has(c));
+  if (!frueher.length && !abgelehnt.length) return null;
+  /* Nur Vereine, bei denen man WIRKLICH war — und die jetzt in derselben
+     Liga stehen. Andere Ligen kennt der Saisoneintrag nicht. */
+  const treffer = s.table.filter((t) => { const c = tabVerein(t); return c && frueher.includes(c.n); });
+  /* Ein abgelehnter Verein wird NUR gespiegelt, wenn er oben steht. Nach
+     unten wäre es Schadenfreude, und das Papier sagt ausdrücklich: „Das soll
+     keine nachträgliche Bestrafung sein." Wer gut daran tat, abzulehnen,
+     muss es nicht vorgehalten bekommen — und wer schlecht daran tat, liest
+     es einmal und nicht dreimal. */
+  const abTreffer = s.table.filter((t) => { const c = tabVerein(t);
+    return c && abgelehnt.includes(c.n) && (t.pos === 1 || t.pos <= s.rank - 5); });
+  if (abTreffer.length) {
+    const a1 = abTreffer.sort((x, y) => x.pos - y.pos)[0];
+    return { club: tabVerein(a1).n, abgelehnt: true,
+      text: a1.pos === 1 ? "wurde Meister" : "wurde " + a1.pos + "." };
+  }
+  if (!treffer.length) return null;
+  /* Der auffälligste zuerst: Meister, dann Absteiger, dann der, der am
+     weitesten vor einem steht. */
+  const meister = treffer.find((t) => t.pos === 1);
+  if (meister) return { club: tabVerein(meister).n, text: "wurde Meister" };
+  const abstieg = treffer.find((t) => t.pos >= s.N - 1);
+  if (abstieg) return { club: tabVerein(abstieg).n,
+    text: "steht auf Platz " + abstieg.pos + " von " + s.N };
+  const besser = treffer.filter((t) => t.pos <= s.rank - 5)
+    .sort((a, b) => a.pos - b.pos)[0];
+  if (besser) return { club: tabVerein(besser).n,
+    text: "wurde " + besser.pos + ". — " + (s.rank - besser.pos) + " Plätze vor dir" };
+  return null;
+}
+
 function SaisonRueckblick({ p, s, onFertig }) {
   useZurueck(onFertig);
   /* Solange der Rückblick offen ist, rollt die Seite darunter nicht mit. */
@@ -10085,11 +11013,26 @@ function SaisonRueckblick({ p, s, onFertig }) {
   const seiten = [];
   const S = (kopf, unter, inhalt, farbe) => seiten.push({ kopf, unter, inhalt, farbe });
 
-  S("Die Saison " + s.year, s.club, (
+  /* Die Vorsaison ROBUST bestimmen. `s` kann schon in `p.seasons` stehen
+     (simulateSeason haengt es an) oder noch nicht — je nachdem, wann der
+     Rueckblick geoeffnet wird. Erst ueber Identitaet suchen, sonst das letzte
+     Element nehmen, das nicht `s` selbst ist. Ohne diese Vorsicht waere die
+     Vorsaison in einem der beiden Faelle die Saison selbst, und jeder
+     Vergleich ergaebe „keine Veraenderung". */
+  const alleS = (p && p.seasons) || [];
+  const iS = alleS.indexOf(s);
+  const vorSaison = iS > 0 ? alleS[iS - 1]
+    : iS === -1 && alleS.length ? alleS[alleS.length - 1] : null;
+  const schlag = saisonSchlagzeile(s, vorSaison, p);
+
+  S(schlag.kopf, "Die Saison " + s.year + " · " + s.club, (
     <div style={{ textAlign: "center" }}>
       <Zahl v={s.apps} className="d" style={{ fontSize: "clamp(52px,17vw,104px)", lineHeight: 1, color: "var(--ac)" }} />
       <div className="eb" style={{ marginTop: 4 }}>Pflichtspiele</div>
-      <div className="m" style={{ fontSize: 12, color: "var(--mu)", marginTop: 10 }}>
+      {schlag.satz && (
+        <div style={{ fontSize: 13, marginTop: 10, maxWidth: 320, marginLeft: "auto", marginRight: "auto" }}>
+          {schlag.satz}</div>)}
+      <div className="m" style={{ fontSize: 12, color: "var(--mu)", marginTop: 8 }}>
         {s.role} · {s.minutes ? s.minutes + " Minuten" : "Saison abgeschlossen"}</div>
     </div>), "var(--ac)");
 
@@ -10126,35 +11069,64 @@ function SaisonRueckblick({ p, s, onFertig }) {
       <Zahl v={s.note} dez={1} dauer={1400} className="d"
         style={{ fontSize: "clamp(52px,17vw,104px)", lineHeight: 1, color: noteColK(s.note) }} />
       <div className="eb" style={{ marginTop: 4 }}>Saisonnote</div>
-      {/* Ein Ausschnitt aus der Tabelle statt einer nackten Zahl: zwei Plätze
-          darüber, zwei darunter, die eigene Zeile hervorgehoben. Man sieht auf
-          einen Blick, ob es eng war oder eindeutig. Die Nachbarn sind nicht
-          erfunden — nur Platznummern; Vereinsnamen hätten wir nicht. */}
+      {/* Ein Ausschnitt aus der Tabelle: zwei Plätze darüber, zwei darunter,
+          die eigene Zeile hervorgehoben. Man sieht auf einen Blick, ob es eng
+          war oder eindeutig.
+
+          HIER STAND BIS 35.110: „Die Nachbarn sind nicht erfunden — nur
+          Platznummern; Vereinsnamen hätten wir nicht." Das stimmte nicht mehr.
+          `s.table` trägt die vollständige Liga mit Namen, Punkten und einer
+          Markierung der eigenen Zeile — gemessen über 19 Saisons: keine
+          einzige ohne. Die Anzeige zeigte trotzdem Gedankenstriche, weil der
+          Satz aus der Zeit vor dem Feld stammte und niemand ihn nachgeprüft
+          hat. Ein Kommentar ist keine Messung.
+
+          Und weil die Namen da sind, lässt sich zugleich zeigen, was aus einem
+          früheren Verein geworden ist — Stufe E, „Was wäre wenn" (35.111),
+          ohne ein einziges neues Feld. */}
       <div style={{ marginTop: 18, textAlign: "left", maxWidth: 280, marginLeft: "auto", marginRight: "auto" }}>
         <div className="eb" style={{ marginBottom: 5 }}>{s.league}</div>
         {(() => {
           const von = clamp(s.rank - 2, 1, Math.max(1, s.N - 4));
           const zeilen = [];
           for (let r = von; r < von + 5 && r <= s.N; r++) zeilen.push(r);
+          /* Frühere Vereine des Spielers — sie bekommen die Akzentfarbe, damit
+             man sie in der Tabelle wiedererkennt. */
+          const frueher = new Set((p.seasons || []).map((x) => x.club).filter((c) => c !== s.club));
           return zeilen.map((r) => {
             const ich = r === s.rank;
+            const zeile = (s.table || []).find((t) => t.pos === r);
+            const zc = tabVerein(zeile);
+            const name = ich ? s.club : (zc ? zc.n : "—");
+            const alt = !ich && frueher.has(name);
             return (
               <div key={r} style={{ display: "flex", alignItems: "baseline", gap: 9,
-                padding: "3px 7px", borderLeft: "3px solid " + (ich ? "var(--go)" : "transparent"),
+                padding: "3px 7px", borderLeft: "3px solid " + (ich ? "var(--go)" : alt ? "var(--ac)" : "transparent"),
                 /* Auf Karton braucht die eigene Zeile eine dunklere Tönung —
                      das alte Gelb bei 12 % war dort praktisch unsichtbar. */
                 background: ich ? "rgba(122,86,0,.15)" : "transparent" }}>
                 <span className="d" style={{ fontSize: ich ? 19 : 14, minWidth: 26,
                   color: ich ? "var(--go)" : "var(--mu)" }}>{r}</span>
                 <span className="m" style={{ fontSize: ich ? 13.5 : 11.5,
-                  color: ich ? "var(--tx)" : "var(--ln2)", overflow: "hidden",
+                  color: ich ? "var(--tx)" : alt ? "var(--ac)" : "var(--ln2)", overflow: "hidden",
                   textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {ich ? s.club : "—"}</span>
+                  {name}</span>
+                {alt && <span className="m" style={{ fontSize: 10, color: "var(--ac)", whiteSpace: "nowrap" }}>
+                  dein alter Verein</span>}
               </div>);
           });
         })()}
         <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 5, textAlign: "right" }}>
           Platz {s.rank} von {s.N}</div>
+        {/* „Was wäre wenn" (35.111): neutral, keine Bewertung. Erscheint nur,
+            wenn es etwas zu erzählen gibt. */}
+        {(() => {
+          const sp = alterVereinSpiegel(p, s);
+          if (!sp) return null;
+          return (
+            <div className="m" style={{ fontSize: 11.5, color: "var(--ac)", marginTop: 7 }}>
+              {sp.club} — {sp.abgelehnt ? "den du abgelehnt hast" : "dein alter Verein"} — {sp.text}.</div>);
+        })()}
       </div>
       {s.move && <div className="m" style={{ fontSize: 12.5, marginTop: 8,
         color: s.move.dir === "auf" ? "var(--ok)" : "var(--bad)" }}>
@@ -10866,6 +11838,31 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
             Spieler aus deiner Ruhmeshalle und aus früheren eigenen Vereinen lassen
             sich nicht verkaufen — sie sind Erinnerung, keine Ware.
           </p>
+
+          {/* DIE SAMMLUNGSSEITEN (35.126). Kein Questlog: keine Belohnung für
+              eine volle Seite, keine Frist, kein Häkchen — nur die Zahl. Wer
+              sie vollkriegt, hat eine volle Seite, und das ist der Zweck.
+              Erscheint erst ab fünf Karten; davor ist jede Seite bei null und
+              das sieht nach Aufgabenliste aus statt nach Album. */}
+          {sammlung.length >= 5 && (
+            <div className="pan pad" style={{ marginBottom: 10 }}>
+              <div className="eb" style={{ color: "var(--ac)" }}>Sammlungsseiten</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr",
+                gap: "2px 12px", marginTop: 6 }}>
+                {KARTEN.setStand(pool).map((se) => (
+                  <div key={se.id} style={{ display: "flex", justifyContent: "space-between",
+                    alignItems: "baseline", gap: 6, padding: "3px 0",
+                    borderBottom: "1px solid var(--ln)" }}>
+                    <span className="m" style={{ fontSize: 10.5,
+                      color: se.voll ? "var(--go)" : "var(--mu)",
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {se.n}</span>
+                    <span className="d" style={{ fontSize: 12, whiteSpace: "nowrap",
+                      color: se.voll ? "var(--go)" : "var(--tx)" }}>
+                      {se.habe}/{se.soll}</span>
+                  </div>))}
+              </div>
+            </div>)}
 
           <div className="eb" style={{ marginTop: 10 }}>Zeigen</div>
           <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 5 }}>
@@ -11649,12 +12646,25 @@ const ANLEITUNG = [
   ["Wenn es vorbei ist", [
     ["Vermächtnispunkte", "Zählen, was du geschafft hast, und bestimmen deinen Platz in der Ruhmeshalle."],
     ["Vermächtnis-Coins", "Was anderes. Damit baust du die Jugendakademie aus — die bleibt über alle Laufbahnen."],
-    ["Errungenschaften", "162 Stück. Ein paar schalten Karten oder Startvorteile frei."]]],
+    /* ZAHL AUS DER LISTE, nicht abgeschrieben (35.102). Hier stand "162
+       Stück", waehrend `ACHIEVEMENTS` laengst 192 Eintraege hatte — 30 zu
+       wenig. `ANLEITUNG` steht ab Zeile 11642, `ACHIEVEMENTS` ab 7702, die
+       Reihenfolge traegt also. Dasselbe Muster wie `{ANLEITUNG.length}
+       Abschnitte` im Hauptmenue: was gilt, sagt die Liste. */
+    ["Errungenschaften", ACHIEVEMENTS.length + " Stück. Ein paar schalten Karten oder Startvorteile frei."]]],
   ["Die Jugendakademie", [
-    ["Ab der zweiten Laufbahn", "Steht im Hauptmenü. Gegründet wird sie mit den Coins aus deiner ersten Karriere."],
+    ["Ab der zweiten Laufbahn", "Steht im Hauptmenü. Gründen kostet nichts — die Coins brauchst du erst für den Ausbau."],
     ["Neun Abteilungen", "Jede geht bis Stufe 6. Was du ausbaust, entscheidest du — alles auf einmal geht nie."],
     ["Sie arbeitet, während du spielst", "Jedes Jahr kommen Talente nach. Ein paar werden Profis, wenige Weltklasse."],
-    ["Ansehen bringt Vorsprung", "Je besser die Akademie läuft, desto stärker startet dein nächster Spieler."]]],
+    ["Ansehen bringt Vorsprung", "Je besser die Akademie läuft, desto stärker startet dein nächster Spieler."],
+    /* EHRLICH GESAGT, WAS DER FALL IST (35.103). Die Spielerlaufbahn kennt
+       Männer- und Frauenfußball; die Metaebene nicht — Akademietalente
+       (`akademie.js`), Packspieler (`karten.js`) und beide Kartenporträts
+       entstehen fest mit `"m"`. Kevins Entscheidung: das bleibt so, aber es
+       steht jetzt da, statt sich erst beim Spielen zu zeigen. Wer eine
+       Spielerin gespielt hat und dann eine Akademie voller Jungen bekommt,
+       soll das vorher gelesen haben und nicht für einen Fehler halten. */
+    ["Nachwuchs sind Jungen", "Deine eigene Laufbahn kannst du als Spielerin gehen. Akademie, Verein und Sammelkarten sind Männerfußball."]]],
   ["Dein eigener Verein", [
     ["Ab der fünften Laufbahn", "Steht unter der Akademie. Vorher siehst du, wie viele Laufbahnen noch fehlen."],
     ["Deine Talente, deine Mannschaft", "Statt die Absolventen ziehen zu lassen, ziehst du sie hoch. Sechzehn Mann, dann geht's los."],
@@ -11882,8 +12892,13 @@ function VereinDach({ aka, verein, gesamt, karten, onAka, onProfi, onPacks, onFu
               ? aka.name + " · " + akaJahrNr(aka) + ". Jahr"
                 + (naechst ? " · nächster Ausbau: " + naechst.abt.kurz
                     + " " + naechst.preis + " VC" : " · voll ausgebaut")
+              /* BEIDE ZWEIGE SAGEN JETZT DASSELBE (35.102): gruenden ist
+                 kostenlos, `akaGruenden` zieht keine VC ab. Der zweite Zweig
+                 las bis 35.101 "Coins sammeln, dann gründen" und stellte damit
+                 eine Bedingung auf, die es nicht gibt — wer kein Guthaben
+                 hatte, wartete auf etwas, worauf er nicht warten musste. */
               : (aka && aka.vc ? (aka.vc + " VC liegen bereit — jetzt gründen")
-                              : "Coins sammeln, dann gründen"),
+                              : "gründen kostet nichts"),
             zahlen: ag ? [
               ["Talente", (aka.talente || []).length],
               ["Profis", (aka.bilanz && aka.bilanz.profis) || 0],
@@ -12655,7 +13670,7 @@ function titelgeschichte(save, laeuft, hall, aka) {
     unter: "Trainingsschwerpunkte, Vertragspoker, Leihen, Angebote, die man besser ablehnt. Eine Laufbahn, eine Entscheidung nach der anderen." };
 }
 
-function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, verein, onVerein, onVereinDach, gesamt, onLaden, meta, aufRahmen, freiHinweis, onFreiZu }) {
+function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, verein, onVerein, onVereinDach, gesamt, onLaden, meta, aufRahmen, freiHinweis, onFreiZu, karten }) {
   const [ask, setAsk] = useState(false);
   const [opt, setOpt] = useState(false);
   const [anleitung, setAnleitung] = useState(false);
@@ -12840,8 +13855,36 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
             </div>)}
           {zeile("erfolge", "Errungenschaften", achN + " / " + ACHIEVEMENTS.length,
             metaN + " Belohnungen freigeschaltet", onAch)}
+          {/* TEASER AUS ECHTEN STÄNDEN (35.120). Das Meta-Papier will, dass
+              das Hauptmenü „die aktuelle Rasenschach-Welt als Titelseite"
+              zeigt — Dachzeile, Schlagzeile und Inhaltsverzeichnis gab es
+              schon, die Unterzeilen nannten aber nur Zahlen.
+
+              Die Ruhmeshalle weiß seit 35.117, WAS für eine Laufbahn ihr
+              bester Eintrag war. „Der Titelsammler · 1.640 Punkte" sagt mehr
+              als „Bester Lauf: 1640 Punkte" — und es kostet nichts, weil das
+              Feld ohnehin dasteht. Einträge von vor 35.117 haben es nicht;
+              dann bleibt es bei der Punktzahl. */}
           {zeile("hall", "Ruhmeshalle", String(hall.length),
-            hall.length ? "Bester Lauf: " + hall[0].score + " Punkte" : "noch keine Laufbahn beendet", onHall)}
+            !hall.length ? "noch keine Laufbahn beendet"
+              : (hall[0].at ? hall[0].at + " · " : "Bester Lauf: ")
+                + hall[0].score + " Punkte", onHall)}
+          {/* DIE SAMMLUNG FEHLTE IM HAUPTMENÜ (35.120). Vier Zeilen gab es —
+              Neue Laufbahn, Errungenschaften, Ruhmeshalle, Dein Verein. Die
+              Kartensammlung war nur über das Vereinsdach erreichbar, obwohl
+              das Papier sie ausdrücklich als Teaser der Titelseite nennt.
+              Erscheint erst, wenn es etwas zu sammeln gibt — vorher wäre es
+              eine leere Zeile mit einer Null. */}
+          {(() => {
+            const kn = ((karten && karten.karten) || []).length;
+            if (!kn) return null;
+            const gold = ((karten && karten.karten) || [])
+              .filter((k) => k.stufe === "gold" || k.stufe === "legende").length;
+            return zeile("karten", "Deine Sammlung", String(kn),
+              gold ? gold + (gold === 1 ? " besondere Karte" : " besondere Karten")
+                   : "Karten im Fundus",
+              onVereinDach);
+          })()}
               {/* EIN Eintrag statt zwei (35.50). Bis 35.49 standen Jugendakademie
                   und Verein nebeneinander im Hauptmenue — eine Folge der
                   Reihenfolge, in der sie entstanden sind (Akademie 35.11,
@@ -13278,8 +14321,8 @@ function CompetitionView({ p }) {
                     <td style={{ borderLeft: "3px solid " + (z ? ZONE[z].c : "transparent"), paddingLeft: 6, color: "var(--mu)" }}>{r.pos}</td>
                     <td style={{ maxWidth: 190, overflow: "hidden", textOverflow: "ellipsis" }}>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                        <Crest club={r.club} size={16} />
-                        <span style={{ color: r.me ? "var(--ac)" : "var(--tx)", fontWeight: r.me ? 600 : 400 }}>{r.club.n}</span>
+                        <Crest club={tabVerein(r)} size={16} />
+                        <span style={{ color: r.me ? "var(--ac)" : "var(--tx)", fontWeight: r.me ? 600 : 400 }}>{(tabVerein(r) || {}).n}</span>
                       </span>
                     </td>
                     <td className="r">{r.games}</td><td className="r">{r.w}</td><td className="r">{r.d}</td><td className="r">{r.l}</td>
@@ -14167,6 +15210,7 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
   const maxPkt = ACHIEVEMENTS.reduce((a, x) => a + STUFEN[x.s].w, 0);
   const liste = filter === "alle" ? ACHIEVEMENTS : ACHIEVEMENTS.filter((a) => a.s === filter);
   const G = ges || leereBilanz();
+  const fast = fastGeschafft(G, erreicht.map((a) => a.id));
   return (
     <Shell blatt="erfolge">
       <div className="fade" style={{ maxWidth: 820, margin: "0 auto" }}>
@@ -14189,6 +15233,32 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
           <Stat k="Länderspiele" v={G.caps} />
           <Stat k="Bester Lauf" v={G.bestPunkte + " Pkt"} />
         </div>
+
+        {/* FAST GESCHAFFT (35.123). Höchstens drei, alle mindestens zu 60 %
+            erreicht. Kein FOMO: wer bei 12 von 500 steht, liest das nicht —
+            und wer gar nichts in Reichweite hat, sieht den Kasten nicht.
+            Der Fortschritt wird aus der Bedingung ABGELEITET, nicht gepflegt;
+            siehe `fastGeschafft`. */}
+        {fast.length > 0 && (
+          <div className="pan pad" style={{ marginTop: 14 }}>
+            <div className="eb" style={{ color: "var(--ac)" }}>Fast geschafft</div>
+            <div style={{ marginTop: 6 }}>
+              {fast.map((f) => (
+                <div key={f.id} style={{ padding: "4px 0",
+                  borderBottom: "1px solid var(--ln)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between",
+                    alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontSize: 13 }}>{f.titel}</span>
+                    <span className="m" style={{ fontSize: 11, color: "var(--mu)", whiteSpace: "nowrap" }}>
+                      {f.ist} / {f.soll}</span>
+                  </div>
+                  <div style={{ height: 3, background: "var(--ln)", borderRadius: 2, marginTop: 4 }}>
+                    <div style={{ height: 3, width: Math.round(f.anteil * 100) + "%",
+                      background: "var(--ac)", borderRadius: 2 }} />
+                  </div>
+                </div>))}
+            </div>
+          </div>)}
 
         {/* Freischaltungen. Vorher stand jede einzeln als eigene Karte mit
             Rahmen untereinander — bei 48 Stück eine sehr lange Kette, in der
@@ -14309,7 +15379,133 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
   );
 }
 
-function HallScreen({ hall, onBack }) {
+/* ---------------------------------------- Das ewige Rekordbuch ------------
+   Stufe B aus dem Prüfbericht zum Meta-Papier: „Eine kompakte, magazinartig
+   gestaltete Rekordseite soll über alle Karrieren hinweg interessante
+   Bestmarken konservieren. Nicht hunderte Kennzahlen. Zielgröße eher 15 bis
+   25 starke Rekorde."
+
+   KEIN EINZIGES NEUES FELD. `leereBilanz()` führt seit Langem 49 Zahlen über
+   alle Laufbahnen mit — und wurde nirgends angezeigt. Sie speiste
+   ausschließlich die Errungenschaften. Diese Seite liest dieselben Werte,
+   sonst nichts.
+
+   ZWANZIG, NICHT NEUNUNDVIERZIG. Von den 49 Feldern taugen längst nicht alle
+   als Rekord: `karrieren` ist ein Zähler, `frauen`/`maenner` eine Aufteilung,
+   `reroll` eine Verwaltungszahl. Ausgewählt sind die zwanzig, bei denen ein
+   höherer Wert wirklich etwas bedeutet — und die eine neue Laufbahn auch
+   schlagen kann.
+
+   `null` FÜR „NOCH NICHTS". Ein Rekord bei 0 ist kein Rekord, sondern eine
+   leere Zeile. Wer noch keinen Aufstieg geschafft hat, liest das nicht als
+   „0 Aufstiege", sondern gar nicht — sonst stünde die halbe Seite auf null
+   und sähe nach Versagen aus statt nach offener Rechnung. */
+const REKORDE = [
+  ["Höchste Karrierepunkte",     (g) => g.bestPunkte,   ""],
+  ["Höchste Gesamtstärke",       (g) => g.ovrMax,       ""],
+  ["Meiste Pflichtspiele",       (g) => g.apps,         "insgesamt"],
+  ["Meiste Tore",                (g) => g.goals,        "insgesamt"],
+  ["Meiste Vorlagen",            (g) => g.assists,      "insgesamt"],
+  ["Meiste Spiele ohne Gegentor", (g) => g.cs,          "insgesamt"],
+  ["Tore in einer Saison",       (g) => g.toreSaisonMax, "Bestwert"],
+  ["Meiste Länderspiele",        (g) => g.caps,         "insgesamt"],
+  ["Meiste Titel",               (g) => g.titel,        "insgesamt"],
+  ["Meisterschaften",            (g) => g.meister,      ""],
+  ["Pokalsiege",                 (g) => g.pokale,       ""],
+  ["Internationale Titel",       (g) => g.intTitel,     ""],
+  ["Turniersiege mit dem Land",  (g) => g.ntTitel,      ""],
+  ["Längste Vereinstreue",       (g) => g.treueMax,     "Jahre am Stück"],
+  ["Ältester Einsatz",           (g) => g.altMax,       "Jahre"],
+  ["Bespielte Länder",           (g) => g.laender,      ""],
+  ["Bespielte Ligen",            (g) => g.ligen,        ""],
+  ["Verschiedene Vereine",       (g) => g.vereine,      ""],
+  ["Aufstiege geschafft",        (g) => g.aufstiege,    ""],
+  ["Saisons als Kapitän",        (g) => g.kapitaen,     ""],
+];
+
+function rekordListe(g) {
+  if (!g) return [];
+  return REKORDE.map(([titel, hol, zusatz]) => {
+    let wert = 0;
+    try { wert = hol(g) || 0; } catch (e) { wert = 0; }
+    return wert > 0 ? { titel, wert, zusatz } : null;
+  }).filter(Boolean);
+}
+
+/* ---------------------------------------- Die Zeitleiste der Welt ---------
+   Stufe E aus dem Prüfbericht zum Meta-Papier: „Eine langfristige Chronik
+   kann zentrale Meilensteine aller Systeme verbinden."
+
+   **NICHTS WIRD GESPEICHERT.** Das Papier warnt ausdrücklich: „Die
+   Meta-Timeline darf Savegames nicht unbegrenzt aufblasen. Verdichtung,
+   Obergrenzen oder Ableitung sind zu bevorzugen." Diese Zeitleiste wird bei
+   jedem Öffnen aus dem gerechnet, was ohnehin dasteht — Ruhmeshalle,
+   Akademiechronik, Vereinschronik. Kein Ereignisprotokoll, keine Obergrenze
+   nötig, weil nichts wächst.
+
+   DAS EINE, WAS DAFÜR NÖTIG WAR: der Verein trug sein Gründungsjahr nicht.
+   `v.gegruendet` war ein Wahrheitswert, während die Akademie längst
+   `a.gegruendet: 2026` führte. Seit 35.119 steht dort das Kalenderjahr —
+   siehe `verein.js`. Alte Vereine tragen weiter `true` und erscheinen ohne
+   Jahr am Ende statt an falscher Stelle.                                   */
+function metaZeitleiste(hall, aka, verein) {
+  const E = [];
+  const H = hall || [];
+
+  /* Die erste Laufbahn und jede besonders starke. Nicht alle zwölf — eine
+     Zeitleiste, in der jede Karriere steht, ist die Ruhmeshalle noch einmal. */
+  const nachJahr = H.filter((h) => h.bis).slice().sort((a, b) => a.bis - b.bis);
+  if (nachJahr.length) {
+    const erste = nachJahr[0];
+    E.push({ jahr: erste.bis, was: "Laufbahn",
+      text: "Die erste Laufbahn endet: " + erste.name });
+  }
+  /* Der beste Eintrag überhaupt — der Maßstab der eigenen Welt. */
+  const beste = H.slice().sort((a, b) => (b.score || 0) - (a.score || 0))[0];
+  if (beste && beste.bis && (!nachJahr.length || beste !== nachJahr[0]))
+    E.push({ jahr: beste.bis, was: "Laufbahn",
+      text: beste.name + " — bis heute die stärkste Laufbahn" });
+
+  if (aka && aka.gegruendet) {
+    E.push({ jahr: aka.gegruendet, was: "Akademie", text: "Die Akademie wird gegründet" });
+    /* Der erste Weltklassespieler. FELDNAME BERICHTIGT (35.124): hier stand
+       `aka.ehrentafel` — das Feld gibt es nicht. Die Akademie führt
+       `absolventen`, und die Werte heißen `peak` und `raus`, nicht `ovr` und
+       `jahr`. Der Ausdruck war seit 35.119 still wirkungslos: `undefined ||
+       []` ergab eine leere Liste, kein Absturz, keine Warnung, nur ein
+       Zeitleisteneintrag, der nie erschien. Der Reiter im Akademie-Dach
+       heißt „ehrentafel", das Feld dahinter nicht — daher der Irrtum. */
+    const wk = (aka.absolventen || []).filter((x) => x && x.raus && (x.peak || 0) >= 85)
+      .sort((a, b) => a.raus - b.raus)[0];
+    if (wk) E.push({ jahr: wk.raus, was: "Akademie",
+      text: "Der erste Weltklassespieler aus der eigenen Jugend: " + (wk.name || "") });
+  }
+
+  if (verein && verein.gegruendet) {
+    /* `true` heißt: ein Verein von vor 35.119 ohne Kalenderjahr. Er kommt
+       ans Ende statt an eine erfundene Stelle. */
+    const gj = typeof verein.gegruendet === "number" ? verein.gegruendet : null;
+    E.push({ jahr: gj, was: "Verein", text: "Der eigene Verein wird gegründet: " + verein.name });
+    const ch = verein.chronik || [];
+    const auf = ch.find((c) => c.aufstieg);
+    if (auf) E.push({ jahr: gj ? gj + (auf.jahr || 1) - 1 : null, was: "Verein",
+      text: "Der erste Aufstieg — " + (auf.liga || "") });
+    const mei = ch.find((c) => c.rang === 1);
+    if (mei) E.push({ jahr: gj ? gj + (mei.jahr || 1) - 1 : null, was: "Verein",
+      text: "Die erste Meisterschaft" });
+  }
+
+  /* Ohne Jahr ans Ende, sonst nach Jahr. Gleiche Jahre behalten ihre
+     Reihenfolge — `sort` ist in modernen Laufzeiten stabil. */
+  return E.sort((a, b) => {
+    if (a.jahr == null && b.jahr == null) return 0;
+    if (a.jahr == null) return 1;
+    if (b.jahr == null) return -1;
+    return a.jahr - b.jahr;
+  });
+}
+
+function HallScreen({ hall, onBack, ges, aka, verein }) {
   /* Welche Karte gerade auf der Rückseite liegt (35.69). Nur EINE zur Zeit —
      zwei offene Rückseiten nebeneinander wären zwei Kartenspiele. */
   const [gedreht, setGedreht] = React.useState(null);
@@ -14328,6 +15524,51 @@ function HallScreen({ hall, onBack }) {
         <p style={{ fontSize: 12, color: "var(--mu)", margin: "5px 0 14px" }}>
           Abgeschlossene Laufbahnen nach Vermächtnispunkten. Nur auf diesem Gerät.
         </p>
+        {/* DAS REKORDBUCH (35.116). Steht über der Rangliste, weil es die
+            ganze Welt zusammenfasst und die Liste nur die zwölf besten.
+            Erscheint erst, wenn es etwas zu zeigen gibt. */}
+        {(() => {
+          const rk = rekordListe(ges);
+          if (rk.length < 3) return null;
+          return (
+            <div className="pan pad" style={{ marginBottom: 14 }}>
+              <div className="eb" style={{ color: "var(--ac)" }}>Das ewige Rekordbuch</div>
+              <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 2, marginBottom: 8 }}>
+                Über alle {ges.karrieren} {ges.karrieren === 1 ? "Laufbahn" : "Laufbahnen"} hinweg
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 12px" }}>
+                {rk.map((r) => (
+                  <div key={r.titel} style={{ display: "flex", justifyContent: "space-between",
+                    alignItems: "baseline", gap: 6, padding: "3px 0",
+                    borderBottom: "1px solid var(--ln)" }}>
+                    <span className="m" style={{ fontSize: 10.5, color: "var(--mu)",
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.titel}</span>
+                    <span className="d" style={{ fontSize: 14, whiteSpace: "nowrap" }}>{r.wert}</span>
+                  </div>))}
+              </div>
+            </div>);
+        })()}
+        {/* DIE ZEITLEISTE (35.119). Unter dem Rekordbuch: die Rekorde sagen
+            WIE VIEL, die Zeitleiste sagt WANN. Erst ab drei Einträgen —
+            darunter ist es eine Aufzählung, keine Geschichte. */}
+        {(() => {
+          const zl = metaZeitleiste(hall, aka, verein);
+          if (zl.length < 3) return null;
+          return (
+            <div className="pan pad" style={{ marginBottom: 14 }}>
+              <div className="eb" style={{ color: "var(--ac)" }}>Deine Rasenschach-Welt</div>
+              <div style={{ marginTop: 7 }}>
+                {zl.map((e, i) => (
+                  <div key={e.text + i} style={{ display: "flex", gap: 9,
+                    alignItems: "baseline", padding: "3px 0",
+                    borderLeft: "2px solid var(--ln)", paddingLeft: 9, marginLeft: 2 }}>
+                    <span className="d" style={{ fontSize: 12, color: "var(--ac)",
+                      minWidth: 34, whiteSpace: "nowrap" }}>{e.jahr || "—"}</span>
+                    <span className="m" style={{ fontSize: 11.5 }}>{e.text}</span>
+                  </div>))}
+              </div>
+            </div>);
+        })()}
         {!hall.length ? (
           <div className="pan pad"><div className="d" style={{ fontSize: 17 }}>Noch leer</div>
             <p style={{ fontSize: 12, color: "var(--mu)", marginTop: 5 }}>
@@ -14453,6 +15694,28 @@ function HallScreen({ hall, onBack }) {
                         paddingTop: 8, borderTop: "1px solid var(--ln)" }}>
                         Die meisten Spiele für {heim.n}
                         {h.heimatSpiele > 0 ? " (" + h.heimatSpiele + ")" : ""}.
+                      </div>)}
+                    {/* DIE BIOGRAFIE AUF DER RÜCKSEITE (35.117). Nur wo sie
+                        da ist: Einträge von vor 35.117 haben die Felder nicht,
+                        und dann fällt der ganze Block weg, ohne dass etwas
+                        bricht — dieselbe Regel wie bei den 33.10er-Feldern. */}
+                    {h.at && (
+                      <div style={{ marginTop: 9, paddingTop: 8, borderTop: "1px solid var(--ln)" }}>
+                        <div className="eb" style={{ color: "var(--ac)" }}>{h.at}</div>
+                        {h.sz && h.sz.k && (
+                          <div className="m" style={{ fontSize: 11, marginTop: 3 }}>
+                            „{h.sz.k}“{h.sz.j ? " · " + h.sz.j : ""}</div>)}
+                      </div>)}
+                    {h.stat && h.stat.length > 0 && (
+                      <div style={{ marginTop: 8 }}>
+                        {h.stat.map((x, k2) => (
+                          <div key={x.c + k2} style={{ display: "flex", justifyContent: "space-between",
+                            alignItems: "baseline", gap: 6, padding: "2px 0" }}>
+                            <span className="m" style={{ fontSize: 10.5, overflow: "hidden",
+                              textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{x.c}</span>
+                            <span className="m" style={{ fontSize: 9.5, color: "var(--mu)", whiteSpace: "nowrap" }}>
+                              {x.k}{x.s ? " · " + x.s : ""}</span>
+                          </div>))}
                       </div>)}
                     </div>
                     <div className="m" style={{ fontSize: 9.5, color: "var(--mu)",
@@ -15174,6 +16437,31 @@ function FlutlichtApp() {
     q.vcGewinn = vcNeu; q.vcPosten = vcPosten(q);
     q.akaEreignisse = AK2.ereignisse; q.akaName = AK2.a.name; q.akaAktiv = !!AK2.a.gegruendet;
 
+    /* ---- AUS DER JUGEND IN DIE SAMMLUNG (35.125) --------------------------
+       Stufe H des Meta-Papiers, letzter Schritt. `ausAbsolvent` gab es seit
+       Langem und wurde NIE aufgerufen; die Kartenansicht sah „· aus der
+       Jugend" bereits vor. Hier ist die richtige Stelle: `akaVerbuchen` hat
+       gerade ein Akademiejahr laufen lassen, und wer dabei fertig geworden
+       ist, steht jetzt neu in `absolventen`.
+
+       NUR DIE NEUEN. Verglichen wird gegen den Stand VOR dem Jahr — sonst
+       würden bei jeder Laufbahn alle bisherigen Absolventen erneut in den
+       Pool wandern. Das wäre folgenlos (der Pool führt über `kid` zusammen),
+       aber es liefe jedes Mal über bis zu vierzig Einträge.
+
+       DIE KENNUNG IST DIE VERBINDUNG. Ein Absolvent trägt dieselbe `id` wie
+       das Talent, aus dem er wurde; die Karte trägt `t:` + diese id. Damit
+       ist derselbe Spieler in Akademie, Sammlung und Verein derselbe String
+       — ohne neues Feld und ohne Änderung an der Zusammenführung. */
+    if (AK2.a.gegruendet) {
+      const vorher = new Set(((aka && aka.absolventen) || []).map((x) => x && x.id));
+      const neueAbs = (AK2.a.absolventen || []).filter((x) => x && x.id && !vorher.has(x.id));
+      if (neueAbs.length) {
+        try { kartenErgaenzen(neueAbs.map((x) => KARTEN.ausAbsolvent(x))); }
+        catch (e) { /* Sammlung nicht verfügbar — die Laufbahn endet trotzdem */ }
+      }
+    }
+
     /* ---- Ein Jahr eigener Verein ------------------------------------------
        Genau hier gehoert es hin, direkt neben das Akademiejahr: beides laeuft
        NEBENHER, waehrend man spielt, und wird faellig, wenn eine Laufbahn
@@ -15342,6 +16630,57 @@ function FlutlichtApp() {
       avatar: q.avatar, zuege: q.zuege, g: q.g, natId: q.nation.id, von: q.year + 1 - (q.age - 16), bis: q.year + 1,
       heimat, heimatSpiele: heimat ? proVerein[heimat] : 0,
       apps: q.tot.apps, assists: q.tot.assists, saisons: q.seasons.length,
+      /* DIE BIOGRAFIE (35.117). Stufe C aus dem Meta-Papier: „Ehemalige
+         Spieler sollen als gespeicherte Biografien wieder aufrufbar bleiben."
+         Drei Felder, alle aus dem abgeleitet, was 35.104 bis 35.113 gebaut
+         haben — Archetyp, Vereinsstationen mit Kapiteln, eine prägende
+         Schlagzeile.
+
+         GEKAPPT NACH MESSUNG. Der erste Zuschnitt (vier Stationen, zwei
+         Schlagzeilen mit Kopf und Satz) wog 369 Byte je Eintrag, bei zwölf
+         Einträgen 4,3 KB — mehr als das Doppelte dessen, was der Prüfbericht
+         geschätzt hatte. Jetzt: höchstens vier Stationen mit Kurzfeldern und
+         EINE Schlagzeile mit Jahr. Die Feldnamen sind absichtlich kurz; in
+         einem Speicher, der zwölfmal geschrieben wird, zählt jedes Zeichen.
+
+         `null` STATT LEERER FELDER: eine Laufbahn unter drei Saisons hat
+         keinen Archetyp, und dann steht auch nichts da. Ältere Einträge haben
+         die Felder gar nicht — die Anzeige muss ohne auskommen, wie schon
+         bei den 33.10er-Feldern darüber. */
+      at: (archetyp(q) || {}).haupt || null,
+      stat: vereinsKapitel(q.seasons, q).slice(0, 4)
+        .map((x) => ({ c: x.club, v: x.von, b: x.bis, k: x.kapitel, s: x.apps })),
+      sz: (() => {
+        /* Die prägendste Schlagzeile dieser Laufbahn — nach BEDEUTUNG, nicht
+           nach Häufigkeit.
+
+           Der erste Entwurf nahm die seltenste. Gemessen: dabei gewann
+           praktisch immer „Der Anfang". Die seltenste ist zwangsläufig eine
+           der einmaligen, und die erste Saison ist IMMER einmalig — eine
+           Auswahlregel, die rechnerisch stimmt und trotzdem jedes Mal dasselbe
+           liefert. Jetzt entscheidet eine feste Rangfolge: was oben steht,
+           gewinnt, wenn es überhaupt vorkam. */
+        /* Reihenfolge nach der in 35.104 GEMESSENEN Seltenheit, nicht nach
+           Gefühl. Der erste Entwurf stellte „Kapitän seines Landes" weit nach
+           oben — Ergebnis: es gewann in 74 % aller Laufbahnen, weil es über
+           zwanzig Saisons fast immer irgendwann vorkommt. Was selten je
+           SAISON ist, ist über eine ganze Laufbahn nicht selten. */
+        const RANG = ["Vom Reservisten zum Kapitän", "Nach hinten durchgereicht",
+          "Das verlorene Jahr", "Der alte Mann ist noch da", "Sofort angekommen",
+          "Kapitän seines Landes", "Durchbruch", "Der Mann, auf den sie bauen",
+          "Zurückgeschrieben", "Das Jahr der Titel", "Die Binde",
+          "Das Jahr der Verletzung", "Eine große Spielzeit",
+          "Ein Jahr zum Vergessen"];
+        const alle = q.seasons.map((x, i) =>
+          ({ z: saisonSchlagzeile(x, i ? q.seasons[i - 1] : null, q), j: x.year }))
+          .filter((x) => x.z && x.z.kopf);
+        if (!alle.length) return null;
+        for (const k of RANG) {
+          const t = alle.find((x) => x.z.kopf === k);
+          if (t) return { k, j: String(t.j || "").slice(0, 7) };
+        }
+        return null;   /* nichts Nennenswertes — dann steht auch nichts da */
+      })(),
       /* DER RAHMEN VON DAMALS (35.69, von Kevin gemeldet). Die Ruhmeshalle
          zeichnete Portraets ganz OHNE `meta` — also ohne Rahmen, und seit
          35.63 damit auch ohne die Kartenfarbe dahinter. Alle Eintraege sahen
@@ -15516,6 +16855,25 @@ function FlutlichtApp() {
   };
   const accept = (o) => {
     const q = clone(p);
+    /* DIE NICHT GEWÄHLTEN FESTHALTEN (35.114) — das erste neue persistente
+       Feld dieser Reihe, und es bleibt bewusst winzig: Vereinsname und Jahr,
+       höchstens acht Einträge.
+
+       WARUM ES NICHT ABLEITBAR IST: ein abgelehntes Angebot hinterlässt im
+       Spielstand keine Spur. `p.seasons` kennt nur, wo man WAR. Alles andere
+       in dieser Reihe kam ohne neues Feld aus; dieser eine Punkt geht nicht.
+
+       ALTE SPIELSTÄNDE: der Spielstand wird mit `JSON.parse` roh geladen,
+       ohne Vervollständigung — bei einem alten Stand ist `abgelehnt` schlicht
+       `undefined`. Jede Stelle, die es liest, fängt das mit `|| []` ab, und
+       ab dem nächsten Wechsel füllt es sich von selbst. Keine Migration,
+       kein Umschreiben gespeicherter Daten. */
+    if (o.type === "transfer" || o.type === "loan" || o.type === "renew") {
+      const andere = (offers || [])
+        .filter((x) => x !== o && (x.type === "transfer" || x.type === "loan"))
+        .map((x) => ({ club: x.club.n, jahr: p.year }));
+      if (andere.length) q.abgelehnt = [...(p.abgelehnt || []), ...andere].slice(-8);
+    }
     if (o.type === "transfer" || o.type === "loan") {
       q.prevClub = p.club.n; q.flags.justMoved = true;
       if (o.type === "loan") { q.loanHome = p.club; q.flags.aufLeihe = true; }
@@ -15670,7 +17028,7 @@ function FlutlichtApp() {
     return null;
   })();
 
-  if (phase === "menu") return <MenuScreen hall={hall} save={save}
+  if (phase === "menu") return <MenuScreen hall={hall} save={save} karten={karten}
     freiHinweis={freiJetzt}
     onFreiZu={() => merkeGesehen(freiJetzt === "verein" ? { verein: true } : { aka: true })}
     onNew={() => { dropSave(); setPhase("create"); }}
@@ -15728,7 +17086,17 @@ function FlutlichtApp() {
     }}
     onKauf={(packId, neue) => {
       const pk = KARTEN.packById(packId);
-      const a4 = { ...aka, vc: Math.max(0, (aka.vc || 0) - pk.preis) };
+      /* PACKKAEUFE BUCHEN JETZT MIT (35.103). Bis 35.102 zog diese Stelle als
+         einzige der acht VC-Bewegungen ab, ohne `ausgegeben` fortzuschreiben —
+         Akademieausbau, Vereinsausbau und VC-Laden taten es alle. Gebucht wird
+         der TATSAECHLICH abgezogene Betrag, nicht der Listenpreis: das
+         `Math.max(0, …)` darunter kappt bei leerer Kasse, und wer 20 VC hat
+         und ein Pack fuer 30 kauft, hat 20 ausgegeben, nicht 30. Sonst waere
+         die Kasse rechnerisch im Minus. */
+      const hat = aka.vc || 0;
+      const zahlt = Math.min(hat, pk.preis);
+      const a4 = { ...aka, vc: hat - zahlt,
+        ausgegeben: (aka.ausgegeben || 0) + zahlt };
       setAka(a4); speichereAka(a4);
       kartenErgaenzen(neue);
     }}
@@ -15763,7 +17131,11 @@ function FlutlichtApp() {
       if (v2 !== verein) vereinSichern(v2);
       setKarten(r.pool);
       if (hasStore()) { try { store.set(KARTEN_KEY, JSON.stringify(r.pool)); } catch (e) {} }
-      const a5 = { ...aka, vc: (aka.vc || 0) + r.vc };
+      /* VERKAUFSERLOES BUCHT `verdient` MIT (35.103). Die zweite der beiden
+         Luecken: von vier VC-Zugaengen schrieb dieser als einziger nichts
+         fort. Ohne ihn stimmt die Kassenzeile im Dach nicht. */
+      const a5 = { ...aka, vc: (aka.vc || 0) + r.vc,
+        verdient: (aka.verdient || 0) + r.vc };
       setAka(a5); speichereAka(a5);
       return null;
     }}
@@ -15784,7 +17156,7 @@ function FlutlichtApp() {
        einzige Weg zum naechsten Verein. */
     const abg = vAbschluss || (verein && verein.abgeschlossen) || null;
     if (abg)
-      return <VereinAbschluss v={verein} ergebnis={abg}
+      return <VereinAbschluss v={verein} ergebnis={abg} ges={ges}
         onNeu={(nv) => { vereinSichern(nv); setVAbschluss(null); }}
         onZurueck={() => { setVAbschluss(null); setPhase("vereindach"); }} />;
     /* Nur noch Land und Liga (35.67). Name, Stadt und Wappen stehen seit dem
@@ -15804,7 +17176,7 @@ function FlutlichtApp() {
       onAbschluss={(erg) => setVAbschluss(erg)}
       onZurueck={() => setPhase("vereindach")} />;
   }
-  if (phase === "hall") return <HallScreen hall={hall} onBack={() => setPhase(p && p.retired ? "end" : "menu")} />;
+  if (phase === "hall") return <HallScreen hall={hall} ges={ges} aka={aka} verein={verein} onBack={() => setPhase(p && p.retired ? "end" : "menu")} />;
   if (phase === "erfolge") return <AchievementScreen ach={ach} ges={ges} meta={meta} onBack={() => setPhase("menu")} />;
   if (phase === "sicherung") return <BackupScreen onBack={() => setPhase("menu")} onImport={ladeAlles} />;
   /* Der Laden heisst im Heft „Anzeigen" — eine Seite mit Angeboten, wie sie
@@ -16005,6 +17377,31 @@ function FlutlichtApp() {
                   <div className="d" style={{ fontSize: 19 }}>{p.speed ? "Saison beginnen" : "Trainingsschwerpunkt"}</div>
                   <div className="m" style={{ fontSize: 10.5, color: "var(--mu)" }}>Saison {p.year}/{String(p.year + 1).slice(2)}</div>
                 </div>
+                {/* DAS EINE ZIEL (35.107). Eine Zeile, kein Dialog, kein Klick
+                    — der schnelle Saisonloop ist laut Konzeptpapier ein
+                    Kernwert, und jede neue Anzeige muss sich daran messen.
+                    Steht hier, weil der Spieler an dieser Stelle ohnehin vor
+                    der Saison innehält. Erscheint nur, wenn wirklich etwas in
+                    Reichweite ist; sonst gar nicht, statt eine leere Hülse zu
+                    zeigen. */}
+                {(() => {
+                  const z = naechstesZiel(p);
+                  if (!z) return null;
+                  return (
+                    <div className="up pad" style={{ marginTop: 9 }}>
+                      <div className="eb" style={{ color: "var(--ac)" }}>In Reichweite</div>
+                      <div style={{ display: "flex", justifyContent: "space-between",
+                        alignItems: "baseline", gap: 8, marginTop: 2 }}>
+                        <span style={{ fontSize: 13.5 }}>{z.titel}</span>
+                        <span className="m" style={{ fontSize: 11, color: "var(--mu)", whiteSpace: "nowrap" }}>
+                          {z.ist} von {z.soll}</span>
+                      </div>
+                      <div style={{ height: 3, background: "var(--ln)", borderRadius: 2, marginTop: 6 }}>
+                        <div style={{ height: 3, width: Math.round(z.anteil * 100) + "%",
+                          background: "var(--ac)", borderRadius: 2 }} />
+                      </div>
+                    </div>);
+                })()}
                 {p.speed ? (() => {
                   const t = TRAINING.find((x) => x.id === autoTraining(p)) || TRAINING[0];
                   return (<>
@@ -16205,6 +17602,12 @@ function FlutlichtApp() {
                             <div className="m" style={{ fontSize: 10, color: "var(--mu)" }}>{o.club.l} · Stärke {o.club.s}</div>
                             {o.kind && <span className={"chip " + (o.type === "loan" ? "a" : o.kind.indexOf("Geld") >= 0 ? "g" : "")}
                               style={{ marginTop: 3 }}>{o.kind}</span>}
+                            {/* Der biografische Grund (35.110). Bewusst als
+                                Zeile und nicht als zweiter Chip: er erzählt,
+                                er bewertet nicht, und zwei Chips nebeneinander
+                                sähen aus wie zwei gleichwertige Merkmale. */}
+                            {o.grund && <div className="m" style={{ fontSize: 10.5,
+                              color: "var(--ac)", marginTop: 3 }}>{o.grund}</div>}
                           </div>
                           <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", textAlign: "right" }}>
                             <div style={{ color: o.roleKey === "star" || o.roleKey === "start" ? "var(--ok)" : o.roleKey === "rot" ? "var(--go)" : "var(--bad)" }}>{o.role}</div>

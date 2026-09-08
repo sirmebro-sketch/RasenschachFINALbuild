@@ -171,7 +171,7 @@ export const machVerein = (H) => {
     };
   };
 
-  const gruenden = (v0, { name, stadt, land, liga, farben }) => {
+  const gruenden = (v0, { name, stadt, land, liga, farben, weltjahr }) => {
     const v = { ...leererVerein(), ...v0 };
     const moeglich = startligen(land);
     if (!moeglich.length) return { v, fehler: "Für dieses Land gibt es keine Liga." };
@@ -182,7 +182,23 @@ export const machVerein = (H) => {
        Zug auf. Wer beides mitgibt, bekommt beides — wer nichts mitgibt,
        behaelt, was in der Kennung steht. */
     return {
-      v: { ...v, gegruendet: true, gekannt: true,
+      /* `gegruendet` traegt seit 35.119 das KALENDERJAHR statt `true`.
+         Die Akademie macht das laengst so (`a.gegruendet: 2026`), der Verein
+         zaehlte nur seine eigenen fuenfzehn Jahre und wusste nicht, WANN sie
+         in der Rasenschach-Welt lagen. Fuer die Meta-Zeitleiste ist genau das
+         noetig — „Vereinsgruendung" muss sich neben „Akademiegruendung" und
+         den Laufbahnen einsortieren lassen.
+
+         RUECKWAERTSVERTRAEGLICH OHNE MIGRATION: alle achtzehn Lesestellen
+         pruefen nur auf Wahrheitswert (`verein && verein.gegruendet`), keine
+         vergleicht mit `true` oder `=== true` — nachgezaehlt vor der
+         Umstellung. Eine Jahreszahl ist genauso wahr. Alte Spielstaende
+         tragen weiter `true` und funktionieren unveraendert; sie erscheinen
+         in der Zeitleiste ohne Jahr.
+
+         Faellt kein `weltjahr` herein, bleibt es bei `true` — dann ist es
+         wie vorher und nichts bricht. */
+      v: { ...v, gegruendet: weltjahr || true, gekannt: true,
            name: String(name || "").trim() || v.name || "Neuer Verein",
            stadt: stadt || v.stadt || "", land, liga: gewaehlt, jahr: 1,
            farben: farben || v.farben, kader: [], chronik: [] },

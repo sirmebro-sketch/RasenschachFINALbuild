@@ -10,14 +10,16 @@
 > längst auf eine leere Zeile.
 
 > ## Wo es weitergeht
-> **Der Gerätetest auf dem S24 Ultra ist dran.** Die Voraussetzung dafür steht
-> seit 35.46: der Bau ist wiederholbar, und `browsertest.sh` baut mit denselben
-> Bibliotheken wie die APK. Ein auf dem Gerät gefundener Fehler lässt sich
-> damit sauber zuordnen — vorher hätte er auch aus einer anderen
-> Bibliotheksfassung stammen können.
+> **Der Gerätetest auf dem S24 Ultra ist dran.** Der ausführliche Stand dazu
+> steht unten im Abschnitt **„Für den nächsten Durchgang"** — dort und nur
+> dort. Kurz: **seit 35.44 ist nichts mehr auf einem Telefon gelaufen**,
+> inzwischen 57 Fassungen mit dem ganzen Kartensystem, dem Sonderschuss, der
+> neuen Aufstellung und den neuen Bildern.
 >
-> **Kevins Zettel ist abgearbeitet.** Karrieredurchlauf, Jugendakademie,
-> eigener Verein und das Tutorial stehen und sind geprüft.
+> Die Voraussetzung dafür steht seit 35.46: der Bau ist wiederholbar, und
+> `browsertest.sh` baut mit denselben Bibliotheken wie die APK. Ein auf dem
+> Gerät gefundener Fehler lässt sich damit sauber zuordnen — vorher hätte er
+> auch aus einer anderen Bibliotheksfassung stammen können.
 >
 > **Was jetzt zählt, kann der Prüfstand nicht:** die Sachen einmal auf einem
 > echten Telefon sehen. Zwei Gerätetests hat es gegeben, beide haben etwas
@@ -27,25 +29,24 @@
 > * **35.28** — Vereinsmodus im Spiel: der Verein lief völlig unabhängig von
 >   den Laufbahnen. Ein konzeptioneller Fehler, den keine Messung stellt.
 >
-> **Nie auf einem Telefon gewesen — und das ist die Liste für den nächsten
-> Gerätetest:**
-> * der **Willkommensschirm** (35.26); er erscheint nur bei einer frischen
->   Installation oder wenn `rasenschach:willkommen` gelöscht wird,
-> * der **Spielerpass** mit seiner festen Höhe (35.23),
-> * das **Einschreiben** statt des Saisonknopfs und der Vereinsbericht in der
->   Karriereübersicht (35.28) — die *Lösung* des dort gemeldeten Fehlers,
-> * die berichtigten **Knopfzeilen** ab Tafel 2 des Willkommensschirms (35.29).
+> Ein Gerätetest, der einen Fehler findet, bestätigt nicht die Reparatur. Für
+> die Abkürzungen beim Testen gibt es seit 35.29 `pruefstand/werkstatt.js` im
+> Browsertest — mit **`WERKSTATT=1` oder `ERSTSTART=1`** gebaut, sonst ist sie
+> nicht drin. **Welche
+> Schwellen dort gelten, sagt der Lauf** (`vereinpruefung.cjs`), nicht dieser
+> Absatz.
 >
-> Ein Gerätetest, der einen Fehler findet, bestätigt nicht die Reparatur. Die
-> Behebungen aus 35.27 bis 35.29 sind alle nur gemessen, nicht gesehen. Für die
-> Abkürzungen (Akademie ab 2 Laufbahnen, Verein ab 5, Vollausbau nach rund 28)
-> gibt es seit 35.29 `pruefstand/werkstatt.js` im Browsertest — mit
-> `ERSTSTART=1` gebaut, sonst ist sie nicht drin.
+> **Hier stand bis 35.100 eine zweite Gerätetest-Liste** mit 35.23 bis 35.29
+> und „Vollausbau nach rund 28". Beides war überholt: der Rückstand ist nicht
+> vier Fassungen groß, sondern siebenundfünfzig, und das Band steht seit 35.81
+> auf 20–30 (gemessen 21,5). Dieselbe Auskunft an zwei Stellen läuft
+> auseinander — genau die Falle, die diese Datei schon dreimal beschreibt.
+> Deshalb steht der Stand jetzt nur noch unten, und hier nur der Verweis.
 >
 > Danach: Langzeitbeobachtung (offener Punkt 13) und die Gestaltungsfragen
 > 1 bis 3 und 5, die alle Augen brauchen statt Messungen.
 
-**Fassung 35.100** · Stand 4. September 2026
+**Fassung 35.128** · Stand 6. September 2026
 
 <!-- VERZEICHNIS -->
 
@@ -55,152 +56,181 @@
 
 | Zeile | Abschnitt |
 |---:|---|
-| 215 | 1. Was das Projekt ist |
-| 300 | 2. Zusammenarbeit |
-| 316 | 3. Was drin ist (Grobüberblick) |
-| 429 | 4. Kalibrierung — worauf eingestellt wurde |
-| 468 | 5. Prüfstand |
-| 553 | 6. Stolperfallen — teuer gelernt |
-| 592 | 7. Was offen ist |
-| 620 | 8. Wie ein neuer Chat anfangen sollte |
-| 710 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
-| 1034 | Auf dem Gerät geprüft — 10.8.2026 |
-| 1141 | 34.0 · Die Spielerporträts |
-| 1258 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
-| 1506 | 34.8 · Vier gemeldete Punkte |
-| 1558 | 34.9 · Block A — fünf Fehler im Spielfluss |
-| 1623 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
-| 1678 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
-| 1726 | 34.12 · Block C — Frauenfußball |
-| 1781 | 34.13 · Block D, erster Teil |
-| 1830 | 34.14 · Die Wachstumskurve |
-| 1884 | 34.15 · Die Rückblick-Karten |
-| 1923 | 34.16 · Zwei Fehler aus Kevins Test |
-| 1983 | 34.17 · Die Freischaltungen |
-| 2018 | 34.18 · Der Vermächtnis-Laden |
-| 2086 | 34.19 · Der gekaufte Kartentausch wirkt |
-| 2132 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
-| 2164 | 34.21 · Laden und Zahnrad lagen aufeinander |
-| 2245 | 34.22 · Der Laden rechnet ab, und zwei Texte |
-| 2332 | 34.23 · Jede neue Seite beginnt oben |
-| 2389 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
-| 2461 | 34.25 · Die Ränge der Errungenschaften |
-| 2524 | 34.26 · Der Rückblick liegt auf Karteikarten |
-| 2594 | 34.27 · Drei wirklich runde Kopfformen |
-| 2663 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
-| 2699 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
-| 2766 | 34.30 · Aufräumen nach dem Belastungstest |
-| 2828 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
-| 2874 | 34.32 · Die Wildcard auf hellem Papier |
-| 2912 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
-| 2949 | 34.34 · Drei Meldungen aus dem Spiel |
-| 3004 | 34.35 · Bärte bleiben in der Kopfform |
-| 3037 | Kevins Testprotokoll zu 34.33 — Ergebnis |
-| 3062 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
-| 3110 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
-| 3157 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
-| 3208 | 35.1 · Werkzeugpflege |
-| 3263 | 35.2 · STAND.md hat ein Verzeichnis |
-| 3298 | 35.3 · Eine Regel weniger zum Merken |
-| 3335 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
-| 3443 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
-| 3572 | 35.6 · Die Ereignisse ziehen aus |
-| 3648 | 35.7 · Entscheidungen mit Folgen |
-| 3714 | 35.8 · Deine Werte öffnen Türen |
-| 3790 | 35.9 · Storystränge |
-| 3856 | 35.10 · Der Anfang war die engste Stelle |
-| 3929 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
-| 3993 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
-| 4060 | 35.13 · Die Akademie wird größer |
-| 4146 | 35.14 · Antworten, die nur manchmal da sind |
-| 4216 | 35.15 · Vier Geschichten statt einer |
-| 4268 | 35.16 · Vierundzwanzig weitere Male anders |
-| 4333 | 35.17 · Der eigene Verein — Durchstich |
-| 4427 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
-| 4489 | 35.19 · Die Akademie wird zeitlos |
-| 4534 | 35.20 · Der Verein bekommt ein Gesicht |
-| 4598 | 35.21 · Der Verein ist erreichbar |
-| 4648 | 35.22 · Was hier stand, stimmte nicht mehr |
-| 4734 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
-| 4840 | 35.24 · Durchsicht des ganzen Projektwissens |
-| 4951 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
-| 5022 | 35.26 · Das Tutorial |
-| 5124 | 35.27 · Erster Gerätetest des Vereinsmodus |
-| 5207 | 35.28 · Der Verein läuft nebenher |
-| 5323 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
-| 5401 | 35.30 · Die Bauanleitung war unvollständig |
-| 5560 | 35.31 · Die Moral steht in der Anleitung — und liefert ande… |
-| 5650 | 35.32 · Die Akademie steht im Rückblick |
-| 5755 | 35.33 · Die Ruhmeshalle war nie geprüft |
-| 5834 | 35.34 · Jugendturniere bekommen Namen und Gegner |
-| 5972 | 35.35 · Drei Flaggen bekommen Folgen |
-| 6087 | 35.36 · Die letzten zwei Flaggen bekommen Inhalt |
-| 6181 | 35.37 · Ereignisse, die zum falschen Moment kommen |
-| 6333 | 35.38 · Der Kapitän spricht nicht mehr mit sich selbst |
-| 6443 | 35.39 · Die Akademie zahlt früher — und sagt es |
-| 6556 | 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe |
-| 6638 | 35.41 · Werkzeugkasten aufgeräumt |
-| 6746 | 35.42 · Der Abschlussbildschirm wird übersichtlich |
-| 6868 | 35.43 · Namen nach Land statt nach Sprachraum |
-| 7073 | 35.44 · Eine Kennzahl, die nichts mehr bedeutete |
-| 7137 | 35.45 · Sechs Listen, die auseinandergelaufen waren |
-| 7289 | 35.46 · Der Bau ist wiederholbar — und eine eigene Behauptu… |
-| 7425 | 35.47 · Der Prüfstand sieht nach der Sicherheitslage |
-| 7531 | 35.48 · Die Akademie zieht aus |
-| 7658 | 35.49 · Stufe A — die Aufstellung von Hand |
-| 7780 | 35.50 · Ein Dach über Akademie und Profimannschaft |
-| 7855 | 35.51 · Der Abschluss schließt ab |
-| 7981 | 35.52 · Stufe B — die Saison wird gespielt |
-| 8101 | 35.53 · Stufe C, erster Teil — Verträge und Postkorb |
-| 8209 | 35.54 · Stufe C, zweiter Teil — Kaderverträge, und Punkt 21… |
-| 8307 | 35.55 · Stufe D — den Kader ausdünnen |
-| 8383 | 35.56 · Die Werkstatt war nie da, und die Namen kamen alle… |
-| 8489 | 35.57 · Die Namen haben ihre Zeichen zurück |
-| 8570 | 35.58 · Drei Befunde vom Gerät — und einer davon war unsich… |
-| 8645 | 35.59 · Die Auswahl steht dort, wo man hingetippt hat |
-| 8680 | 35.60 · Das Dach zeigt den Stand, statt ihn zu verstecken |
-| 8739 | 35.61 · Verwaltung im Jugendhaus |
-| 8789 | 35.62 · Errungenschaften für den eigenen Verein |
-| 8885 | 35.63 · Kartenoptik hinter dem Porträt |
-| 8953 | 35.64 · Derselbe Fehler, eine Klasse weiter |
-| 9008 | 35.65 · Verträge auf Papier — und eine ganze Farbwelt war u… |
-| 9068 | 35.66 · Der Rücktrittsknopf tat vier Fassungen lang nichts |
-| 9120 | 35.67 · Erst der Verein, dann die Liga |
-| 9192 | 35.68 · Wappen im Dach, Postfach zu |
-| 9238 | 35.69 · Der Rahmen von damals, und eine Rückseite |
-| 9309 | 35.70 · „Dein Verein" gehört jetzt zum Blatt |
-| 9354 | 35.71 · Nachgesehen: hängt jeder Bildschirm am Blatt? |
-| 9406 | 35.72 · Gleich gebaut war nicht gleich laut |
-| 9462 | 35.73 · Der Abschluss lebte nur im Arbeitsspeicher |
-| 9516 | 35.74 · Achtzehn Ziele für die langen Jahre |
-| 9593 | 35.75 · Die Hallenkarten wenden sich wie ein Spielerpass |
-| 9636 | 35.76 · Der Sonderschuss |
-| 9733 | 35.77 · Sonderschuss auf Knopfdruck |
-| 9776 | 35.78 · Der Sonderschuss wird ein Fenster |
-| 9838 | 35.79 · Das Fundament für die Sammelkarten |
-| 9924 | 35.80 · Vier Packs, und sie sagen, was sie kosten |
-| 9994 | 35.81 · Zwei von drei Häusern arbeiteten umsonst |
-| 10066 | 35.82 · Die Spielerkarte |
-| 10123 | 35.83 · Feste Karten, Merkmale, Jubel |
-| 10197 | 35.84 · Holoschimmer |
-| 10260 | 35.85 · Der Packladen — das Kartensystem wird spielbar |
-| 10308 | 35.86 · Eine Grenze ohne Ausweg ist eine Falle |
-| 10368 | 35.87 · Der Fundus, und Karten wischen weg |
-| 10408 | 35.88 · Die Aufstellung wird zum Kartenraster |
-| 10485 | 35.89 · Karten fallen aus dem Pack — und das Startpaket |
-| 10547 | 35.90 · Vier Befunde vom Gerät |
-| 10617 | 35.91 · Die Elf steht jetzt so, wie sie spielt |
-| 10682 | 35.92 · Ist der Tisch leer, geht es zurück |
-| 10717 | 35.93 · Das Postfach wird ein Briefsymbol |
-| 10781 | 35.94 · Acht Befunde vom Gerät |
-| 10891 | 35.95 · Ein neuer Zugang braucht einen passenden Ausgang |
-| 10926 | 35.96 · Der Schimmer, zum dritten Mal — diesmal gerechnet |
-| 10992 | 35.97 · „Warum funktioniert das an anderen Stellen?" |
-| 11056 | 35.98 · Eine Ziffer, und ein Lauf an der Zeitgrenze |
-| 11116 | 35.99 · Ein stetiger Verlauf ist nicht dasselbe wie ein ruh… |
-| 11166 | 35.100 · Neues App-Symbol, echtes Mannschaftsfoto |
-| 11233 | Offene Punkte (Stand 35.100) |
-| 11515 | Zusätzliche Stolperfallen |
+| 245 | 1. Was das Projekt ist |
+| 330 | 2. Zusammenarbeit |
+| 346 | 3. Was drin ist (Grobüberblick) |
+| 459 | 4. Kalibrierung — worauf eingestellt wurde |
+| 521 | 5. Prüfstand |
+| 606 | 6. Stolperfallen — teuer gelernt |
+| 645 | 7. Was offen ist |
+| 673 | 8. Wie ein neuer Chat anfangen sollte |
+| 765 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
+| 1089 | Auf dem Gerät geprüft — 10.8.2026 |
+| 1196 | 34.0 · Die Spielerporträts |
+| 1313 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
+| 1561 | 34.8 · Vier gemeldete Punkte |
+| 1613 | 34.9 · Block A — fünf Fehler im Spielfluss |
+| 1678 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
+| 1733 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
+| 1781 | 34.12 · Block C — Frauenfußball |
+| 1836 | 34.13 · Block D, erster Teil |
+| 1885 | 34.14 · Die Wachstumskurve |
+| 1939 | 34.15 · Die Rückblick-Karten |
+| 1978 | 34.16 · Zwei Fehler aus Kevins Test |
+| 2038 | 34.17 · Die Freischaltungen |
+| 2073 | 34.18 · Der Vermächtnis-Laden |
+| 2141 | 34.19 · Der gekaufte Kartentausch wirkt |
+| 2187 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
+| 2219 | 34.21 · Laden und Zahnrad lagen aufeinander |
+| 2300 | 34.22 · Der Laden rechnet ab, und zwei Texte |
+| 2387 | 34.23 · Jede neue Seite beginnt oben |
+| 2444 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
+| 2516 | 34.25 · Die Ränge der Errungenschaften |
+| 2579 | 34.26 · Der Rückblick liegt auf Karteikarten |
+| 2649 | 34.27 · Drei wirklich runde Kopfformen |
+| 2718 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
+| 2754 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
+| 2821 | 34.30 · Aufräumen nach dem Belastungstest |
+| 2883 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
+| 2929 | 34.32 · Die Wildcard auf hellem Papier |
+| 2967 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
+| 3004 | 34.34 · Drei Meldungen aus dem Spiel |
+| 3059 | 34.35 · Bärte bleiben in der Kopfform |
+| 3092 | Kevins Testprotokoll zu 34.33 — Ergebnis |
+| 3117 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
+| 3165 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
+| 3212 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
+| 3263 | 35.1 · Werkzeugpflege |
+| 3318 | 35.2 · STAND.md hat ein Verzeichnis |
+| 3353 | 35.3 · Eine Regel weniger zum Merken |
+| 3390 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
+| 3498 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
+| 3627 | 35.6 · Die Ereignisse ziehen aus |
+| 3703 | 35.7 · Entscheidungen mit Folgen |
+| 3769 | 35.8 · Deine Werte öffnen Türen |
+| 3845 | 35.9 · Storystränge |
+| 3911 | 35.10 · Der Anfang war die engste Stelle |
+| 3984 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
+| 4048 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
+| 4115 | 35.13 · Die Akademie wird größer |
+| 4201 | 35.14 · Antworten, die nur manchmal da sind |
+| 4271 | 35.15 · Vier Geschichten statt einer |
+| 4323 | 35.16 · Vierundzwanzig weitere Male anders |
+| 4388 | 35.17 · Der eigene Verein — Durchstich |
+| 4482 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
+| 4544 | 35.19 · Die Akademie wird zeitlos |
+| 4589 | 35.20 · Der Verein bekommt ein Gesicht |
+| 4653 | 35.21 · Der Verein ist erreichbar |
+| 4703 | 35.22 · Was hier stand, stimmte nicht mehr |
+| 4789 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
+| 4895 | 35.24 · Durchsicht des ganzen Projektwissens |
+| 5006 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
+| 5077 | 35.26 · Das Tutorial |
+| 5179 | 35.27 · Erster Gerätetest des Vereinsmodus |
+| 5262 | 35.28 · Der Verein läuft nebenher |
+| 5378 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
+| 5456 | 35.30 · Die Bauanleitung war unvollständig |
+| 5615 | 35.31 · Die Moral steht in der Anleitung — und liefert ande… |
+| 5705 | 35.32 · Die Akademie steht im Rückblick |
+| 5810 | 35.33 · Die Ruhmeshalle war nie geprüft |
+| 5889 | 35.34 · Jugendturniere bekommen Namen und Gegner |
+| 6027 | 35.35 · Drei Flaggen bekommen Folgen |
+| 6142 | 35.36 · Die letzten zwei Flaggen bekommen Inhalt |
+| 6236 | 35.37 · Ereignisse, die zum falschen Moment kommen |
+| 6388 | 35.38 · Der Kapitän spricht nicht mehr mit sich selbst |
+| 6498 | 35.39 · Die Akademie zahlt früher — und sagt es |
+| 6611 | 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe |
+| 6693 | 35.41 · Werkzeugkasten aufgeräumt |
+| 6801 | 35.42 · Der Abschlussbildschirm wird übersichtlich |
+| 6923 | 35.43 · Namen nach Land statt nach Sprachraum |
+| 7128 | 35.44 · Eine Kennzahl, die nichts mehr bedeutete |
+| 7192 | 35.45 · Sechs Listen, die auseinandergelaufen waren |
+| 7344 | 35.46 · Der Bau ist wiederholbar — und eine eigene Behauptu… |
+| 7480 | 35.47 · Der Prüfstand sieht nach der Sicherheitslage |
+| 7586 | 35.48 · Die Akademie zieht aus |
+| 7713 | 35.49 · Stufe A — die Aufstellung von Hand |
+| 7835 | 35.50 · Ein Dach über Akademie und Profimannschaft |
+| 7910 | 35.51 · Der Abschluss schließt ab |
+| 8036 | 35.52 · Stufe B — die Saison wird gespielt |
+| 8156 | 35.53 · Stufe C, erster Teil — Verträge und Postkorb |
+| 8264 | 35.54 · Stufe C, zweiter Teil — Kaderverträge, und Punkt 21… |
+| 8362 | 35.55 · Stufe D — den Kader ausdünnen |
+| 8438 | 35.56 · Die Werkstatt war nie da, und die Namen kamen alle… |
+| 8544 | 35.57 · Die Namen haben ihre Zeichen zurück |
+| 8625 | 35.58 · Drei Befunde vom Gerät — und einer davon war unsich… |
+| 8700 | 35.59 · Die Auswahl steht dort, wo man hingetippt hat |
+| 8735 | 35.60 · Das Dach zeigt den Stand, statt ihn zu verstecken |
+| 8794 | 35.61 · Verwaltung im Jugendhaus |
+| 8844 | 35.62 · Errungenschaften für den eigenen Verein |
+| 8940 | 35.63 · Kartenoptik hinter dem Porträt |
+| 9008 | 35.64 · Derselbe Fehler, eine Klasse weiter |
+| 9063 | 35.65 · Verträge auf Papier — und eine ganze Farbwelt war u… |
+| 9123 | 35.66 · Der Rücktrittsknopf tat vier Fassungen lang nichts |
+| 9175 | 35.67 · Erst der Verein, dann die Liga |
+| 9247 | 35.68 · Wappen im Dach, Postfach zu |
+| 9293 | 35.69 · Der Rahmen von damals, und eine Rückseite |
+| 9364 | 35.70 · „Dein Verein" gehört jetzt zum Blatt |
+| 9409 | 35.71 · Nachgesehen: hängt jeder Bildschirm am Blatt? |
+| 9461 | 35.72 · Gleich gebaut war nicht gleich laut |
+| 9517 | 35.73 · Der Abschluss lebte nur im Arbeitsspeicher |
+| 9571 | 35.74 · Achtzehn Ziele für die langen Jahre |
+| 9648 | 35.75 · Die Hallenkarten wenden sich wie ein Spielerpass |
+| 9691 | 35.76 · Der Sonderschuss |
+| 9788 | 35.77 · Sonderschuss auf Knopfdruck |
+| 9831 | 35.78 · Der Sonderschuss wird ein Fenster |
+| 9893 | 35.79 · Das Fundament für die Sammelkarten |
+| 9979 | 35.80 · Vier Packs, und sie sagen, was sie kosten |
+| 10049 | 35.81 · Zwei von drei Häusern arbeiteten umsonst |
+| 10121 | 35.82 · Die Spielerkarte |
+| 10178 | 35.83 · Feste Karten, Merkmale, Jubel |
+| 10252 | 35.84 · Holoschimmer |
+| 10315 | 35.85 · Der Packladen — das Kartensystem wird spielbar |
+| 10363 | 35.86 · Eine Grenze ohne Ausweg ist eine Falle |
+| 10423 | 35.87 · Der Fundus, und Karten wischen weg |
+| 10463 | 35.88 · Die Aufstellung wird zum Kartenraster |
+| 10540 | 35.89 · Karten fallen aus dem Pack — und das Startpaket |
+| 10602 | 35.90 · Vier Befunde vom Gerät |
+| 10672 | 35.91 · Die Elf steht jetzt so, wie sie spielt |
+| 10737 | 35.92 · Ist der Tisch leer, geht es zurück |
+| 10772 | 35.93 · Das Postfach wird ein Briefsymbol |
+| 10836 | 35.94 · Acht Befunde vom Gerät |
+| 10946 | 35.95 · Ein neuer Zugang braucht einen passenden Ausgang |
+| 10981 | 35.96 · Der Schimmer, zum dritten Mal — diesmal gerechnet |
+| 11047 | 35.97 · „Warum funktioniert das an anderen Stellen?" |
+| 11111 | 35.98 · Eine Ziffer, und ein Lauf an der Zeitgrenze |
+| 11171 | 35.99 · Ein stetiger Verlauf ist nicht dasselbe wie ein ruh… |
+| 11221 | 35.100 · Neues App-Symbol, echtes Mannschaftsfoto |
+| 11288 | 35.101 · Der Prüfstand meldete sieben Fehler, die keine waren |
+| 11416 | 35.102 · Eine Wildcard war unerreichbar, und niemand hat es… |
+| 11572 | 35.103 · Drei Entscheidungen, und was danach folgte |
+| 11682 | 35.104 · Jede Spielzeit bekommt eine Schlagzeile |
+| 11797 | 35.105 · Eine Rückkehr war keine Rückkehr |
+| 11921 | 35.106 · Marken für Laufbahnen, die keine Weltkarriere werden |
+| 12045 | 35.107 · Das eine Ziel |
+| 12145 | 35.108 · Sechs Entscheidungen kommen zurück |
+| 12253 | 35.109 · Was für eine Laufbahn war das eigentlich? |
+| 12360 | 35.110 · Warum ruft gerade dieser Verein an? |
+| 12460 | 35.111 · Die Tabelle hatte die Namen die ganze Zeit |
+| 12542 | 35.112 · Vier Auswege, jeder mit einem Preis |
+| 12625 | 35.113 · Der Archetyp bekommt seine Wirkung |
+| 12710 | 35.114 · Das erste neue Feld — und warum es unvermeidlich war |
+| 12785 | 35.115 · Ein Fünftel des Spielstands war Ballast |
+| 12857 | 35.116 · Zwanzig Rekorde, die längst mitliefen |
+| 12911 | 35.117 · Die Ruhmeshalle wird ein Museum |
+| 12982 | 35.118 · Fünfzehn Jahre in Kapiteln — und eine Prüfung, die… |
+| 13070 | 35.119 · Die Zeitleiste — und das Jahr, das dem Verein fehlte |
+| 13152 | 35.120 · Das Hauptmenü hatte schon fast alles |
+| 13209 | 35.121 · Der erste Gerätebefund seit 35.28 |
+| 13269 | 35.122 · Meine Korrektur war zu breit |
+| 13332 | 35.123 · Fast geschafft — abgeleitet statt gepflegt |
+| 13422 | 35.124 · Zwei stille Fehler, einer davon meiner |
+| 13503 | 35.125 · Die Kette ist geschlossen |
+| 13562 | 35.126 · Sechs Sammlungsseiten |
+| 13619 | 35.127 · Entwicklungstypen — die letzte Stufe |
+| 13687 | 35.128 · Ein abgestürzter Prüfteil sagt jetzt, dass er abge… |
+| 13744 | Für den nächsten Durchgang |
+| 13804 | Offene Punkte (Stand 35.128) |
+| 14149 | Zusätzliche Stolperfallen |
 
 <!-- ENDE VERZEICHNIS -->
 
@@ -428,40 +458,63 @@ einem Treffer wieder bei 0,1 %. Gemessen nachher: **Median 20 Laufbahnen**
 
 ## 4. Kalibrierung — worauf eingestellt wurde
 
-**Gemessen am 21.8.2026** über 300 simulierte Laufbahnen bzw. 40–120 Akademie-
+**Gemessen am 4.9.2026** über 300 simulierte Laufbahnen bzw. 40–120 Akademie-
 durchläufe. **Die Zielbänder stehen in `pruefstand/kalibrierung.cjs` ganz
 oben und lassen das Skript fehlschlagen, wenn sie verlassen werden** — die
 Tabelle hier ist eine Abschrift des Laufs, nicht die Quelle. Bei Abweichung
-gilt das Skript.
+gilt das Skript, nicht diese Tabelle.
 
-| Kennzahl | Gemessen | Zielband |
+| Kennzahl | Gemessen 4.9.2026 | Zielband |
 |---|---|---|
-| VC je Laufbahn | Mittel **105,3**, Median 106 (P10 56, P90 160) | — |
-| Laufbahnen bis Vollausbau | **27,6** | 25–35 |
+| VC je Laufbahn | Mittel **104,3**, Median 106 (P10 54, P90 151) | — |
+| Laufbahnen bis Vollausbau (alle Quellen) | **21,3** | 20–30 |
 | Kosten des Vollausbaus | **2.912 VC** | 2.700–3.100 |
-| Weltklasse, Stufe 6 / 25 Jahre | Median **5** (P10 2, P90 8) | 3–8 |
-| Laufbahnen bis zur Rautekarte | Median **35** (P10 14, P90 62) | 28–42 |
+| Weltklasse, Stufe 6 / 25 Jahre | Median **5** (P10 2, P90 7) | 3–8 |
+| Laufbahnen bis zur Rautekarte | Median **34** (P10 14, P90 64) | 28–42 |
 
 Ertrag der Akademie über 25 Jahre je Ausbaustufe (Profis / Weltklasse):
-Stufe 1 → 1,9 / 0 · Stufe 3 → 14,9 / 0 · Stufe 5 → 55,7 / 1,6 · Stufe 6 → 61,4 / 4,7
+Stufe 1 → 1,7 / 0 · Stufe 3 → 14,2 / 0 · Stufe 5 → 53,4 / 1,3 · Stufe 6 → 56,2 / 4,3
 
 Realistischer Verlauf über 40 Laufbahnen mit stufenweisem Ausbau (30 Durchgänge,
-`pruefstand/verlauf40.cjs`): **70,6 Profis, 3,7 Weltklassespieler, Ansehen 338**
-(Median 349) → Anlage +4, Ruf +6, +100 Tsd. €, Entwicklung +6 %. Der Vollausbau
-wird dabei in **30 von 30** Durchgängen erreicht — was zur Zeile „27,6 Laufbahnen“
-oben passt und sie von der anderen Seite bestätigt.
+`pruefstand/verlauf40.cjs`, Laufzeit 46 s): **66,6 Profis, 3,8 Weltklassespieler,
+Ansehen 336,6** (Median 341) → Anlage +4, Ruf +6, +100 Tsd. €, Entwicklung +6 %.
+Der Vollausbau wird in **30 von 30** Durchgängen erreicht.
 
-Sicherungsgröße der Akademie nach 25 Jahren: **22,3 KB** (Talente offen,
+Sicherungsgröße der Akademie nach 25 Jahren: **34,4 KB** (Talente offen,
 Ehrentafel auf 40 gekappt, Chronik auf 25 Jahre).
 
-> **Warum dieser Abschnitt bis 35.22 falsch war.** Er trug die Datierung
-> 7.8.2026 und stammte damit aus der Zeit vor dem Akademieausbau. 35.12/35.13
-> haben drei Abteilungen ergänzt, die Kosten des Vollausbaus von 1.564 auf
-> 2.912 VC angehoben und den Verdienst gespreizt — fünf von sieben Werten waren
-> danach überholt, und das genannte Zielband (1.400–1.700) widersprach dem
-> Skript. Wer sich darauf verlassen hätte, hätte einen **bestandenen** Lauf für
-> einen Fehlschlag gehalten. Gemessene Zahlen altern; wenn hier künftig etwas
-> steht, gehört das Messdatum dazu.
+> **Der Kalibrierungslauf nennt ZWEI Zahlen, die fast gleich klingen.** Bis
+> 35.101 hiessen sie „nötige Laufbahnen" und „Laufbahnen bis Vollausbau" und
+> standen zwei Zeilen auseinander. Die erste teilt nur durch die VC aus der
+> Spielerlaufbahn (27,9), die zweite durch alle Quellen zusammen (21,3), und
+> **nur die zweite wird gegen das Zielband geprüft.** Seit 35.102 sagt die
+> erste Zeile ausdrücklich „nur aus Laufbahn-VC, ohne die anderen Quellen".
+>
+> **Warum dieser Abschnitt bis 35.101 zum ZWEITEN Mal falsch war.** Er trug die
+> Datierung 21.8.2026 und nannte „Laufbahnen bis Vollausbau **27,6**, Band
+> 25–35". Beides war überholt: 35.81 hat das Band auf **20–30** gesenkt, weil
+> seither auch Akademie, Verein und Errungenschaften VC zahlen. Auch die
+> Sicherungsgröße (22,3 statt 34,4 KB), der Ertrag je Ausbaustufe und der
+> 40-Laufbahnen-Verlauf lagen daneben. Fünf von sieben Zeilen.
+>
+> **Das ist nicht folgenlos geblieben.** In der externen Bewertung vom 4.9.2026
+> wurde „rund 27,6 Laufbahnen bis Vollausbau" als aktueller Projektstand
+> zitiert — aus genau dieser Tabelle, mit dem alten Band. Eine veraltete
+> Abschrift im lebenden Text wandert nach draußen und kommt als Befund zurück.
+> Auch die erste Diagnose in diesem Projekt lag daneben: sie schob die 27,6 auf
+> die doppeldeutige Zeile im Lauf. Die Zahl stand wörtlich hier.
+>
+> **Und es ist der zweite Anlauf.** Bis 35.22 stand hier schon einmal ein
+> überholter Stand (Datierung 7.8.2026, Zielband 1.400–1.700 gegen 2.700–3.100
+> im Skript) — wer sich darauf verließ, hätte einen **bestandenen** Lauf für
+> einen Fehlschlag gehalten. Der Kasten, der daraus die Lehre zog („wenn hier
+> künftig etwas steht, gehört das Messdatum dazu"), stand darunter, während die
+> Tabelle darüber erneut alterte. **Ein Messdatum daneben reicht nicht.**
+>
+> **Konsequenz:** wer diese Tabelle liest und den Lauf nicht daneben hat, liest
+> möglicherweise Geschichte. Gültig ist `TEILE=kalib bash pruefstand/pruefen.sh
+> <App.jsx>`; die Bänder selbst stehen in `kalibrierung.cjs`. Wer hier etwas
+> ändert, fährt den Lauf und schreibt ab, was er meldet — nichts anderes.
 
 ---
 
@@ -516,7 +569,7 @@ die Vorgabe in `pruefen.sh` nach; wer sie ändert, muss beide ändern.
 | `ereignisse.cjs` | zählt, wie oft sich Ereignisse über 30 Laufbahnen wiederholen |
 | `bindenbogen.cjs` | alle 212 Kapitänsbinden als Bildtafel. Braucht ein Ziel: `node bindenbogen.cjs ziel.svg` |
 | `knoepfe.sh` | prueft, dass Knoepfe lesbar sind und im Bild bleiben (seit 35.28). Haengt in `sicht.sh`, faehrt 412 und 360 px |
-| `werkstatt.js` | Abkürzungen zum Prüfen im Browsertest (seit 35.29): Laufbahnen, Coins, Ausbau, Einschreiben. **Nur bei `ERSTSTART=1`**, nicht in der APK |
+| `werkstatt.js` | Abkürzungen zum Prüfen im Browsertest (seit 35.29): Laufbahnen, Coins, Ausbau, Einschreiben. **Bei `WERKSTATT=1` ODER `ERSTSTART=1`** (`browsertest.sh` prüft beide), nicht in der APK. Stand bis 35.101 an drei Stellen falsch als „nur bei `ERSTSTART=1`" — der zweite Schalter kam in 35.56 dazu, weil `ERSTSTART` zugleich den Willkommensschirm einschaltet und wer nur die Werkstatt wollte, sie deshalb gar nicht bekam |
 | `knopfbogen.jsx` | rendert die Bildschirme mit Knopfzeilen durch die echte `Shell` |
 | `knopfmessung.cjs` | misst je Knopf: passt der Text hinein, bleibt er im Bild |
 | `stimmigkeit.cjs` | prüft alle Ereignisse auf Erzählbrüche: wirkt jede Wahl, ist jede erreichbar, passt das Ereignis zum Moment (seit 35.37). **Läuft in `pruefen.sh`** (Teil `stimmig`) |
@@ -649,16 +702,18 @@ unterscheiden. Siehe offener Punkt 19. `UEBERSICHT.md` ist auf 33.13 neu erzeugt
        bash pruefstand/pruefen.sh /pfad/zu/App.jsx
 
    Der Aufruf **braucht den Pfad**. Die Ausgabe muss `Baudateien: 7 von 7
-   gefunden`, `Schriften: 128K` und `Ereignisse: 520 Einträge` enthalten;
+   gefunden`, `Schriften: 128K` und `Ereignisse: 530 Einträge` enthalten;
    steht dort weniger, ist das Projektwissen unvollständig und der
    Produktionsbau ungeprüft. Darunter listet der Aufbau **alle eigenen Dateien
    mit Größe und Zeilenzahl** — das ist die Stelle, an der diese Zahlen stehen,
    seit sie aus Abschnitt 1 verschwunden sind.
 
-   Die 520 ist die einzige Bestandszahl, die in dieser Datei noch ausgeschrieben
+   Die 530 ist die einzige Bestandszahl, die in dieser Datei noch ausgeschrieben
    steht, weil ein Mensch sie beim Abnehmen braucht. **Prüfung 8 rechnet sie
-   nach.** Bis 35.44 stand hier 518 — der Stand von 35.36, sieben Fassungen
-   alt.
+   nach** — und hat es zuletzt in 35.108 getan, als sechs Erinnerungsereignisse
+   dazukamen und der Lauf sofort abbrach, weil hier noch 520 stand. Bis 35.44
+   stand hier 518, der Stand von 35.36 und sieben Fassungen alt; damals fiel es
+   niemandem auf, weil es die Prüfung noch nicht gab.
 4. Ändern, erneut messen, **vorher/nachher gegenüberstellen**.
 5. Am Ende: Fassungsnummer, `VERSION_INFO` **und den Kopf dieser Datei**
    anheben, `STAND.md` fortschreiben, alle geänderten Dateien ausliefern.
@@ -11230,7 +11285,2523 @@ eingebettet, tritt es zurück, und verschwindet es nicht ganz.
 
 **Ansichten 812 → 814.** Gegenprobe: Deckung fest gemacht → gemeldet.
 
-## Offene Punkte (Stand 35.100)
+## 35.101 · Der Prüfstand meldete sieben Fehler, die keine waren
+
+Drei Funde aus der Eingangsprüfung von 35.100. Am Spiel ist nichts geändert —
+`App.jsx` unterscheidet sich in genau zwei Zeilen (Fassungsnummer und
+`VERSION_INFO`).
+
+### Der Fund, der zählt: ein relativer Pfad
+
+Der Abnahmeblock schreibt seit 35.98 diesen Aufruf vor:
+
+    bash pruefstand/pruefen.sh App.jsx
+
+Genau so aufgerufen meldete der Lauf:
+
+    297 Prüfungen bestanden, 7 Fehler.
+    ✗ Bonus: App.jsx gefunden            nicht gefunden
+    ✗ Berichte: App.jsx gefunden         nicht gefunden
+    ✗ Satzspiegel: App.jsx gefunden      nicht gefunden
+    ✗ Errungenschaften: App.jsx gefunden nicht gefunden
+    ✗ Kachel: der Ausbau-Nenner ist AKA_STUFEN   App.jsx nicht gefunden
+    ✗ Menüzeile „Dein Verein“ …          App.jsx nicht gefunden — NICHT geprueft
+    ✗ Verein: kein Knopf 'Saison spielen' …      App.jsx nicht gefunden — NICHT geprueft
+    MINDESTENS EIN TEIL IST FEHLGESCHLAGEN.
+
+**Am Spiel war nichts kaputt.** `vereinpruefung.cjs` läuft nach `cd /tmp/ps`;
+ein relativ übergebener Pfad zeigt von dort ins Leere. Sieben Prüfungen
+meldeten das als Fehler, **achtzehn weitere fielen still aus** — 322 gegen
+297 + 7.
+
+**Die Ursache war eine Uneinheitlichkeit, keine vergessene Zeile.** Vier
+Werkzeuge werden im selben Block aufgerufen; drei bekamen den Pfad absolut,
+eines nicht:
+
+| Zeile | Werkzeug | bekam |
+|---|---|---|
+| 590 | `ereignispruefung.cjs` | `--quelle="$ARBEIT/App.jsx"` |
+| 605 | `stimmigkeit.cjs` | `--quelle="$ARBEIT/App.jsx"` |
+| 621 | `namenpruefung.cjs` | `--quelle="$ARBEIT/App.jsx"` |
+| 633 | `vereinpruefung.cjs` | **`--quelle="$QUELLE"`** |
+
+Genau das ist offener Punkt 12 in klein: eine Sorte Fehler, die man einzeln
+abfängt, statt sie auszuschließen. `sicht.sh` hatte es von Anfang an richtig
+und löst die Quelle in Zeile 26 selbst auf.
+
+**Behoben an der Wurzel und an der Fundstelle.** `pruefen.sh` löst die Quelle
+jetzt direkt nach `QUELLDIR` absolut auf — dieselbe Zeile wie in `sicht.sh` —,
+und Zeile 633 ruft wie ihre drei Nachbarn auf. Bleibt `QUELLDIR` leer, weil es
+das Verzeichnis nicht gibt, bleibt `QUELLE` stehen, damit die Fehlermeldung
+weiter den eingegebenen Pfad nennt.
+
+### Warum die Behebung keine Vertuschung ist
+
+Ein Fix, der eine rote Meldung wegnimmt, könnte auch nur die Meldung
+wegnehmen. Deshalb vier Messungen statt einer:
+
+| Probe | Erwartet | Gemessen |
+|---|---|---|
+| relativ, `pruefen.sh App.jsx` | grün, 322 | 322, 0 Fehler |
+| absolut, unveränderter Weg | grün, 322 | 322, 0 Fehler |
+| `App.jsx` mit `<button>Saison spielen</button>` | **rot** | 321, 1 Fehler ✗ |
+| `App.jsx` ohne `fr.akademie ? onVereinDach : null` | **rot** | 321, 1 Fehler ✗ |
+
+Die letzten beiden sind der eigentliche Beweis: die achtzehn
+wiedergewonnenen Prüfungen fahren wirklich und melden echte Fehler weiterhin
+rot. Ohne sie wäre „jetzt grün" nur eine Behauptung.
+
+### Zwei Papierfunde dazu
+
+**Offener Punkt 10 war zum dritten Mal veraltet** — behauptet 13.674 Zeilen,
+gemessen 16.487. Das ist der größte Rückstand der drei (2.813 gegen 788 und
+369), und er stand ausgerechnet in dem Punkt, der vom Wachstum der Datei
+handelt. **Die Zahl steht dort jetzt nicht mehr**; der Aufbau misst sie bei
+jedem Lauf unter „Eigene Dateien (gemessen)". Dieselbe Lehre wie bei den
+Pixelwerten in Punkt 8 und den Bestandszahlen in Abschnitt 8.
+
+**Der Wegweiser oben widersprach dem Abnahmeblock unten.** Der Wegweiser nannte
+als Gerätetest-Liste 35.23 bis 35.29 und „Vollausbau nach rund 28"; der
+Abnahmeblock nennt korrekt 35.44 als letzten Gerätestand und 20–30 als Band
+(seit 35.81, gemessen 21,5). Vier Fassungen Rückstand gegen siebenundfünfzig.
+Der Wegweiser verweist jetzt nach unten, statt die Auskunft ein zweites Mal zu
+führen — dieselbe Entscheidung wie bei der Teile-Liste in 35.44.
+
+### Was das über den Prüfstand sagt
+
+**Wie lange die Zeile schon so lautet, lässt sich hier nicht feststellen** —
+es gibt keine Versionsgeschichte im Projektwissen, und geraten wird nicht.
+Belegen lässt sich nur die Untergrenze: die betroffenen Prüfungen tragen in
+`vereinpruefung.cjs` eigene Fassungsvermerke, der früheste ist **35.60**
+(Dach-Kacheln), dazu 35.62, 35.71 und 35.72. Der Falschalarm konnte also
+mindestens seit 35.60 auftreten — vierzig Fassungen —, aber nur bei relativem
+Aufruf, und die frühere Anleitung in Abschnitt 8 nannte einen absoluten Pfad.
+Aufgefallen ist er erst, als der Abnahmeblock (35.98) den relativen Aufruf zur
+Vorschrift machte und ich ihn wörtlich genommen habe. Ein
+Prüfstand, der beim dokumentierten Aufruf rot meldet und beim undokumentierten
+grün, erzieht dazu, roten Meldungen nicht mehr zu glauben. Das ist teurer als
+der Fehler selbst.
+
+### Geprüft
+
+Abnahme vollständig, alle drei Läufe. Vorher/nachher, gemessen:
+
+| | 35.100 (relativ aufgerufen) | 35.101 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | **297, 7 Fehler** | **322, 0 Fehler** |
+| Ereignisse | 11 Prüfungen, 0 Treffer | 11 Prüfungen, 0 Treffer |
+| Stimmigkeit | 17 Proben ohne Befund | 17 Proben ohne Befund |
+| Namen | 6 Proben, 212/212 Nationen | 6 Proben, 212/212 Nationen |
+| Rückwärts | 6 × 63 Ansichten | 6 × 63 Ansichten |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 bei 412 und 360 px | 154 bei 412 und 360 px |
+| Rücktritt | 6 Proben grün | 6 Proben grün |
+| Passhöhe | 385,9 px über 9 Stände | 385,9 px über 9 Stände |
+| Sicherheitslage | 0 Funde | 0 Funde |
+| Vollausbau | 21,5 Laufbahnen (Ziel 20–30) | 21,5 Laufbahnen (Ziel 20–30) |
+| Ergebnis | **FEHLGESCHLAGEN** | **keine Fehler** |
+
+**Bündel, beide Male gemessen:** 1.424,26 kB unverändert, gzip 528,39 → 528,38
+kB. Die 0,01 kB im gzip stammen aus den zwei geänderten Textzeilen
+(`VERSION_INFO` ist kürzer geworden) — anders als die unerklärten 0,01 kB aus
+35.44/35.45 hat diese Abweichung eine benennbare Ursache und ist reproduzierbar.
+
+Laufzeiten hier: 99 s (Hauptlauf), 12 s (Sicherheit), 56 s (`sicht.sh`).
+
+**Der Hauptlauf wurde absichtlich mit `pruefen.sh App.jsx` gefahren** — dem
+relativen Aufruf, der in 35.100 rot war. Der Aufbau meldet jetzt
+`Quelle: /home/claude/rs/App.jsx`, also den aufgelösten Pfad.
+
+## 35.102 · Eine Wildcard war unerreichbar, und niemand hat es gemerkt
+
+Vier Punkte aus der externen Konsolidierung von ChatGPT (4.9.2026, geprüft
+gegen 35.101). Die drei Designfragen daraus — Sonderkartensemantik,
+Bedeutung von `aka.ausgegeben`, Geschlecht der Metaebene — sind bewusst
+**nicht** dabei: das sind Entscheidungen, keine Reparaturen.
+
+### Der Fund: `a_akaF_jg50` konnte nie zuschnappen
+
+Die Bedingung las `(A.chronik||[]).length >= 50`. `akaJahr` kappt die Chronik
+auf 25 (`akademie.js:495`, `slice(0, 25)`). Nachgewiesen über echte
+Zustandsübergänge, nicht über einen gebauten Zustand:
+
+| Akademiejahr | `chronik.length` | `jahrgaenge` |
+|---:|---:|---:|
+| 25 | 25 | 25 |
+| 60 | **25** | 60 |
+| 120 | **25** | 120 |
+
+Nach 120 echten Jahren nicht erreicht. **An der Errungenschaft hängt
+`lohn: "mw_werkbank"`** — eine der drei freischaltbaren Wildcards war damit
+auf regulärem Weg nicht zu bekommen.
+
+Umgestellt auf `(A.jahrgaenge||0) >= 50`. Der richtige Zähler stand die ganze
+Zeit sieben Zeilen tiefer in `a_aka_erbe` (`A.jahrgaenge>=25`).
+
+**Warum es so lange unsichtbar war:** bis Jahr 24 laufen beide Zähler fast
+gleich — `chronik = jahrgaenge + 1` wegen des Gründungseintrags. Die Bedingung
+verhält sich also lange plausibel und kippt erst hinter dem Deckel.
+
+**Eingegrenzt, es ist keine Klasse.** Alle drei Bedingungen mit
+`chronik.length` durchgesehen: die beiden Vereins-Bedingungen (`>= 1`,
+`>= 15`) sind gesund, weil die Vereinschronik **nicht** gekappt wird
+(`verein.js:952`). Nur die eine war falsch.
+
+### Warum der Prüfstand grün war — der eigentliche Befund
+
+`vereinpruefung.cjs` baute den Prüfzustand von Hand:
+
+    const vielA = { ruhm: 500, chronik: new Array(60).fill({ jahr: 1 }), … };
+
+Die Probe hatte sogar eine Gegenprobe in der anderen Richtung (leere Bilanz,
+keine darf zuschnappen). **Beide Richtungen liefen über denselben
+synthetischen Zustand** — sie prüften die *Form* der Bedingung, nicht ihre
+*Erfüllbarkeit*. Das ist eine Fehlerklasse, die der Prüfstand strukturell
+nicht sehen konnte, und ChatGPTs Diagnose trifft sie genau.
+
+Neu: **sechs Proben, die die Akademie wirklich fortführen** und danach prüfen.
+Was dort grün ist, ist im Spiel erreichbar.
+
+**Der Umbau hat sich sofort selbst bewiesen:** nach der Berichtigung fiel die
+ALTE Fleiß-Probe rot aus, weil `vielA` gar kein `jahrgaenge` trug. Ein
+gebauter Zustand, der „weit über allen Schwellen" liegen soll, muss jedes
+Feld tragen, das eine Bedingung liest — sonst prüft er sich selbst.
+`jahrgaenge: 60` nachgetragen, mit dem Grund im Kommentar.
+
+### Eine Prüfung, die zufällig rot wird, ist schlimmer als keine
+
+Der erste Entwurf fuhr **einen** Lauf über 60 Jahre. Gemessen, warum das nicht
+trägt — Weltklassezahl bei vollem Ausbau, 25 Läufe je Zeile:
+
+    Jahre    min   Median   max     unter 10
+      25       1        4     7     25 von 25
+      40       3        8    15     19 von 25
+      60       5       11    15      6 von 25
+      80       7       15    25      2 von 25
+     100      11       20    28      0 von 25
+
+Die Probe wäre in knapp einem Viertel aller Läufe rot geworden, ohne dass
+etwas kaputt ist — `a_akaF_wk10` verlangt zehn Weltklassespieler.
+
+Länger laufen zu lassen hätte das Flattern verkleinert, nicht beseitigt.
+Deshalb ist die **Frage** anders gestellt: erreichbar heißt „in wenigstens
+einem echten Verlauf erreicht", nicht „in jedem". Jetzt fünf Läufe à 100
+Jahre. `a_akaF_jg50` fällt trotzdem auf, weil die Chronik in *jedem* Lauf bei
+25 stehen bleibt.
+
+**Acht Wiederholungen gemessen: 328 Prüfungen, 0 Fehler, jedes Mal, ~0,6 s.**
+
+### Die Gegenprobe war erst falsch aufgebaut
+
+Der erste Versuch drehte die Bedingung in einer Kopie der `App.jsx` zurück und
+ließ `vereinpruefung.cjs` mit `--quelle=` darauf laufen — die Probe blieb
+grün. **Das war mein Fehler, nicht der der Probe:** das Werkzeug liest
+`ACHIEVEMENTS` aus dem gebauten Bündel, `--quelle=` dient nur den
+Quelltextprüfungen. Erst ein eigenes Bündel aus der kaputten Quelle hat es
+gezeigt:
+
+| Probe | Erwartet | Gemessen |
+|---|---|---|
+| repariert, 8 Läufe | grün | 8 × 328, 0 Fehler |
+| alte Bedingung im Bündel, 5 Läufe | **rot** | 5 × „in KEINEM von 5 Läufen: a_akaF_jg50" |
+| danach zurückgestellt, 3 Läufe | grün | 3 × 328, 0 Fehler |
+
+Eine Gegenprobe, die schweigt, kann selbst der Fehler sein. Sie gehört so
+lange geprüft, bis sie einmal aus dem richtigen Grund rot wird.
+
+### Zwei Zahlen und zwei Texte
+
+**Die Kurzanleitung sagte „162 Stück", gemessen sind es 192.** Jetzt
+`ACHIEVEMENTS.length + " Stück"`, dieselbe Bauart wie `{ANLEITUNG.length}
+Abschnitte` daneben. Gegenprobe: eine Errungenschaft entfernt, Bündel neu
+gebaut → der Text sagte 191. Die Zahl läuft wirklich mit.
+
+**Die Akademiegründung ist kostenlos** (`akaGruenden` fasst kein VC an), zwei
+Texte behaupteten etwas anderes:
+
+* Kurzanleitung: „Gegründet wird sie mit den Coins aus deiner ersten Karriere"
+  → „Gründen kostet nichts — die Coins brauchst du erst für den Ausbau"
+* Dach bei leerer Kasse: „Coins sammeln, dann gründen" → „gründen kostet nichts"
+
+**Zur Ehrlichkeit:** die erste dieser beiden Stellen stand nicht in der
+Rückmeldung an ChatGPT, die dieses Projekt tags zuvor verfasst hat. Dort hieß
+es, von vier Texten sei nur einer irreführend. Es waren zwei — die Suche war
+zu eng gefasst und hat die Zeile direkt unter der gefundenen übersehen.
+ChatGPTs Fund war also schärfer als die Bestätigung dazu.
+
+### Dokumentationsdrift, vier Stellen
+
+* **`LIESMICH.md`: „Alle fünf … Zeilen 2 bis 7"** — beide Zahlen falsch,
+  gemessen acht Importe in den Zeilen 8 bis 15. Und schon der zweite Anlauf:
+  bis 35.44 stand da „2 bis 5". Die Zahlen sind jetzt raus, dafür steht der
+  Befehl da, der sie misst.
+* **`WERKSTATT=1` an drei Stellen falsch** (`LIESMICH.md`, `STAND.md`
+  Werkzeugtabelle, `STAND.md` Wegweiser): `browsertest.sh:130` liest
+  `WERKSTATT === "1" || ERSTSTART === "1"`, seit 35.56. **Die dritte Stelle
+  ist Text aus 35.101** — ungeprüft aus dem alten Wegweiser übernommen, in
+  der Fassung, deren Anlass eine ungeprüft übernommene Angabe war.
+* **Der Kalibrierungslauf nannte zwei fast gleich klingende Zahlen** zwei
+  Zeilen auseinander: 27,9 (nur Laufbahn-VC) und 21,3 (alle Quellen), und nur
+  die zweite wird gegen das Band geprüft. Die erste heißt jetzt „nur aus
+  Laufbahn-VC, ohne die anderen Quellen".
+* **Abschnitt 4 war zum zweiten Mal veraltet**, fünf von sieben Zeilen. Das
+  ist die Stelle, aus der ChatGPTs „rund 27,6 Laufbahnen" stammt — nicht aus
+  dem Lauf. Auch die Rückmeldung dieses Projekts hatte das falsch zugeordnet.
+  Alles neu gemessen, Näheres im Kasten dort.
+
+### Geprüft
+
+| | 35.101 | 35.102 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 322, 0 Fehler | **328**, 0 Fehler |
+| Ereignisse | 11 Prüfungen, 0 Treffer | 11 Prüfungen, 0 Treffer |
+| Stimmigkeit | 17 Proben | 17 Proben |
+| Namen | 6 Proben, 212/212 | 6 Proben, 212/212 |
+| Rückwärts | 6 × 63 Ansichten | 6 × 63 Ansichten |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 bei 412 und 360 px | 154 bei 412 und 360 px |
+| Rücktritt | 6 Proben grün | 6 Proben grün |
+| Passhöhe | 385,9 px konstant | 385,9 px konstant |
+| Sicherheitslage | 0 Funde | 0 Funde |
+| Vollausbau | 21,5 (Ziel 20–30) | 21,3 (Ziel 20–30) |
+
+Sechs neue Vereinsprüfungen (322 → 328), alle mit eigener Gegenprobe.
+
+## 35.103 · Drei Entscheidungen, und was danach folgte
+
+Die drei Designfragen aus der externen Konsolidierung. Kevin hat entschieden:
+Sonderkarte **dauerhaft**, tote Zähler **sichtbar machen**, Metaebene
+**männlich, aber ehrlich benannt**. Jede Entscheidung zog etwas nach sich, das
+in der Frage nicht stand — das ist der interessante Teil dieser Fassung.
+
+### 1. Die Sonderkarte bleibt jetzt eine
+
+`poolErgaenzen` führt gleiche `kid` zusammen und überschrieb nur bei höherem
+`ovr`. Da die Sonderkarte als Kopie aus dem eigenen Pool gezogen wird
+(`nachHerkunft(pool, …)`), ist der `ovr` **immer** gleich — der Marker ging
+ausnahmslos verloren. Die goldene Zeile „Sonderkarte" und der Jubel waren nur
+während des Öffnens zu sehen, im Fundus nie.
+
+Der Marker wird jetzt ODER-verknüpft: einmal veredelt bleibt veredelt, auch
+wenn dieselbe Karte später ohne Marker aus einer neuen Laufbahn nachkommt.
+
+**Was die Entscheidung nach sich zog:** sobald der Marker bleibt, wird die
+Zufallswahl zum Selbstläufer ins Leere — wer drei Sonderkarten hat, zöge sie
+immer wieder und bekäme nichts. Die Ziehung nimmt deshalb **zuerst noch
+unveredelte** Karten und fällt erst auf den ganzen Topf zurück, wenn alles
+veredelt ist. Das stand in Kevins Antwort nicht, folgt aber zwingend aus ihr.
+
+Sechs Proben, vier davon Gegenproben:
+
+| Probe | Erwartet | Gemessen |
+|---|---|---|
+| gleiche kid, gleicher ovr | Marker bleibt | true (vor 35.103: false) |
+| zweimal ohne Marker | bleibt ohne | false |
+| veredelt, danach besser ohne Marker | ovr 92 **und** Marker | 92 · true |
+| 4.000 Ziehungen, 2 veredelt / 2 frisch | nur frische | Neu1 606 · Neu2 609, Alt gar nicht |
+| alle veredelt, 2.000 Legendenpacks | fällt zurück, kein Ausfall | 615 Sonderkarten |
+| leerer Pool | kein Absturz | `sonder: null`, kein Fehler |
+
+### 2. Die Kasse — und zwei Buchungslücken, die dabei auffielen
+
+`ausgegeben`, `verdient` und `vereinPunkteSumme` hatten null Leser. Sichtbar
+gemacht: die ersten beiden als Kennzahlenpaar im Akademie-Dach, die dritte auf
+dem Vereinsabschluss neben den Punkten dieses Vereins (erst ab dem zweiten
+abgeschlossenen Verein, vorher wäre es dieselbe Zahl zweimal).
+
+**Beim Zählen der VC-Bewegungen kam heraus, dass zwei von acht nichts
+buchten:** der Packkauf zog ab, ohne `ausgegeben` fortzuschreiben, und der
+Verkaufserlös schrieb `verdient` nicht mit. Beide geschlossen.
+
+Beim Packkauf wird der **tatsächlich abgezogene** Betrag gebucht, nicht der
+Listenpreis: `Math.max(0, …)` kappte bei leerer Kasse, und wer 20 VC hat und
+ein Pack für 30 kauft, hat 20 ausgegeben. Sonst stünde die Kasse rechnerisch
+im Minus.
+
+**Bewusst keine Bilanz in der Anzeige.** Naheliegend wäre
+„verdient − ausgegeben = Kasse". Das wäre für alte Spielstände gelogen: die
+Packkäufe vor 35.103 fehlen und lassen sich nicht rekonstruieren — man weiß
+nicht, wie viele Packs jemand gekauft hat. Die beiden Zahlen stehen deshalb
+nebeneinander und behaupten nichts über ihre Differenz. Dass sie ab jetzt
+aufgeht, zeigt der Prüfstand, nicht die Oberfläche.
+
+**Fünf neue Prüfungen** (Vorschlag B der Konsolidierung). Zwei davon zählen im
+Quelltext nach, ob jede Stelle, die `aka.vc` verändert, den passenden Zähler
+mitführt — 5 Abgangs- und 3 Zugangsstellen. Gegenproben:
+
+| Probe | Erwartet | Gemessen |
+|---|---|---|
+| beide Buchungen zurückgedreht | **rot**, mit Zeilennummer | ✗ Zeile 15792 · ✗ Zeile 15830 |
+| Gutschrift von 0 | bewegt nichts | vc 77 · verdient 77 |
+| Quelle nicht auffindbar | **meldet sich ab** | ✗ „die zwei Prüfungen darunter laufen NICHT" |
+
+Die dritte ist die Lehre aus 35.101: eine Prüfung, die ihre Quelle nicht
+findet, darf nicht still grün sein.
+
+### 3. Männerfußball, und zwar geschrieben
+
+Die Spielerlaufbahn kennt Männer- und Frauenfußball, die Metaebene nicht:
+`akademie.js:167`, `karten.js:220` und beide Kartenporträts erzeugen fest
+`"m"`. Das bleibt so. Aber es steht jetzt an zwei Stellen da statt sich erst
+beim Spielen zu zeigen — in der Kurzanleitung („Nachwuchs sind Jungen") und
+auf dem Gründungsschirm, den niemand umgehen kann.
+
+Wer eine Spielerin gespielt hat und dann eine Akademie voller Jungen bekommt,
+soll das vorher gelesen haben und nicht für einen Fehler halten.
+
+**Nicht gemacht, obwohl es naheläge:** die Bausteine für eine wählbare
+Metaebene sind fast vollständig da — `genName(cc, g)` kann Frauennamen, das
+Porträt zeichnet Frauen an fünf Stellen, es gibt 198 Frauenvereine unter
+1.239, und `verein.js:129` liest das Ligageschlecht bereits. Fehlen würde ein
+Feld an Akademie und Karte plus Umrechnung alter Stände. Das bleibt offen,
+falls die Entscheidung je anders ausfällt.
+
+### Geprüft
+
+| | 35.102 | 35.103 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 328, 0 Fehler | **333**, 0 Fehler |
+| Ereignisse | 11 Prüfungen | 11 Prüfungen |
+| Stimmigkeit | 17 Proben | 17 Proben |
+| Namen | 6 Proben, 212/212 | 6 Proben, 212/212 |
+| Rückwärts | 6 × 63 Ansichten | 6 × 63 Ansichten |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Rücktritt | 6 Proben grün | 6 Proben grün |
+| Passhöhe | 385,9 px konstant | 385,9 px konstant |
+| Sicherheitslage | 0 Funde | 0 Funde |
+| Vollausbau | 20,9 (Ziel 20–30) | im Band |
+
+Fünf neue Vereinsprüfungen (328 → 333), dazu sechs Proben zur Sonderkarte
+außerhalb des Prüfstands. `ANLEITUNG.length` bleibt bei 7 — die neue Zeile
+sitzt in einem bestehenden Abschnitt.
+
+## 35.104 · Jede Spielzeit bekommt eine Schlagzeile
+
+Stufe A1 aus Kevins Konzeptpapier zur Spielerkarriere. Die Saison bekommt eine
+redaktionelle Hauptaussage, abgeleitet aus dem, was wirklich passiert ist —
+kein Zufall, dieselben Zahlen ergeben immer dieselbe Zeile.
+
+### Keine zusätzliche Seite
+
+Der Rückblick hat vier feste und zwei bedingte Seiten. Eine siebte wäre ein
+Wisch mehr in **jeder** Saison, und der schnelle Saisonloop ist ein Kernwert
+(Papier, Abschnitt 6). Stattdessen trägt die **erste Seite** die Schlagzeile
+im Kopf, wo vorher „Die Saison 2031/32" stand; die Jahreszahl rutscht in die
+Unterzeile zum Verein. Kein Wisch mehr, eine Seite stärker.
+
+Die Vorsaison wird robust bestimmt: `s` kann schon in `p.seasons` stehen oder
+noch nicht, je nachdem wann der Rückblick öffnet. Erst über Identität suchen,
+sonst das letzte Element nehmen, das nicht `s` selbst ist. Ohne diese Vorsicht
+wäre die Vorsaison in einem der beiden Fälle die Saison selbst — und jeder
+Vergleich ergäbe „keine Veränderung".
+
+### Fünfzehn Regeln, Reihenfolge ist Bedeutung
+
+Die erste zutreffende gewinnt, deshalb stehen die einschneidenden oben. Wer
+die Binde bekommt **und** zwei Titel holt, liest von der Binde — das ist die
+größere Geschichte im eigenen Leben.
+
+Gemessen über 120 Laufbahnen, 2.886 Saisons, zwei Wechselstrategien:
+
+    20,5 %  Neuer Verein, neues Jahr      2,5 %  Sofort angekommen
+    12,4 %  Ein Jahr zum Vergessen        2,2 %  Der alte Mann ist noch da
+     9,9 %  Das Jahr der Verletzung       2,1 %  Das verlorene Jahr
+     7,0 %  Die Binde                     2,0 %  Das dritte Jahr
+     7,0 %  Das Jahr der Titel            1,9 %  Nach hinten durchgereicht
+     6,6 %  Zurückgeschrieben             1,4 %  Der Anfang
+     4,4 %  Das zweite Jahr               1,1 %  Das vierte Jahr
+     4,0 %  Warten auf die Chance         1,0 %  Eine große Spielzeit
+     3,8 %  Der Mann, auf den sie bauen   0,8 %  Das fünfte Jahr
+     3,8 %  Durchbruch                    0,7 %  Vom Reservisten zum Kapitän
+     3,5 %  Kapitän seines Landes         Rest: sechstes bis sechzehntes Jahr
+
+31 verschiedene Zeilen, keine Saison ohne, keine über 60 %.
+
+### Zwei Nachbesserungen, beide aus der Messung
+
+**Die Rückfallzeile sagte nichts.** Der erste Entwurf endete mit „Die Saison
+2044/45" — also genau dem, was vorher schon im Kopf stand — und das in
+**8,5 %** aller Spielzeiten. Eine Rückfallzeile, die nichts sagt, ist keine
+Schlagzeile. Jetzt zählt sie die Jahre beim selben Verein („Das fünfte Jahr")
+und macht aus dem Nichts-Passiert eine Zugehörigkeit. Danach kam die leere
+Zeile in der Messung **gar nicht mehr** vor.
+
+**Ein Wechsel überdeckte jede gute Saison.** „Eine große Spielzeit" fiel auf
+0,8 %, weil Regel 12 vorher griff. Neu: wer beim neuen Verein sofort Note 2,5
+oder besser holt, liest **„Sofort angekommen"**.
+
+### Was die Gegenprobe über meine eigene Arbeit ergab
+
+Zwei Gegenproben gebaut, eine davon **schlug nicht an**. Der Grund war nicht
+die Prüfung, sondern die Regel: die letzte Rückfallzeile ist über echte
+Laufbahnen **nicht erreichbar**. Wer einen Verein hat, fällt vorher in Regel
+14; wer keinen Vorjahreseintrag hat, in „Der Anfang". Sie greift nur ohne
+`s.club`, also bei einem vereinslosen Eintrag.
+
+Das ist dieselbe Klasse wie `a_akaF_jg50` in 35.102 — nur diesmal harmlos, weil
+es ein Sicherheitsnetz ist und keine Belohnung. Die Zeile bleibt stehen (eine
+Funktion, die manchmal nichts liefert, wäre schlimmer), ist aber im Quelltext
+ausdrücklich als unerreichbar gekennzeichnet, und die Gegenprobe zielt jetzt
+auf Regel 12 — die häufigste Zeile überhaupt.
+
+**Die Lehre:** eine Gegenprobe, die schweigt, kann auch bedeuten, dass sie auf
+toten Code zielt. Sie gehört so lange umgebaut, bis sie aus dem richtigen Grund
+rot wird.
+
+### Sechs neue Prüfungen
+
+| Probe | Prüft | Gegenprobe „alle Regeln entfernt" |
+|---|---|---|
+| neun feste Lagen | jede ergibt ihre Zeile | ✗ neunmal „Die Saison" |
+| die neun sind verschieden | Regeln unterscheiden wirklich | ✗ 1 von 9 |
+| Aufbau hat Saisons erzeugt | Grundlage vor dem Urteil | — |
+| keine Saison ohne Zeile | inkl. Begründungssatz | ✗ 101 ohne Satz (Regel 12 leer) |
+| keine Zeile beherrscht | Grenze 60 % | ✗ 100 % |
+| unvollständige Zustände | kein Absturz bei alten Ständen | — |
+
+Die dritte ist die wichtige Vorsichtsmaßnahme: ohne sie könnten die beiden
+darunter grün sein, weil der Aufbau gar nichts erzeugt hat — genau der Fehler,
+der beim Vereins-Reachability-Versuch passiert ist.
+
+Der Laufbahn-Aufbau stammt aus `kalibrierung.cjs`. Ein eigener Versuch alterte
+den Spieler nicht: `age += 1` sitzt im Aufrufer (`App.jsx:15602`), nicht in
+`simulateSeason`. 22 Saisons lang blieb der Prüfling 16 Jahre alt.
+
+### Was NICHT gemacht wurde
+
+Keine neuen persistenten Felder. Keine Änderung an `simulateSeason`, an den
+Ereignissen oder am Karrierewert. Die Schlagzeile liest nur, sie schreibt
+nichts — alte Spielstände zeigen sie ab der nächsten Saison ohne Migration.
+
+### Geprüft
+
+| | 35.103 | 35.104 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 333, 0 Fehler | **339**, 0 Fehler |
+| Ereignisse | 11 Prüfungen | 11 Prüfungen |
+| Stimmigkeit | 17 Proben | 17 Proben |
+| Namen | 6 Proben, 212/212 | 6 Proben, 212/212 |
+| Rückwärts | 6 × 63 Ansichten | 6 × 63 Ansichten |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Passhöhe | 385,9 px konstant | 385,9 px konstant |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Die sechs neuen Proben kosten rund 2 s (15 echte Laufbahnen).
+
+## 35.105 · Eine Rückkehr war keine Rückkehr
+
+Stufe A2 aus dem Konzeptpapier: Vereinsstationen als Kapitel. Beim Bauen kam
+ein Fehler heraus, der seit Bestehen des Rückblicks drinsteckte.
+
+### Der Fund: `new Set` verschluckt die Rückkehr
+
+Die Seite „Deine Stationen" baute ihre Liste so:
+
+    const vereine = [...new Set(S.map((x) => x.club))];
+
+Eine **Menge**. Wer nach acht Jahren zu seinem alten Verein zurückkehrt,
+erschien darin **einmal**, und beide Zeitabschnitte wurden zu einer Zeile
+verrechnet — „HSV · 11 Saisons · 340 Spiele", ohne dass sichtbar war, dass
+dazwischen fünf Jahre Spanien lagen. Ausgerechnet die Rückkehr, die das Papier
+ausdrücklich als biografischen Moment nennt, war unsichtbar.
+
+Gemessen über 60 Laufbahnen: **14 hatten mindestens eine Rückkehr, 24
+Rückkehren insgesamt.** Alle waren im Rückblick nicht zu sehen.
+
+`vereinsKapitel()` bildet jetzt zusammenhängende Abschnitte. Wer zweimal da
+war, hat zwei Stationen, und die zweite heißt „Die Rückkehr". Die Unterzeile
+nennt beide Zahlen, wenn sie auseinandergehen („7 Stationen bei 5 Vereinen") —
+sonst stünden sieben Zeilen unter „5 Vereine", und das sähe nach Fehler aus.
+
+### Achtzehn Kapitel, und zwei Fehlversuche auf dem Weg
+
+Jede Station bekommt eine Einordnung aus echten Zahlen. **Die Einordnung ist
+Beschreibung, kein Urteil** — „Die Bankzeit" ist nicht die schlechtere Fassung
+von „Die goldenen Jahre", sondern ein anderes Kapitel. Genau darum geht es dem
+Papier.
+
+**Erster Fehlversuch: die Mitte war leer.** Der Entwurf hatte kein Kapitel für
+die mittelmäßige Station, und **45,4 % aller Stationen** fielen auf „Eine
+Zwischenstation". Unter der 60-%-Grenze der Prüfung und trotzdem wertlos: ein
+Kapitel, das fast die halbe Laufbahn trägt, ordnet nichts ein. Derselbe Fehler
+wie bei der Rückfallzeile in 35.104, nur fünfmal so groß. Die Lösung lag in
+der Rolle statt in der Note — ob er gespielt hat oder zugesehen, unterscheidet
+Stationen besser als die Bewertung. Danach: **1,6 %.**
+
+**Zweiter Fehlversuch: „Die langen Jahre" war toter Code.** Die Regel stand
+hinter den Rollenzeilen und wurde in 726 Stationen **kein einziges Mal**
+vergeben, weil jede lange Station auch eine Rolle hat. Bei einer
+Fünfjahresstation ist die Dauer die Nachricht. Vorgezogen.
+
+Verteilung nach beiden Berichtigungen, 60 Laufbahnen, 726 Stationen:
+
+    20,4 %  Die Stammplatzjahre        3,3 %  Die Rückkehr
+    12,3 %  Als Leistungsträger        3,0 %  Die goldenen Jahre
+    11,5 %  Die Rotationsjahre         2,3 %  Ein kurzes Gastspiel
+     9,5 %  Die starken Jahre          1,6 %  Eine Zwischenstation
+     9,1 %  Die schwere Zeit           1,1 %  Die Bankzeit
+     7,1 %  Der Anfang                 1,1 %  Wo alles begann
+     5,3 %  Die Jahre als Kapitän      1,1 %  Der Durchbruch
+     4,1 %  Die Heimat                 0,6 %  Der lange Abschied
+     3,1 %  Die letzte Station         0,4 %  Die langen Jahre
+
+### Warum die Regeln eine Tabelle sind und keine Kette
+
+Der erste Entwurf war ein verschachtelter Bedingungsausdruck. Die
+Erreichbarkeitsprüfung musste die möglichen Kapitelnamen dann aus
+`String(vereinsKapitel)` herausklauben — und bekam den **gebündelten** Text,
+in dem Umlaute als Escape stehen. „Die R\xFCckkehr" ist nicht „Die Rückkehr",
+also meldete die Probe **sechs Kapitel als nie vergeben, die es alle gab**.
+
+Eine Prüfung, die den Quelltext ihres Prüflings parst, misst den Übersetzer
+mit. Mit `KAPITEL` als Tabelle liest sie dieselbe Quelle, aus der auch die
+Funktion schöpft.
+
+### Erreichbarkeit deterministisch, Verteilung über echte Läufe
+
+„Der lange Abschied" trifft 0,6 % aller Stationen. Über zwölf Laufbahnen wäre
+eine Probe darauf mal rot und mal grün — die Lehre aus 35.104. Deshalb zwei
+getrennte Fragen:
+
+* **erreichbar?** Zu jeder der 18 Regeln wird eine Lage gesucht, die sie
+  erfüllt und keine davor. Findet sich keine, ist die Regel toter Code.
+  Deterministisch, kein Flattern.
+* **kommt es vor?** Über echte Laufbahnen wird nur die Breite geprüft
+  (mindestens 60 % der Kapitel) und dass keines über 35 % liegt.
+
+### Neun neue Prüfungen
+
+| Probe | Gegenprobe „zurück zur Vereinsmenge" | Gegenprobe „Regel nach hinten" |
+|---|---|---|
+| Rückkehr ergibt eigene Station | ✗ 2 statt 3 | — |
+| zweite Zeit heißt „Die Rückkehr" | ✗ | — |
+| ohne Rückkehr bleiben es zwei | — | — |
+| Zahlen je Station summiert | ✗ | — |
+| Aufbau hat Stationen erzeugt | — | — |
+| jede Regel erreichbar | — | ✗ „toter Code: Die langen Jahre" |
+| Mehrzahl kommt vor | — | — |
+| keines beherrscht das Feld | — | — |
+| unvollständige Zustände | — | — |
+
+Die Laufbahn-Funktion aus 35.104 wird jetzt von beiden Prüfblöcken genutzt
+statt kopiert — zwei Kopien liefen beim nächsten Umbau auseinander, dasselbe
+Muster wie die zweite Ablaufliste in 35.29.
+
+### Ein Zwischenfall beim Umbau
+
+Die Umstellung auf die Tabelle hat versehentlich die Definition von `beendet`
+mitgelöscht. Der Lauf meldete sofort sechsmal `ReferenceError: beendet is not
+defined` aus der Ansichts- und Rückwärtsprüfung. Ohne diese Prüfungen wäre ein
+Karriererückblick ausgeliefert worden, der beim Öffnen abstürzt.
+
+### Geprüft
+
+| | 35.104 | 35.105 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 339, 0 Fehler | **348**, 0 Fehler |
+| Ereignisse | 11 Prüfungen | 11 Prüfungen |
+| Stimmigkeit | 17 Proben | 17 Proben |
+| Namen | 6 Proben, 212/212 | 6 Proben, 212/212 |
+| Rückwärts | 6 × 63 Ansichten | 6 × 63 Ansichten |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Passhöhe | 385,9 px konstant | 385,9 px konstant |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Keine neuen persistenten Felder. Die Kapitel werden bei jedem Öffnen aus der
+Saisonhistorie berechnet; alte Spielstände zeigen sie sofort.
+
+## 35.106 · Marken für Laufbahnen, die keine Weltkarriere werden
+
+Stufe B aus dem Konzeptpapier, erster Teil. Die Lücke war messbar, nicht
+vermutet.
+
+### Was eine schwache Laufbahn nie bekam
+
+Über 80 Laufbahnen, getrennt nach Höchststärke unter 75 und ab 82:
+
+| Marke | schwach | stark |
+|---|---:|---:|
+| 100 Tore | **0 / 25** | 6 / 24 |
+| 200 Tore | **0 / 25** | 1 / 24 |
+| 100 Vorlagen | **0 / 25** | 4 / 24 |
+| Gesamtstärke 80 | **0 / 25** | 24 / 24 |
+| Gesamtstärke 88 | **0 / 25** | 1 / 24 |
+| Gesamtstärke 93 | **0 / 25** | 0 / 24 |
+
+**Sechs von 21 Marken waren unerreichbar**, und die drei Stärkemarken prüfen
+genau das, was eine schwache Laufbahn ausmacht. Was blieb, waren Spielzahlen:
+eine OVR-72-Laufbahn sammelte dieselben „250 Pflichtspiele" wie eine
+Weltkarriere und sonst nichts. Marken je Laufbahn: **schwach 9, stark 11.**
+
+Bemerkenswert in der Gegenrichtung: „200 Spiele für einen Verein" erreichten
+schwache Laufbahnen **häufiger** (7 zu 3) — starke Spieler wechseln mehr. Das
+ist genau die Sorte Marke, die gefehlt hat.
+
+### Zehn neue, keine davon belohnt Erfolg
+
+Zehn Jahre als Profi · Zwanzig Jahre als Profi · 300 Pflichtspiele · 100
+Spiele für einen Verein · Drei Länder bespielt · Mit 35 noch auf dem Platz ·
+Die Binde getragen · Nach schwerer Verletzung zurück · Zehn Saisons als
+Stammspieler · Zu einem alten Verein zurückgekehrt
+
+Sie belohnen Dauer, Treue, Rückkehr und Widerstand. Marken je Laufbahn danach:
+**schwach 18, stark 20** — verdoppelt, bei gleichbleibendem Abstand.
+
+Die letzte nutzt die Abschnittsbildung aus 35.105, nicht `new Set` — sonst
+wäre eine Rückkehr auch hier unsichtbar gewesen.
+
+### Der Punkt, an dem es hätte schiefgehen können
+
+`leg` fließt über `p.legacyBonus` in `verdict().score`, und daraus wird mit
+`score / 26` die VC-Ausschüttung gerechnet. **„Laufbahnen bis Vollausbau"
+stand bei 20,5 bei einer Untergrenze von 20.**
+
+Gemessen, was die zehn Marken wirklich bewirken: legacyBonus Median 62,
+Mittel 57,6 → **+4,70 VC je Laufbahn** (105,8 → 110,5). Nach der Halbierung
+(siehe unten) sind es noch rund +2,6. Großzügige Punkte
+hätten das Band gesprengt, ohne dass jemand es mit dieser Fassung in
+Verbindung gebracht hätte. Zusammen bringen die zehn neuen 37 Punkte; die drei
+Stärkemarken allein bringen 80.
+
+Eine eigene Prüfung hält die **Ursache** fest (neue Punkte höchstens ein
+Viertel der alten), damit ein späterer Zuwachs dort auffällt und nicht erst
+im Zielband.
+
+**Und es ist beinahe schiefgegangen.** Mit den ursprünglichen Werten (68
+Punkte) stand das Band in drei Läufen bei 20,6 · 20,7 · **20,0** — der letzte
+genau auf der Untergrenze. Die Prüfung war noch grün und hätte beim nächsten
+Lauf rot gemeldet, ohne dass jemand es mit diesen Marken in Verbindung
+gebracht hätte. Halbiert auf 37 Punkte; danach fünf Läufe: 20,7 · 20,5 · 20,2
+· 20,5 · 20,6.
+
+Der eigentliche Befund dahinter betrifft nicht diese Fassung: **das Zielband
+liegt dicht an seiner Untergrenze** — 20,5 schon in 35.105, ohne jede neue
+Marke. Jede künftige Änderung, die `verdict().score` erhöht, drückt dagegen.
+Das steht jetzt als offener Punkt 21.
+
+### Ein Fehler in der eigenen Neuerung
+
+„Nach schwerer Verletzung zurück" prüfte im ersten Entwurf nur `s.injury` —
+also auch „leicht, 4 Spiele". Über 25 Saisons ist irgendwann jeder mal
+angeschlagen, entsprechend traf die Marke **99 %** aller Laufbahnen. Der Titel
+sagte „schwer", die Bedingung prüfte es nicht.
+
+Das ist die Fehlerklasse, die diese Datei seit Langem führt: ein Text, der
+mehr zusagt als die Mechanik herstellt — diesmal in der eigenen Neuerung, in
+derselben Fassung, deren Anlass eine zu leichte Markenliste war. `sev ===
+"schwer"` ergänzt, Trefferquote **99 % → 43 %.**
+
+### Was die Messung nicht hergibt
+
+Acht der zehn Marken treffen im Prüfaufbau über 80 %. **Daraus folgt nicht,
+dass sie zu leicht sind:** der Aufbau spielt jede Laufbahn bis Alter 41 aus
+(Saisons Median 25) und ist damit die Obergrenze, nicht der Normalfall. „Mit
+35 noch auf dem Platz" trifft dort zwangsläufig fast jeden.
+
+Getrennt nach Wechselstrategie unterscheiden zwei Marken deutlich:
+
+    Zehn Saisons als Stammspieler     ehrgeizig 100 %  ·  treu 42 %
+    Zu einem alten Verein zurück      ehrgeizig  51 %  ·  treu  7 %
+
+Ob die übrigen im echten Spiel zu leicht sind, entscheidet der Gerätetest,
+nicht der Automat.
+
+### Sieben neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| die zehn sind in der Liste | — |
+| neue Punkte klein gegen alte | ✗ bei verdreifachtem `leg`: „204 gegen 402" |
+| wer „schwer" verspricht, prüft die Schwere | ✗ ohne `sev`: „prüft nur, OB eine Verletzung war" |
+| Aufbau hat Laufbahnen erzeugt | — |
+| jede neue Marke wird erreicht | — |
+| begrenzte Laufbahn sammelt etwas | — |
+| eine erfundene Marke fällt durch | ist selbst die Gegenprobe |
+
+### Geprüft
+
+| | 35.105 | 35.106 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 348, 0 Fehler | **355**, 0 Fehler |
+| Marken insgesamt | 21 | **31** |
+| Vollausbau | 20,5 (Ziel 20–30) | 20,2–20,7 über 5 Läufe |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Keine neuen persistenten Felder. Alte Spielstände erreichen die neuen Marken
+rückwirkend, weil `checkMilestones` die ganze Historie prüft — die Anzeige
+springt dort von „9 / 21" auf etwa „18 / 31".
+
+## 35.107 · Das eine Ziel
+
+Stufe B, zweiter Teil. Eine Laufbahn mit begrenzter Weltklasseperspektive soll
+nicht jahrelang implizit an denselben Maßstäben scheitern, sondern etwas
+haben, worauf sie zuarbeiten kann.
+
+### Was das Papier vorgibt, und was daraus folgt
+
+**„Höchstens ein stark kontextuelles Ziel gleichzeitig."** Also genau eines,
+kein Questlog, keine Liste, kein Häkchenraster.
+
+**„Sie dürfen die Karriere nicht künstlich erfolgreich rechnen."** Also keine
+eigene Belohnung. Das Ziel ist eine Marke, die es ohnehin gibt; wer sie
+erreicht, bekommt genau das, was er auch ohne Anzeige bekommen hätte. Die
+Anzeige benennt nur, was sowieso in Reichweite liegt.
+
+**„Der schnelle Saisonloop ist ein Kernwert."** Also eine Zeile auf dem Schirm
+vor der Saison — kein Dialog, kein Klick, kein zusätzlicher Schritt. Sie
+erscheint nur, wenn wirklich etwas in Reichweite ist, sonst gar nicht.
+
+### Warum die Marken und keine eigene Zielliste
+
+Eine zweite Liste liefe beim nächsten neuen Ziel stumm auseinander — dasselbe
+Muster wie die zweite Ablaufliste in 35.29 und die zweite Gerätetest-Liste in
+35.101. Stattdessen haben 21 der 31 Marken jetzt `mess` und `soll` und taugen
+damit als Ziel. „Die Binde getragen" lässt sich nicht anteilig erreichen und
+wäre als Fortschrittsbalken albern — solche Marken kommen nicht infrage.
+
+**Kein neues persistentes Feld.** Das Ziel wird bei jedem Aufruf neu aus dem
+Verlauf abgeleitet, wie die Saison-Schlagzeile und die Vereinskapitel. Ist es
+erreicht, fällt es aus der Auswahl und das nächste rückt nach. Alte
+Spielstände haben sofort eines.
+
+### Unter 40 Prozent ist kein Ziel
+
+Wer zwei Länderspiele hat, braucht nicht „noch 98 bis 100" zu lesen — das
+entmutigt, statt Orientierung zu geben. Angeboten wird nur, was mindestens zu
+40 % erreicht ist; darunter zeigt der Schirm lieber nichts.
+
+### Gemessen: 60 Laufbahnen, Ziel vor jeder Saison
+
+    Saisons mit Ziel:  1293  (91 %)
+    Saisons ohne Ziel:  133  ( 9 %)
+
+    11,3 %  500 Pflichtspiele          3,9 %  Zehn Saisons als Stammspieler
+    10,6 %  250 Pflichtspiele          3,7 %  50 Vorlagen
+     9,0 %  Fünf Länder bespielt       3,6 %  Drei Länder bespielt
+     8,7 %  Zwanzig Jahre als Profi    3,6 %  25 Tore
+     7,3 %  100 Pflichtspiele          3,2 %  100 Vorlagen
+     5,8 %  300 Pflichtspiele          2,6 %  50 Spiele ohne Gegentor
+     5,7 %  50 Pflichtspiele           1,2 %  100 Tore
+     5,7 %  100 Länderspiele           1,2 %  10 Länderspiele
+     5,6 %  50 Länderspiele            1,0 %  Vereinslegende (zehn Jahre)
+     5,0 %  Zehn Jahre als Profi       0,7 %  200 Tore
+                                       0,5 %  Fünf Jahre in Folge
+
+**21 verschiedene Ziele, häufigstes 11,3 %.** Die Auswahl folgt dem Verlauf:
+wer viele Spiele hat, bekommt Spielziele, wer treu bleibt, Treueziele.
+
+### Die wichtigste Prüfung
+
+`mess(p) >= soll` muss **dasselbe bedeuten** wie `ok(p)`. Liefen die beiden
+auseinander, zeigte die Anzeige „500 von 500", während die Marke ungelöst
+bliebe — oder das Ziel verschwände, ohne dass etwas erreicht wurde. Beides
+wäre ein Text, der etwas anderes sagt als die Mechanik tut, und genau diese
+Fehlerklasse hat 35.106 in der eigenen Neuerung erwischt.
+
+Geprüft werden alle 21 Marken über zehn echte Laufbahnen. Gegenprobe: `soll`
+von 500 auf 400 gesetzt → **„auseinander: a500"**.
+
+### Sieben neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| genug Marken taugen als Ziel | — |
+| `mess >= soll` bedeutet dasselbe wie `ok` | ✗ „auseinander: a500" |
+| Erreichtes wird nicht mehr angeboten | — |
+| ein Anfänger bekommt kein Fernziel | ✗ ohne Schwelle: „Zehn Jahre als Profi" |
+| wer nah dran ist, bekommt eines | ist selbst die Gegenprobe zur Zeile darüber |
+| die Auswahl streut | — |
+| unvollständige Zustände | — |
+
+Die fünfte ist die Vorsichtsmaßnahme gegen eine Funktion, die nie etwas
+liefert: ohne sie wäre „ein Anfänger bekommt kein Fernziel" auch dann grün.
+
+### Geprüft
+
+| | 35.106 | 35.107 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 355, 0 Fehler | **362**, 0 Fehler |
+| Marken mit Fortschritt | 0 | **21 von 31** |
+| Vollausbau | 20,2–20,7 | im Band |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Keine neuen persistenten Felder, keine neue Belohnung, kein zusätzlicher
+Klick im Saisonloop. Damit ist Stufe B abgeschlossen.
+
+## 35.108 · Sechs Entscheidungen kommen zurück
+
+Stufe C aus dem Konzeptpapier. Sechs Ereignisse greifen Jahre später eine
+frühere Entscheidung auf — **ohne ein einziges neues persistentes Feld.**
+
+### Das Gedächtnis lag bereit und niemand las es
+
+`p.evLog[id]` schreibt seit Langem mit, in welcher Saison ein Ereignis kam.
+Benutzt wurde das nur für die Wiederholungssperre und die Gewichtung.
+**Keine einzige Bedingung hat je gelesen, wie lange etwas her ist** — alle 237
+Zeitbedingungen im Spiel sind absolut (Alter, Saisonzahl), keine relativ zu
+einer Entscheidung.
+
+Damit ist Stufe C billig: `p.flags` sagt WAS entschieden wurde, `p.evLog` sagt
+WANN. Der neue Helfer `her(p, id)` rechnet den Abstand — und liefert **-1**,
+wenn das Ereignis nie kam. Mit 0 wäre `seasons.length - 0` die volle
+Laufbahnlänge gewesen, und die Bedingung `>= 6` würde für jemanden wahr, der
+die Quelle nie erlebt hat.
+
+Zwölf Flags wurden gesetzt und von keiner Bedingung gelesen. Sechs davon
+tragen jetzt einen Rückbezug: Spielmanipulation, Steuermodell, Lebensplan,
+Bindenabgabe, Rückkehrzusage und der Anwalt vom ersten Vertrag.
+
+### Drei Fehler auf dem Weg, alle gemessen
+
+**Erstens: eine Wirkung verpuffte stumm.** `fx: { wage: .12 }` — `applyFx`
+kennt kein `wage`, die Gehaltswirkung heißt `raise`. Die Stimmigkeitsprüfung
+fing es sofort: „`wage` kennt applyFx nicht — wirkungslos". Genau die
+Fehlerklasse, die diese Datei führt, in der eigenen Neuerung.
+
+**Zweitens: die Erinnerungen kamen praktisch nie.** Mit gewöhnlichen Gewichten
+(3 bis 6) kam über 200 Laufbahnen **genau eine** zustande, obwohl die
+Quellereignisse 97-mal gezogen worden waren. Die Bedingung ist ohnehin extrem
+selektiv; ein kleines Gewicht macht daraus rechnerisch nie. Auf 12 angehoben —
+kein Ausreißer, die Reaktionsereignisse liegen bei 12 bis 14 aus demselben
+Grund.
+
+**Drittens: eine Quelle war tot.** Der erste Entwurf hängte eine Erinnerung an
+`sesshaft` (aus `umzug`). Gemessen über 200 Laufbahnen stand dieses Flag am
+Ende bei **null** — `umzug` verlangt Kinder, feste Beziehung und Alter ab 27
+zugleich. Ersetzt durch `rueckkehr` (4 %). Häufigkeit am Laufbahnende,
+gemessen: plan_b 11 % · steuermodell 5 % · rueckkehr 4 % · manipuliert 3 % ·
+vertragsschlau 3 % · exkapitaen 1 %.
+
+`er_exkapitaen` bleibt trotz 1 % drin: selten ist eine Eigenschaft, null wäre
+ein Fehler.
+
+### Gemessen über 600 Laufbahnen
+
+| Erinnerung | Quelle kam | Kandidaten | erlebt |
+|---|---:|---:|---:|
+| er_manipulation | 71 | 9 | 3 |
+| er_steuermodell | 84 | 16 | 3 |
+| er_planb | 85 | 56 | 16 |
+| er_exkapitaen | 16 | 4 | 1 |
+| er_rueckkehr | 52 | 18 | 3 |
+| er_vertragsschlau | 20 | 11 | 4 |
+
+**30 von 114 Kandidaten (26 %) haben ihre Erinnerung gesehen**, Median-Abstand
+**7 Saisons**. Fünf Prozent aller Laufbahnen erleben mindestens eine. Das ist
+selten — und soll es sein: „wenige starke Rückbezüge sind wertvoller als
+permanente Mikrokonsequenzen."
+
+### Zweimal dieselbe Falle in einer Fassung
+
+Die Prüfung suchte `her(` im Quelltext der Bedingung. Im Bündel heißt die
+Funktion **`her2`** — esbuild benennt um. Folge: zwei Proben waren grün, auch
+als in der Gegenprobe eine Quell-Kennung absichtlich verfälscht wurde.
+
+Das ist exakt der Fehler aus 35.105, wo die Kapitelnamen aus dem gebündelten
+Text gelesen wurden und „Die R\xFCckkehr" nicht „Die Rückkehr" war. **Eine
+Prüfung, die den Quelltext ihres Prüflings liest, misst den Übersetzer mit.**
+
+Behoben auf zwei Wegen: die Kennungsprobe sucht jetzt `her\d*\(` (Zeichen­ketten
+benennt esbuild nicht um), und die Verhaltensprobe **führt die Bedingung aus**
+statt sie zu lesen — dreimal je Erinnerung: mit nichts, mit nur dem Flag, mit
+beidem. Nur die letzte darf wahr sein.
+
+### Und ein kaputter Gegenprobe-Aufbau
+
+Die ersten drei Gegenproben schwiegen alle. Ursache war nicht die Prüfung:
+mein eigener esbuild-Aufruf legte `probe.jsx` nach `/tmp/ps/`, wo eine **alte
+Kopie von `ereignisse.js`** lag — das Bündel entstand gar nicht aus der
+geänderten Datei. Über `pruefen.sh` gebaut greifen alle drei:
+
+| Gegenprobe | Meldung |
+|---|---|
+| Tippfehler in der Quell-ID | ✗ „kennt niemand: er_steuermodell → `zw_steuermodel`" |
+| Zeitabstand entfernt | ✗ „er_manipulation (kein Zeitabstand in der Bedingung)" |
+| Gewicht zurück auf 3 | ✗ „zu leicht: er_manipulation" |
+
+Eine Gegenprobe, die schweigt, ist so lange verdächtig, bis man weiß, warum.
+
+### Geprüft
+
+| | 35.107 | 35.108 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 362, 0 Fehler | **370**, 0 Fehler |
+| Ereignisse | 520 | **526** |
+| Stimmigkeit | 17 Proben, 0 harte Fehler | 17 Proben, 0 harte Fehler |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Die Ereigniszahl in Abschnitt 8 musste mitgezogen werden — Prüfung 8 rechnet
+sie nach und brach den Lauf ab, solange dort 520 stand.
+
+## 35.109 · Was für eine Laufbahn war das eigentlich?
+
+Stufe D aus dem Konzeptpapier. Zehn Archetypen, aus dem Verlauf abgeleitet —
+nicht vorab gewählt, kein neues persistentes Feld.
+
+### Relativ, nicht über Schwellen
+
+Der naheliegende Weg wären feste Grenzen („ab acht Jahren an einem Ort ist er
+eine Ikone"). Gemessen über 300 Laufbahnen wäre das falsch kalibriert
+gewesen:
+
+    20+ Saisons (ewiger Profi)       94 %
+    8+ Stationen (Wandervogel)       79 %
+    Absturz ab 12 (Absturz)          78 %
+    Peak bis 22 (Wunderkind)          0 %
+
+Diese Zahlen sagen nichts über das Spiel, sondern über den Prüfaufbau: er
+spielt jede Laufbahn bis Alter 41 aus. Schwellen, die an einem Automaten
+geeicht sind, passen nicht auf einen Menschen, der mit 33 aufhört.
+
+Deshalb bekommt jeder Archetyp einen **Kennwert**, und der höchste gewinnt.
+Die Einordnung ist damit ein Vergleich innerhalb der eigenen Laufbahn und
+nicht gegen eine geratene Zahl. Wer zwanzig Saisons spielt **und** achtmal
+wechselt, ist Wandervogel und nicht „ewiger Profi", weil das Wechseln stärker
+ausgeprägt ist.
+
+### Zwei Durchgänge, bis die Verteilung stand
+
+**Erster Entwurf:** „Der Wandervogel" traf **46,7 %**, bei der ehrgeizigen
+Wechselstrategie sogar 89 %. Und **zwei Archetypen wurden nie vergeben** —
+„Das Wunderkind" (Peak-Alter liegt im Median bei 28, die Schwelle stand auf
+26) und „Der Wiederauferstandene" (die Absturz-Strafe fraß den Comeback-Bonus
+auf). Toter Code, dieselbe Klasse wie „Die langen Jahre" in 35.105.
+
+Nach dem Justieren, 300 Laufbahnen:
+
+    25,7 %  Der Titelsammler          7,0 %  Die Vereinsikone
+    21,7 %  Der ewige Profi           4,0 %  Der Anführer
+    19,0 %  Der Wandervogel           3,0 %  Der Spätstarter
+     8,7 %  Der Pechvogel             2,3 %  Der Wiederauferstandene
+     7,3 %  Der Nationalheld          1,3 %  Das Wunderkind
+
+Alle zehn erreichbar, häufigster unter 30 %. Nach Spielweise getrennt
+unterscheidet es sinnvoll: ehrgeizig → Wandervogel 38 %, treu → Titelsammler
+42 % und Vereinsikone 13 %.
+
+**Der zweite Zug war zu großzügig.** Mit einer Schwelle von 0,7 trugen **83 %**
+aller Laufbahnen einen Nebenarchetyp — damit sagte er nichts mehr. „Fließend"
+heißt nicht „alles ein bisschen". Auf 0,88 gestrafft: rund 40 %.
+
+### Ein stiller Fehler in der eigenen Neuerung
+
+`ntTitel: (p.nt && p.nt.titel) || 0` — **`p.nt.titel` gibt es nicht.** Die
+Turniere stehen in `p.nt.majors`, ein Titel ist dort `res === "Titel"` bei
+einem Turnier ohne `u`. Das Merkmal wäre still immer 0 geblieben: kein
+Absturz, keine Warnung, nur eine Zeile, die nie greift. Aufgefallen beim
+Durchsehen der Felder, nicht durch eine Prüfung — dieselbe Zählweise steht
+zwanzig Zeilen weiter in `leereBilanz`.
+
+### Was der Archetyp NICHT tut
+
+Er rührt **keine Ereignisgewichte** an. Das Papier erlaubt es, mein
+Prüfbericht hat es empfohlen — aber es ist Balancing und gehört in eine eigene
+Fassung mit eigener Messung. Diese Fassung leitet ab und zeigt an.
+
+Er ist auch keine Klasse: kein Abzeichen, keine Auswahl am Anfang, keine
+Wirkung auf Werte. Er kann sich im Laufe einer Karriere ändern, und genau das
+will das Papier.
+
+### Eine Prüfung aus 35.106 hat geflattert
+
+Beim Messen meldete „Marken: auch eine begrenzte Laufbahn sammelt jetzt etwas"
+rot — **nicht wegen der Archetypen.** Sie nahm `Math.min` über zwölf
+Laufbahnen und fiel um, sobald eine kurze dabei war, die nach fünf Saisons
+endete. Nichts war kaputt, die Probe flatterte nur.
+
+Dieselbe Lehre wie bei der Reachability in 35.104. Auf den Median umgestellt,
+danach fünf Läufe hintereinander stabil.
+
+### Sieben neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| die Tabelle hat genug Einträge | — |
+| der Aufbau hat Laufbahnen erzeugt | — |
+| derselbe Verlauf, dieselbe Einordnung | ✗ mit Zufall: „9 wackeln" |
+| jeder kann bei passendem Verlauf gewinnen | ✗ Gewicht auf 0,01: „nie erreichbar: Das Wunderkind" |
+| keiner beherrscht das Feld | — |
+| unter drei Saisons kein Urteil | — |
+| unvollständige Zustände | — |
+
+Die Erreichbarkeit wird **deterministisch** geprüft, mit einem konstruierten
+Merkmalssatz je Archetyp. Über Zufallsläufe würde eine Probe auf „Das
+Wunderkind" (1,3 %) flattern — dieselbe Trennung wie bei den Kapiteln in
+35.105.
+
+### Geprüft
+
+| | 35.108 | 35.109 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 370, 0 Fehler | **377**, 0 Fehler |
+| Ereignisse | 526 | 526 |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+## 35.110 · Warum ruft gerade dieser Verein an?
+
+Stufe E aus dem Konzeptpapier, erster Teil: Angebote bekommen gelegentlich
+einen biografischen Grund. Sieben davon, alle aus dem Verlauf abgeleitet,
+kein neues persistentes Feld.
+
+    Dein Ausbildungsverein · Der Verein deiner ersten Saison
+    Du warst schon einmal hier · Großer Name, kleine Rolle
+    Dein erstes Land außerhalb der Heimat
+    Vielleicht dein letzter großer Vertrag · Sie holen dich für die letzten Jahre
+
+### Er rechnet nichts
+
+Das Papier warnt im selben Absatz: „Die vorhandene Transferlogik soll nicht
+durch Storyzwang verfälscht werden." Der Grund kommt deshalb **nach** der
+Angebotserstellung dazu und rührt weder Gehalt noch Ablöse noch Rolle an. Das
+unterscheidet ihn von `KIND` (`kind: "Deutlich mehr Geld"`), das seit jeher
+mitrechnet. Beide können nebeneinander stehen.
+
+### Vier Justierrunden, jede gemessen
+
+**Erster Entwurf: 81 % aller Angebote trugen einen Grund.** „Eine Liga, in
+der du noch nie gespielt hast" machte allein **79,2 %** davon aus — bei 1.239
+Vereinen in dutzenden Ligen ist das fast immer wahr und sagt deshalb nichts.
+Gestrichen. Danach 29 %.
+
+**Zwei wurden nie vergeben.** „Der Verein deiner ersten Saison" stand unter
+„Du warst schon einmal hier" und wurde davon überdeckt — jede erste Station
+ist auch eine frühere. Nach oben gezogen.
+
+**Die beiden Spätphasen-Zeilen überschnitten sich** (33+ mit Laufzeit gegen
+34+ mit Rolle) und machten zusammen 89 % aller Gründe aus. Getrennt: die eine
+32–34 mit langer Laufzeit und mehr Geld, die andere ab 37 mit Stammrolle.
+
+**Dazwischen überkorrigiert:** mit zusätzlich `c.s >= 70` wurde „Sie holen
+dich für die letzten Jahre" **gar nicht mehr** vergeben — ab 36 bieten kaum
+starke Vereine an. Von 100 % auf 0 % ist kein Fortschritt, sondern der Fehler
+auf der anderen Seite.
+
+Endstand über 5.657 Angebote aus 120 Laufbahnen:
+
+    17 %  aller Angebote tragen einen Grund
+
+    55,5 %  Sie holen dich für die letzten Jahre
+    23,6 %  Vielleicht dein letzter großer Vertrag
+    11,8 %  Du warst schon einmal hier
+     3,8 %  Der Verein deiner ersten Saison
+     3,5 %  Dein erstes Land außerhalb der Heimat
+     1,8 %  Großer Name, kleine Rolle
+
+    nach Alter:  bis 29  5 %  ·  30–34  17 %  ·  ab 35  69 %
+
+**Die Häufung ab 35 bleibt und ist zum Teil ein Artefakt:** der Prüfaufbau
+spielt jede Laufbahn bis Alter 41 aus, ein Mensch hört meist mit 33 bis 35
+auf. Inhaltlich stimmt die Zeile dort auch — wer mit 37 noch geholt wird,
+wird für die letzten Jahre geholt. Ob sie sich im Spiel monoton anfühlt,
+entscheidet der Gerätetest.
+
+**„Dein Ausbildungsverein" ist im Prüfaufbau nie gefallen**, weil
+`createPlayer` dort ohne `p.bei` aufgerufen wird. Kein toter Code — die
+Erreichbarkeitsprobe deckt ihn mit einer konstruierten Lage ab.
+
+### Die Zusage war eine ganze Weile ungeprüft
+
+Zehn neue Proben. Eine davon ist erst durch eine **schweigende Gegenprobe**
+entstanden: der Versuch, im Anhängen heimlich `o.wage * 1.2` einzubauen, wurde
+von keiner einzigen Probe bemerkt. Die vorhandene prüfte `angebotsGrund`
+selbst — die Funktion war unschuldig, die **Kette** nicht.
+
+Nachgerüstet: die Stelle in `App.jsx`, die den Grund anhängt, darf nur
+`o.grund` setzen. Gegenprobe meldet jetzt **„setzt außerdem: wage"**.
+
+Beim ersten Versuch stand die neue Probe außerdem **vor** der Definition von
+`basis` — `ReferenceError: Cannot access 'basis' before initialization`, die
+ganze Vereinsprüfung brach ab. Verschoben.
+
+| Probe | Gegenprobe |
+|---|---|
+| Tabelle hat Einträge | — |
+| Aufbau hat Laufbahnen erzeugt | — |
+| kein Grund an „Erfüllen"/„Verlängern" | — |
+| jeder Grund ist erreichbar | ✗ falsche Testlage: „nie: Du warst schon einmal hier" |
+| gewöhnliche Lage bleibt ohne | — |
+| er fasst das Angebot nicht an | — |
+| dieselben Zahlenfelder | — |
+| App.jsx für die Kettenprüfung gefunden | meldet sich ab, wenn nicht |
+| **beim Anhängen wird NUR `grund` gesetzt** | ✗ „setzt außerdem: wage" |
+| unvollständige Zustände | — |
+
+### Geprüft
+
+| | 35.109 | 35.110 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 377, 0 Fehler | **387**, 0 Fehler |
+| Ereignisse | 526 | 526 |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+## 35.111 · Die Tabelle hatte die Namen die ganze Zeit
+
+Stufe E, zweiter Teil („Was wäre wenn"). Beim Suchen nach einem Weg, ohne
+neues Feld zu zeigen, was aus einem verlassenen Verein wurde, kam ein Fund
+heraus, der älter ist als die Aufgabe.
+
+### Der Fund
+
+Die Tabellenansicht im Saisonrückblick zeigte für alle Nachbarplätze einen
+**Gedankenstrich**. Der Kommentar daneben erklärte auch, warum:
+
+> Die Nachbarn sind nicht erfunden — nur Platznummern; Vereinsnamen hätten
+> wir nicht.
+
+**Das stimmte nicht.** `s.table` trägt die vollständige Liga mit Namen,
+Punkten, Toren und einer Markierung der eigenen Zeile. Gemessen über 19
+Saisons: **keine einzige ohne vollständige Tabelle.** Der Satz stammte aus der
+Zeit vor dem Feld, und niemand hat ihn nachgeprüft — ein Kommentar ist keine
+Messung, und diesmal hat er eine fertige Anzeige jahrelang blind gehalten.
+
+Die Tabelle nennt jetzt Namen. Frühere Vereine des Spielers stehen darin in
+Akzentfarbe mit dem Zusatz „dein alter Verein".
+
+### Und damit war „Was wäre wenn" fast geschenkt
+
+Das Papier: „Der verlassene Verein wird Meister; der gewählte Klub steigt ab.
+Das soll **keine** nachträgliche Bestrafung sein — der Zweck ist,
+Entscheidungen im Gedächtnis zu halten."
+
+Unter der Tabelle steht jetzt eine neutrale Zeile, wenn es etwas zu erzählen
+gibt: Meister, Abstiegsplatz, oder der alte Verein steht mindestens fünf
+Plätze vor einem. Ein alter Verein auf Platz 8, während man selbst Neunter
+ist, ist keine Geschichte und bleibt still.
+
+Gemessen über 100 Laufbahnen, 2.369 Saisons:
+
+    25 %  der Saisons zeigen eine Zeile
+    86 von 100 Laufbahnen sehen mindestens eine
+
+    219×  „steht auf Platz X von N"   (Abstiegsregion)
+    136×  „wurde Meister"
+    rest  „wurde N. — X Plätze vor dir"
+
+**Kein neues persistentes Feld.** `s.table` und `p.seasons` reichen.
+
+### Was bewusst NICHT drin ist
+
+**Abgelehnte Angebote spiegeln.** Das Papier nennt es zuerst („der abgelehnte
+Klub gewinnt einen großen Titel"), aber abgelehnte Angebote werden nirgends
+festgehalten — gemessen: kein Feld am Spieler, das sie trüge. Dafür bräuchte
+es echte Persistenz plus Migration alter Spielstände, und das Papier nennt
+genau das als kritisch. Es ist eine Entscheidung für Kevin, keine Reparatur.
+
+Ebenso außerhalb der Reichweite: Vereine aus **anderen** Ligen. Der
+Saisoneintrag kennt nur die Tabelle der eigenen.
+
+### Sieben neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| der aktuelle Verein zählt nicht als alter | — |
+| Meister geht vor Abstiegsplatz | — |
+| ohne Auffälligkeit bleibt es still | — |
+| fünf Plätze davor ergibt eine Zeile | ist die Gegenprobe zur Zeile darüber |
+| ohne Tabelle bleibt es still | — |
+| **die Tabelle zeigt keine Gedankenstriche mehr** | sucht das alte `{ich ? s.club : "—"}` in App.jsx |
+| unvollständige Zustände | — |
+
+Die vorletzte hält den Fund fest: fällt jemand auf den Gedankenstrich zurück,
+meldet sie es.
+
+### Geprüft
+
+| | 35.110 | 35.111 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 387, 0 Fehler | **394**, 0 Fehler |
+| Ereignisse | 526 | 526 |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+## 35.112 · Vier Auswege, jeder mit einem Preis
+
+Stufe F aus dem Konzeptpapier — der Punkt mit dem höchsten Balancing-Risiko.
+Das Papier wörtlich: „Krisenpfade dürfen keinen versteckten Erfolgsautomaten
+erzeugen. Eine schlechte Karriere muss schlecht bleiben dürfen."
+
+### Wann ist eine Krise eine Krise?
+
+Gemessen über 200 Laufbahnen. Ein einzelnes schlechtes Zeichen ist noch keine
+Krise — sonst käme der Pfad ständig und wäre kein Ausweg mehr, sondern
+Alltag. Mit **mindestens zwei** Zeichen gleichzeitig (schwere Verletzung,
+unter zwölf Einsätze, acht Punkte unter der Höchststärke, Rollenverlust, Note
+ab 4,2):
+
+    832 von 4.177 Saisons        (20 %)
+    187 von 200 Laufbahnen erleben mindestens eine
+
+    253×  kaum Einsätze + schwache Note
+    192×  kaum Einsätze + Absturz + schwache Note
+    110×  Absturz + schwache Note
+     45×  Verletzung + kaum Einsätze + Absturz + schwache Note
+
+### Die vier Wege, wie im Papier
+
+**`kr_comeback`** — nach schwerer Verletzung früher zurück als erlaubt. In
+45 % hält es, in 55 % macht es wieder zu, und dann länger als beim ersten Mal.
+Die Alternative kostet die Saison und die Rolle.
+
+**`kr_tiefer`** — eine Liga tiefer neu anfangen. Spielzeit gegen 35 % Gehalt
+und 16 Punkte Ansehen. Die Alternative: bleiben und in 60 % der Fälle
+weitersitzen.
+
+**`kr_kleinerolle`** — die Rolle von der Bank annehmen. Viel Vertrauen gegen
+Form und Ansehen. Oder kämpfen — in 65 % vergeblich, und danach ist es
+persönlich.
+
+**`kr_umbau`** — Tempo endgültig aufgeben, dafür Übersicht und Passspiel.
+Ein halbes Jahr, in dem gar nichts läuft.
+
+### Die Prüfung, die das Risiko dieser Stufe trägt
+
+Jede Option hat einen Preis — das ist nicht nur eine Absicht, sondern eine
+**Eigenschaft, die der Prüfstand nachrechnet**. Er summiert die Wirkungen
+jeder Option und meldet, wenn ein Ausgang nur Vorteile bringt. Bei einer
+Würfeloption reicht ein schlechter Ausgang: dann ist es ein Risiko und kein
+Geschenk.
+
+Ohne diese Zeile wäre „Krisenpfad" ein anderes Wort für Geschenk, und die
+erste Fassung, die eine Zeile nachbessert, könnte es unbemerkt aufheben.
+
+Gegenprobe: in `kr_kleinerolle` die Minuszeichen entfernt →
+**„ohne Preis: kr_kleinerolle Wahl 1 „Die Rolle annehmen""**.
+
+### Fünf neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| die vier Wege sind da | — |
+| **keine Option ist rein positiv** | ✗ benennt Ereignis und Option |
+| die Bewertung erkennt ein Geschenk | ist selbst die Gegenprobe zur Zeile darüber |
+| jede Bedingung liest mehrere Zeichen | — |
+| ein gesunder Spieler bekommt keinen | — |
+
+Die dritte sichert die zweite ab: ohne sie könnte die Bewertungsfunktion immer
+0 liefern und alles wäre still grün.
+
+### Geprüft
+
+| | 35.111 | 35.112 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 394, 0 Fehler | **399**, 0 Fehler |
+| Ereignisse | 526 | **530** |
+| Stimmigkeit | 17 Proben, 0 harte Fehler | 17 Proben, 0 harte Fehler |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Damit ist das Konzeptpapier bis auf zwei Punkte abgearbeitet: die Archetypen
+verschieben noch keine Ereignisgewichte (4.1, bewusst zurückgestellt), und
+abgelehnte Angebote werden nicht gespiegelt (4.9, bräuchte das erste neue
+Feld). Beides sind Entscheidungen, keine Reparaturen.
+
+## 35.113 · Der Archetyp bekommt seine Wirkung
+
+Nachtrag zu Stufe D. In 35.109 wurde der Archetyp nur abgeleitet und
+angezeigt; jetzt verschiebt er die Ereignisgewichte — die Wirkung, die das
+Papier ihm zugedacht hat.
+
+### Verschieben, nicht aussperren
+
+Das Papier erlaubt es und warnt im selben Atemzug: „Die Ereignisgewichtung
+darf nicht so deterministisch werden, dass der Spieler nach wenigen Jahren
+seinen gesamten zukünftigen Storypfad vorhersagen kann."
+
+Deshalb liegen alle 44 Faktoren zwischen **0,75 und 1,55**. Keiner ist 0,
+keiner sperrt etwas aus. Jedes Ereignis, das ein Spieler ohne Archetyp
+bekommen kann, kann er auch mit bekommen — nur die Häufigkeit verschiebt sich.
+Der Prüfstand rechnet das nach.
+
+Der **zweite** Archetyp wirkt bewusst nicht mit: zwei überlagerte Gewichtungen
+wären schwer nachvollziehbar, und der Nebenzug ist ohnehin nur eine
+Beschriftung.
+
+### Gemessen: es wirkt, und es ist nicht vorhersagbar
+
+Über 160 Laufbahnen, Abweichung der gezogenen Themen vom Durchschnitt:
+
+    Der Wandervogel      Unterhaus ×2,13 · Land ×1,56 · Ausland ×1,55
+    Der Pechvogel        Risiko ×2,92 · Verletzung ×1,86
+    Der Anführer         Führung ×2,68
+    Der Nationalheld     Nationalteam ×1,46
+    Der Titelsammler     Europa ×1,46 · Vertrag ×1,24
+
+**Und die Gegenprobe zur Warnung des Papiers:** wechselt der Archetyp im Lauf
+einer Karriere, oder steht er früh fest? Über 120 Laufbahnen, alle drei
+Saisons gemessen:
+
+    verschiedene Archetypen je Laufbahn: Median 3 (Spanne 1–4)
+    nur ein Archetyp durchgehend:        13 von 120  (11 %)
+
+Wer aufhört zu wechseln, ist irgendwann keine Wandervogel mehr, und der Pool
+dreht mit. Das ist keine Nebenwirkung, sondern der Punkt.
+
+### Die Kosten
+
+`archetyp()` kostet **0,045 ms** gegen 0,231 ms für einen ganzen
+`drawEvents`-Aufruf. Es wird **einmal je Zug** bestimmt, nicht je Ereignis —
+je Ereignis wäre das mal fünfhundert.
+
+### Ein stiller Fehler, den die eigene Prüfung fing
+
+Der Name „Der Wiederaufer­standene" trägt in `ARCHETYPEN` ein **weiches
+Trennzeichen**, damit die lange Zeile im Rückblick sauber umbricht. In der
+Gewichtstabelle stand er ohne — der Schlüssel hätte **nie** gegriffen, und
+dieser eine Archetyp wäre als einziger ohne Wirkung geblieben. Kein Absturz,
+keine Warnung, nur eine Tabelle, die ins Leere zeigt.
+
+Gefangen von „jeder Archetyp hat eine Gewichtstabelle", die trotzig
+„10 Tabellen für 10 Archetypen" meldete und trotzdem rot war.
+
+### Vier neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| jeder Archetyp hat eine Gewichtstabelle | ✗ fing das weiche Trennzeichen |
+| kein Faktor sperrt aus oder reißt alles an sich | ✗ „Der Wandervogel/Ausland = 0" |
+| jedes gewichtete Thema gibt es auch | ✗ „kennt niemand: Der Anführer/Fuehrung" |
+| der Archetyp steht nicht von Anfang an fest | — |
+
+Die dritte fängt Tippfehler, die sonst vollkommen stumm wären: ein Faktor auf
+ein Thema, das es nicht gibt, greift nie und meldet nichts.
+
+### Geprüft
+
+| | 35.112 | 35.113 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 399, 0 Fehler | **403**, 0 Fehler |
+| Ereignisse | 530 | 530 |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Damit bleibt vom Konzeptpapier genau ein Punkt offen: abgelehnte Angebote
+spiegeln (4.9). Das bräuchte das erste neue persistente Feld dieser Reihe und
+ist eine Entscheidung, keine Reparatur.
+
+## 35.114 · Das erste neue Feld — und warum es unvermeidlich war
+
+Der letzte offene Punkt des Konzeptpapiers: „Der abgelehnte Klub gewinnt einen
+großen Titel." Alles andere in dieser Reihe kam ohne neue Persistenz aus;
+dieser Punkt geht nicht.
+
+### Warum nicht ableitbar
+
+Ein abgelehntes Angebot hinterlässt im Spielstand **keine Spur**. `p.seasons`
+kennt nur, wo man war. `p.evLog` kennt gezogene Ereignisse, `p.flags`
+getroffene Entscheidungen — ein nicht angenommenes Angebot ist in keinem von
+beidem.
+
+Das Feld bleibt deshalb so klein wie möglich: **Vereinsname und Jahr,
+höchstens acht Einträge.** Ein Spielstand ist ein Speicher, kein Protokoll —
+die Kappung ist eine eigene Prüfung, weil sie sonst beim nächsten Umbau
+verschwinden könnte.
+
+### Alte Spielstände: keine Migration nötig
+
+Der Spielstand wird mit `JSON.parse` **roh** geladen, ohne Vervollständigung.
+Bei einem Stand von vor 35.114 ist `abgelehnt` schlicht `undefined`. Jede
+Stelle, die es liest, fängt das mit `|| []` ab; ab dem nächsten Wechsel füllt
+es sich von selbst. Kein Umschreiben gespeicherter Daten, kein
+Migrationsschritt, kein Risiko für bestehende Karrieren.
+
+Zwei der sechs neuen Prüfungen zielen ausschließlich darauf.
+
+### Keine Schadenfreude
+
+Ein abgelehnter Verein wird **nur gespiegelt, wenn er oben steht** — Meister
+oder mindestens fünf Plätze vor einem. Nach unten wäre es Häme, und das Papier
+sagt ausdrücklich: „Das soll keine nachträgliche Bestrafung sein." Wer gut
+daran tat abzulehnen, muss es nicht vorgehalten bekommen.
+
+Und wer bei einem abgelehnten Verein **später doch** gespielt hat, liest „dein
+alter Verein" statt „den du abgelehnt hast". Sonst stünde die falsche Zeile
+unter einem Verein, bei dem man drei Jahre war.
+
+### Sechs neue Prüfungen
+
+| Probe | |
+|---|---|
+| ein Spielstand ohne das Feld läuft weiter | die wichtigste |
+| ein leeres Feld läuft ebenfalls | |
+| der abgelehnte Meister taucht auf | |
+| wer unten steht, wird nicht vorgeführt | |
+| wer später doch dort war, gilt als alter Verein | |
+| **die Liste wird beim Anhängen gekappt** | ✗ ohne `.slice`: „das Feld wüchse unbegrenzt" |
+
+Die letzte hat sich beim Bauen selbst korrigiert: der erste Regex suchte
+`\[[^\]]*\]\.slice` und fand nichts, weil die Zuweisung selbst eine leere
+Klammer enthält (`p.abgelehnt || []`), an der die Zeichenklasse abbricht. Jetzt
+wird der Abschnitt ab `q.abgelehnt =` genommen und darin gesucht — robuster
+und lesbarer als ein Regex, der Klammern zählen muss.
+
+### Geprüft
+
+| | 35.113 | 35.114 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 403, 0 Fehler | **409**, 0 Fehler |
+| Rückwärts (alte Sicherungen) | 6 × 63 | 6 × 63 |
+| Ereignisse | 530 | 530 |
+| Kontrast | 145 Stellen, 0 Befunde | 145 Stellen, 0 Befunde |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+**Damit ist das Konzeptpapier vollständig abgearbeitet.** Vierzehn
+Entwicklungsrichtungen, elf Fassungen, ein einziges neues persistentes Feld.
+
+Was der Prüfstand nicht kann, steht weiter aus: ein Gerätetest. Seit 35.44 ist
+nichts auf einem Telefon gelaufen — siebzig Fassungen, elf davon mit
+sichtbaren Änderungen an der Spielerkarriere.
+
+## 35.115 · Ein Fünftel des Spielstands war Ballast
+
+Stufe A aus dem Prüfbericht zum Meta-Konzeptpapier. Bevor Museum, Zeitleiste
+und Vereinslegenden etwas Neues speichern, wird die größte vorhandene
+Redundanz geräumt.
+
+### Der Befund
+
+Gemessen an einer Laufbahn über 23 Saisons:
+
+    laufender Spielstand          112,8 KB
+      davon p.seasons             107,8 KB   (96 %)
+        davon s.table              63,6 KB   (65 % der Historie)
+      davon p.squad                 0,9 KB
+      davon evLog + evSeen          0,8 KB
+
+Jede Tabellenzeile trug das volle Vereinsobjekt:
+
+    { "n":"Kilmarnock FC", "c":"SCO", "l":"Championship (SCO)", "s":51, "g":"m" }
+
+**Gelesen wurde davon an allen Stellen nur `.n`** — auch vom Wappen: `Crest`
+liest `club.n`, `clubColors` ebenfalls. Die vier übrigen Felder lagen bei rund
+achtzehn Vereinen in fünfundzwanzig Saisons redundant im Speicher.
+
+### Gemessen, nicht geschätzt
+
+    je Saison   vorher  4.240 Byte   nachher  3.453 Byte     −19 %
+    s.table     vorher  63,6 KB/23 S. nachher  44,5 KB/25 S.  −24,5 KB
+
+Die Ersparnis entspricht genau der Rechnung aus dem Prüfbericht: rund 55 Byte
+je Zeile × 18 Zeilen × 25 Saisons.
+
+### Rückwärtsverträglich ohne Migration
+
+`tabVerein(t)` versteht **beide** Formen: alte Spielstände tragen das volle
+Objekt und bleiben lesbar, neue schreiben nur den Namen. Kein Umschreiben
+gespeicherter Daten, kein Migrationsschritt — die Ersparnis wächst mit jeder
+neuen Saison hinein.
+
+Neun Lesestellen umgestellt. **Eine war mir zuerst durchgerutscht** (Zeile
+14088 in der Vereinsansicht) und wurde von keiner Prüfung gefangen, weil dort
+keine hinsieht — gefunden durch Nachzählen der Treffer, nicht durch den Lauf.
+
+### Die Prüfung, die es bisher nicht gab
+
+**Es gab keine einzige Probe, die misst, wie groß ein Spielstand wird.** Das
+Meta-Papier nennt Savegame-Größe als Kernrisiko und will drei weitere Systeme
+speichern lassen — ohne Obergrenze merkt niemand, wenn der nächste Punkt den
+Speicher verdoppelt.
+
+Gemessen wird **je Saison**, nicht am Gesamtstand: eine lange Laufbahn darf
+mehr wiegen, aber nicht mehr je Jahr. Nur so fällt auf, wenn ein neues Feld
+mitwächst statt einmalig zu sein.
+
+Sechs neue Prüfungen, Gegenprobe „Rückfall zum vollen Objekt" fängt dreifach:
+
+    ✗ 4.787 Byte je Saison (Grenze 4.400)
+    ✗ 135 KB im größten Lauf (Grenze 130)
+    ✗ 2.779 volle Objekte in 2.779 Zeilen
+
+### Geprüft
+
+| | 35.114 | 35.115 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 409, 0 Fehler | **415**, 0 Fehler |
+| Byte je Saison | 4.240 | **3.453** |
+| Rückwärts (alte Sicherungen) | 6 × 63 | 6 × 63 |
+| Ereignisse | 530 | 530 |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+## 35.116 · Zwanzig Rekorde, die längst mitliefen
+
+Stufe B aus dem Prüfbericht zum Meta-Papier. **Kein einziges neues Feld.**
+
+### Die Daten waren da, die Seite fehlte
+
+`leereBilanz()` führt **49 Zahlen** über alle Laufbahnen mit — Spiele, Tore,
+Vorlagen, Titel, Länderspiele, Länder, Ligen, Vereine, Treuerekord, ältester
+Einsatz, Aufstiege, Kapitänssaisons und mehr. Gemessen: sie speisten
+ausschließlich die Errungenschaften und wurden **nirgends angezeigt.**
+
+Das Papier wünscht sich „15 bis 25 starke Rekorde". Es sind zwanzig geworden —
+von den 49 taugen längst nicht alle: `karrieren` ist ein Zähler,
+`frauen`/`maenner` eine Aufteilung, `reroll` eine Verwaltungszahl. Ausgewählt
+sind die, bei denen ein höherer Wert etwas bedeutet und die eine neue Laufbahn
+auch schlagen kann.
+
+### Null ist kein Rekord
+
+Ein Wert von 0 erzeugt **keine Zeile**. Wer noch keinen Aufstieg geschafft
+hat, liest das nicht als „0 Aufstiege", sondern gar nicht — sonst stünde die
+halbe Seite auf null und sähe nach Versagen aus statt nach offener Rechnung.
+
+Die Seite erscheint erst ab drei gefüllten Rekorden, über der Rangliste in der
+Ruhmeshalle: sie fasst die ganze Welt zusammen, die Liste darunter nur die
+zwölf besten Laufbahnen.
+
+### Sechs neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| die Liste hat 15 bis 25 Einträge | — |
+| **jeder liest ein Feld, das die Bilanz führt** | ✗ Tippfehler `capse` fällt auf |
+| eine frische Welt zeigt keine leeren Zeilen | — |
+| mit Werten kommen alle zwanzig | ist die Gegenprobe zur Zeile darüber |
+| nur was einen Wert hat, steht da | 3 Zeilen bei 3 gefüllten Feldern |
+| unvollständige Bilanzen stürzen nicht ab | — |
+
+Die zweite ist die wichtige: ein Tippfehler im Feldnamen wäre **vollkommen
+still** — die Zeile läse `undefined`, `|| 0` machte 0 daraus, und der Rekord
+verschwände einfach aus der Anzeige. Geprüft wird gegen eine Bilanz, in der
+jedes Feld auf 7 steht; wer nicht 7 zurückliefert, liest etwas, das es nicht
+gibt.
+
+### Geprüft
+
+| | 35.115 | 35.116 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 415, 0 Fehler | **421**, 0 Fehler |
+| Byte je Saison | 3.453 | 3.453 |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+## 35.117 · Die Ruhmeshalle wird ein Museum
+
+Stufe C aus dem Prüfbericht zum Meta-Papier: „Ehemalige Spieler sollen als
+gespeicherte Biografien wieder aufrufbar bleiben." Drei Felder je Eintrag —
+Archetyp, Vereinsstationen mit Kapiteln, eine prägende Schlagzeile.
+
+**Alle drei sind Ernte aus der Karriere-Reihe.** `archetyp()` aus 35.109,
+`vereinsKapitel()` aus 35.105, `saisonSchlagzeile()` aus 35.104 — hier werden
+sie zum ersten Mal über das Karriereende hinaus aufbewahrt.
+
+### Die Größe war doppelt so hoch wie geschätzt
+
+Der Prüfbericht hatte „unter 2 KB für alle zwölf" veranschlagt. Gemessen:
+**370 Byte je Eintrag, 4,3 KB für zwölf.** Die Schätzung war zu niedrig, und
+Kürzen half kaum — die Stationsliste ist der große Teil, nicht die Texte.
+
+4,3 KB in einem eigenen Speicherschlüssel sind vertretbar, aber die Zahl
+gehört genannt statt geschönt. Die Stationen sind auf vier gekappt; ohne
+Kappung wüchse ein Eintrag mit der Länge der Laufbahn, und eine eigene Probe
+hält das fest.
+
+### Zwei Fehlversuche bei der Schlagzeilenwahl
+
+**Erster Entwurf: die seltenste Schlagzeile der Laufbahn.** Gemessen gewann
+dabei praktisch immer **„Der Anfang"** — die seltenste ist zwangsläufig eine
+der einmaligen, und die erste Saison ist immer einmalig. Eine Auswahlregel,
+die rechnerisch stimmt und trotzdem jedes Mal dasselbe liefert.
+
+**Zweiter Entwurf: feste Rangfolge nach Gefühl.** „Kapitän seines Landes"
+stand weit oben und gewann in **74 %** aller Laufbahnen. Der Denkfehler: was
+selten je *Saison* ist (3,5 %), ist über zwanzig Saisons nicht selten — es
+kommt fast immer irgendwann vor.
+
+**Dritter Entwurf: Rangfolge nach der in 35.104 gemessenen Seltenheit.**
+
+    36 %  Nach hinten durchgereicht     3 %  Der alte Mann ist noch da
+    23 %  Das verlorene Jahr            3 %  Durchbruch
+    20 %  Kapitän seines Landes         1 %  Sofort angekommen
+    14 %  Vom Reservisten zum Kapitän   1 %  Der Mann, auf den sie bauen
+
+Acht verschiedene, häufigste 36 %. Dass eine negative Zeile oben steht, ist
+gewollt: das Papier will, dass „auch sportlich schwächere, aber ungewöhnliche
+Karrieren erinnerungswürdig" bleiben.
+
+### Alte Einträge
+
+Einträge von vor 35.117 haben die Felder nicht — dann fällt der ganze Block
+weg, ohne dass etwas bricht. Dieselbe Regel wie bei den 33.10er-Feldern
+darüber.
+
+### Fünf neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| App.jsx gefunden | meldet sich ab, wenn nicht |
+| der Eintrag trägt alle drei Felder | — |
+| **die Stationsliste wird gekappt** | ✗ „der Eintrag wüchse mit der Laufbahn" |
+| die Schlagzeile streut | Grenze 60 %, gemessen 33 % |
+| jede Zeile der Rangfolge gibt es wirklich | fängt Tippfehler, die sonst still wären |
+
+### Geprüft
+
+| | 35.116 | 35.117 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 421, 0 Fehler | **426**, 0 Fehler |
+| Byte je Saison | 3.453 | 3.453 |
+| Hall-Eintrag | ~0,3 KB | ~0,67 KB |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+## 35.118 · Fünfzehn Jahre in Kapiteln — und eine Prüfung, die flatterte
+
+Stufe D aus dem Prüfbericht zum Meta-Papier. Dazu ein Nebenschauplatz, der
+mehr Zeit gekostet hat als die Sache selbst.
+
+### Der Vereinsrun zerfällt anders als eine Laufbahn
+
+`vereinsKapitel()` aus 35.105 schneidet nach **Vereinswechsel** — ein
+Vereinsrun hat keine. `vereinsPhasen()` schneidet deshalb nach der **Liga**:
+solange der Verein in derselben Spielklasse bleibt, ist es dasselbe Kapitel;
+ein Auf- oder Abstieg beginnt ein neues. Das ist die Zäsur, die ein
+Vereinsleben wirklich teilt.
+
+Zwölf Kapitel — Gründerjahre, Der Aufstieg, Aufstieg und Durchmarsch, Die
+goldene Generation, Der Absturz nach dem Titel, Das Wunderjahr, Der
+Abstiegskampf und weitere. „Der Absturz nach dem Titel" braucht den Blick
+zurück auf die vorige Phase, sonst wäre jeder Abstieg derselbe.
+
+**Kein neues Feld.** `v.chronik` wird nicht gekappt und trägt je Jahr Liga,
+Rang, Punkte, Tore und die Auf-/Abstiegsmarke.
+
+**Die Liga allein reichte nicht.** Der erste Entwurf schnitt nur dort — und
+wer fünfzehn Jahre in derselben Spielklasse bleibt, bekam **ein einziges**
+Kapitel. Die Prüfung zeigte es sofort: zehn von zwölf Regeln unerreichbar,
+weil die erste Phase immer „Der Anfang" heißt und keine zweite entstand.
+Jetzt teilt auch der Erfolg: ein Meisterjahr nach einem titellosen beginnt ein
+neues Kapitel und umgekehrt. Damit hat auch ein Verein, der nie auf- oder
+absteigt, eine Geschichte mit Hoch und Tief statt einer geraden Linie.
+
+Ein Beispiel aus der Prüfung: *Der Anfang · Das Wunderjahr · Der Absturz nach
+dem Titel · Die ruhigen Jahre.*
+
+**Und meine Testlagen waren zu kurz.** Sie bestanden aus Ein-Phasen-Chroniken,
+und die erste Phase heißt immer „Der Anfang" — zehn Regeln wurden als toter
+Code gemeldet, obwohl nur der Vorlauf fehlte. Jede Lage beginnt jetzt mit
+einem belanglosen Jahr, damit die geprüfte Phase die zweite ist.
+
+### Die Kalibrierung meldete rot, ohne dass etwas kaputt war
+
+Beim Abnahmelauf fiel „Laufbahnen bis Vollausbau" auf **exakt 20,0** — die
+Untergrenze. Die Änderung ist reine Anzeige und berührt keine VC. Fünf Läufe
+mit derselben Quelle: **20,2 · 20,5 · 20,9 · 21,5 · 20,5.** Rauschen.
+
+Damit ist die Prüfung flatterhaft, und das ist genau das, was diese Datei
+seit 35.104 als schlimmer bezeichnet als keine Prüfung. Also behoben statt
+weiter dokumentiert: die Stichprobe der Kalibrierung steigt von **250 auf
+600** Laufbahnen.
+
+### Dabei eine eigene Fehlmessung
+
+Der erste Vergleich lief über `TEILE=kalib bash pruefstand/pruefen.sh
+App.jsx --anzahl=1000`. Ergebnis: bei 250, 600 und 1000 jeweils **17 s
+Laufzeit** — verdächtig, denn die Stichprobe soll sich vervierfachen.
+
+**`pruefen.sh` reicht `--anzahl` nicht durch.** Alle drei Zeilen maßen
+dieselben 250 Laufbahnen; die scheinbar enger werdende Streuung war Zufall.
+Direkt aufgerufen: 250 → 15 s, 1000 → 42 s. Die Messung war wertlos und
+wurde wiederholt.
+
+### Und was das nicht löst
+
+Fünf Läufe nach der Umstellung, über `pruefen.sh`:
+
+    20,4 · 20,2 · 20,3 · 21,1 · 20,2      Spanne 0,9
+
+**Nicht besser als vorher.** Fünf Läufe sind zu wenig, um eine Streuung
+nachzuweisen; die größere Stichprobe muss rechnerisch helfen, belegt ist es
+hier nicht. Belegt ist nur: der niedrigste gemessene Wert stieg von 19,9 auf
+20,2.
+
+Das eigentliche Problem bleibt offener Punkt 21 — das Band liegt zu dicht an
+seiner Untergrenze. Eine größere Stichprobe verschiebt die Kante nicht, sie
+macht nur das Zittern kleiner. Ob 20 die richtige Untergrenze ist, ist eine
+Balancing-Entscheidung.
+
+Kosten: rund 10 s mehr je Lauf.
+
+### Geprüft
+
+| | 35.117 | 35.118 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 426, 0 Fehler | **431**, 0 Fehler |
+| Kalibrierung | 250 Laufbahnen | **600** |
+| Byte je Saison | 3.453 | 3.453 |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+## 35.119 · Die Zeitleiste — und das Jahr, das dem Verein fehlte
+
+Stufe E aus dem Prüfbericht zum Meta-Papier. In der Ruhmeshalle steht unter
+dem Rekordbuch jetzt, **wann** die eigene Welt entstanden ist.
+
+    2040   Die erste Laufbahn endet: Kwabena Adjei
+    2042   Die Akademie wird gegründet
+    2048   Der eigene Verein wird gegründet: FC Test
+    2049   Der erste Weltklassespieler aus der eigenen Jugend
+    2049   Der erste Aufstieg — 3. Liga
+    2055   Nnamdi Okoro — bis heute die stärkste Laufbahn
+
+### Nichts wird gespeichert
+
+Das Papier warnt ausdrücklich: „Die Meta-Timeline darf Savegames nicht
+unbegrenzt aufblasen." Die Zeitleiste wird bei **jedem Öffnen** aus
+Ruhmeshalle, Akademie- und Vereinschronik gerechnet. Kein Ereignisprotokoll,
+keine Obergrenze nötig, weil nichts wächst.
+
+### Der Blocker: die drei Systeme teilten keine Zeitachse
+
+Gemessen vor dem Bauen:
+
+| System | Zeitangabe |
+|---|---|
+| Ruhmeshalle | `von` / `bis` — Kalenderjahre |
+| Akademie | `gegruendet: 2026` — Kalenderjahr |
+| Eigener Verein | `gegruendet: **true**`, `jahr: 1…15` — **kein Kalenderjahr** |
+
+Der Verein zählte seine eigenen fünfzehn Jahre und wusste nicht, wann sie in
+der Welt lagen. „Vereinsgründung" und „erster Aufstieg" — beides nennt das
+Papier — ließen sich mit `true` nirgends einsortieren.
+
+Drei Wege lagen vor: ein Feld ergänzen, den Verein weglassen, oder die Jahre
+schätzen. **Das Schätzen habe ich abgelehnt** — es stünde in einer
+Zeitleiste, die aussieht, als wüsste sie es genau. Kevins Entscheidung: das
+Feld.
+
+### Ein Typ wechselt, ohne dass etwas kippt
+
+`v.gegruendet` trägt jetzt das Kalenderjahr statt `true`. **Vor der
+Umstellung alle achtzehn Lesestellen durchgezählt:** jede prüft nur auf
+Wahrheitswert (`verein && verein.gegruendet`), keine vergleicht mit `true`
+oder `=== true`. Eine Jahreszahl ist genauso wahr.
+
+Alte Spielstände tragen weiter `true` und funktionieren unverändert — sie
+erscheinen in der Zeitleiste **ohne Jahr am Ende** statt an erfundener
+Stelle. Fällt kein Weltjahr herein, bleibt es bei `true` wie bisher.
+
+### Vereinsjahre sind relativ
+
+`v.chronik[].jahr` zählt 1 bis 15, nicht 2048 bis 2062. Ohne Umrechnung
+stünde der erste Aufstieg „im Jahr 2" mitten zwischen den Kalenderjahren. Die
+Gegenprobe zeigt genau das:
+
+    ✗ erster Aufstieg im Jahr 2 (Gründung 2048 + Vereinsjahr 2 − 1)
+
+### Sieben neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| alle drei Systeme kommen vor | — |
+| **die Einträge stehen in der richtigen Reihenfolge** | ✗ ohne `sort`: 2040 · 2055 · 2042 · 2049 |
+| **Vereinsjahre werden auf Kalenderjahre gerechnet** | ✗ „im Jahr 2" |
+| ein Verein ohne Kalenderjahr steht am Ende | — |
+| mit Jahr sortieren sie sich ein | ist die Gegenprobe zur Zeile darüber |
+| eine leere Welt ergibt keine Einträge | — |
+| unvollständige Daten stürzen nicht ab | — |
+
+### Geprüft
+
+| | 35.118 | 35.119 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 431, 0 Fehler | **438**, 0 Fehler |
+| Byte je Saison | 3.453 | 3.453 |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Damit sind die Stufen A bis E des Meta-Papiers erledigt — **mit genau einem
+neuen Feld**, und das war ein Typwechsel an einem, das es schon gab.
+
+## 35.120 · Das Hauptmenü hatte schon fast alles
+
+Stufe F aus dem Prüfbericht: „Hauptmenü als lebende Magazinausgabe."
+
+### Der Befund: weitgehend erfüllt
+
+Gemessen vor dem Bauen. Das Hauptmenü trägt seit Langem eine **Dachzeile,
+eine Schlagzeile und eine Unterzeile** aus `titelgeschichte()`, dazu ein
+Inhaltsverzeichnis „In dieser Ausgabe" mit Ressort-Seitenzahlen. Die
+Menüzeilen zeigen echte Stände: Errungenschaften mit Zahl, Ruhmeshalle mit
+bestem Lauf, Verein mit Jahr und Liga.
+
+Das Papier fordert genau das. **Zwei Lücken blieben.**
+
+### Die Ruhmeshalle wusste mehr, als sie sagte
+
+Sie zeigte „Bester Lauf: 1640 Punkte". Seit 35.117 steht im besten Eintrag
+aber auch, **was für eine Laufbahn** das war. Jetzt: „Der Titelsammler ·
+1.640 Punkte" — dieselbe Zeile, mehr Aussage, kein neues Feld. Einträge von
+vor 35.117 haben es nicht, dann bleibt es bei der Punktzahl.
+
+### Die Sammlung fehlte ganz
+
+Vier Menüzeilen gab es — Neue Laufbahn, Errungenschaften, Ruhmeshalle, Dein
+Verein. Die **Kartensammlung war nur über das Vereinsdach erreichbar**,
+obwohl das Papier sie ausdrücklich als Teaser der Titelseite nennt. Jetzt
+eine eigene Zeile mit Kartenzahl und der Zahl der besonderen Karten — aber
+nur, wenn es etwas zu sammeln gibt. Sonst wäre es eine leere Zeile mit einer
+Null.
+
+### Die Ansichtsprüfung hat es fünffach gefangen
+
+Der erste Einbau griff auf `karten` zu — das Hauptmenü bekommt es gar nicht.
+Fünf Meldungen sofort:
+
+    ✗ Hauptmenü · ohne Akademie — ReferenceError: karten is not defined
+    ✗ Hauptmenü · Coins bereit — ReferenceError: karten is not defined
+    ✗ Hauptmenü · Akademie läuft — …
+    ✗ Hauptmenü · aka undefined — …
+    ✗ Menü · Sicherung ohne Bilanz — …
+
+Ohne diese Prüfung wäre ein Hauptmenü ausgeliefert worden, das beim Öffnen
+abstürzt — die erste Ansicht des Spiels.
+
+### Geprüft
+
+| | 35.119 | 35.120 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 438, 0 Fehler | 438, 0 Fehler |
+| Knöpfe | 154 | 154 |
+| Byte je Saison | 3.453 | 3.453 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Die Knopfzahl bleibt bei 154: die Sammlungszeile erscheint nur mit Karten,
+und die Sichtprüfung hat keine.
+
+## 35.121 · Der erste Gerätebefund seit 35.28
+
+Kevin hat auf dem S24 Ultra fotografiert, was hier drinnen niemand gesehen
+hat: **„DER NATIONALHELD" stand als fast schwarze Schrift auf dunkelbraunem
+Grund.** Gemessener Kontrast **1,13** bei einer Grenze von 3 — praktisch
+unsichtbar.
+
+### Die Ursache war strukturell, nicht die eine Stelle
+
+Die Kartonblätter `.karteikarte` und `.laufzettel` lösen `--tx` und `--mu`
+zur Kartonfassung auf — die **Flächenfarben aber nicht.** Ein `.up`-Kasten
+innerhalb einer Karteikarte trug damit Tinte (#14171A) auf #262218.
+
+Nachgemessen für alle vier Flächen:
+
+    Tinte auf --up   #262218   Kontrast 1,13
+    Tinte auf --pan  #211E17   Kontrast 1,08
+    Tinte auf --pan2 #282419   Kontrast 1,16
+    Tinte auf --bg   #191813   Kontrast 1,01
+
+**Alle vier waren dieselbe Falle**, nur bei dreien war sie noch nicht
+aufgefallen. Es gibt 113 `pan`-Kästen im Spiel. Alle vier lösen jetzt auf;
+Tinte auf der neuen Kartonfassung: **Kontrast 12,67.**
+
+### Warum der Kontrasttest es nicht fand
+
+`kontrast.cjs` prüft **drei Ansichten**: Titelblatt, Hauptmenü, Spielerpass.
+Der Karriererückblick ist nicht dabei — und genau dort sind in den letzten
+zwanzig Fassungen die meisten neuen Anzeigen entstanden. Er meldete
+gleichzeitig „145 Textstellen · 0 Befunde".
+
+**Die neue Probe deckt die Klasse ab, nicht eine vierte Ansicht:** wer `--tx`
+umdefiniert, muss auch jede Fläche umdefinieren, auf der dieser Text landen
+kann. Das fängt auch den nächsten Fall, ohne dass jemand eine Ansicht
+nachträgt.
+
+Gegenprobe: `--up` wieder herausgenommen → **„nicht aufgelöst:
+laufzettel/--up"**.
+
+### Und die Hygieneprüfung hat mich erwischt
+
+Mein erster Kommentar dazu enthielt Rückwärts-Anführungszeichen — im
+CSS-Vorlagenliteral. Der Aufbau brach sofort ab: „FEHLER: 14
+Rückwärts-Anführungszeichen im CSS-Block." Die Prüfung gibt es seit 35.34,
+und sie hat genau das getan, wofür sie da ist.
+
+### Geprüft
+
+| | 35.120 | 35.121 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 438, 0 Fehler | **441**, 0 Fehler |
+| Kontrast Tinte auf Fläche | **1,01–1,16** | **12,67** |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+**Der Prüfstand hat in zwanzig Fassungen viel gefunden — das hier nicht.**
+Zwei Gerätetests haben bisher Layoutfehler gefunden, dieser einen
+Farbfehler, den keine Messung sah. Das Muster hält.
+
+## 35.122 · Meine Korrektur war zu breit
+
+Kevin hat die Wildcard-Karten fotografiert: **helle Schrift auf hellem
+Papier.** Verursacht von 35.121, also von der Behebung des vorigen
+Gerätebefunds.
+
+### Was passiert war
+
+In 35.121 stand ein gemessener Befund: Tinte auf `--up` ergab Kontrast 1,13.
+Ich habe nachgerechnet, dass `--pan` (1,08), `--pan2` (1,16) und `--bg`
+(1,01) **dieselben Werte** haben, und alle vier mit aufgelöst.
+
+Die Rechnung stimmte. Die Wirkung nicht.
+
+`.wkarte` setzt **absichtlich helle Schrift** (`--tx:#EFECE2`) und trägt
+dafür eine eigens gebaute Ausnahme:
+
+    .laufzettel .wkarte,.karteikarte .wkarte{background:var(--pan);}
+
+Die Wildcard-Karte soll innerhalb der Kartonblätter den **dunklen** `--pan`
+behalten. Mit `--pan` auf Karton lief diese Ausnahme ins Leere.
+
+### Die Lehre
+
+**Ein gemessener Kontrastwert sagt nicht, ob ein Text diese Fläche überhaupt
+berührt.** Tinte landet auf `--up`, aber nicht auf `--pan` — dort sitzen
+Bausteine mit eigenen Farben. Ich habe von vier gleichen Zahlen auf vier
+gleiche Fälle geschlossen, ohne nachzusehen, was auf den Flächen liegt.
+
+Dass ich es in der Einlegeanleitung selbst angekündigt hatte („nur den
+Kontrast gerechnet, nicht die Wirkung"), macht es nicht besser — eine
+Warnung ersetzt keine Prüfung.
+
+### Zurückgenommen, und die Prüfung mit
+
+Nur `--up` löst auf. Die drei anderen bleiben dunkel.
+
+**Meine eigene Prüfung aus 35.121 war Teil des Problems:** sie verlangte alle
+vier Flächen und meldete nach der Rücknahme prompt rot. Eine Probe, die eine
+Regel erzwingt, muss ihre Ausnahmen kennen. Umgebaut auf:
+
+| Probe | Gegenprobe |
+|---|---|
+| `--up` wird aufgelöst | ✗ ohne: „nicht aufgelöst: laufzettel/--up" |
+| **die Wildcard behält ihren dunklen Grund** | ✗ Ausnahme entfernt: „helle Schrift auf hellem Papier" |
+| die Wildcard setzt eigene helle Schrift | belegt, warum die Ausnahme nötig ist |
+
+Die mittlere ist die eigentliche Absicherung: sie hätte 35.121 verhindert.
+
+### Geprüft
+
+| | 35.121 | 35.122 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 441, 0 Fehler | **443**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+**Zwei Gerätebefunde in Folge, beide von Kevin.** Der erste zeigte einen
+Fehler, den der Prüfstand nicht sah; der zweite einen, den ich beim Beheben
+des ersten gemacht habe. Beide Male war die Ursache dieselbe Sorte: eine
+Regel ohne Blick auf ihre Ausnahmen.
+
+## 35.123 · Fast geschafft — abgeleitet statt gepflegt
+
+Stufe G aus dem Prüfbericht: „Eine kleine Fast-geschafft-Fläche kann 2 bis 3
+naheliegende Fortschritte zeigen." Auf der Errungenschaftsseite stehen jetzt
+höchstens drei, alle mindestens zu 60 % erreicht.
+
+### Keine zweite Liste
+
+Bei 192 Errungenschaften wäre eine Handliste mit Messfunktion und Schwelle je
+Eintrag nicht nur Arbeit, sondern eine **zweite Liste, die beim nächsten
+neuen Erfolg stumm auseinanderläuft** — dasselbe Muster, das dieses Projekt
+schon dreimal getroffen hat.
+
+Stattdessen wird die Bedingung gelesen. Gemessen: **71 der 192** haben die
+reine Form `(G.feld || 0) >= Zahl` und geben Feld und Schwelle selbst preis.
+Die übrigen 121 bleiben außen vor — sie prüfen mehrere Größen oder gehen über
+die Historie, und ein halb erratener Fortschritt wäre schlechter als keiner.
+
+### Warum Parsen hier erlaubt ist, obwohl es zweimal danebenging
+
+In 35.105 und 35.108 wurde Funktionstext gelesen und beides Mal fiel der
+Übersetzer dazwischen: `her` wurde zu `her2`, Kapitelnamen trugen
+Escape-Sequenzen. **Feldnamen von Objekteigenschaften und Zahlen benennt
+esbuild nicht um** — `G.apps >= 500` steht im Bündel genauso da.
+
+Das ist kein Argument, sondern eine Behauptung, solange es niemand prüft.
+Deshalb die erste Probe: sie liest den Fortschritt **im gebündelten Code** und
+meldet rot, wenn nichts herauskommt. Gegenprobe mit gebrochenem Ausdruck:
+**„KEINER — das Ablesen greift im Bündel nicht"**.
+
+### Die Schwelle war zuerst falsch beurteilt
+
+Ein erster Test ergab nur **einen** Treffer, und ich hätte die 60 % beinahe
+gesenkt. Die Testwelt war zu dünn besetzt — nur ein paar Felder gesetzt. Über
+realistische Stände:
+
+    nach  3 Laufbahnen    3 Treffer
+    nach  8 Laufbahnen    3 Treffer
+    nach 15 Laufbahnen    8 Treffer  (davon drei gezeigt)
+
+60 % bleibt. Wer bei 12 von 500 steht, liest das nicht.
+
+### Sieben neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| **der Fortschritt lässt sich im Bündel ablesen** | ✗ Ausdruck gebrochen |
+| höchstens drei | — |
+| was weit weg ist, wird nicht gezeigt | — |
+| wer nah dran ist, wird gezeigt | ✗ Ausdruck gebrochen |
+| Erledigtes verschwindet | — |
+| nur die Gesamtbilanz wird gelesen | — |
+| unvollständige Bilanzen | — |
+
+### Geprüft
+
+| | 35.122 | 35.123 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 443, 0 Fehler | **450**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+### Der zweite Fehlalarm in fünf Fassungen
+
+Der Abnahmelauf meldete erneut **exakt 20,0** bei „Laufbahnen bis
+Vollausbau". Fünf Läufe mit derselben Quelle: **21,4 · 20,7 · 20,1 · 20,9 ·
+20,8** — Rauschen, wie in 35.118.
+
+Die Stichprobenerhöhung von 250 auf 600 hat das nicht gelöst, und ich habe
+das dort auch so geschrieben. Inzwischen ist es zweimal passiert und hat
+beide Male Zeit gekostet, die nicht in die Sache ging. **Eine Prüfung, die
+zweimal ohne Grund rot meldet, erzieht dazu, roten Meldungen nicht mehr zu
+glauben** — der schlimmste Zustand, den diese Datei kennt.
+
+Ich verstelle das Band nicht eigenmächtig: das wäre das Messgerät justieren,
+weil die Anzeige stört. Aber die Entscheidung ist fällig, und sie steht bei
+Kevin. Die Zahlen dafür: gemessener Median rund **20,7**, Spanne über fünf
+Läufe **1,3**, Untergrenze **20** seit 35.81. Der Abstand zur Grenze ist
+kleiner als das Rauschen.
+
+Siehe offener Punkt 21.
+
+**Nicht gemacht:** die Rubriken aus 3.16 (Karriere, Nationalmannschaft,
+Vereinstreue, …). Die Errungenschaften tragen kein Rubrikfeld, nur Stufen und
+Kennungs-Vorsilben (`a_` 70, `f_` 50, `b_` 26, `c_` 22, `d_` 14, `e_` 10).
+Ob die Vorsilben thematisch sind, ließe sich nur durch Durchlesen aller 192
+klären — und eine geratene Zuordnung wäre schlechter als die heutige Sortierung
+nach Stufe.
+
+## 35.124 · Zwei stille Fehler, einer davon meiner
+
+Beim Vorbereiten von Stufe H (Akademie → Karte → Verein) kamen zwei Dinge
+heraus, die beide seit Langem wirkungslos dastanden.
+
+### `aka.ehrentafel` gibt es nicht
+
+Die Meta-Zeitleiste aus 35.119 las `aka.ehrentafel`, um den ersten
+Weltklassespieler aus der eigenen Jugend zu finden. **Das Feld existiert
+nicht.** Die Akademie führt `absolventen`, und die Werte heißen `peak` und
+`raus`, nicht `ovr` und `jahr`.
+
+Der Ausdruck war seit fünf Fassungen still wirkungslos: `undefined || []`
+ergibt eine leere Liste — kein Absturz, keine Warnung, nur ein
+Zeitleisteneintrag, der nie erschien.
+
+**Woher der Irrtum kam:** der Reiter im Akademie-Dach heißt „ehrentafel", das
+Feld dahinter nicht. Ich habe den sichtbaren Namen für den Feldnamen
+gehalten, statt nachzusehen — dieselbe Sorte Fehler wie `p.nt.titel` in
+35.109 und `fx.wage` in 35.108.
+
+Berichtigt. Der Eintrag erscheint jetzt: *„2035 — Der erste
+Weltklassespieler aus der eigenen Jugend: Maykel Ramirez Duarte."*
+
+### `ausTalent` war toter Code
+
+`karten.js` trägt eine Funktion, die aus einem Akademietalent eine Karte
+macht. Sie **wird nirgends aufgerufen** — und das seit ihrer Einführung.
+Gleichzeitig sieht die Kartenansicht bereits „· aus der Jugend" für
+`herkunft === "akademie"` vor: eine Anzeige, die auf Karten wartet, die nie
+entstehen.
+
+Der Grund war der falsche Zeitpunkt. Ein laufendes Talent hat noch keine
+Geschichte; erst der **Absolvent** hat eine — Jahrgang, Abgangsjahr,
+erreichte Höchststärke, erster Profiklub. Genau das steht in
+`a.absolventen`.
+
+Umgebaut zu `ausAbsolvent`. Die Kennung bleibt `t:` + `id`: der Absolvent
+trägt dieselbe `id` wie das Talent, aus dem er wurde. **Damit ist die
+Identität über alle Systeme derselbe String** — ohne neues Feld und ohne
+Änderung an der Zusammenführung im Pool. Das ist die Antwort auf Frage 4 des
+Meta-Papiers.
+
+### Was noch fehlt, und warum ich es nicht geraten habe
+
+**Der Aufruf.** Absolventen werden noch nicht zu Karten. Ich habe die Stelle
+nicht gefunden, an der ein Akademiejahr im Spiel ausgelöst wird: `akaJahr`
+wird in `App.jsx` destrukturiert (Zeile 6074) und taucht danach nur noch in
+Kommentaren auf.
+
+**Daraus folgt nicht, dass es nie läuft** — die Akademie funktioniert
+sichtbar, also gibt es den Aufruf. Ich habe ihn nur nicht gefunden, und
+einen Kartenerzeuger an eine geratene Stelle zu hängen wäre schlechter als
+ihn offen zu lassen.
+
+`ausAbsolvent` ist damit weiterhin ohne Leser — jetzt aber mit dem richtigen
+Zuschnitt und einem Kommentar, der den Befund festhält. **Nächster Durchgang:
+Aufrufstelle finden, dann eine Zeile.**
+
+### Und der Prüfstand hat die Umbenennung gefangen
+
+Nach dem Umbau brach die Vereinsprüfung ab: **`TypeError: K.ausTalent is not
+a function`**. Eine Probe aus einer früheren Fassung rief den alten Namen.
+Der Hauptlauf meldete nur „MINDESTENS EIN TEIL IST FEHLGESCHLAGEN" ohne
+sichtbare rote Zeile — weil der ganze Teil abstürzte, statt einzelne Proben
+zu melden. Erst der Einzelaufruf zeigte die Ursache.
+
+Das ist ein Hinweis für den nächsten Durchgang: **ein abgestürzter Prüfteil
+sieht im Gesamtlauf fast wie ein bestandener aus.** Wer „FEHLGESCHLAGEN"
+liest und keine rote Zeile findet, ruft den Teil einzeln auf.
+
+### Geprüft
+
+| | 35.123 | 35.124 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 450, 0 Fehler | 450, 0 Fehler |
+| Zeitleiste Akademie-Eintrag | **nie** | erscheint |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+## 35.125 · Die Kette ist geschlossen
+
+Stufe H des Meta-Papiers, letzter Schritt: „Ein Talent kann die Akademie
+verlassen, Profi werden, später als Karte auftauchen."
+
+### Die Aufrufstelle, die 35.124 nicht gefunden hat
+
+`akaJahr` wird nicht aus `App.jsx` gerufen, sondern **aus `akademie.js`
+selbst** — `akaVerbuchen` lässt am Ende ein Jahr weiterlaufen
+(`akademie.js:574`). Und `akaVerbuchen` steht im Karriereende, direkt neben
+dem Vereinsjahr.
+
+Deshalb war die Suche in 35.124 vergeblich: ich habe nach dem Aufruf einer
+Funktion gesucht, die eine andere Funktion für mich ruft. Der Weg führte über
+die Datei, nicht über den Bildschirm.
+
+### Nur die neuen
+
+Verglichen wird gegen den Stand **vor** dem Akademiejahr. Sonst wanderten bei
+jeder Laufbahn alle bisherigen Absolventen erneut in den Pool — folgenlos, da
+er über `kid` zusammenführt, aber jedes Mal über bis zu vierzig Einträge.
+
+### Die Kennung ist die Verbindung
+
+Ein Absolvent trägt dieselbe `id` wie das Talent, aus dem er wurde; die Karte
+trägt `t:` + diese id. **Derselbe Spieler ist in Akademie, Sammlung und
+Verein derselbe String** — ohne neues Feld, ohne Änderung an der
+Zusammenführung. Damit ist Frage 4 des Meta-Papiers nicht nur beantwortet,
+sondern gebaut.
+
+### Sieben neue Prüfungen, alle über echte Zustandsübergänge
+
+Akademie gründen, vierzehn Jahre laufen lassen, Absolventen einsammeln,
+Karten daraus machen, in den Pool legen. Gemessen: **29 Absolventen, 29
+Karten**, Kennung führt zurück, zweites Einlegen ändert nichts.
+
+| Probe | |
+|---|---|
+| die Akademie bringt Absolventen hervor | 29 nach 14 Jahren |
+| aus jedem wird eine Karte mit Herkunft | `t:t2028_5kg3` (legende) |
+| **die Kennung führt auf das Talent zurück** | die eigentliche Verbindung |
+| derselbe Absolvent landet nicht zweimal im Pool | 29 bleiben 29 |
+| die Karte trägt die Höchststärke, nicht den Endwert | wer mit 34 aufhört, wird keine 58er-Karte |
+| der Jahrgang steht auf der Karte | macht sie erzählbar |
+| Gegenprobe: frische Akademie, keine Absolventen | 0 |
+
+### Geprüft
+
+| | 35.124 | 35.125 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 450, 0 Fehler | **457**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Damit sind die Stufen A bis H des Meta-Papiers erledigt. Offen bleiben I
+(Sammlungssets) und J (individuellere Talente) — und die Entscheidung zu
+offenem Punkt 21.
+
+## 35.126 · Sechs Sammlungsseiten
+
+Stufe I des Meta-Papiers: „Die Kartensammlung kann kleine thematische Seiten
+erhalten. Das soll sich eher wie Stickeralbum anfühlen als wie ein weiteres
+Questlog."
+
+    Aus eigener Kraft    11    Vereinstreue      11
+    Die Unsterblichen     5    Sonderausgaben     5
+    Die goldene Elf      11    Weltreise         15
+
+### Kein Questlog
+
+**Keine Belohnung für eine volle Seite, keine Frist, kein Häkchen** — nur die
+Zahl. Wer sie vollkriegt, hat eine volle Seite, und das ist der Zweck. Die
+Seiten erscheinen erst ab fünf Karten; davor stünde alles auf null und sähe
+nach Aufgabenliste aus statt nach Album.
+
+### Abgeleitet, nicht gespeichert
+
+Jede Seite ist eine Bedingung über den vorhandenen Pool — Herkunft, Stufe,
+Land, Sonderkarten-Marker. **Kein neues Feld, kein Fortschrittsspeicher,
+keine zweite Liste.**
+
+„Weltreise" zählt Länder statt Karten und steht deshalb nicht in der Tabelle,
+sondern wird eigens gerechnet. Eine Bedingung je Karte könnte das nicht
+ausdrücken.
+
+### „Aus eigener Kraft" gibt es erst seit gestern
+
+Diese Seite wäre bis 35.125 **dauerhaft leer** geblieben — Absolventen wurden
+nicht zu Karten. Eine Sammelseite, die niemand vollkriegt, ist keine Seite,
+sondern eine Sackgasse. Die Prüfung „jede Seite lässt sich wirklich
+vollmachen" hält das fest.
+
+### Sechs neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| es gibt Sammlungsseiten | — |
+| eine leere Sammlung steht überall auf null | — |
+| **jede Seite lässt sich vollmachen** | — |
+| drei Karten füllen keine Seite | sichert die Zeile darüber ab |
+| der Zähler läuft nicht über das Soll | sonst stünde „14/11" da |
+| unvollständige Pools | — |
+
+### Geprüft
+
+| | 35.125 | 35.126 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 457, 0 Fehler | **463**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+**Stufen A bis I des Meta-Papiers erledigt.** Offen: J (individuellere
+Akademietalente) — und die Entscheidung zu offenem Punkt 21.
+
+## 35.127 · Entwicklungstypen — die letzte Stufe
+
+Stufe J des Meta-Papiers: „Akademiespieler sollen gelegentlich erkennbare
+Entwicklungsidentitäten erhalten. Keine zweite Spielerkarriere im
+Kleinformat und keine Flut neuer Attribute."
+
+Sechs Typen: **Trainingsmonster · Spätentwickler · Frühreif ·
+Verletzungsanfällig · Sorgenkind · Kapitänstyp.**
+
+### Ein Feld, nicht sieben
+
+`t.typ` trägt eine Kennung oder fehlt. Alte Spielstände haben es nicht — dann
+verhält sich das Talent wie bisher. Keine Migration.
+
+**Nur ein Drittel bekommt einen.** Wenn jedes Talent einen Typ trägt, ist der
+Typ die Regel und sagt nichts mehr. Gemessen über 12 Akademien und 299
+Absolventen: **64 % ohne, 36 % mit** — dieselbe Überlegung wie beim
+Nebenarchetyp in 35.109, der von 83 % auf 40 % gestrafft wurde.
+
+### Jeder Typ tut etwas
+
+Ein Merkmal, das nur auf der Karte steht, wäre ein Text ohne Mechanik — die
+Fehlerklasse, die dieses Projekt am häufigsten getroffen hat. Alle sechs
+greifen in **dieselbe Zuwachsrechnung**, die es seit jeher gibt, nicht in
+eine eigene daneben.
+
+    Spätentwickler   mit 16:  5,5   mit 19: 15,0
+    Frühreif         mit 16: 15,5   mit 19:  7,0
+
+Gegenläufig, sonst wären es zwei Namen für dasselbe. „Verletzungsanfällig"
+verdoppelt die Grundgefahr — die Medizin wirkt weiterhin dagegen.
+
+### Der Typ wäre fast im richtigen Moment verschwunden
+
+Erster Entwurf: **315 Absolventen aus zwölf Akademien, alle ohne Typ** —
+obwohl ein Drittel der Talente einen trug. Er blieb beim Talent zurück und
+wäre genau dann verschwunden, wenn der Spieler erinnerungswürdig wird: auf
+der Karte, in der Ehrentafel, in der Zeitleiste.
+
+Und es waren **drei** Stellen, nicht eine. Die erste war schnell gefunden
+(`talentStellen`), die Messung zeigte danach weiter 100 % ohne Typ — die
+meisten Absolventen entstehen an zwei anderen Stellen im Akademiejahr. Ohne
+die zweite Messung wäre die Behebung als erledigt durchgegangen.
+
+### Sechs neue Prüfungen
+
+| Probe | |
+|---|---|
+| es gibt Entwicklungstypen | ✗ ohne Ausfuhr: „0 Typen" |
+| **jeder verändert den Zuwachs wirklich** | fängt Namen ohne Wirkung |
+| Spätentwickler und Frühreif laufen gegenläufig | — |
+| **der Typ überlebt den Weg zum Absolventen** | genau der Fehler oben |
+| die Mehrheit bleibt bewusst ohne | Grenze 55 % |
+| ein Talent ohne Typ läuft unverändert | alte Spielstände |
+
+### Geprüft
+
+| | 35.126 | 35.127 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 463, 0 Fehler | **469**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+**Damit ist das Meta-Konzeptpapier abgearbeitet.** Dreiundzwanzig
+Entwicklungsrichtungen, dreizehn Fassungen, **zwei neue Felder** — ein
+Typwechsel an `v.gegruendet` und `t.typ`.
+
+## 35.128 · Ein abgestürzter Prüfteil sagt jetzt, dass er abgestürzt ist
+
+Offener Punkt 20, und die Lücke, die mich in 35.124 Zeit gekostet hat.
+
+### Punkt 20 war schon halb erledigt
+
+Nachgezählt: von den Prüfungen vor dem Übersetzen setzt heute nur noch
+**eine** `FEHLER` — die Backtick-Hygiene. Dort stimmt die Meldung „Erst den
+Übersetzungsfehler oben beheben", weil ein Backtick im CSS-Block wirklich
+einen erzeugt. Alle übrigen zählen längst auf `DOK`.
+
+Der in Punkt 20 beschriebene Zustand existiert so nicht mehr. **Aber die
+verwandte Lücke war eine andere.**
+
+### Absturz sieht aus wie Fehlschlag
+
+In 35.124 stürzte `vereinpruefung.cjs` nach einer Umbenennung ab
+(`TypeError: K.ausTalent is not a function`). Der Lauf meldete am Ende nur
+„MINDESTENS EIN TEIL IST FEHLGESCHLAGEN" — **ohne eine einzige rote Zeile**,
+weil der Teil starb, bevor er eine ausgeben konnte.
+
+Beide Fälle geben Nicht-Null zurück. Nur einer sagt, was los ist.
+
+`teil_fahren` liest die Ausgabe jetzt mit. Fehlt die Abschlusszeile
+(„N Prüfungen bestanden" oder „N Proben ohne Befund"), war es kein
+Fehlschlag, sondern ein Absturz:
+
+    ABGESTUERZT: Verein ist stehengeblieben, bevor ein Ergebnis kam.
+    Das ist KEIN fehlgeschlagener Test, sondern ein Fehler im Pruefwerkzeug
+    oder eine Funktion, die es nicht mehr gibt. Zum Nachstellen:
+        cd /tmp/ps && node …/vereinpruefung.cjs --quelle=…/App.jsx
+
+Beide Richtungen geprüft: ein echter Fehlschlag bleibt ein normaler roter
+Befund und wird **nicht** als Absturz gemeldet.
+
+### Ein typografisches Anführungszeichen legte das Skript lahm
+
+Mein erster Entwurf schrieb `„$NAME"` in eine Shell-Zeichenkette. Das
+öffnende Zeichen ist typografisch, das schließende gerade — die Zeichenkette
+endete zu früh, und `pruefen.sh` brach mit einem Syntaxfehler in Zeile 94 ab,
+sechzig Zeilen hinter der Ursache.
+
+Dieselbe Klasse wie die Backticks im CSS-Block, für die es seit 35.34 eine
+eigene Prüfung gibt: **ein Zeichen, das eine Zeichenkette beendet, wo niemand
+eine Zeichenkette vermutet.** Hier reichte `bash -n`.
+
+### Geprüft
+
+| | 35.127 | 35.128 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 469, 0 Fehler | 469, 0 Fehler |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+Keine Änderung am Spiel — nur am Prüfstand.
+
+## Für den nächsten Durchgang
+
+Dieser Abschnitt steht bewusst VOR den offenen Punkten: er ist das Erste, was
+ein frischer Durchgang wissen muss.
+
+### Die Abnahme braucht ZWEI Läufe (seit 35.98)
+
+    bash pruefstand/pruefen.sh App.jsx                          ~101 s
+    TEILE=aufbau,bau,sicher bash pruefstand/pruefen.sh App.jsx   ~11 s
+    bash pruefstand/sicht.sh App.jsx
+
+Die Sicherheitsprüfung läuft **absichtlich getrennt**. Gemessen: sie fragt eine
+Datenbank im Netz ab und schwankt zwischen 0 und 160 Sekunden, während alles
+andere zusammen 145 braucht. Zusammen lag der Lauf an der Zeitgrenze eines
+einzelnen Aufrufs und brach gelegentlich ab — **nicht weil etwas kaputt war,
+sondern weil ein Schritt mit unbekannter Dauer in einem Lauf mit fester Grenze
+steckte.**
+
+Der übliche Lauf sagt selbst, dass sie übersprungen wurde. Sie fällt nicht
+still weg.
+
+**Beide Schreibweisen des Pfades gehen — seit 35.101.** Bis dahin meldete der
+oben stehende relative Aufruf sieben Fehler, die keine waren, und liess achtzehn
+Prüfungen still ausfallen (Vereinsprüfung 297+7 statt 322). `pruefen.sh` löst
+die Quelle jetzt selbst absolut auf, wie `sicht.sh` es immer getan hat.
+**Wer eine Zahl aus diesem Block nicht erreicht, prüft zuerst, ob die Meldung
+von der Sache handelt oder vom Pfad.**
+
+### Erwartete Zahlen für 35.128
+
+    Ansichten:        814 Prüfungen bestanden
+    Verein:           438 Prüfungen bestanden  (431 + 7 Zeitleiste, 35.119)
+    Beidateien:       7 (akademie ereignisse karten namen schriften titelbild verein)
+    Ereignisse:       520 · Nationen: 212 von 212
+    Kontrast:         145 Textstellen · 0 Befunde
+    Rücktritt:        6 Proben, alle grün
+    Knöpfe:           154 lesbar und im Bild
+    Sicherheitslage:  0 Funde
+    Laufbahnen bis Vollausbau: 20–30 (Band seit 35.81 gesenkt)
+
+### Das App-Symbol im Projektwissen
+
+`symbol/appicon.png` ist mit 2,6 MB zu groß fürs Projektwissen und liegt nur im
+Repository. Dafür gibt es **`symbol/appicon-klein.png`**: 512 px, 128 Farben,
+96 kB — gemessen 1,4 % Abweichung vom Original, im Bild nicht zu unterscheiden.
+
+**Sie reicht zum Erzeugen des ganzen Symbolsatzes**, denn das größte erzeugte
+Bild ist 432 px (108 dp bei xxxhdpi). Wer am Symbol arbeitet, kann damit
+vorschauen und erzeugen; wer ausliefert, nimmt die volle Quelle aus dem
+Repository.
+
+### Was als Nächstes ansteht
+
+**Ein APK bauen und auf dem Gerät durchspielen.** Seit 35.44 ist nichts davon
+auf einem Telefon gelaufen — inzwischen sind es 57 Fassungen mit dem ganzen
+Kartensystem, dem Sonderschuss, der neuen Aufstellung und den neuen Bildern.
+35.101 ändert daran nichts: dort ist am Spiel nichts angefasst worden.
+
+Alles andere in diesem Projekt lässt sich messen. Das nicht.
+
+## Offene Punkte (Stand 35.128)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;
@@ -11290,12 +13861,18 @@ eingebettet, tritt es zurück, und verschwindet es nicht ganz.
    Fußball das etablierte Wort, „Motivation“ trifft es nicht — der Wert ist
    Stimmung, nicht Antrieb. Der eigentliche Mangel: **in der Kurzanleitung fehlt
    Moral komplett**, obwohl Form, Fitness, Vertrauen und Bekanntheit dort stehen.
-10. **`App.jsx` hat 13.674 Zeilen** (gemessen 27.8.2026; 13.198 am 23.8.,
-    12.829 am 21.8. — die Datei wächst weiter, und das ist genau das Argument). Der Zähler ist jetzt
-   zweimal hintereinander veraltet: bis 35.22 stand hier „12.041“ (Stand 35.11,
-   788 zu wenig), bis 35.29 dann „12.829“ (Stand 35.25, 369 zu wenig — das
-   Tutorial und drei Fassungen). Vor 35.6 waren es 14.271, dann fielen die
-   Ereignisse heraus, seither wächst es wieder. Das ist KEINE Anforderung
+10. **`App.jsx` ist zu groß für eine Datei.** **Die gültige Zeilenzahl steht
+   hier bewusst nicht mehr** — sie steht im Aufbau jedes Laufs unter „Eigene
+   Dateien (gemessen)". Am 4.9.2026 waren es 16.487.
+
+   **Grund für den Verzicht:** die Zahl war hier dreimal hintereinander
+   veraltet. Bis 35.22 stand „12.041“ (Stand 35.11, 788 zu wenig), bis 35.29
+   „12.829“ (Stand 35.25, 369 zu wenig), bis 35.100 „13.674“ (Stand 27.8.,
+   **2.813 zu wenig**). Der dritte Fall war der größte, und er stand
+   ausgerechnet in dem Punkt, der vom Wachstum der Datei handelt. Ein Zähler,
+   den jeder Lauf ohnehin misst, gehört nicht abgeschrieben.
+   Zum Verlauf: 13.198 am 23.8., 12.829 am 21.8.; vor 35.6 waren es 14.271,
+   dann fielen die Ereignisse heraus, seither wächst es wieder. Das ist KEINE Anforderung
    der APK — `schriften.js` und `storage.js` sind bereits eigene Dateien, Vite
    bündelt Importe problemlos. Eine Aufteilung in acht bis zwölf Bausteine würde
    jede Sitzung schneller machen, berührt aber `exporte.txt`, den
@@ -11482,7 +14059,21 @@ eingebettet, tritt es zurück, und verschwindet es nicht ganz.
     nachgezogen werden), oder bewusst so lassen. **Entscheidung steht aus** —
     Kevin hat den Befund in 35.45 zur Kenntnis genommen, ohne ihn zu schließen.
 
-20. **Die Abbruchmeldung des Aufbaus passt nicht zu jedem Grund.** Schlägt
+20. **Weitgehend erledigt in 35.128.** Nachgezählt: von den Prüfungen vor dem
+    Übersetzen setzt heute nur noch **eine** `FEHLER` — die
+    Backtick-Hygiene, und dort stimmt die Meldung, weil ein Backtick im
+    CSS-Block wirklich einen Übersetzungsfehler erzeugt. Alle übrigen zählen
+    längst auf `DOK`. Der beschriebene Zustand existiert so nicht mehr.
+
+    **Die verwandte Lücke war eine andere und ist jetzt geschlossen:** ein
+    ABGESTÜRZTER Prüfteil sah im Gesamtlauf fast aus wie ein bestandener.
+    Beide geben Nicht-Null zurück, aber nur einer sagt, was los ist. In
+    35.124 kostete das mehrere Anläufe. `teil_fahren` liest die Ausgabe jetzt
+    mit: fehlt die Abschlusszeile, steht dort ausdrücklich „ABGESTÜRZT" samt
+    Befehl zum Nachstellen.
+
+    Alter Wortlaut:
+    **Die Abbruchmeldung des Aufbaus passt nicht zu jedem Grund.** Schlägt
     eine der Prüfungen 2 bis 6 an, endet der Aufbau mit „der Aufbau ist
     gescheitert … Erst den Übersetzungsfehler oben beheben". Für einen
     Übersetzungsfehler stimmt das, für eine veraltete Zahl in `STAND.md` oder
@@ -11497,6 +14088,49 @@ eingebettet, tritt es zurück, und verschwindet es nicht ganz.
     aus, obwohl das Bündel in Ordnung ist. Sauber wäre, `DOK` auch dort zu
     verwenden. Nicht in 35.45 mitgemacht, weil das ihr Verhalten ändert und
     Fassungen einzeln ausgeliefert werden.
+
+21. **Das Zielband „Laufbahnen bis Vollausbau" liegt dicht an seiner
+    Untergrenze.** Gemessen am 5.9.2026 über fünf Läufe: 20,2 bis 20,7 bei
+    einem Band von 20–30. Mit den ursprünglichen Punktwerten der neuen Marken
+    aus 35.106 stand ein Lauf **genau auf 20,0**.
+
+    **Warum das gefährlich ist:** die Zahl entsteht aus `verdict().score`
+    über `vcFuer` (`score / 26`, dann ×1,18 und ×1,80). Jede Änderung, die den
+    Karrierewert erhöht — neue Marken, neue Titel, ein Biografiebonus wie in
+    Abschnitt 4.13 des Konzeptpapiers —, drückt die Zahl nach unten. Sie fällt
+    dann in einer Fassung aus dem Band, die mit der Ursache nichts zu tun hat,
+    und der nächste Durchgang sucht am falschen Ende.
+
+    **Zweiter Fehlalarm in 35.123.** Erneut exakt 20,0 bei einer Fassung, die
+    nur eine Anzeige hinzufügt. Fünf Läufe danach: 21,4 · 20,7 · 20,1 · 20,9 ·
+    20,8. Der Abstand zur Grenze (rund 0,7 vom Median) ist kleiner als das
+    Rauschen (Spanne 1,3). **Damit ist die Prüfung in ihrer heutigen Form
+    unbrauchbar geworden** — sie meldet gelegentlich rot, ohne dass etwas
+    kaputt ist, und das zweimal in fünf Fassungen.
+
+    **Entscheidung fällig, sie steht bei Kevin.** Drei Möglichkeiten:
+    (a) Untergrenze auf 19 senken — die Prüfung schlägt weiter an, wenn die
+    Ausschüttung wirklich zu hoch wird, aber nicht mehr am Zufall.
+    (b) Die Kalibrierung mehrfach fahren und den Median nehmen — kostet rund
+    50 s je Lauf zusätzlich.
+    (c) Die VC-Ausschüttung senken, bis wieder Luft ist — das ist eine
+    Balancing-Änderung am Spiel, keine am Prüfstand.
+    Ich habe keine davon eigenmächtig gemacht: das Band zu verstellen, weil
+    die Anzeige stört, wäre das Messgerät justieren.
+
+    **Teilweise entschärft in 35.118:** die Stichprobe der Kalibrierung
+    wurde von 250 auf 600 Laufbahnen angehoben, nachdem ein Lauf genau auf
+    20,0 gefallen war. Der niedrigste gemessene Wert stieg damit von 19,9 auf
+    20,2. **Gelöst ist es nicht** — fünf Läufe danach ergaben 20,4 · 20,2 ·
+    20,3 · 21,1 · 20,2, also weiterhin Spanne 0,9. Eine größere Stichprobe
+    verschiebt die Kante nicht, sie macht nur das Zittern kleiner.
+
+    **Kein Handlungsbedarf am Spiel**, aber eine Regel für jeden, der den
+    Karrierewert anfasst: `TEILE=kalib` mehrfach fahren, nicht einmal. Ein
+    einzelner Lauf schwankt um rund 0,5 und sagt nichts über den Abstand zur
+    Grenze. Ob das Band selbst zu eng liegt oder die Ausschüttung zu hoch, ist
+    eine Balancing-Entscheidung für Kevin — hier steht nur, dass die Luft
+    gemessen 0,2 beträgt.
 
 21. ~~**Der Kader führt vier tote Felder, und die Saison kennt keine Spieler.**~~
     **Ganz erledigt in 35.54.** 35.52 brachte `spiele`, `tore`, `vorlagen`,
