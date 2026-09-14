@@ -1,0 +1,120 @@
+########## BAU ##########
+Fassung: const VERSION = "35.168";
+geschrieben: /tmp/sicht/rasenschach-browsertest.html  1504 KB
+
+########## STARTPROBE ##########
+  === Startprobe ===
+    ✓ Wurzel gefuellt   Kindelemente: 1
+    ✓ Willkommensschirm vorbelegt, Menue erreicht
+    ✓ Titelblatt da
+    ✓ Impressum zeigt die Fassung der Quelle   Quelle 35.168 · angezeigt 35.168
+    · Schriftbefund: in jsdom nicht messbar (kein getContext) — nur auf dem Geraet
+    ✓ kein NaN/undefined im Text
+    ✓ Stilblock der App vorhanden
+    ✓ Halbtonraster im Grundstil
+  === Messwerkzeug ===
+    ✓ Griff vorhanden
+    ✓ Kasten zunaechst zu
+    ✓ keine Bildschleife vor dem Einschalten
+    ✓ Diagnose gefuellt   Protokoll: http: · Sicherer Kontext: NEIN · navigator.wakeLock: FEHLT · localStorage: schreibbar · Geraetepixel: 1 · Fen
+    ✓ Kasten offen
+    ✓ Rasterschalter setzt Aufsatzstil
+    ✓ Rasterschalter raeumt wieder auf
+  
+  14 bestanden, 0 nicht bestanden.
+
+########## KOPFLEISTE ##########
+  ### Sichtpruefung
+    Vermächtnis-Laden   links    312 · rechts    352 · 40x40 · position:static
+    Optionen            links    360 · rechts    400 · 40x40 · position:static
+    Abstand: 8 px, keine Ueberlappung
+    Beschriftung links endet 51.3 px vor dem ersten Knopf
+    Behaelter .kopfknoepfe: {"vorhanden":true,"kinder":2,"anzeige":"flex","abstand":"8px"}
+    Bild: /tmp/sicht/kopfleiste.png
+
+########## SEITENANFANG ##########
+  === Seitenanfang ===
+    ✓ Hauptmenü → Erstellung          352 px → 0 px
+    ✓ Errungenschaften → Menü         16799 px → 0 px
+    ✓ Menü → Errungenschaften         352 px → 0 px
+    ✓ Erstellung → Menü               1692 px → 0 px
+  
+  4 bestanden, 0 nicht bestanden, 0 nicht messbar.
+
+########## PASSHOEHE ##########
+  === Passhöhe über wachsende Karrierestände (412 px breit) ===
+  === Wie nah steht der Zellenblock am Umbruch? ===
+    Spanne 348.1 bis 348.1 px · Zuwachs 0 px
+    ✓ Der Pass bleibt über alle 9 Karrierestände gleich hoch (348.1 px).
+    ✓ Zellenblock einzeilig, engste Stelle 70.5 px Luft.
+  === Passhöhe über wachsende Karrierestände (360 px breit) ===
+  === Wie nah steht der Zellenblock am Umbruch? ===
+    Spanne 348.1 bis 348.1 px · Zuwachs 0 px
+    ✓ Der Pass bleibt über alle 9 Karrierestände gleich hoch (348.1 px).
+    ✓ Zellenblock einzeilig, engste Stelle 18.5 px Luft.
+  === Passhöhe über wachsende Karrierestände (320 px breit) ===
+  === Wie nah steht der Zellenblock am Umbruch? ===
+    Spanne 385.9 bis 385.9 px · Zuwachs 0 px
+    ✓ Der Pass bleibt über alle 9 Karrierestände gleich hoch (385.9 px).
+
+########## KNOEPFE ##########
+  === Knopfzeilen bei 412 px ===
+    ✓ Alle 154 Knöpfe lesbar und im Bild.
+  === Knopfzeilen bei 360 px ===
+    ✓ Alle 154 Knöpfe lesbar und im Bild — davon 5 erst nach seitlichem Wischen sichtbar.
+
+########## KONTRAST ##########
+      Titelblatt    30 Textstellen, alle über 3
+      Hauptmenü     30 Textstellen, alle über 3
+      Spielerpass   94 Textstellen, alle über 3
+      Ruhmeshalle   12 Textstellen, alle über 3
+      Errungenschaften680 Textstellen, alle über 3
+      Optionen      30 Textstellen, alle über 3
+      Sicherung     30 Textstellen, alle über 3
+      Klassen einzeln:
+        ✓ dunkel div.up            Kontrast 13.41
+        ✓ papier div.up            Kontrast 13.95
+        ✓ dunkel button.up         Kontrast 13.41
+        ✓ papier button.up         Kontrast 13.95
+        ✓ dunkel div.btn           Kontrast 14.07
+        ✓ papier div.btn           Kontrast 13.95
+        ✓ dunkel button.btn        Kontrast 14.07
+        ✓ papier button.btn        Kontrast 13.95
+        ✓ dunkel div.pan pad       Kontrast 14.07
+        ✓ papier div.pan pad       Kontrast 13.95
+        ✓ dunkel button.pan pad    Kontrast 14.07
+        ✓ papier button.pan pad    Kontrast 13.95
+        ✓ dunkel div.pan           Kontrast 14.07
+        ✓ papier div.pan           Kontrast 13.95
+        ✓ dunkel button.pan        Kontrast 14.07
+        ✓ papier button.pan        Kontrast 13.95
+        ✓ dunkel div.chip          Kontrast 15.04
+        ✓ papier div.chip          Kontrast 13.95
+        ✓ dunkel button.chip       Kontrast 15.04
+        ✓ papier button.chip       Kontrast 13.95
+        ✓ dunkel div.chip a        Kontrast 5.21
+        ✓ papier div.chip a        Kontrast 5.97
+        ✓ dunkel button.chip a     Kontrast 5.21
+        ✓ papier button.chip a     Kontrast 5.97
+        ✓ dunkel div.chip g        Kontrast 10.61
+        ✓ papier div.chip g        Kontrast 5.16
+        ✓ dunkel button.chip g     Kontrast 10.61
+        ✓ papier button.chip g     Kontrast 5.16
+        ✓ dunkel div.chip r        Kontrast 5.42
+        ✓ papier div.chip r        Kontrast 5.73
+        ✓ dunkel button.chip r     Kontrast 5.42
+        ✓ papier button.chip r     Kontrast 5.73
+      ✓ Gegenprobe: ein absichtlich unlesbarer Text wird gefunden
+      906 Textstellen gemessen · 0 Befunde
+
+########## RUECKTRITT ##########
+      ✓ der Rücktrittsknopf ist erreichbar
+      ✓ er lässt sich antippen
+      ✓ die Rückfrage erscheint
+      ✓ „Ja, beenden“ lässt sich antippen
+      ✓ die Laufbahn ist danach wirklich beendet   DEINE LAUFBAHN
+      ✓ dabei kein Fehler in der Konsole
+      Rücktritt ohne Verein läuft durch
+
+########## ERGEBNIS ##########
+Alles gesehen, keine Fehler.

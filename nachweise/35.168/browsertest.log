@@ -1,0 +1,43 @@
+Beidateien aus App.jsx: akademie.js buchungen.js ereignisse.js karten.js namen.js schriften.js sicherung.js spielstand.js titelbild.js verein.js 
+Fassung: const VERSION = "35.168";
+vite v6.4.3 building for production...
+transforming...
+✓ 38 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                    1.92 kB │ gzip:   1.07 kB
+dist/assets/index-o4ZXbGYo.js  1,529.04 kB │ gzip: 555.82 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.22s
+Gegenprobe: 0 Verweise auf die Buenddatei, $& unveraendert (3)
+Werkstatt: eingebaut
+geschrieben: /tmp/bt/rasenschach-browsertest.html  1518 KB
+Nachladen: 0 externe Verweise · 0 @import · 0 fonts.googleapis
+@font-face: 5 (weniger als 5 heisst: Schriften fehlen)
+=== Startprobe ===
+  ✓ Wurzel gefuellt   Kindelemente: 1
+  ✓ Willkommensschirm vorbelegt, Menue erreicht
+  ✓ Titelblatt da
+  ✓ Impressum zeigt die Fassung der Quelle   Quelle 35.168 · angezeigt 35.168
+  · Schriftbefund: in jsdom nicht messbar (kein getContext) — nur auf dem Geraet
+  ✓ kein NaN/undefined im Text
+  ✓ Stilblock der App vorhanden
+  ✓ Halbtonraster im Grundstil
+=== Messwerkzeug ===
+  ✓ Griff vorhanden
+  ✓ Kasten zunaechst zu
+  ✓ keine Bildschleife vor dem Einschalten
+  ✓ Diagnose gefuellt   Protokoll: http: · Sicherer Kontext: NEIN · navigator.wakeLock: FEHLT · localStorage: schreibbar · Geraetepixel: 1 · Fen
+  ✓ Kasten offen
+  ✓ Rasterschalter setzt Aufsatzstil
+  ✓ Rasterschalter raeumt wieder auf
+
+14 bestanden, 0 nicht bestanden.
+Meldungen aus der Seite:
+  Not implemented: Window's scrollTo() method
+  Not implemented: HTMLCanvasElement's getContext() method: without installing the canvas npm package
+FERTIG: /tmp/bt/rasenschach-browsertest.html

@@ -1,0 +1,1070 @@
+
+########## AUFBAU ##########
+Quelle:  /workspace/scratch/f8a6ef3117a1/work165/App.jsx
+  24:const VERSION = "35.165";
+  25:const VERSION_INFO = "Fortsetzen, Sammlung und Sicherungen überarbeitet.";
+Baudateien: 7 von 7 gefunden
+Schriften: 128K
+Beidateien: 9 (akademie.js ereignisse.js karten.js namen.js schriften.js sicherung.js spielstand.js titelbild.js verein.js )
+Schriftzeichen: 40 Proben ohne Befund
+Ereignisse: 532 Einträge
+Listen in STAND.md: Teile, Ereignis- und Baudateienzahl, beide Dateitabellen stimmen ✓
+
+Eigene Dateien (gemessen, 13.9.2026):
+  App.jsx            1131 KB   19271 Zeilen
+  storage.js            1 KB      28 Zeilen
+  sicherung.js          6 KB     102 Zeilen
+  spielstand.js         1 KB      27 Zeilen
+  schriften.js        127 KB      25 Zeilen
+  titelbild.js         22 KB      22 Zeilen
+  karten.js            29 KB     578 Zeilen
+  ereignisse.js       391 KB    3172 Zeilen
+  verein.js            73 KB    1394 Zeilen
+  namen.js            122 KB    2147 Zeilen
+  akademie.js          37 KB     713 Zeilen
+
+Prüfstand steht: /tmp/ps
+
+########## KALIBRIERUNG (300 Laufbahnen) ##########
+=== Vermächtnis-Coins über 300 Laufbahnen (ohne Akademiebonus) ===
+  Punkte     Mittel 850 · Median 818 · P10 539 · P90 1163
+  Saisons    Mittel 23.7 · Median 25
+  VC         Mittel 109.9 · Median 110 · P10 56 · P90 167 · Spanne 22–268
+  dazu je Laufbahn: Akademie 9.1 · Errungenschaften 18.1 · Verein 4.0  → zusammen 141.1 VC
+  Voller Ausbau kostet 2912 VC
+  → nur aus Laufbahn-VC, ohne die anderen Quellen: 26.5 Laufbahnen (im Mittel), 26.5 (im Median)
+  ✓ Laufbahnen bis Vollausbau (alle Quellen): 20.6  (Ziel 20–30)
+  ✓ Kosten des Vollausbaus: 2912  (Ziel 2700–3100)
+
+=== Akademie: 25 Jahre je Ausbaustufe (je 40 Durchläufe) ===
+  Stufe   Aufnahmen  Profis  Weltklasse  Nationalsp.  Turniere  Abbrüche  Ansehen
+    1        69.4        1.8        0.0          0.0        0.6       59.7        7.2
+    2        69.7        5.2        0.0          0.0        0.6       56.0       13.8
+    3        97.7       14.1        0.0          0.1        3.6       70.3       50.7
+    4       126.0       32.7        0.1          1.1        7.1       74.4      114.8
+    5       154.3       53.0        1.4          4.7       11.5       77.0      218.0
+    6       153.8       57.4        4.1         10.3       14.4       72.3      310.6
+
+  Weltklasse auf Stufe 6 nach 25 Jahren: Median 4 · P10 2 · P90 7 · Spanne 0–10
+  ✓ Weltklasse Stufe 6 (Median): 4  (Ziel 3–8)
+
+=== Rautekarte (Ausgleichszähler) ===
+  Laufbahnen bis zur Karte: Median 34 · Mittel 35.8 · P10 13 · P90 60
+  Bis Laufbahn 10: 6.0 % · 20: 22.3 % · 30: 43.2 %
+  Zähler wird am Spieler festgehalten ✓
+  ✓ Rautekarte (Median): 34  (Ziel 28–42)
+
+=== Gedeckelter Startvorteil nach Ansehen ===
+  Ansehen   0 → Anlage +0 · Ruf +0 · Geld +0 Tsd. € · Entwicklung +0 %
+  Ansehen  40 → Anlage +1 · Ruf +2 · Geld +30 Tsd. € · Entwicklung +0 %
+  Ansehen  90 → Anlage +3 · Ruf +5 · Geld +70 Tsd. € · Entwicklung +4 %
+  Ansehen 150 → Anlage +4 · Ruf +6 · Geld +100 Tsd. € · Entwicklung +6 %
+  Ansehen 220 → Anlage +4 · Ruf +6 · Geld +100 Tsd. € · Entwicklung +6 %
+  Ansehen 300 → Anlage +4 · Ruf +6 · Geld +100 Tsd. € · Entwicklung +6 %
+  Ansehen 500 → Anlage +4 · Ruf +6 · Geld +100 Tsd. € · Entwicklung +6 %
+
+=== Kosten je Abteilung (Stufe 1 → 6) ===
+  Trainingsplätze         16 · 30 · 48 · 70 · 96     = 260 VC
+  Scouting                18 · 34 · 54 · 78 · 106    = 290 VC
+  Internat                14 · 27 · 43 · 63 · 86     = 233 VC
+  Medizinische Abteilung  15 · 28 · 45 · 66 · 90     = 244 VC
+  Ausbildung              20 · 37 · 58 · 84 · 114    = 313 VC
+  Wettbewerbe             14 · 26 · 42 · 60 · 82     = 224 VC
+  Mentaltraining          26 · 48 · 78 · 112 · 152   = 416 VC
+  Videoanalyse            28 · 52 · 84 · 120 · 164   = 448 VC
+  Netzwerk zu Profivereinen30 · 56 · 90 · 130 · 178   = 484 VC
+  GESAMT                                             = 2912 VC
+
+=== Zielbänder ===
+  Alle Kennzahlen im Zielband.
+
+########## ANSICHTEN UND DURCHKLICKTEST ##########
+=== Ansichten ===
+  Porträtgrund: 11 Fälle, alle über 2.5 Kontrast ✓
+  Sonderschuss: bestes Feld 4.0 % · Trostbonus 1 Attributpunkt
+  Physio          ohne: 22/60 Saisons verletzt · mit: 0/60 · Preis 30 VC · Dauer 1
+  Abschluss       5 Reiter, beim Öffnen keiner gewählt · auf und wieder zu · Leiste mit 1 Knopf · Platzhalter 132 px
+  Voreinstellung  neu folgt der Übergabe · bestehender Stand bleibt unberührt · keine stille Rückwirkung
+  Frisuren        16 männliche und 14 weibliche · alle 5 Kopfformen · jede Form unterscheidbar
+  Akademiegabe    frisch gegründet: Bekanntheit +1 · nächste Gabe in 12 Ansehen (Startkapital +10 Tsd. €)
+  Akademiegabe    Deckel: Anlage +4 · Bekanntheit +6 · Startkapital +100 Tsd. € · Entwicklung +6 %
+  Zugpruefung     Binde: 4 Ereignisse zulässig → nach Annahme 0
+  Zugpruefung     Kind: 2 Ereignisse zulässig → nach Geburt 0
+  Folgeereignis   attest_zurueck 3 Fälle · tv_bannerbleibt 4 Fälle · je beide Richtungen
+  Flaggen         beidseitig gegen starken Nebenmann: bench → rot · ohne Nebenmann: rot = rot
+  Flaggen         manipuliert in der Weltbilanz: Skandale 0 → 1
+  Jugendturnier   60 Jahre voll ausgebaut: 37 Siege · 17 Ausscheiden · 10 Turniernamen · ohne Wettbewerbe: 0 Zeilen
+  Ruhmeshalle     8 Zellen geprüft · 6 Zellenreihen gezeichnet
+
+=== Durchklicktest ===
+  ✗ Aufstellung — 3 Reihe(n) zwischen Tipp und Kasten
+
+=== Punkte gegen Coins ===
+  631 Punkte → 85 Coins · erste Zeile: „Aus 631 Vermächtnispunkten“ ✓
+  Höchster Einzelertrag aus 150 Laufbahnen: 108 Coins = 3.7 % des Vollausbaus (2912)
+
+=== Kartenenthüllung ===
+  Sonderstufe „Schwarz-Weiß-Blau“ bekommt vollen Aufwand ✓
+
+=== Errungenschaften der Akademie ===
+  12 Errungenschaften für die Akademie
+  Ohne Akademie greift keine ✓
+  Ohne Übergabe kein Absturz ✓
+  Reifes Haus (25 Jahre, Stufe 6) löst 11 von 12 aus
+
+=== Nächster Schritt ===
+  leer            Internat Stufe 2 · fehlen 14 VC · leistbar: 0
+  mit 300 VC      Internat Stufe 2 · fehlen 0 VC · leistbar: 9
+  reif            alles ausgebaut · leistbar: 0
+  voll ausgebaut  alles ausgebaut · leistbar: 0
+
+=== Vermächtnis-Laden ===
+  Laden           7 Artikel · 20–70 VC · alle mit Zeichen und erreichbar
+  Kartentausch    4 von 4 Zählungen · zweiter Tausch geht durch ✓ · dritter gesperrt ✓ · nach der Saison gesperrt ✓
+  Laden · start   7 Artikel · 6 gesperrt
+  Laden · saison  7 Artikel · 0 gesperrt
+  Kaufmodell      10 von 10 Lagen richtig
+  Ablauf          training 1→0 · ueber99 4→3 · Vorrat reroll 2→2 · danach nachkaufbar: ja
+  Vorrat          reroll 2 → 3 Tausche insgesamt
+
+=== Freischaltungen ===
+  Freischaltungen zugeklappt: Übersicht nach Art ✓ · Zähler 2 von 48 ✓
+
+=== Versprochene Rückkehr ===
+  Rückkehr        40 von 40 Versprechen eingelöst · 40 danach verbraucht
+
+=== Kopfformen ===
+  Spiegelgleich   10 von 10 Formen
+
+=== Wildcards ===
+  Verteilung      20000 Ziehungen · normal 35.2% · selten 24.8% · aussen 15.9% · unfass 11.0% · welt 8.1% · goat 4.9% · hsv 0.1%
+
+=== Rückblick-Karten ===
+  Rückblick       Sperrspiele getrennt erfasst: 4 mit Sperre, 0 ohne
+
+=== Wachstumskurve ===
+  Wachstum        16 J. +3.35 · 27 J. mit Lücke +1.05 · 27 J. ohne +0 · 33 J. +-0.8
+
+=== Block D ===
+  Reiter          1 von 1 Leisten mit Randverlauf
+  Auto-Training   bei 70 „abschluss“ · nach Anschlag „kraft“ · alles 99 „abschluss“
+
+=== Frauenfußball ===
+  Umformung       10 von 10 Fällen richtig
+  Ereignistexte   3326 umgeformt · 0 männliche Reste
+  Gegenprobe      200 Texte bei einem Mann unverändert
+
+=== Sprache ===
+  Ereignistexte   3368 geprüft · 0 steife Wendungen
+  Anleitung       7 Kapitel · 27 Zeilen · längste 119 Zeichen
+
+=== Block A ===
+  Zurück-Taste    Stapel 57 → 58 beim Öffnen
+  Rentenfrage     4 von 4 Fällen richtig
+  Namensvorschlag 6 Herkünfte verschieden · stabil · 28 Namen ohne Fremdzeichen · Beispiel: Kai Hartmann / Lina Hartmann
+
+=== Vier gemeldete Fehler ===
+  Spielerpass     immer eine Rollfläche, immer 150px hoch ✓
+  Binden          2 · keine in umbrechender Zeile · getrennt vom Namen
+  Flaggen         212 von 212 Nationen · 7 Bauarten
+  Ränge lesbar    kleinster Kontrast 5.24 (nötig 4,5)
+  Rückblick       Akademieherkunft: Anlage +4 · Bekanntheit +6 · Startkapital +100 Tsd. € · Entwicklung +6 %
+  Rückblick       1 Karteikarte · Reiter var(--ac)
+  Karteikarte     Farbumdeutung vollständig · Bewegung rein und raus
+  Anzeigegröße    zoom im Grundstil ✓ · min-height gegengerechnet ✓
+  Rahmen          Vorgabe Gold · Wahl Silber · „keiner“ leer · unfreigeschaltet fällt zurück
+
+=== Seitenmöbel des Hefts ===
+  4 von 4 Innenseiten mit Kolumnentitel und Folio
+  Titelfoto       Deckung 0.85 ohne, 0.42 mit Spielstand
+  Titelblatt      Verzeichnis nennt 22 · 14 · 30 · kein Flutlicht mehr
+  Aufmacher       4 verschiedene Schlagzeilen je nach Spielstand
+  Seitenzahlen    2 · 3 · 8 · 14 · 22 · 30 · 31 · 46 · 48 · alle verschieden
+  Kopfknöpfe      2 in einem Behälter · Optionen · Vermächtnis-Laden
+  Stil            .zahnrad nicht absolut · Behälter Abstand 8px
+
+=== Zoom und Akademiefortschritt ===
+  frisch gegründet   0 von 45 Ausbaustufen
+  nach 25 Jahren     45 von 45 Ausbaustufen
+  akaSumme voll      54 (Errungenschaft prüft weiter darauf)
+
+=== Porträt ===
+  Regler          3360 Drücke · Mittel 0.93 geänderte Merkmale · Höchstwert 1 (vorher bis 8)
+  Herkunft        6 Länder × 40 Drehungen · 0 Ausreißer
+  Gestaltung      67 gezeichnete Auswahlmöglichkeiten in 8 Merkmalen · 7 Augenfarben · 10 Kopfformen
+  Augenfarbe      7 von 7 im Bild nachweisbar
+  Kopfleiste      angeheftet ✓ · Porträt darin ✓ · deckender Grund ✓
+
+=== Form statt Farbe ===
+  Wildcard        Band gefüllt ✓ · kein Umriss ✓ · keine Stufenmarke ✓
+  sieben Stufen   alle Bänder gefüllt
+  Errungenschaften 14 Blöcke · 0 Punkte · je Stufe eine Farbe · alle mit eigener Schrift
+
+=== Ehrentafel ===
+  leer               0 Karton · Hinweistext steht ✓
+  25 Jahre           40 Karton · 40 Kopfbänder · 40 Feldgruppen · 1 Stempel · 6 Weltklasse · 0 schief
+  alte Einträge      3 Karton · kein NaN · Position „XX“ unverändert durchgereicht ✓
+
+=== Speicher und Zeitrechnung ===
+  Sicherungsgröße nach 25 Jahren: 36.4 KB · Talente 25 · Ehrentafel 40 · Chronik 25
+  Fünf Laufbahnen → Jahr 2026 auf 2031 · 200 VC · 5 Jahrgänge
+  Ohne Gründung: 90 VC angespart, kein Jahrgang
+
+=== Ablauf der Enthüllung ===
+  goat    Klassen stabil ✓ · kein Streit um transform ✓ · Hülle bewegt: ja
+  hsv     Klassen stabil ✓ · kein Streit um transform ✓ · Hülle bewegt: ja
+  normal  Klassen stabil ✓ · kein Streit um transform ✓ · Hülle bewegt: ja
+
+815 Prüfungen bestanden, 1 Fehler.
+
+########## EREIGNISSE ##########
+=== Ereignisprüfung · 532 Ereignisse ===
+
+-- hart --
+  ✓ Kennungen sind eindeutig
+  ✓ feste Titel sind eindeutig
+  ✓ niemand bekommt angeboten, was er schon hat
+  ✓ was ein Text zusagt, stellt die Wirkung auch her
+      (Ausnahme jf_3: Die Trainerlizenz gehört dem Jugendfreund, nicht dem Spieler.)
+  ✓ jedes Ereignis hat einen bedingungslosen Ausweg
+  ✓ jede bedingte Option sagt, was fehlt
+  ✓ kein Ereignis ist beim schwaechsten Spieler eine Sackgasse
+  ✓ Storystränge sind lückenlos und erreichbar
+      buch (5 Ereignisse, 3 Stufen) · knie (5 Ereignisse, 3 Stufen) · trainer (6 Ereignisse, 4 Stufen) · jugendfreund (5 Ereignisse, 3 Stufen)
+  ✓ Wirkungen mit festen Werten benutzen erlaubte Werte
+
+-- Grundlinie --
+  ✓ keine neuen fast gleichen Paare (ab 25 % Wortüberschneidung) — 5, unveraendert zur Grundlinie
+  ✓ keine neuen folgenlosen Flaggen — 0, unveraendert zur Grundlinie
+
+-- Bericht --
+  Optionen je Ereignis:   1 → 1  ·  2 → 447  ·  3 → 71  ·  4 → 12  ·  5 → 1
+  Optionen nur manchmal:  39 von 1161
+  Optionen mit Bedingung: 38 von 1161   (35.7: 0 — Kennzahl für Punkt C)
+  Optionen ohne Würfel:   851 von 1161
+  Häufigste Wirkungen:    morale 91 %  ·  trust 63 %  ·  rep 57 %  ·  form 42 %  ·  legacy 35 %  ·  fitness 30 %
+  Themen:                 49, größtes „Zwielichtig“ mit 34
+
+11 Prüfungen in Ordnung · 0 harte Treffer · 0 über der Grundlinie
+
+########## TEXTKATALOG ##########
+
+  4898 Textstellen aus 532 Ereignissen
+
+  Maennliche Fassung:
+    0 Befunde
+
+  Weibliche Fassung (nach `weiblichForm`):
+    0 Befunde
+
+  Mengenformen bei 0, 1 und 2:
+    0 Befunde
+
+  9805 Proben, 0 Befunde
+
+  Keine sichtbaren Textfehler in den geprueften Mustern.
+
+########## STIMMIGKEIT DER EREIGNISSE ##########
+  gemessen aus: /tmp/ps/motor.js
+  Bündel ist aktuell (neuer als ereignisse.js) ✓
+  532 Ereignisse · 1161 Auswahlmöglichkeiten · 1474 Ausgänge
+
+  -- Wirkung --
+    ✓ Wirkung, die stumm verpufft — nichts gefunden
+    16× Auswahl ohne jede Wirkung:
+      ghostwriter            Wahl 3 „Ablehnen“ hat gar keine Wirkung
+      elfer                  Wahl 2 „Lieber nicht“ hat gar keine Wirkung
+      standards              Wahl 3 „Ablehnen“ hat gar keine Wirkung
+      schlaf                 Wahl 2 „Kein Interesse“ hat gar keine Wirkung
+      rueckkehr              Wahl 2 „Nichts versprechen“ hat gar keine Wirkung
+      agentur                Wahl 2 „Ablehnen“ hat gar keine Wirkung
+      stiftung               Wahl 2 „Später mal“ hat gar keine Wirkung
+      raser                  Wahl 2 „Runterschalten“ hat gar keine Wirkung
+      koch                   Wahl 2 „Weiter selber machen“ hat gar keine Wirkung
+      experte                Wahl 2 „Offenlassen“ hat gar keine Wirkung
+      hund                   Wahl 2 „Passt gerade nicht“ hat gar keine Wirkung
+      j_fuehrerschein        Wahl 2 „Verschieben“ hat gar keine Wirkung
+      k_stimmungsboykott     Wahl 4 „Raushalten“ hat gar keine Wirkung
+      w_ausruester           Wahl 2 „Beim gewohnten Modell bleiben“ hat gar keine Wirkung
+      sf_ausruestung         Wahl 2 „Nächstes Jahr“ hat gar keine Wirkung
+      ew_ausbildung          Wahl 3 „Nicht jetzt“ hat gar keine Wirkung
+
+  -- Erreichbarkeit --
+    ✓ Würfel, die nicht aufgehen — nichts gefunden
+    ✓ Ereignisse, in denen jede Wahl bedingt ist — nichts gefunden
+
+  -- Passt das Ereignis zum Moment? --
+    ✓ Partnerin/Partner im Text — alle abgesichert
+    ✓ Kind oder Schwangerschaft — alle abgesichert
+    ✓ Hochzeit — alle abgesichert
+    ✓ Trennung oder Scheidung — alle abgesichert
+    ✓ Kapitänsbinde wird ANGEBOTEN — alle abgesichert
+    ✓ Nationalmannschaft — alle abgesichert
+    ✓ Leihe — alle abgesichert
+    ✓ Verletzung oder Reha — alle abgesichert
+    ✓ Karriereende oder Rücktritt — alle abgesichert
+    ✓ Traumverein — alle abgesichert
+    ✓ Kinder im Haus (nicht Geburt) — alle abgesichert
+
+  -- Zwei Ereignisse im selben Jahr --
+    38 Paare koennen im selben Zug gezogen werden —
+    seit 35.37 fängt die Zweitprüfung in `nextEvent` sie ab.
+    Mit --alle stehen sie einzeln da.
+
+  -- Verdrahtung der Zweitpruefung --
+    ✓ alle drei Stellen verdrahtet
+
+  -- Rollen in der dritten Person --
+    ✓ Rolle in dritter Person, die der Spieler selbst haben kann — nichts gefunden
+
+  ----------------------------------------------------------
+  17 Proben ohne Befund · 0 harte Fehler · 0 Verdachtsfälle zum Nachlesen
+
+########## NAMENSKARTEI ##########
+  212 Nationen · 217 haben einen eigenen Eintrag
+
+  -- Abdeckung --
+    212 von 212 = 100.0 %
+    ✓ jede Nation hat ihre eigene Kartei
+
+  -- Herkunft der Namen --
+    gesichert (q3):           87
+    regional abgeleitet (q2): 85
+    dünn (q1):                40   Brunei, Timor-Leste, Bhutan, Turkmenistan, Vanuatu, Amerikanisch-Samoa, Cookinseln, Kiribati, Tuvalu, Nauru, Palau, Marshallinseln, Mikronesien, Guam, St. Kitts und Nevis, St. Lucia, St. Vincent und die Grenadinen, Grenada, Dominica, Seychellen, Zentralafrikanische Republik, Tschad, Burundi, Dschibuti, Komoren, Mauritius, El Salvador, Nicaragua, Dominikanische Republik, Puerto Rico, Äquatorialguinea, Andorra, Mauretanien, Jemen, Färöer, Guinea-Bissau, São Tomé und Príncipe, Liechtenstein, Aruba, San Marino
+
+  -- Erzeugte Namen --
+    ✓ jedes Land mit Eintrag benutzt seine eigene Kartei
+    ✓ alle 212 Nationen liefern brauchbare Namen, männlich und weiblich
+
+  -- Doppelte Karteien --
+    12 Paare mit identischer Kartei:
+      zentralasien = UZB
+      melanesien = PNG
+      polynesien = TGA
+      mikronesien = FSM
+      karibik_en = TRI
+      NZL = NGA
+      NZL = RSA
+      NZL = BEL
+      FRA = MCO
+      NZL = MRI
+      NZL = ANG
+      NZL = SUI
+    Das ist in Ordnung, wenn die Laender sich eine Namenskultur
+    wirklich teilen — dann gehoert `erbt` gesetzt statt kopiert.
+
+  -- Umfang der Namenstoepfe --
+    209 Laender mit eigenen Listen, im Mittel 1435 Kombinationen
+    kleinste: MYA 40 (40x1) · BRU 160 (16x10) · BLZ 168 (14x12)
+    groesste: MEX 39200 · ARG 35937 · ESP 19573
+    ✓ kein Land unter 100 Kombinationen
+    ✓ die 16 erweiterten Nationen liegen alle ueber 440
+
+  ----------------------------------------------------------
+  6 Proben ohne Befund · 0 harte Fehler
+
+########## VEREIN ##########
+Vereinsprüfung Seed: 20260913
+=== Vereinsprüfung ===
+
+  ✓ Ligapyramiden sind aufsteigend sortiert und getrennt  21 Pyramiden mit Unterbau
+  ✓ Deutschland hat drei Stufen  3. Liga → 2. Bundesliga → Bundesliga
+  ✓ jede Position hat eine Eignungstabelle
+  ✓ ein Torwart kann nur ins Tor
+  ✓ kein Feldspieler kann ins Tor
+  ✓ jede Position ist auf sich selbst voll geeignet
+  ✓ keine Eignung zwischen 0 und 0,6
+  ✓ jede Formation hat elf Plätze und genau einen Torwart
+  ✓ Gründung liefert einen bespielbaren Verein
+  ✓ Kader aus eigener Jugend füllbar  16 Spieler nach 1 Wartejahr(en)
+  ✓ und aufstellbar — 16 Spieler sind nicht dasselbe wie eine Mannschaft  {}
+  ✓ ohne Aufstellung nicht spielbereit
+  ✓ Saison wird ohne Aufstellung verweigert
+  ✓ nach dem Aufstellen spielbereit  Stärke 50.7
+  ✓ eine falsche Aufstellung ist messbar schlechter  50.7 gegen 32.9
+  ✓ Handaufstellung: es gibt Kandidaten für ZM  9 zur Auswahl
+  ✓ Kandidaten können dort alle wirklich spielen
+  ✓ Kandidaten sind nach Stärke auf DIESEM Platz sortiert  57 … 31
+  ✓ die angezeigte Zahl ist ovr × Eignung
+  ✓ Kandidaten melden, wo sie gerade stehen  5 stehen schon in der Elf
+  ✓ Handaufstellung setzt den gewählten Spieler
+  ✓ und reißt an seinem alten Platz kein Loch  Platz 6 (ZM) ist besetzt, 4 frei verfügbar
+  ✓ die Elf wird durch ein Antippen nicht kleiner  11 → 11
+  ✓ kein Spieler steht doppelt in der Elf
+  ✓ die Elf bleibt nach dem Tausch spielbereit  Stärke 50.7, 4 frei verfügbar
+  ✓ Hartprobe: Ausgangself ist vollständig  Stärke 59.6
+  ✓ Hartprobe: der Verdrängte kann NICHT zurück  ST auf ZM = 0
+  ✓ Hartprobe: der Gewählte steht auf dem Zielplatz
+  ✓ Hartprobe: der frei gewordene Platz wird von der Bank nachbesetzt  ZM-Platz: bankZM
+  ✓ Hartprobe: die Elf bleibt vollständig und spielbereit  11 Plätze, Stärke 58.7
+  ✓ Hartprobe: niemand steht doppelt
+  ✓ Hartprobe: ohne Ersatz bleibt der Platz leer statt fehlbesetzt  1 leer, 0 fehlbesetzt
+  ✓ ein ungeeigneter Spieler wird abgewiesen  IV auf ZM: abgelehnt
+  ✓ Platz leeren entfernt genau einen Spieler
+  ✓ und die Mannschaft ist danach NICHT mehr spielbereit  1 Platz/Plätze leer
+  ✓ eine Lücke kostet messbar Stärke  50.7 → 48.2
+  ✓ Säubern entfernt Verweise auf abgegangene Spieler
+  ✓ Säubern lässt die übrige Handarbeit stehen
+  ✓ nach Formationswechsel steht niemand auf einem Platz, den er nicht kann  4-3-3: 11 von 11 bleiben stehen
+  ✓ die Saison behält die Aufstellung, statt sie zu leeren  11 von 11 stehen nach der Saison noch
+  ✓ und niemand darin ist ein Geist
+  ✓ Taktik verschiebt Abwehr und Angriff gegenläufig
+  ✓ Taktik verändert das Risiko
+  ✓ fünfzehn Saisons laufen ohne Abbruch durch  15 Saisons · 2 Aufstiege · 0 Abstiege
+  ✓ die Bilanz zählt echte Zahlen, keine Nullen  742 Punkte · 694:670 Tore
+  ✓ die Chronik hat für jede Saison einen Eintrag
+  ✓ der Verein bleibt in seiner Pyramide  Bundesliga
+  ✓ ohne Laufbahn ist nichts frei
+  ✓ ab 2 Laufbahnen die Akademie, der Verein noch nicht  noch 2 bis zum Verein
+  ✓ ab 5 Laufbahnen der Verein
+  ✓ fehlende Zahlen stürzen nicht ab
+  ✓ Ausbau kostet, was die Tabelle sagt
+  ✓ ohne genug VC kein Ausbau
+  ✓ mit genug VC schon  Kosten 40
+  ✓ Ausbau endet bei der Höchststufe
+  ✓ das Stadion hebt die Mannschaftsstärke  50 → 54
+  ✓ das Trainingszentrum beschleunigt die Entwicklung  51.8 → 57.3
+  ✓ die medizinische Abteilung verlängert Laufbahnen  18 gegen 0 Abgänge
+  ✓ ein schwacher Durchlauf bringt weniger als ein starker  141/138 VC gegen 1023/420 VC
+  ✓ auch der schwächste Durchlauf bringt etwas
+  ✓ Boni kommen gestaffelt, nicht alles oder nichts  0 gegen 4 Boni
+  ✓ ein Abstieg kostet weniger als ein Aufstieg bringt
+  ✓ das Urteil passt zur Punktzahl  Ein Anfang / Herausragend
+  ✓ der neue Verein trägt den Bonus  {"startOvr":2,"aufnahmen":1,"ausbauStart":1,"zuwachs":0.4}
+  ✓ Bonus Guter Ruf macht hochgezogene Spieler stärker  50 → 52
+  ✓ das laufende Jahr wird relativ gezählt  13. Jahr
+  ✓ eine frische Akademie ist im ersten Jahr
+  ✓ alte Jahrgangszahlen werden umgerechnet  2032 → 7
+  ✓ neue Jahrgangszahlen bleiben unverändert
+  ✓ nie kleiner als 1
+  ✓ ohne Gründungsjahr wird durchgereicht
+  ✓ fehlende Werte stürzen nicht ab
+  ✓ die Jahresnummer zählt lückenlos hoch  1,2,3,4,5,6
+  ✓ Verein: frisch gegruendet ist NICHT eingeschrieben
+  ✓ Verein: spielt nicht mit, solange nicht eingeschrieben
+  ✓ Verein: Einschreiben ohne Kader wird abgelehnt
+  ✓ Verein: Kader spielbereit bekommen  17 Mann
+  ✓ Verein: Einschreiben mit vollem Kader geht
+  ✓ Verein: eingeschrieben + spielbereit = spielt mit
+  ✓ Verein: nach 15 Jahren spielt er nicht mehr mit
+  ✓ Verein: zu duenner Kader = Jahr faellt aus
+  ✓ Fleiss: es gibt die neuen Errungenschaften  18 Stück
+  ✓ Fleiss: jede ist mit genug Fleiss erreichbar  18 von 18
+  ✓ Fleiss: bei leerem Konto schnappt keine zu  alle verlangen etwas
+  ✓ Erreichbar: 5×100 echte Akademiejahre sind gelaufen  226 Profis · 231 Profis · 253 Profis · 239 Profis · 260 Profis
+  ✓ Erreichbar: die Chronik bleibt gedeckelt — kein Langzeitzähler  chronik 25 nach 100 Jahrgängen, in allen 5 Läufen
+  ✓ Erreichbar: jedes reine Akademieziel ist in 100 vollen Jahren drin  18 von 18
+  ✓ Erreichbar: Gegenprobe — die alte Bedingung fällt auf  chronik.length >= 50 bleibt in allen Läufen bei 25
+  ✓ Erreichbar: Gegenprobe — der Filter greift überhaupt  18 reine Akademieziele gefunden
+  ✓ Erreichbar: Gegenprobe — ein unerfüllbares Ziel würde auffallen  eine Schwelle zehnmal über dem Lauf trifft in keinem Stand zu
+  ✓ Fleiss: keine stürzt ohne Akademie ab  alle fangen es ab
+  ✓ Fleiss: jede Belohnung existiert  5 Belohnungen
+  ✓ Fleiss: jede Kartenbelohnung hat auch eine Karte  3 Karten, alle vorhanden
+  ✓ Fleiss: die neuen Karten sind ohne Freischaltung gesperrt  Der Ziehvater, Dynastie, Werkbank
+  ✓ Karten: die Stufen sind aufsteigend  50→bronze 65→silber 75→gold 90→legende
+  ✓ Karten: die Grenzen sitzen genau
+  ✓ Karten: Absolvent, Kaderspieler und Halleneintrag werden Karten  silber / gold / legende
+  ✓ Karten: die Herkunft steht drauf
+  ✓ Karten: die Halle zeigt den Bestwert, nicht den Stand beim Rücktritt  ovr 88
+  ✓ Karten: der Verein steht auf der Kaderkarte
+  ✓ Pool: drei Karten drin  stand 3
+  ✓ Pool: Doppelte werden zusammengeführt, nicht angehängt  3 Karten nach dem zweiten Mal
+  ✓ Pool: der bessere Wert gewinnt  ovr 79
+  ✓ Pool: ein schlechterer Wert überschreibt NICHT  ovr 79
+  ✓ Pool: nach Herkunft filterbar
+  ✓ Pool: je Stufe zählbar  {"bronze":0,"silber":1,"gold":1,"legende":1}
+  ✓ Pool: übersteht das Speichern  sonst wäre „dauerhaft“ eine Behauptung
+  ✓ Pool: leer und ohne Zugabe stürzt nicht
+  ✓ Packs: es gibt vier Stufen  Bronzepack 30 VC · Silberpack 65 VC · Goldpack 130 VC · Legendenpack 240 VC
+  ✓ Packs: die Preise steigen mit der Stufe
+  ✓ Packs: jede Ziehung liefert die zugesagte Kartenzahl  1200 Ziehungen je Pack
+  ✓ Packs: die Mindestzusage hält IMMER  auch wenn der Würfel dreimal Bronze sagt
+  ✓ Packs: aus Bronze kommen keine Legenden  0 in 1200 Ziehungen
+  ✓ Packs: Sonderkarten kommen dazu, ersetzen nichts  immer 3 gezogene Karten, Sonderkarte zusätzlich
+  ✓ Packs: Sonderkarten sind selten genug  29.5 % beim Legendenpack
+  ✓ Packs: ohne Pool keine Sonderkarte, aber auch kein Absturz
+  ✓ Packs: ein unbekanntes Pack wird abgewiesen
+  ✓ Packs: der Preis wird in Laufbahnen angesagt  Silberpack 0.6 Laufbahnen
+  ✓ Packs: gezogene Spieler sind fertig, nicht Nachwuchs  Alter 20/27/30 · Anlage über Stärke 0/2/2
+  ✓ Feld 4-4-2: alle elf Plätze genau einmal  11 Stellen, 11 verschieden
+  ✓ Feld 4-4-2: jede Stelle trägt ihre eigene Position
+  ✓ Feld 4-4-2: der Torwart steht allein in der ersten Reihe
+  ✓ Feld 4-3-3: alle elf Plätze genau einmal  11 Stellen, 11 verschieden
+  ✓ Feld 4-3-3: jede Stelle trägt ihre eigene Position
+  ✓ Feld 4-3-3: der Torwart steht allein in der ersten Reihe
+  ✓ Feld 4-2-3-1: alle elf Plätze genau einmal  11 Stellen, 11 verschieden
+  ✓ Feld 4-2-3-1: jede Stelle trägt ihre eigene Position
+  ✓ Feld 4-2-3-1: der Torwart steht allein in der ersten Reihe
+  ✓ Feld 3-5-2: alle elf Plätze genau einmal  11 Stellen, 11 verschieden
+  ✓ Feld 3-5-2: jede Stelle trägt ihre eigene Position
+  ✓ Feld 3-5-2: der Torwart steht allein in der ersten Reihe
+  ✓ Feld 5-4-1: alle elf Plätze genau einmal  11 Stellen, 11 verschieden
+  ✓ Feld 5-4-1: jede Stelle trägt ihre eigene Position
+  ✓ Feld 5-4-1: der Torwart steht allein in der ersten Reihe
+  ✓ Feld: die Außenverteidiger stehen außen  AV IV IV AV
+  ✓ Feld: die Außenstürmer auch  AF ZM ZM AF
+  ✓ Feld: 4-4-2 ergibt 1-4-4-2  1-4-4-2
+  ✓ Feld: 3-5-2 ergibt 1-3-5-2  1-3-5-2
+  ✓ Startpaket: sechs Karten  6
+  ✓ Startpaket: mindestens drei aus der Vorgängermannschaft  5 von 6
+  ✓ Startpaket: mindestens einer aus der Ruhmeshalle  1
+  ✓ Startpaket: aus der Halle kommt der Stärkste  erwartet 88
+  ✓ Startpaket: nicht die halbe Ruhmeshalle  1 Hallenkarten von 6
+  ✓ Startpaket: kein übermächtiges Geschenk  Durchschnitt 73.8
+  ✓ Startpaket: auch beim ersten Verein sechs Karten  silber, gold, silber, silber, silber, silber
+  ✓ Startpaket: die aufgefüllten sind nicht bronze  bronze wäre ein mageres Geschenk für fünfzehn Jahre
+  ✓ Verkauf: kein Pack zahlt sich durch Verkaufen selbst  39 % · 41 % · 34 % · 30 %
+  ✓ Verkauf: aber wertlos ist er auch nicht  mindestens 30 %
+  ✓ Verkauf: bessere Karten bringen mehr  {"bronze":4,"silber":10,"gold":24,"legende":55}
+  ✓ Verkauf: eine Packkarte lässt sich verkaufen  +24 VC
+  ✓ Verkauf: die eigene Ruhmeshalle wird NICHT verkauft
+  ✓ Verkauf: eigene frühere Vereinsspieler auch nicht
+  ✓ Verkauf: eine Karte, die es nicht gibt, wird abgewiesen
+  ✓ Kader: ein gezogener Spieler belegt einen Platz
+  ✓ Kader: er lässt sich wieder herausnehmen
+  ✓ Kader: Eigengewächse gehen nicht über diesen Weg
+  ✓ VC: ohne Zutaten gibt es nichts
+  ✓ VC: Aufnehmen allein bringt nichts  sonst lohnte sich Masse statt Arbeit
+  ✓ VC: Weltklasse zählt mehr als ein Profi  4 gegen 12
+  ✓ VC: ein Mittelfeldplatz bringt nichts
+  ✓ VC: Meister zahlt am meisten  Meister 35 · Platz 3 12
+  ✓ VC: der Abstieg kostet nichts
+  ✓ VC: Errungenschaften zahlen nach Stufe  bronze 1 · gold 2 · legende 7
+  ✓ VC: alle Errungenschaften zusammen bleiben unter dem halben Ausbau  542 VC gegen 2912 Vollausbau
+  ✓ Kasse: eine Gutschrift erhöht Kasse UND `verdient` um denselben Betrag  vc 500 · verdient 500
+  ✓ Kasse: Gegenprobe — eine Gutschrift von 0 bewegt nichts  vc 77 · verdient 77
+  ✓ Kasse: App.jsx für die Buchungsprüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Kasse: jede Stelle, die VC abzieht, bucht `ausgegeben` mit  5 Abgangsstellen, alle gebucht
+  ✓ Kasse: jede Stelle, die VC gutschreibt, bucht `verdient` mit  3 Zugangsstellen, alle gebucht
+  ✓ Schlagzeile: neun feste Lagen ergeben neun verschiedene Zeilen  9 von 9
+  ✓ Schlagzeile: Gegenprobe — die neun Zeilen sind wirklich verschieden  9 verschiedene aus 9 Lagen
+  ✓ Schlagzeile: der Laufbahn-Aufbau hat wirklich Saisons erzeugt  15 Laufbahnen · 349 Saisons
+  ✓ Schlagzeile: keine Saison bleibt ohne Zeile  349 Saisons · 0 ohne Zeile · 0 ohne Satz
+  ✓ Schlagzeile: keine Zeile beherrscht das Feld  häufigste 32.1 % · 19 verschiedene
+  ✓ Schlagzeile: unvollständige Zustände stürzen nicht ab  vier Lücken-Lagen abgefangen
+  ✓ Kapitel: eine Rückkehr ergibt eine EIGENE Station  3 Stationen aus 4 Saisons bei 2 Vereinen
+  ✓ Kapitel: die zweite Zeit bei einem Verein heißt „Die Rückkehr“  A=Der Anfang · B=Die Stammplatzjahre · A=Die Rückkehr
+  ✓ Kapitel: Gegenprobe — ohne Rückkehr bleiben es zwei Stationen  2 Stationen · zweites Kapitel: Die Stammplatzjahre
+  ✓ Kapitel: die Zahlen je Station werden richtig summiert  2J/60Sp · 1J/30Sp · 1J/30Sp
+  ✓ Kapitel: der Laufbahn-Aufbau hat wirklich Stationen erzeugt  12 Laufbahnen · 187 Stationen
+  ✓ Kapitel: jede Regel der Tabelle ist erreichbar  18 Regeln, jede mit eigener Lage
+  ✓ Kapitel: über echte Laufbahnen kommt die Mehrzahl auch vor  13 von 18 · 187 Stationen
+  ✓ Kapitel: kein Kapitel beherrscht das Feld  häufigstes 28.9 % (Grenze 35 %)
+  ✓ Kapitel: unvollständige Zustände stürzen nicht ab  vier Lücken-Lagen abgefangen
+  ✓ Marken: die zehn neuen sind alle in der Liste  31 Marken insgesamt · 10 von 10 neu
+  ✓ Marken: die neuen Punkte bleiben klein gegen die alten  37 gegen 402 (Grenze 101)
+  ✓ Marken: wer „schwer“ verspricht, prüft auch die Schwere  prüft `injury.sev`
+  ✓ Marken: der Laufbahn-Aufbau hat wirklich Laufbahnen erzeugt  12 Laufbahnen · Saisons 25/25/24/24/25/25/6/25/24/25/25/22
+  ✓ Marken: jede neue Marke wird im echten Verlauf auch erreicht  10 von 10
+  ✓ Marken: auch eine begrenzte Laufbahn sammelt jetzt etwas  6 unter Höchststärke 78 · Marken Median 19 (Spanne 3–19)
+  ✓ Marken: Gegenprobe — eine erfundene Marke fällt durch  „gibtesnicht“ wird in 12 Laufbahnen nicht erreicht
+  ✓ Ziel: genug Marken taugen als Ziel  21 von 31 haben `mess` und `soll`
+  ✓ Ziel: `mess >= soll` bedeutet dasselbe wie `ok`  21 Marken über 10 Laufbahnen geprüft
+  ✓ Ziel: was schon erreicht ist, wird nicht mehr angeboten  angeboten: 50 Vorlagen (36/50)
+  ✓ Ziel: ein Anfänger bekommt kein unerreichbares Fernziel  bei einem Spiel und null Toren: keines
+  ✓ Ziel: Gegenprobe — wer nah dran ist, bekommt eines  50 Pflichtspiele (30/50)
+  ✓ Ziel: über echte Laufbahnen streut die Auswahl  9 Laufbahnen mit Ziel · 7 verschiedene
+  ✓ Ziel: unvollständige Zustände stürzen nicht ab  vier Lücken-Lagen abgefangen
+  ✓ Erinnerung: die sechs Rückbezüge sind da  6 Ereignisse mit Kennung `er_`
+  ✓ Erinnerung: jede Quelle ist ein Ereignis, das es gibt  6 Rückbezüge geprüft
+  ✓ Erinnerung: keine greift ohne das Flag oder ohne Abstand  6 geprüft
+  ✓ Erinnerung: jede greift, wenn Flag und Abstand da sind  6 von 6
+  ✓ Erinnerung: `her` rechnet den Abstand richtig  20 Saisons, Ereignis in Saison 4 → 16
+  ✓ Erinnerung: `her` meldet -1, wenn das Ereignis nie kam  ohne Eintrag: -1 · ohne Spieler: -1
+  ✓ Erinnerung: Gegenprobe — wer die Quelle nie erlebt hat, fällt durch  her = -1, Schwelle 6 → nicht erfüllt
+  ✓ Erinnerung: alle haben ein Gewicht, das sie auch ankommen lässt  alle bei 12 oder höher
+  ✓ Archetyp: die Tabelle hat genug Einträge  10 Archetypen
+  ✓ Archetyp: der Laufbahn-Aufbau hat wirklich Laufbahnen erzeugt  30 Laufbahnen
+  ✓ Archetyp: derselbe Verlauf ergibt immer dieselbe Einordnung  30 zweimal geprüft
+  ✓ Archetyp: jeder kann bei passendem Verlauf auch gewinnen  10 von 10
+  ✓ Archetyp: keiner beherrscht das Feld  häufigster 50 % · 7 verschiedene
+  ✓ Archetyp: unter drei Saisons gibt es keine Einordnung  zwei Saisons → null
+  ✓ Archetyp: unvollständige Zustände stürzen nicht ab  vier Lücken-Lagen abgefangen
+  ✓ Angebotsgrund: die Tabelle hat Einträge  7 Gründe
+  ✓ Angebotsgrund: der Laufbahn-Aufbau hat Laufbahnen erzeugt  8 Laufbahnen
+  ✓ Angebotsgrund: kein Grund an „Erfüllen“ oder „Verlängern“  40 Angebote geprüft · 16 mit Grund
+  ✓ Angebotsgrund: jeder Grund ist bei passender Lage erreichbar  7 von 7
+  ✓ Angebotsgrund: Gegenprobe — die gewöhnliche Lage bleibt ohne  26 Jahre, fremder Verein, gleiches Land → kein Grund
+  ✓ Angebotsgrund: er fasst das Angebot nicht an  Gehalt, Ablöse, Rolle, Laufzeit unverändert
+  ✓ Angebotsgrund: Angebote mit Grund tragen dieselben Zahlenfelder  7 Felder je Angebot geprüft
+  ✓ Angebotsgrund: App.jsx für die Kettenprüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Angebotsgrund: beim Anhängen wird NUR `grund` gesetzt  eine Zuweisung, und die heißt `grund`
+  ✓ Angebotsgrund: unvollständige Zustände stürzen nicht ab  drei Lücken-Lagen abgefangen
+  ✓ Spiegel: der aktuelle Verein zählt nicht als alter  nur der eigene Verein in der Historie → kein Spiegel
+  ✓ Spiegel: Meister geht vor Abstiegsplatz  Club1 wurde Meister
+  ✓ Spiegel: ohne Auffälligkeit bleibt es still  alter Verein auf 8, eigener auf 9 → kein Spiegel
+  ✓ Spiegel: Gegenprobe — fünf Plätze davor ergibt eine Zeile  Club4 wurde 4. — 5 Plätze vor dir
+  ✓ Spiegel: ohne Tabelle bleibt es still  kein `s.table` → kein Spiegel
+  ✓ Spiegel: die Tabelle im Rückblick zeigt keine Gedankenstriche mehr  zeigt `zeile.club.n`
+  ✓ Spiegel: unvollständige Zustände stürzen nicht ab  vier Lücken-Lagen abgefangen
+  ✓ Krisenpfad: die vier Wege sind da  4 Ereignisse mit Kennung `kr_`
+  ✓ Krisenpfad: keine Option ist rein positiv  8 Optionen geprüft
+  ✓ Krisenpfad: Gegenprobe — die Bewertung erkennt ein Geschenk  nur Plus → kein Preis · Plus mit Minus → Preis erkannt
+  ✓ Krisenpfad: jede Bedingung liest mehrere Zeichen  alle mindestens zwei
+  ✓ Krisenpfad: ein gesunder Spieler bekommt keinen  keiner von 4
+  ✓ Gewicht: jeder Archetyp hat eine Gewichtstabelle  10 Tabellen für 10 Archetypen
+  ✓ Gewicht: kein Faktor sperrt aus oder reißt alles an sich  44 Faktoren, alle im Band
+  ✓ Gewicht: jedes gewichtete Thema gibt es auch  49 Themen im Spiel
+  ✓ Gewicht: der Archetyp steht nicht von Anfang an fest  71 von 120 Laufbahnen wechseln ihn mindestens einmal
+  ✓ Abgelehnt: ein Spielstand ohne das neue Feld läuft weiter  kein Absturz · Ergebnis: Club3 wurde 3. — 6 Plätze vor dir
+  ✓ Abgelehnt: ein leeres Feld läuft ebenfalls  kein Absturz
+  ✓ Abgelehnt: der abgelehnte Klub, der Meister wird, taucht auf  Club1 wurde Meister (abgelehnt)
+  ✓ Abgelehnt: wer unten steht, wird nicht vorgeführt  abgelehnter Verein auf 17, eigener auf 3 → kein Spiegel
+  ✓ Abgelehnt: wer später doch dort war, gilt als alter Verein  als alter Verein gezeigt
+  ✓ Abgelehnt: die Liste wird beim Anhängen gekappt  `.slice(-n)` steht dabei
+  ✓ Speicher: der Laufbahn-Aufbau hat Langzeitläufe erzeugt  6 Laufbahnen · Saisons 25/25/25/25/25/25
+  ✓ Speicher: eine Saison bleibt unter 4,3 KB im Spielstand  3935 Byte je Saison (Grenze 4.400 · vor der Verdichtung 4.240)
+  ✓ Speicher: eine ganze Laufbahn bleibt unter 130 KB  108 KB im größten Lauf
+  ✓ Speicher: die Tabelle trägt nur noch Vereinsnamen  0 volle Objekte in 2800 Zeilen
+  ✓ Speicher: Gegenprobe — ein volles Objekt würde auffallen  eine von zwei Testzeilen als volles Objekt erkannt
+  ✓ Speicher: alte Spielstände mit vollem Objekt bleiben lesbar  Objektform, Namensform und Leerfall geprüft
+  ✓ Rekorde: die Liste hat die richtige Groessenordnung  20 Rekorde (Papier: 15 bis 25)
+  ✓ Rekorde: jeder liest ein Feld, das die Bilanz auch führt  20 Felder gegen 49 in der Bilanz
+  ✓ Rekorde: eine frische Welt zeigt keine leeren Zeilen  0 Zeilen bei einer leeren Bilanz
+  ✓ Rekorde: Gegenprobe — mit Werten kommen alle  20 von 20
+  ✓ Rekorde: nur was einen Wert hat, steht auch da  3 Zeilen bei drei gefüllten Feldern
+  ✓ Rekorde: unvollständige Bilanzen stürzen nicht ab  drei Lücken-Lagen abgefangen
+  ✓ Museum: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Museum: der Eintrag trägt Archetyp, Stationen und Schlagzeile  alle drei Felder
+  ✓ Museum: die Stationsliste wird gekappt  `.slice(0, n)` vorhanden
+  ✓ Museum: die Schlagzeile im Eintrag streut  6 verschiedene · häufigste 37 % (Grenze 60 %)
+  ✓ Museum: Gegenprobe — jede Zeile der Rangfolge gibt es wirklich  alle 14 gesehen
+  ✓ Vereinsphase: ein Ligawechsel beginnt ein neues Kapitel  2 Phasen aus 4 Jahren in 2 Ligen
+  ✓ Vereinsphase: Gegenprobe — ohne Ligawechsel bleibt es ein Kapitel  1 Phase(n) aus 3 Jahren in derselben Liga
+  ✓ Vereinsphase: ein Abstieg nach Titeln heißt anders als einer ohne  Der Anfang · Das Wunderjahr · Der Absturz nach dem Titel · Die ruhigen Jahre
+  ✓ Vereinsphase: jede Regel ist bei passendem Verlauf erreichbar  12 von 12 Kapiteln
+  ✓ Vereinsphase: unvollständige Chroniken stürzen nicht ab  vier Lücken-Lagen abgefangen
+  ✓ Zeitleiste: alle drei Systeme kommen vor  6 Einträge · Laufbahn, Akademie, Verein
+  ✓ Zeitleiste: die Einträge stehen in der richtigen Reihenfolge  2040 · 2042 · 2048 · 2049 · 2049 · 2055
+  ✓ Zeitleiste: Vereinsjahre werden auf Kalenderjahre gerechnet  erster Aufstieg im Jahr 2049 (Gründung 2048 + Vereinsjahr 2 − 1)
+  ✓ Zeitleiste: ein Verein ohne Kalenderjahr steht am Ende, nicht mittendrin  3 ohne Jahr · am Ende: true
+  ✓ Zeitleiste: Gegenprobe — mit Jahr sortieren sie sich ein  0 ohne Jahr bei vollständigen Daten
+  ✓ Zeitleiste: eine leere Welt ergibt keine Einträge  0 Einträge
+  ✓ Zeitleiste: unvollständige Daten stürzen nicht ab  drei Lücken-Lagen abgefangen
+  ✓ Karton: App.jsx für die Farbprüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Karton: wer die Textfarbe umstellt, stellt auch die Flächen um  beide Blätter lösen 1 Flächenfarben auf
+  ✓ Karton: Gegenprobe — eine fehlende Flächenfarbe fällt auf  in einem Block ohne `--up` wird es erkannt
+  ✓ Karton: die Wildcard-Karte behält auf Karton ihren dunklen Grund  `.laufzettel .wkarte` setzt `background:var(--pan)`
+  ✓ Karton: die Wildcard-Karte setzt eigene helle Schrift  eigene helle `--tx`
+  ✓ Fast: der Fortschritt lässt sich im Bündel wirklich ablesen  2 Treffer · 470/500 8/10
+  ✓ Fast: es werden höchstens drei gezeigt  3 bei einer weit fortgeschrittenen Welt
+  ✓ Fast: was weit weg ist, wird nicht gezeigt  bei 12 Pflichtspielen: 0 Einträge
+  ✓ Fast: Gegenprobe — wer nah dran ist, wird gezeigt  Zehn Laufbahnen 8/10
+  ✓ Fast: was schon erreicht ist, verschwindet  nach dem Erledigen: 0 Einträge
+  ✓ Fast: nur die Gesamtbilanz wird gelesen, nicht p oder A  0 Bedingungen lesen ein anderes Objekt und bleiben außen vor
+  ✓ Fast: unvollständige Bilanzen stürzen nicht ab  drei Lücken-Lagen abgefangen
+  ✓ Kette: die Akademie bringt überhaupt Absolventen hervor  20 nach 14 vollen Jahren
+  ✓ Kette: aus jedem Absolventen wird eine Karte mit Herkunft  20 Karten · Beispiel t:t2029_bogj (legende)
+  ✓ Kette: die Kennung führt auf das Talent zurück  z. B. t:t2029_bogj ← Absolvent t2029_bogj
+  ✓ Kette: derselbe Absolvent landet nicht zweimal im Pool  20 Karten, nach dem zweiten Einlegen 20
+  ✓ Kette: die Karte trägt die Höchststärke, nicht den Endwert  20 mit `peak` geprüft
+  ✓ Kette: der Jahrgang steht auf der Karte  Beispiel Jahrgang 2029
+  ✓ Kette: Gegenprobe — eine frische Akademie hat keine Absolventen  0 direkt nach der Gründung
+  ✓ Sets: es gibt Sammlungsseiten  5 über Bedingungen plus „Weltreise“ (zählt Länder)
+  ✓ Sets: eine leere Sammlung steht überall auf null  6 Seiten, alle bei 0
+  ✓ Sets: jede Seite lässt sich wirklich vollmachen  6 Seiten voll
+  ✓ Sets: Gegenprobe — drei Karten füllen keine Seite  0 Seiten voll bei drei Karten
+  ✓ Sets: der Zähler läuft nicht über das Soll hinaus  bei doppeltem Pool: 11/11 5/5 11/11 11/11 5/5 15/15
+  ✓ Sets: unvollständige Pools stürzen nicht ab  vier Lücken-Lagen abgefangen
+  ✓ Typen: es gibt Entwicklungstypen  6 Typen
+  ✓ Typen: jeder verändert den Zuwachs wirklich  6 Typen geprüft
+  ✓ Typen: Spätentwickler und Frühreif laufen gegenläufig  mit 16: 5.5 gegen 15.5 · mit 19: 15.0 gegen 7.0
+  ✓ Typen: der Typ überlebt den Weg zum Absolventen  21 von 73 Absolventen tragen einen Typ
+  ✓ Typen: die Mehrheit bleibt bewusst ohne  29 % mit Typ (Grenze 55 %)
+  ✓ Typen: ein Talent ohne Typ wird unverändert behandelt  ohne Feld, ohne Talent und mit unbekanntem Typ: jeweils kein Treffer
+  ✓ Speicherschlüssel: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Speicherschlüssel: keine zwei Konstanten zeigen auf dieselbe Stelle  13 Schlüssel, alle eindeutig
+  ✓ Speicherschlüssel: Gegenprobe — eine Kollision fällt auf  in einem Testblock mit zwei gleichen Werten: 1 Kollision erkannt
+  ✓ Speicherschlüssel: die Migration erkennt Pool und Wildcard-Map auseinander  5 Formen geprüft
+  ✓ Speicherschlüssel: Ladepfad unterscheidet Pool und Wildcard-Map  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Speicherschlüssel: die Sicherungsliste führt keinen doppelt  12 Einträge, alle einmal
+  ✓ Wiederaufnahme: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Wiederaufnahme: Handler verwendet laufWeiter  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Wiederaufnahme: saveGame verwendet vollständigen Snapshot  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Wiederaufnahme: keine pauschale Trainings-Wiederholung  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Wiederaufnahme: Saison aus wiederhergestelltem Ablauf  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Sicherung: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Sicherung: Validierung wird vor Transaktion aufgerufen  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Sicherung: Import verwendet vollständige Schlüsselliste  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Sicherung: Wiederherstellung am App-Start angebunden  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Sicherung: Kopieren meldet nur bei echtem Erfolg  Rückgabewert wird gelesen
+  ✓ Sicherung: ein Lesefehler bricht den Export ab  unvollständige Sicherung wird verweigert
+  ✓ Sicherung: Mengenformen stimmen bei eins  2 Stellen mit Singular/Plural
+  ✓ Sicherung: es werden nur Speichermethoden gerufen, die es gibt  get, set, delete, transaktion — alle in storage.js vorhanden
+  ✓ Schreibfehler: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Schreibfehler: kein Schreibzugriff ohne `await`  alle `store.set` mit await
+  ✓ Schreibfehler: es gibt einen gemeinsamen Schreibweg  `schreibe` setzt `speicherFehler`
+  ✓ Schreibfehler: das Hauptmenü zeigt ihn an  Warnzeile im Hauptmenü vorhanden
+  ✓ Schreibfehler: die Warnung verschwindet nach einem gelungenen Schreibzugriff  wird bei Erfolg zurückgenommen
+  ✓ Reset: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Reset: die Löschliste kennt jeden Speicherschlüssel  13 Schlüssel, alle in der Liste
+  ✓ Reset: die Altnamen aus der Migration werden mitgelöscht  `ALT_KEYS` fließen in die Liste ein
+  ✓ Reset: ein Löschfehler wird gemeldet statt überspielt  stehengebliebene Einträge werden gezählt
+  ✓ Reset: jeder Zustandssetzer ist auch deklariert  122 Setzer geprüft
+  ✓ Kartenübergabe: zwei Übergaben ergeben beide Karten  neue Art: 2 Karten
+  ✓ Kartenübergabe: Gegenprobe — die alte Art verlor die erste  alte Art: 1 Karte(n) statt 2
+  ✓ Kartenübergabe: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Karrierestart: Speicher und Vorrat gemeinsam gebucht  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Karrierestart: Oberfläche erst nach Transaktion setzen  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Karrierestart: `saveGame` meldet, ob es angekommen ist  gibt den Erfolg zurück
+  ✓ Kartenübergabe: der Pool kommt aus dem Ref, nicht aus dem Render  `kartenRef` wird gelesen
+  ✓ Kartenübergabe: jede Zustandsänderung zieht das Ref mit  alle `setKarten`-Stellen aktualisieren `kartenRef`
+  ✓ Kalibrierung: die Datei ist auffindbar  /workspace/scratch/f8a6ef3117a1/work165/pruefstand/kalibrierung.cjs
+  ✓ Kalibrierung: sie wählt nur Optionen, die auch offen sind  nutzt `offeneWahlen` wie das Spiel
+  ✓ Kalibrierung: Spiel und Messung nutzen dieselbe Auswahlfunktion  beide rufen `offeneWahlen`
+  ✓ Kalibrierung: ein Ereignis ohne offene Option wird übersprungen  wird abgefangen
+  ✓ Kalibrierung: es gibt überhaupt bedingte Optionen zu schützen  38 von 1161 Optionen tragen eine Bedingung
+  ✓ Sonderschuss: die erste Saison bleibt verschont  Saison 1 mit Schutz: heil
+  ✓ Sonderschuss: die zweite Saison ist nicht mehr geschützt  Saison 2 mit Schutz: verletzt — richtig
+  ✓ Sonderschuss: Gegenprobe — ohne Schutz trifft es sofort  Saison 1 ohne Schutz: verletzt
+  ✓ Sonderschuss: die Marke wird verbraucht, nicht liegengelassen  nach der geschützten Saison: null
+  ✓ Textreue: die Reha kostet die Saison wirklich  forceInjury: "schwer"
+  ✓ Textreue: der Abstieg verspricht keinen schon vollzogenen Wechsel  Text nennt es eine Absicht, `wantMove` passt dazu
+  ✓ Textreue: die Verletzungsrückkehr verlangt eine Verletzung  prüft die Saisonhistorie
+  ✓ Textreue: die Verletzungsrückkehr bleibt trotzdem erreichbar  8 von 12 Laufbahnen erfüllen sie bei passender Anfälligkeit
+  ✓ Textreue: „auf dem Trainerschein aufbauen“ verlangt den Schein  nur mit `trainerschein`
+  ✓ Textreue: für den Schulabschluss gibt es einen eigenen Weg  eigene Option mit eigenem Text
+  ✓ Textreue: keine Freischaltung verspricht einen zu frühen Zugang  alle Texte nennen abgeschlossene Laufbahnen
+  ✓ Frauenform: Artikel, Adjektiv und Relativpronomen ziehen mit  4 echte Ausgaben geprüft
+  ✓ Frauenform: Trainer und Arzt werden nicht mitgewandelt  ihr Geschlecht folgt nicht dem der Spielerin
+  ✓ Textreue: die Schwellen liegen, wo der Text sie nennt  1 Laufbahn: Akademie false · 2: true · 4: Verein false · 5: true
+  ✓ Chronik: die erste Laufbahn ist die zuerst abgeschlossene  Die erste Laufbahn endet: Lang, zuerst
+  ✓ Chronik: alte Einträge ohne Nummer fallen aufs Endjahr zurück  Die erste Laufbahn endet: Kurz
+  ✓ Chronik: Halleneintrag hat Identität und laufende Nummer  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Potenzial: ein positiver Bonus senkt nie  95→97 · 99→99 · 105→105
+  ✓ Potenzial: die Freischaltung hebt die Grenze wirklich  105 mit Freischaltung und +2 → 107
+  ✓ Potenzial: ein negativer Wert senkt weiterhin  105 mit −5 → 100
+  ✓ Limit-Kauf: vier Saisons führen wirklich bis 103  99 → 100 → 101 → 102 → 103
+  ✓ Limit-Kauf: ein höherer Wert wird nicht heruntergezogen  110 mit Freischaltung → 112
+  ✓ Rollen: die Verlängerung kennt den Schlüssel „rot“  prüft auf `rot` wie `roleFor` es liefert
+  ✓ Freistoß: geklärte Zuständigkeit schließt beide Wege aus  wird korrekt ausgeschlossen
+  ✓ Prämienmodell: der Text verspricht keine Senkung mehr  Text passt zur Erhöhung
+  ✓ Psychologe: ohne Geld ist die Option gesperrt  gesperrt, mit Hinweis
+  ✓ Psychologe: es bleibt eine Wahl ohne Bedingung  1 Option(en) immer offen
+  ✓ Trennung: aus einer Ehe kostet sie mehr als aus einer Beziehung  verheiratet 10 → 5.80 · Beziehung 10 → 8.80
+  ✓ Sperre: zwei angekündigte Spiele sind auch zwei  Text nennt zwei, Effekt setzt 2
+  ✓ Rekordbuch: Länder, Ligen und Vereine erscheinen  Meiste Pflichtspiele 5200 · Bespielte Länder 4 · Bespielte Ligen 5 · Verschiedene Vereine 12
+  ✓ Rekordbuch: gezählt werden verschiedene Orte, nicht Besuche  DE dreimal bespielt → 4 Länder
+  ✓ Archetyp: eine schwache Laufbahn ist kein Wunderkind  Höchststärke 58, Ende mit 18 → Die Vereinsikone
+  ✓ Archetyp: Gegenprobe — mit Niveau bleibt es erreichbar  Höchststärke 85, Ende mit 19 → Das Wunderkind
+  ✓ Entwicklungstyp: er wird im Jahrgang auch angezeigt  `typVon` wird aufgerufen
+  ✓ Karten: die Herkunft der Akademiekarte steht richtig da  eigener Text für `akademie`
+  ✓ Sammlungsseiten: der Name verspricht keine Treue, die niemand misst  heißt jetzt „Aus den eigenen Reihen“
+  ✓ Vereinskapitel: auch eine einzige Phase wird gezeigt  ab einer Phase sichtbar
+  ✓ Museum: Schlagzeile und Stationen nutzen dieselbe Jahreszählung  beide im Kalenderjahr
+  ✓ Errungenschaften: die Gesamtzahlen sind als solche beschriftet  Überschrift nennt die Zahl der Laufbahnen
+  ✓ Bedienbarkeit: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Bedienbarkeit: jedes Eingabefeld ist beschriftet  10 Felder, alle beschriftet
+  ✓ Bedienbarkeit: jede klickbare Fläche ist mit der Tastatur erreichbar  5 Weiter-Flächen geprüft
+  ✓ Bedienbarkeit: Enter und Leertaste lösen beide aus  beide Tasten behandelt
+  ✓ Bedienbarkeit: die Flächen tragen eine Rolle und eine Beschriftung  `role` und `aria-label` im Helfer
+  ✓ Dialoge: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Dialoge: jeder trägt den gemeinsamen Rahmen  2 von 2 Dialogen mit `ref`
+  ✓ Dialoge: Escape schließt  Escape wird abgefangen
+  ✓ Dialoge: der Hintergrund ist gesperrt, solange einer offen ist  `inert` und `aria-hidden`
+  ✓ Dialoge: die Sperre wird beim Schließen aufgehoben  beide Sperren werden entfernt
+  ✓ Dialoge: der Fokus kehrt nach dem Schließen zurück  gemerkt und zurückgegeben
+  ✓ Trefferflächen: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Trefferflächen: jede Knopfklasse erreicht 44 px  10 Knopfklassen geprüft
+  ✓ Trefferflächen: Gegenprobe — eine zu kleine Klasse fällt auf  in einem Testblock mit 30px: 1 erkannt
+  ✓ Wildcard: der Verbandskontakt überlebt die Kartenzuweisung  ohne Freischaltung 0, mit 3
+  ✓ Wildcard: das volle Postfach überlebt sie auch  ohne 0, mit 1
+  ✓ Wildcard: ein Kartenbonus wird beim Tausch wieder entfernt  3 → 7 → 3
+  ✓ Wildcard: mehrfacher Tausch lässt den Grundstock unverändert  nach drei Zuweisungen: 3
+  ✓ Rückwege: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Rückwege: jede Ansicht mit `onZurueck` meldet ihn auch an  alle Ansichten mit `onZurueck` sind angebunden
+  ✓ Rückwege: Gegenprobe — eine fehlende Anmeldung fällt auf  in einer Testansicht ohne `useZurueck`: 1 erkannt
+  ✓ Rückwege: die Sicherung merkt sich ihre Herkunft  Herkunft wird gemerkt und eingelöst
+  ✓ Folgen: eine Wahl meldet ihre sofortige Wirkung  Sofort: Konto -350 Tsd · Vertrauen des Trainers +8 · Form -6
+  ✓ Folgen: gemeldet wird das Geschehene, nicht das Gewollte  Sofort: Konto -10 Tsd
+  ✓ Folgen: ein wirkungsloser Effekt meldet nichts  0 Zeilen bei einem Nulleffekt
+  ✓ Folgen: ein Wechselwunsch steht unter „Vorgemerkt“  Vorgemerkt: Wechselwunsch für das nächste Transferfenster
+  ✓ Folgen: höchstens vier sofortige Wirkungen auf einmal  4 Einträge bei acht gleichzeitigen Effekten
+  ✓ Saisongründe: die Funktion ist ausgeführt  function
+  ✓ Saisongründe: eine unauffällige Saison bekommt keine Erklärung  0 Gründe bei 20 Spielen, Note 3,4
+  ✓ Saisongründe: eine schwere Verletzung wird genannt  Eine schwere Verletzung hat dich lange gekostet.
+  ✓ Saisongründe: keine gerechnete Ursache wird behauptet  nur Beobachtetes
+  ✓ Saisongründe: höchstens drei auf einmal  3 bei sechs auffälligen Merkmalen
+  ✓ Saisongründe: ohne Wechsel steht kein Wechsel da  0 Gründe bei gleichem Verein
+  ✓ Saisongründe: unvollständige Saisons stürzen nicht ab  vier Lücken-Lagen abgefangen
+  ✓ Sicherungsvorschau: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Sicherungsvorschau: es gibt sie überhaupt  `vorschauLesen` vorhanden
+  ✓ Sicherungsvorschau: der Zeitpunkt kommt aus dem Paket  aus `paket.t`
+  ✓ Sicherungsvorschau: fehlende Angaben werden nicht erfunden  fehlende Felder zeigen einen Strich
+  ✓ Rückweg: er steht nicht in der Sicherungsliste  richtig ausgenommen
+  ✓ Rückweg: beim Zurücksetzen wird er mitgelöscht  in der Löschliste
+  ✓ Rückweg: Rücknahme verwendet denselben Transaktionsweg  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Rückweg: Import übergibt seinen Sicherungsschlüssel  Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft
+  ✓ Nächster Schritt: die Funktion ist ausgeführt  function
+  ✓ Nächster Schritt: die erste Saison bekommt eine Erklärung  Wähle einen Schwerpunkt — er bestimmt, wohin dein Fortschritt fließt.
+  ✓ Nächster Schritt: nach fünf Saisons wird nichts mehr erklärt  0 Erklärzeilen
+  ✓ Nächster Schritt: ein Wechselwunsch wird auch später erklärt  Dein Wechselwunsch gilt fürs nächste Transferfenster — bis dahin bleibst du bei Testverein.
+  ✓ Nächster Schritt: er sagt, dass der Wechsel noch nicht vollzogen ist  r — bis dahin bleibst du bei Testverein.
+  ✓ Nächster Schritt: ohne Anlass erscheint gar nichts  null
+  ✓ Nächster Schritt: unvollständige Spieler stürzen nicht ab  vier Lücken-Lagen abgefangen
+  ✓ Kartenalter: das mitgegebene Alter gewinnt  Talent 20 Jahre → Karte 20
+  ✓ Kartenalter: alte Datensätze werden mit 15 abgeleitet, nicht mit 17  2029 bis 2034 → 20 (vorher 22)
+  ✓ Kartenalter: Absolventen tragen ihr Alter mit  17 von 17
+  ✓ Berater: er überlebt die Saison bis zur Angebotsrunde  nach simulateSeason: 1, aufgeschoben: ["berater"]
+  ✓ Berater: Gegenprobe — andere Artikel laufen weiterhin sofort ab  form nach der Saison: 0
+  ✓ Farbe: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Farbe: der Postfachzähler wird auch angesagt  `aria-label` nennt die Zahl
+  ✓ Farbe: kein farbiger Chip steht ohne Text da  0 leere Chips
+  ✓ Laden: App.jsx für die Prüfung gefunden  /workspace/scratch/f8a6ef3117a1/testwork165/App.jsx
+  ✓ Laden: jeder Artikel sagt, wann er wirkt  7 Artikel, alle mit Wirkungszeitpunkt
+  ✓ Laden: keine Zeile ohne zugehörigen Artikel  keine verwaisten Zeilen
+  ✓ Laden: vor dem Kauf steht da, was danach bleibt  Restguthaben wird gezeigt
+  ✓ Herkunft: die Karte trägt Jahrgang und ersten Profiklub  {"typ":null,"jahrgang":2029,"klub":"Hamburger SV","ns":true}
+  ✓ Herkunft: die Kartenansicht zeigt sie auch  Jahrgang und Klub stehen auf der Karte
+  ✓ Herkunft: alte Karten ohne Zusatzdaten zeigen keine leere Zeile  wird vorher geprüft
+  ✓ Herkunft: ohne ersten Profiklub wird keiner erfunden  {"typ":null,"jahrgang":2029,"klub":"","ns":false}
+  ✓ Archiv: die erste Laufbahn bleibt, auch wenn sie schwach war  13 Einträge, erste dabei: true
+  ✓ Archiv: eine starke Erste bekommt keinen zusätzlichen Platz  12 Einträge
+  ✓ Archiv: alte Einträge ohne Nummer bleiben bei zwölf  12 Einträge
+  ✓ Archiv: der Stationen-Auszug sagt, wie viele es insgesamt waren  `statN` wird gespeichert und angezeigt
+  ✓ Schlagzeilen: keine steht zweimal hintereinander  Der Anfang · Eine große Spielzeit · Das dritte Jahr · Eine große Spielzeit · Das fünfte Jahr
+  ✓ Schlagzeilen: jede Saison bekommt eine  0 leere
+  ✓ Schlagzeilen: derselbe Spielstand ergibt denselben Text  zweiter Durchgang identisch
+  ✓ Schlagzeilen: ohne vorige Zeile arbeitet sie wie bisher  Eine große Spielzeit
+  ✓ Schlagzeilen: „Zurückgeschrieben“ gilt nach JEDER Verletzung (so entschieden)  leicht: Zurückgeschrieben · schwer: Zurückgeschrieben
+  ✓ Werkzeuge: keines würfelt an der austauschbaren Quelle vorbei  5 Werkzeuge geprüft
+  ✓ Werkzeuge: Gegenprobe — eigener Zufall fällt auf  im zusammengesetzten Testblock: erkannt
+  ✓ Kette: beide Glieder gibt es  ab_wiedersehen ab_quittung
+  ✓ Kette: das Wiedersehen braucht eine echte Absage  mit Absage erreichbar, ohne nicht
+  ✓ Kette: eine frische Absage löst noch nichts aus  nach einem Jahr: false
+  ✓ Kette: die Quittung kommt erst nach dem Wiedersehen  vorher false, danach true
+  ✓ Kette: sie endet und wiederholt sich nicht  nach Abschluss: false
+  ✓ Kette: der Text nennt den Verein und die Jahre  Auf dem Spielplan steht Ajax Amsterdam. Vor 3 Jahren wollt…
+  ✓ Kette: jede Wahl der ersten Stufe führt weiter  absage_gross · absage_klein
+  ✓ Vorsatz: es gibt welche zur Auswahl  4 Vorsätze
+  ✓ Vorsatz: jeder zeigt auf eine Errungenschaft, die es gibt  b_drei · a_ausland · a_zehn · b_note2
+  ✓ Vorsatz: keiner bringt eine Belohnung  reine Selbstverpflichtung
+  ✓ Vorsatz: zwei stehen gegeneinander  Der Weltenbummler gegen Daheim bleiben
+  ✓ Vorsatz: der Stand folgt der echten Bedingung  ohne Länder nicht erfüllt, mit drei erfüllt
+  ✓ Vorsatz: „Daheim bleiben“ kippt beim Wechsel ins Ausland  zuhause gehalten, nach dem Wechsel nicht mehr
+  ✓ Vorsatz: ohne gewählten Vorsatz kommt nichts  null
+  ✓ Vorsatz: unbekannte Werte stürzen nicht ab  drei Lücken-Lagen abgefangen
+  ✓ Extraschicht: im Trainingsschritt kaufbar  kaufbar
+  ✓ Extraschicht: nach dem Training gesperrt  Das Training dieser Saison ist durch
+  ✓ Extraschicht: andere Saisonartikel bleiben kaufbar  Formkauf weiterhin möglich
+  ✓ Wintervertrag: die Laufzeit wird bei jeder Angebotsart übernommen  `years` gilt für alle Arten
+  ✓ Wintervertrag: eine Verlängerung wechselt nicht den Verein  `renew` und `stay` behalten Kader und Binde
+  ✓ VC: jede Gutschrift wird benannt  Profis aus der Jugend 8 · Meister 35
+  ✓ VC: gerechnet wird auf der Differenz, nicht auf dem Gesamtstand  sonst zahlt jede Laufbahn für alle je ausgebildeten Profis
+  ✓ Bonus: nach 15 Jahren meldet die Saison „vorbei“  Jahr 16
+  ✓ Bonus: der Abschluss vergibt welche  1061 Punkte · 4 Boni · {"startOvr":2,"aufnahmen":1,"ausbauStart":1,"zuwachs":0.4}
+  ✓ Bonus: der Abschluss übersteht das Speichern  sonst ist er nach dem Schließen der App weg
+  ✓ Bonus: der neue Verein trägt ihn  {"startOvr":2,"aufnahmen":1,"ausbauStart":1,"zuwachs":0.4}
+  ✓ Bonus: der neue Verein trägt KEINE alte Abschlussmarke  sonst zeigt der Bildschirm sofort wieder den alten Bericht
+  ✓ Bonus: er überlebt die Kennung
+  ✓ Bonus: er überlebt die Ligawahl  {"startOvr":2,"aufnahmen":1,"ausbauStart":1,"zuwachs":0.4}
+  ✓ Bonus: startOvr steht am Verein und wird gelesen  mit 2, ohne 0
+  ✓ Bonus: ausbauStart hebt den Trainingsausbau  Stufe 2
+  ✓ Bonus: der Abschluss wird am Verein gespeichert  sonst überlebt er kein Schließen der App
+  ✓ Bonus: der Abschlussbildschirm findet ihn auch nach einem Neustart  sonst gibt es keinen Weg mehr zum nächsten Verein
+  ✓ Bonus: der Vereinsbildschirm zeigt ihn an  ein Vorteil, den man nicht sieht, ist von keinem nicht zu unterscheiden
+  ✓ der Vereinsbericht bekommt IMMER einen Verlauf  nicht nur bei Meister oder Aufstieg
+  ✓ und IMMER einen farbigen Rand
+  ✓ beide Kennzahlen sind 38 gross  Akademie 1x, Verein 1x
+  ✓ jeder Bildschirm hängt am Satzspiegel  2 Ausnahmen, beide benannt (MenuScreen, EndScreen)
+  ✓ die benannten Ausnahmen sind noch welche  MenuScreen und EndScreen, beide begründet
+  ✓ die Ausnahme am Karriereende ist begründet  sonst repariert der Nächste eine Absicht weg
+  ✓ Kennung: ein leerer Verein ist weder gekannt noch gegründet
+  ✓ Kennung: kein Fehler
+  ✓ Kennung: der Name wird von Leerzeichen befreit  „Hamburger Jungs“
+  ✓ Kennung: Stadt, Farben und Wappen kommen an
+  ✓ Kennung: der Verein ist danach GEKANNT, aber NICHT gegründet  gekannt true, gegründet false
+  ✓ Kennung: ohne Namen wird abgewiesen  Ohne Namen geht es nicht.
+  ✓ Spielbetrieb: kein Fehler
+  ✓ Spielbetrieb: Name aus der Kennung bleibt  „Hamburger Jungs“
+  ✓ Spielbetrieb: Farben und Wappen überleben den zweiten Schritt  sonst wäre der erste Schritt umsonst gewesen
+  ✓ Spielbetrieb: jetzt ist er gegründet
+  ✓ alter Weg in einem Zug funktioniert weiterhin  und setzt gekannt gleich mit
+  ✓ jede Belohnung, die „Rahmen“ heißt, steht auch in RAHMEN  10 Rahmen, alle benannt
+  ✓ jede Belohnung, die eine Errungenschaft nennt, existiert auch  55 Verweise auf 55 Belohnungen
+  ✓ die Prüffunktion bekommt den Verein übergeben
+  ✓ und der Verein kommt NACH der eben gespielten Saison  sonst zählt ein Meistertitel erst eine Laufbahn später
+  ✓ es gibt Errungenschaften für die Profimannschaft  12 Stück
+  ✓ jede Errungenschaft nennt eine Stufe, die es gibt  5 Stufen, alle Kennungen gültig
+  ✓ jede Vereinsbedingung überlebt einen fehlenden Verein  alle liefern false statt zu stürzen
+  ✓ Erreichbarkeit: keine Bedingung stürzt ab
+  ✓ Erreichbarkeit: jede Vereinserrungenschaft ist in 15 Jahren erreichbar  12 von 12 erreicht
+  ✓ Erreichbarkeit: nicht alle fallen im ersten Jahr  8 im ersten Jahr, 4 später
+  ✓ Haus: es sind Talente da  14 im Haus
+  ✓ Haus: jedes Talent hat einen Vertrag
+  ✓ Auslaufen: Marke wird gesetzt
+  ✓ Auslaufen: die Notiz bleibt
+  ✓ Auslaufen ist umkehrbar
+  ✓ Auslaufen: ohne Marke wird still verlängert  5 unmarkierte übrig, davon 5 verlängert
+  ✓ Auslaufen: mit Marke bleibt der Vertrag stehen  1 markierte übrig, keiner verlängert
+  ✓ Auslaufen: fällige Markierte sind gegangen  4 von 4 fälligen sind weg
+  ✓ Aussortieren: kein Fehler  Salum Miraji ist nicht mehr im Haus.
+  ✓ Aussortieren: er ist raus
+  ✓ Aussortieren: er zählt NICHT als Profi
+  ✓ Aussortieren: er zählt als Abbrecher  2 → 3
+  ✓ Aussortieren: es steht in der Chronik
+  ✓ Aussortieren: ein unbekanntes Talent wird abgewiesen
+  ✓ Kachel: eine frische Akademie steht bei 0 Ausbaustufen  gemessen 0
+  ✓ Kachel: voll ausgebaut sind es genau AKA_STUFEN  45 von 45
+  ✓ Kachel: der Ausbau-Nenner ist AKA_STUFEN
+  ✓ Vertrag: es entstehen Freigabefälle  2 offen nach 5 Jahren
+  ✓ jedes Talent hat einen laufenden Vertrag  21 Talente
+  ✓ Verträge laufen höchstens 3 Jahre voraus  längster: 3 Jahre
+  ✓ ein Fall nennt Verein, Anlage und Frist  Ali Al Dhaen → Padova Calcio
+  ✓ der Spieler steht noch in der Akademie
+  ✓ er zählt noch NICHT als Profi
+  ✓ Freigeben: kein Fehler  Ali Al Dhaen unterschreibt bei Padova Calcio.
+  ✓ Freigeben: der Spieler ist aus der Akademie raus
+  ✓ Freigeben: er steht auf der Ehrentafel
+  ✓ Freigeben: die Profizahl steigt um genau eins  0 → 1
+  ✓ Freigeben: der Fall ist aus dem Postkorb
+  ✓ Behalten: kein Fehler  Ali Al Dhaen bleibt noch ein Jahr — Padova Calcio geht leer aus.
+  ✓ Behalten: der Spieler bleibt in der Akademie
+  ✓ Behalten: er zählt NICHT als Profi  Profis 0
+  ✓ Behalten: der Fall ist aus dem Postkorb
+  ✓ ein unbekannter Fall wird abgewiesen  Fall nicht gefunden.
+  ✓ Frist: ohne Entscheidung ist der Fall nach einem Jahr weg
+  ✓ Frist: der Spieler hat woanders unterschrieben
+  ✓ Frist: er zählt als Profi  0 → 1
+  ✓ Frist: kein zweites Angebot für denselben Spieler
+  ✓ ein passendes Talent sagt fast immer zu  100 %
+  ✓ ein deutlich zu gutes Talent sagt fast immer ab  5 %
+  ✓ die Aussicht steigt mit der Mannschaftsstärke
+  ✓ Vertrag: ohne Feld wird ein Vertrag angenommen  Rückfall auf 2032
+  ✓ Kadervertrag: die Saison läuft
+  ✓ nach der Saison hat jeder einen Vertrag
+  ✓ die Form wird geschrieben  Spanne 42–65
+  ✓ die Form unterscheidet Stammspieler von Bankdrückern  Stamm gegen Bank
+  ✓ die Fitness wird geschrieben
+  ✓ wer nicht spielt, will eher weg  56 % gegen 98 %
+  ✓ gute Form hält, schlechte treibt  62 % gegen 98 %
+  ✓ wer zu gut für den Kader ist, will eher weg
+  ✓ Treue hält
+  ✓ die Bleibelust bleibt zwischen 0 und 1
+  ✓ Kadervertrag: es entstehen Abgangswünsche  Kader 8 → 1. FC Slovácko nach 2 Jahren
+  ✓ der Spieler steht noch im Kader
+  ✓ Zustimmen: kein Fehler  Kader 8 wechselt zu 1. FC Slovácko.
+  ✓ Zustimmen: der Spieler ist raus
+  ✓ Zustimmen: der Fall ist aus dem Postkorb
+  ✓ Zustimmen: die Aufstellung zeigt nicht mehr auf ihn
+  ✓ Ablehnen: kein Fehler  Kader 8 bleibt — begeistert ist er nicht.
+  ✓ Ablehnen: er bleibt im Kader
+  ✓ Ablehnen: es kostet Form  ein erzwungenes Bleiben ist nicht folgenlos
+  ✓ Ablehnen: der Fall ist aus dem Postkorb
+  ✓ Zustimmen wird abgewiesen, wenn der Kader zu klein würde  Dann sind es nur noch 15 Spieler — 16 sind das Minimum.
+  ✓ Auslaufen lassen: Marke wird gesetzt
+  ✓ Auslaufen lassen: die Notiz bleibt erhalten
+  ✓ Auslaufen lassen ist umkehrbar
+  ✓ ein unbekannter Spieler wird abgewiesen
+  ✓ Entlassen: kein Fehler  Weg 10 ist nicht mehr im Kader.
+  ✓ Entlassen: der Spieler ist raus  20 → 19
+  ✓ Entlassen: die Aufstellung zeigt nicht mehr auf ihn
+  ✓ Entlassen: der Abschied wird gemerkt
+  ✓ Entlassen: unbekannter Spieler wird abgewiesen
+  ✓ Entlassen wird abgewiesen, wenn der Kader zu klein würde  Dann sind es nur noch 15 Spieler — 16 sind das Minimum.
+  ✓ In die Jugend: kein Fehler  Weg 0 spielt wieder in der Jugend.
+  ✓ In die Jugend: er ist aus dem Kader raus
+  ✓ In die Jugend: er steht als Talent in der Akademie
+  ✓ In die Jugend: er bringt Stärke und Anlage mit  50/78
+  ✓ In die Jugend: er bekommt einen frischen Akademievertrag  bis 2032
+  ✓ In die Jugend: die Vereinszahlen bleiben nicht stehen  in der Jugend spielt er andere Spiele
+  ✓ In die Jugend: die Aufstellung zeigt nicht mehr auf ihn
+  ✓ In die Jugend: zu alt wird abgewiesen  Weg 10 ist 27 — über 19 nimmt die Jugend niemanden mehr.
+  ✓ In die Jugend: ohne Akademie wird abgewiesen
+  ✓ In die Jugend wird abgewiesen, wenn der Kader zu klein würde
+  ✓ Abschied landet in der Chronik  1 Abschiede im Jahr
+  ✓ und die Zwischenliste ist danach leer
+  ✓ Spielmaschine: Ligagröße stimmt mit der echten Liga überein  20 Mannschaften, echt 20
+  ✓ jede Mannschaft hat gleich viele Spiele  38 Spiele
+  ✓ Spiele = 2 × (N − 1)
+  ✓ Summe Tore = Summe Gegentore  1092 : 1092
+  ✓ Punkte passen zur Zahl der Spiele  1075 Punkte auf 380 Spiele
+  ✓ Siege und Niederlagen gleichen sich aus
+  ✓ Unentschieden sind gerade
+  ✓ jede Zeile: Spiele = S+U+N
+  ✓ jede Zeile: Punkte = 3·S + U
+  ✓ die Tabelle ist nach Punkten sortiert  86 … 20
+  ✓ genau eine Zeile ist die eigene
+  ✓ der gemeldete Rang ist die Position der eigenen Zeile  Platz 2
+  ✓ es gibt für jedes eigene Spiel einen Eintrag  38 Spiele
+  ✓ Heim- und Auswärtsspiele halten sich die Waage
+  ✓ die Spiele ergeben genau die Tabellentore  79:43 gegen 79:43
+  ✓ je Spiel steht für jedes Tor ein Schütze
+  ✓ die Torschützen ergeben zusammen die Mannschaftstore  79 von 79
+  ✓ niemand hat mehr Spiele als die Mannschaft
+  ✓ jeder Aufgestellte kommt auf Einsätze  17 Spieler mit Einsatz
+  ✓ Vorlagen sind nicht mehr als Tore
+  ✓ ein Torwart ist nicht Torschützenkönig  vorn: AF
+  ✓ Rote Karten führen zu verpassten Spielen  2 Rot · 32 verpasst
+  ✓ die Kaderfelder spiele/tore werden fortgeschrieben  17 Spieler mit Einsätzen im Kader
+  ✓ die Chronik trägt die volle Tabelle des Jahres
+  ✓ die Chronik trägt die Spielerzahlen des Jahres
+  ✓ die Einzelspiele stehen NUR beim laufenden Stand, nicht im Archiv  Chronik ohne Spiele, Stand mit 38
+  ✓ Freischaltung: Dach zu bei 0 und 1 Laufbahn
+  ✓ Freischaltung: Dach offen ab 2
+  ✓ Freischaltung: Profimannschaft zu bis 4
+  ✓ Freischaltung: Profimannschaft offen ab 5
+  ✓ Freischaltung: Restzähler stimmen
+  ✓ Freischaltung: ohne Bilanz bleibt alles zu
+  ✓ Menüzeile „Dein Verein“ fragt die Freischaltung ab
+  ✓ kein ungesperrter Zugang zur Akademie mehr im Hauptmenü  nur noch über das Dach
+  ✓ jedes setPhase-Ziel hat eine Route  12 Ziele, alle erreichbar
+  ✓ jede Route wird auch angesprungen  12 Routen
+  ✓ der Abschlussbildschirm hat gar keinen Zugang zur Akademie mehr
+  ✓ und keinen Sprungknopf im Akademiebericht
+  ✓ Verein: kein Knopf 'Saison spielen' mehr im Programm
+
+646 Prüfungen bestanden, 0 Fehler.
+
+########## RÜCKWÄRTSPRÜFUNG (6 Durchläufe) ##########
+  63 Ansichten fehlerfrei, 0 Fehler.
+  63 Ansichten fehlerfrei, 0 Fehler.
+  63 Ansichten fehlerfrei, 0 Fehler.
+  63 Ansichten fehlerfrei, 0 Fehler.
+  63 Ansichten fehlerfrei, 0 Fehler.
+  63 Ansichten fehlerfrei, 0 Fehler.
+
+########## REGRESSIONEN 35.165 ##########
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> rasenschach@35.165.0 test:korrekturen
+> node pruefstand/korrekturen.mjs
+
+PASS F03 gültiger Spieler und gültiges Altbackup
+PASS F03 ungültigen Spieler ablehnen 1
+PASS F03 ungültigen Spieler ablehnen 2
+PASS F03 ungültigen Spieler ablehnen 3
+PASS F03 ungültigen Spieler ablehnen 4
+PASS F03 ungültigen Spieler ablehnen 5
+PASS F03 neuere Sicherung ablehnen
+PASS F04 Lesefehler verursacht keinerlei Schreibzugriff
+PASS F04 Schreib-/Löschfehler mit verifiziertem Rollback a
+PASS F04 Schreib-/Löschfehler mit verifiziertem Rollback b
+PASS F04 Schreib-/Löschfehler mit verifiziertem Rollback legacy
+PASS F04 fehlgeschlagene Wiederherstellung ehrlich melden und beim Neustart retten
+PASS F02 vollständiger Ersatz entfernt fehlende und alte Schlüssel; Rücknahme exakt
+PASS F17 Mehrschlüsselbuchung ohne Import-Rückweg
+PASS F44 Schreibreihenfolge bleibt auch bei unterschiedlichen Laufzeiten erhalten
+PASS F01 Ereignis und Funktionsreferenzen ohne erneute Würfel wiederherstellen
+PASS F01 Ergebnis und Angebote über JSON-Rundlauf unverändert
+PASS F01 ungültige Ereignisfolge nicht als Training neu starten
+PASS F52 alle freigeschalteten Beinamen auswählbar
+PASS F53 Vorsprung erhöht Startwerte; F54 Dauerboni bleiben
+PASS F31/F45 Absolventenkarte enthält Talenttyp und korrektes Alter
+PASS F42 Hallenkarten-Identität unabhängig von Sortierung
+PASS F03 Import akzeptiert alle Spielpositionen
+PASS F58 automatische Elf nutzt mögliche Umstellungen statt falscher Lücke
+PASS F35 echter Hauptmenü-Einstieg öffnet Sammlung und kehrt ins Menü zurück
+PASS F01 tatsächlicher Menü-/Fortsetzen-Ablauf behält Saison und Angebote
+PASS F42 echter Karriereabschluss erzeugt genau eine Hallenkarte
+PASS F43 manuelle Freigabe im Postfach erzeugt sofort eine Karte
+PASS F02 tatsächlicher Import entfernt alten Live-Zustand und Migrationsreste
+PASS F01 entschiedene Ereignisse bleiben nach Menü und Wiederaufnahme entschieden
+PASS F17 echter Karrierestart überträgt Vorrat und speichert sofort
+PASS F17 echter Karrierestart mit Schreibfehler erhält Vorrat
+PASS F57 Sicherungsvorschau zeigt Vereinsname und behandelt ungültigen Zeitpunkt
+
+33 Regressionen bestanden.
+
+########## ERGEBNIS ##########
+MINDESTENS EIN TEIL IST FEHLGESCHLAGEN.

@@ -1,0 +1,23 @@
+Beidateien aus App.jsx: akademie.js ereignisse.js karten.js namen.js schriften.js sicherung.js spielstand.js titelbild.js verein.js 
+Fassung: const VERSION = "35.166";
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+vite v6.4.3 building for production...
+transforming...
+✓ 37 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                    1.92 kB │ gzip:   1.07 kB
+dist/assets/index-TyHh1yOc.js  1,489.21 kB │ gzip: 548.14 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.40s
+Gegenprobe: 0 Verweise auf die Buenddatei, $& unveraendert (2)
+Werkstatt: eingebaut
+geschrieben: /workspace/scratch/f8a6ef3117a1/tmp/impl166/browser/rasenschach-browsertest.html  1479 KB
+Nachladen: 0 externe Verweise · 0 @import · 0 fonts.googleapis
+@font-face: 5 (weniger als 5 heisst: Schriften fehlen)
+Startprobe ausdrücklich ausgelassen; kein interaktiver Browsernachweis.
+FERTIG: /workspace/scratch/f8a6ef3117a1/tmp/impl166/browser/rasenschach-browsertest.html

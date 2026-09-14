@@ -1,0 +1,10 @@
+Rahmen entfernt: 0 Pixel je Seite
+Bildinhalt: 532x532
+  mipmap-mdpi     108dp =  108 px · 48dp =  48 px
+  mipmap-hdpi     108dp =  162 px · 48dp =  72 px
+  mipmap-xhdpi    108dp =  216 px · 48dp =  96 px
+  mipmap-xxhdpi   108dp =  324 px · 48dp = 144 px
+  mipmap-xxxhdpi  108dp =  432 px · 48dp = 192 px
+  mipmap-anydpi-v26/ic_launcher.xml und ic_launcher_round.xml
+  symbol-512.png und symbol-quelle-1024.png
+Fertig: tmp/impl167/symbol/res

@@ -1,0 +1,61 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> rasenschach@35.167.0 test:korrekturen
+> node pruefstand/korrekturen.mjs
+
+PASS F03 gültiger Spieler und gültiges Altbackup
+PASS F03 ungültigen Spieler ablehnen 1
+PASS F03 ungültigen Spieler ablehnen 2
+PASS F03 ungültigen Spieler ablehnen 3
+PASS F03 ungültigen Spieler ablehnen 4
+PASS F03 ungültigen Spieler ablehnen 5
+PASS F03 neuere Sicherung ablehnen
+PASS F04 Lesefehler verursacht keinerlei Schreibzugriff
+PASS F04 Schreib-/Löschfehler mit verifiziertem Rollback a
+PASS F04 Schreib-/Löschfehler mit verifiziertem Rollback b
+PASS F04 Schreib-/Löschfehler mit verifiziertem Rollback legacy
+PASS F04 fehlgeschlagene Wiederherstellung ehrlich melden und beim Neustart retten
+PASS F02 vollständiger Ersatz entfernt fehlende und alte Schlüssel; Rücknahme exakt
+PASS F17 Mehrschlüsselbuchung ohne Import-Rückweg
+PASS F44 Schreibreihenfolge bleibt auch bei unterschiedlichen Laufzeiten erhalten
+PASS F01 Ereignis und Funktionsreferenzen ohne erneute Würfel wiederherstellen
+PASS F01 Ergebnis und Angebote über JSON-Rundlauf unverändert
+PASS F01 ungültige Ereignisfolge nicht als Training neu starten
+PASS F52 alle freigeschalteten Beinamen auswählbar
+PASS F53 Vorsprung erhöht Startwerte; F54 Dauerboni bleiben
+PASS F31/F45 Absolventenkarte enthält Talenttyp und korrektes Alter
+PASS F42 Hallenkarten-Identität unabhängig von Sortierung
+PASS F03 Import akzeptiert alle Spielpositionen
+PASS F58 automatische Elf nutzt mögliche Umstellungen statt falscher Lücke
+PASS F35 echter Hauptmenü-Einstieg öffnet Sammlung und kehrt ins Menü zurück
+PASS F01 tatsächlicher Menü-/Fortsetzen-Ablauf behält Saison und Angebote
+PASS F42 echter Karriereabschluss erzeugt genau eine Hallenkarte
+PASS F43 manuelle Freigabe im Postfach erzeugt sofort eine Karte
+PASS F02 tatsächlicher Import entfernt alten Live-Zustand und Migrationsreste
+PASS F01 entschiedene Ereignisse bleiben nach Menü und Wiederaufnahme entschieden
+PASS F17 echter Karrierestart überträgt Vorrat und speichert sofort
+PASS F17 echter Karrierestart mit Schreibfehler erhält Vorrat
+PASS F57 Sicherungsvorschau zeigt Vereinsname und behandelt ungültigen Zeitpunkt
+PASS 35.167 Abschluss: Fehler an jedem beteiligten Datensatz rollt alle Buchungen zurück
+PASS 35.167 Packregeln lehnen Unterdeckung und fehlende Ansprüche ab
+PASS 35.167 Packkauf: Speicherfehler erhält Coins und Karten und zeigt keine Enthüllung
+PASS 35.167 Verkauf: fehlgeschlagene Coinbuchung erhält Karte; Erfolg entfernt sie genau einmal
+PASS 35.167 feste Antwortkennungen erhalten Entscheidungen trotz neuer Reihenfolge
+PASS 35.167 Fanshop erhöht Reichweite um 20 Prozent statt unverändertem Abschlag
+PASS 35.167 zusätzliche Vorsätze nutzen die vorhandenen Karrierebedingungen
+PASS 35.167 Spielansicht ohne Tätigkeitskasten; Vorsatz direkt hinter Wildcard
+PASS 35.167 Karriereabschluss mit 15. Vereinsjahr: Verein, Halle und Karten gemeinsam
+PASS F49 verdeckte Karte ist ein natives Bedienelement
+PASS F50 alle Startfelder haben Namen und die Kernfelder native Labels
+PASS 35.167 endgültiges Karriereende bleibt nach Neustart abschließbar
+  150 Aktionen, 25 Saisons; jede Wiederaufnahme aus gespeichertem Bestand.
+PASS 35.167 vollständige normale Laufbahn mit Neustart zwischen jedem Schritt
+  92 Aktionen, 23 Saisons; jede Wiederaufnahme aus gespeichertem Bestand.
+PASS 35.167 vollständige Speed Laufbahn mit Neustart zwischen jedem Schritt
+
+47 Regressionen bestanden.
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.0.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+npm notice To update run: npm install -g npm@12.0.2
+npm notice
