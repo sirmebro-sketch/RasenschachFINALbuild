@@ -1,25 +1,32 @@
 {
   "name": "rasenschach",
   "private": true,
-  "version": "11.0.0",
+  "version": "35.168.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "android": "npm run build && npx cap sync android && npx cap open android"
+    "android": "npm run build && npx cap sync android && npx cap open android",
+    "test:korrekturen": "node pruefstand/korrekturen.mjs"
   },
   "dependencies": {
-    "@capacitor/android": "^6.2.0",
-    "@capacitor/app": "^6.0.3",
-    "@capacitor/core": "^6.2.0",
-    "@capacitor/preferences": "^6.0.3",
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/preferences": "^7.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.2.0",
+    "@babel/parser": "^7.29.8",
+    "@capacitor/cli": "^7.4.6",
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^5.4.11"
+    "esbuild": "^0.25.12",
+    "jsdom": "^26.1.0",
+    "vite": "^6.4.3"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }

@@ -46,7 +46,7 @@
 > Danach: Langzeitbeobachtung (offener Punkt 13) und die Gestaltungsfragen
 > 1 bis 3 und 5, die alle Augen brauchen statt Messungen.
 
-**Fassung 35.128** · Stand 6. September 2026
+**Fassung 35.168** · Stand 14. September 2026
 
 <!-- VERZEICHNIS -->
 
@@ -56,183 +56,249 @@
 
 | Zeile | Abschnitt |
 |---:|---|
-| 245 | 1. Was das Projekt ist |
-| 330 | 2. Zusammenarbeit |
-| 346 | 3. Was drin ist (Grobüberblick) |
-| 459 | 4. Kalibrierung — worauf eingestellt wurde |
-| 521 | 5. Prüfstand |
-| 606 | 6. Stolperfallen — teuer gelernt |
-| 645 | 7. Was offen ist |
-| 673 | 8. Wie ein neuer Chat anfangen sollte |
-| 765 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
-| 1089 | Auf dem Gerät geprüft — 10.8.2026 |
-| 1196 | 34.0 · Die Spielerporträts |
-| 1313 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
-| 1561 | 34.8 · Vier gemeldete Punkte |
-| 1613 | 34.9 · Block A — fünf Fehler im Spielfluss |
-| 1678 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
-| 1733 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
-| 1781 | 34.12 · Block C — Frauenfußball |
-| 1836 | 34.13 · Block D, erster Teil |
-| 1885 | 34.14 · Die Wachstumskurve |
-| 1939 | 34.15 · Die Rückblick-Karten |
-| 1978 | 34.16 · Zwei Fehler aus Kevins Test |
-| 2038 | 34.17 · Die Freischaltungen |
-| 2073 | 34.18 · Der Vermächtnis-Laden |
-| 2141 | 34.19 · Der gekaufte Kartentausch wirkt |
-| 2187 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
-| 2219 | 34.21 · Laden und Zahnrad lagen aufeinander |
-| 2300 | 34.22 · Der Laden rechnet ab, und zwei Texte |
-| 2387 | 34.23 · Jede neue Seite beginnt oben |
-| 2444 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
-| 2516 | 34.25 · Die Ränge der Errungenschaften |
-| 2579 | 34.26 · Der Rückblick liegt auf Karteikarten |
-| 2649 | 34.27 · Drei wirklich runde Kopfformen |
-| 2718 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
-| 2754 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
-| 2821 | 34.30 · Aufräumen nach dem Belastungstest |
-| 2883 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
-| 2929 | 34.32 · Die Wildcard auf hellem Papier |
-| 2967 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
-| 3004 | 34.34 · Drei Meldungen aus dem Spiel |
-| 3059 | 34.35 · Bärte bleiben in der Kopfform |
-| 3092 | Kevins Testprotokoll zu 34.33 — Ergebnis |
-| 3117 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
-| 3165 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
-| 3212 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
-| 3263 | 35.1 · Werkzeugpflege |
-| 3318 | 35.2 · STAND.md hat ein Verzeichnis |
-| 3353 | 35.3 · Eine Regel weniger zum Merken |
-| 3390 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
-| 3498 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
-| 3627 | 35.6 · Die Ereignisse ziehen aus |
-| 3703 | 35.7 · Entscheidungen mit Folgen |
-| 3769 | 35.8 · Deine Werte öffnen Türen |
-| 3845 | 35.9 · Storystränge |
-| 3911 | 35.10 · Der Anfang war die engste Stelle |
-| 3984 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
-| 4048 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
-| 4115 | 35.13 · Die Akademie wird größer |
-| 4201 | 35.14 · Antworten, die nur manchmal da sind |
-| 4271 | 35.15 · Vier Geschichten statt einer |
-| 4323 | 35.16 · Vierundzwanzig weitere Male anders |
-| 4388 | 35.17 · Der eigene Verein — Durchstich |
-| 4482 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
-| 4544 | 35.19 · Die Akademie wird zeitlos |
-| 4589 | 35.20 · Der Verein bekommt ein Gesicht |
-| 4653 | 35.21 · Der Verein ist erreichbar |
-| 4703 | 35.22 · Was hier stand, stimmte nicht mehr |
-| 4789 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
-| 4895 | 35.24 · Durchsicht des ganzen Projektwissens |
-| 5006 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
-| 5077 | 35.26 · Das Tutorial |
-| 5179 | 35.27 · Erster Gerätetest des Vereinsmodus |
-| 5262 | 35.28 · Der Verein läuft nebenher |
-| 5378 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
-| 5456 | 35.30 · Die Bauanleitung war unvollständig |
-| 5615 | 35.31 · Die Moral steht in der Anleitung — und liefert ande… |
-| 5705 | 35.32 · Die Akademie steht im Rückblick |
-| 5810 | 35.33 · Die Ruhmeshalle war nie geprüft |
-| 5889 | 35.34 · Jugendturniere bekommen Namen und Gegner |
-| 6027 | 35.35 · Drei Flaggen bekommen Folgen |
-| 6142 | 35.36 · Die letzten zwei Flaggen bekommen Inhalt |
-| 6236 | 35.37 · Ereignisse, die zum falschen Moment kommen |
-| 6388 | 35.38 · Der Kapitän spricht nicht mehr mit sich selbst |
-| 6498 | 35.39 · Die Akademie zahlt früher — und sagt es |
-| 6611 | 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe |
-| 6693 | 35.41 · Werkzeugkasten aufgeräumt |
-| 6801 | 35.42 · Der Abschlussbildschirm wird übersichtlich |
-| 6923 | 35.43 · Namen nach Land statt nach Sprachraum |
-| 7128 | 35.44 · Eine Kennzahl, die nichts mehr bedeutete |
-| 7192 | 35.45 · Sechs Listen, die auseinandergelaufen waren |
-| 7344 | 35.46 · Der Bau ist wiederholbar — und eine eigene Behauptu… |
-| 7480 | 35.47 · Der Prüfstand sieht nach der Sicherheitslage |
-| 7586 | 35.48 · Die Akademie zieht aus |
-| 7713 | 35.49 · Stufe A — die Aufstellung von Hand |
-| 7835 | 35.50 · Ein Dach über Akademie und Profimannschaft |
-| 7910 | 35.51 · Der Abschluss schließt ab |
-| 8036 | 35.52 · Stufe B — die Saison wird gespielt |
-| 8156 | 35.53 · Stufe C, erster Teil — Verträge und Postkorb |
-| 8264 | 35.54 · Stufe C, zweiter Teil — Kaderverträge, und Punkt 21… |
-| 8362 | 35.55 · Stufe D — den Kader ausdünnen |
-| 8438 | 35.56 · Die Werkstatt war nie da, und die Namen kamen alle… |
-| 8544 | 35.57 · Die Namen haben ihre Zeichen zurück |
-| 8625 | 35.58 · Drei Befunde vom Gerät — und einer davon war unsich… |
-| 8700 | 35.59 · Die Auswahl steht dort, wo man hingetippt hat |
-| 8735 | 35.60 · Das Dach zeigt den Stand, statt ihn zu verstecken |
-| 8794 | 35.61 · Verwaltung im Jugendhaus |
-| 8844 | 35.62 · Errungenschaften für den eigenen Verein |
-| 8940 | 35.63 · Kartenoptik hinter dem Porträt |
-| 9008 | 35.64 · Derselbe Fehler, eine Klasse weiter |
-| 9063 | 35.65 · Verträge auf Papier — und eine ganze Farbwelt war u… |
-| 9123 | 35.66 · Der Rücktrittsknopf tat vier Fassungen lang nichts |
-| 9175 | 35.67 · Erst der Verein, dann die Liga |
-| 9247 | 35.68 · Wappen im Dach, Postfach zu |
-| 9293 | 35.69 · Der Rahmen von damals, und eine Rückseite |
-| 9364 | 35.70 · „Dein Verein" gehört jetzt zum Blatt |
-| 9409 | 35.71 · Nachgesehen: hängt jeder Bildschirm am Blatt? |
-| 9461 | 35.72 · Gleich gebaut war nicht gleich laut |
-| 9517 | 35.73 · Der Abschluss lebte nur im Arbeitsspeicher |
-| 9571 | 35.74 · Achtzehn Ziele für die langen Jahre |
-| 9648 | 35.75 · Die Hallenkarten wenden sich wie ein Spielerpass |
-| 9691 | 35.76 · Der Sonderschuss |
-| 9788 | 35.77 · Sonderschuss auf Knopfdruck |
-| 9831 | 35.78 · Der Sonderschuss wird ein Fenster |
-| 9893 | 35.79 · Das Fundament für die Sammelkarten |
-| 9979 | 35.80 · Vier Packs, und sie sagen, was sie kosten |
-| 10049 | 35.81 · Zwei von drei Häusern arbeiteten umsonst |
-| 10121 | 35.82 · Die Spielerkarte |
-| 10178 | 35.83 · Feste Karten, Merkmale, Jubel |
-| 10252 | 35.84 · Holoschimmer |
-| 10315 | 35.85 · Der Packladen — das Kartensystem wird spielbar |
-| 10363 | 35.86 · Eine Grenze ohne Ausweg ist eine Falle |
-| 10423 | 35.87 · Der Fundus, und Karten wischen weg |
-| 10463 | 35.88 · Die Aufstellung wird zum Kartenraster |
-| 10540 | 35.89 · Karten fallen aus dem Pack — und das Startpaket |
-| 10602 | 35.90 · Vier Befunde vom Gerät |
-| 10672 | 35.91 · Die Elf steht jetzt so, wie sie spielt |
-| 10737 | 35.92 · Ist der Tisch leer, geht es zurück |
-| 10772 | 35.93 · Das Postfach wird ein Briefsymbol |
-| 10836 | 35.94 · Acht Befunde vom Gerät |
-| 10946 | 35.95 · Ein neuer Zugang braucht einen passenden Ausgang |
-| 10981 | 35.96 · Der Schimmer, zum dritten Mal — diesmal gerechnet |
-| 11047 | 35.97 · „Warum funktioniert das an anderen Stellen?" |
-| 11111 | 35.98 · Eine Ziffer, und ein Lauf an der Zeitgrenze |
-| 11171 | 35.99 · Ein stetiger Verlauf ist nicht dasselbe wie ein ruh… |
-| 11221 | 35.100 · Neues App-Symbol, echtes Mannschaftsfoto |
-| 11288 | 35.101 · Der Prüfstand meldete sieben Fehler, die keine waren |
-| 11416 | 35.102 · Eine Wildcard war unerreichbar, und niemand hat es… |
-| 11572 | 35.103 · Drei Entscheidungen, und was danach folgte |
-| 11682 | 35.104 · Jede Spielzeit bekommt eine Schlagzeile |
-| 11797 | 35.105 · Eine Rückkehr war keine Rückkehr |
-| 11921 | 35.106 · Marken für Laufbahnen, die keine Weltkarriere werden |
-| 12045 | 35.107 · Das eine Ziel |
-| 12145 | 35.108 · Sechs Entscheidungen kommen zurück |
-| 12253 | 35.109 · Was für eine Laufbahn war das eigentlich? |
-| 12360 | 35.110 · Warum ruft gerade dieser Verein an? |
-| 12460 | 35.111 · Die Tabelle hatte die Namen die ganze Zeit |
-| 12542 | 35.112 · Vier Auswege, jeder mit einem Preis |
-| 12625 | 35.113 · Der Archetyp bekommt seine Wirkung |
-| 12710 | 35.114 · Das erste neue Feld — und warum es unvermeidlich war |
-| 12785 | 35.115 · Ein Fünftel des Spielstands war Ballast |
-| 12857 | 35.116 · Zwanzig Rekorde, die längst mitliefen |
-| 12911 | 35.117 · Die Ruhmeshalle wird ein Museum |
-| 12982 | 35.118 · Fünfzehn Jahre in Kapiteln — und eine Prüfung, die… |
-| 13070 | 35.119 · Die Zeitleiste — und das Jahr, das dem Verein fehlte |
-| 13152 | 35.120 · Das Hauptmenü hatte schon fast alles |
-| 13209 | 35.121 · Der erste Gerätebefund seit 35.28 |
-| 13269 | 35.122 · Meine Korrektur war zu breit |
-| 13332 | 35.123 · Fast geschafft — abgeleitet statt gepflegt |
-| 13422 | 35.124 · Zwei stille Fehler, einer davon meiner |
-| 13503 | 35.125 · Die Kette ist geschlossen |
-| 13562 | 35.126 · Sechs Sammlungsseiten |
-| 13619 | 35.127 · Entwicklungstypen — die letzte Stufe |
-| 13687 | 35.128 · Ein abgestürzter Prüfteil sagt jetzt, dass er abge… |
-| 13744 | Für den nächsten Durchgang |
-| 13804 | Offene Punkte (Stand 35.128) |
-| 14149 | Zusätzliche Stolperfallen |
+| 277 | 35.167 |
+| 285 | 35.166 |
+| 293 | 35.165 |
+| 311 | 1. Was das Projekt ist |
+| 399 | 2. Zusammenarbeit |
+| 415 | 3. Was drin ist (Grobüberblick) |
+| 528 | 4. Kalibrierung — worauf eingestellt wurde |
+| 590 | 5. Prüfstand |
+| 684 | 6. Stolperfallen — teuer gelernt |
+| 723 | 7. Was offen ist |
+| 751 | 8. Wie ein neuer Chat anfangen sollte |
+| 843 | Fassungen 33.3 bis 33.7 — Schrift, Form, Farbe |
+| 1167 | Auf dem Gerät geprüft — 10.8.2026 |
+| 1274 | 34.0 · Die Spielerporträts |
+| 1391 | 34.3 · Die App wird ein Heft (Schritt 1 von 3) |
+| 1639 | 34.8 · Vier gemeldete Punkte |
+| 1691 | 34.9 · Block A — fünf Fehler im Spielfluss |
+| 1756 | 34.10 · Block B, erster Teil — die Sprache der Oberfläche |
+| 1811 | 34.11 · Sprache, zweiter Anlauf — und ein Befund, der Arbei… |
+| 1859 | 34.12 · Block C — Frauenfußball |
+| 1914 | 34.13 · Block D, erster Teil |
+| 1963 | 34.14 · Die Wachstumskurve |
+| 2017 | 34.15 · Die Rückblick-Karten |
+| 2056 | 34.16 · Zwei Fehler aus Kevins Test |
+| 2116 | 34.17 · Die Freischaltungen |
+| 2151 | 34.18 · Der Vermächtnis-Laden |
+| 2219 | 34.19 · Der gekaufte Kartentausch wirkt |
+| 2265 | 34.20 · Der Laden nach dem ersten Blick aufs Gerät |
+| 2297 | 34.21 · Laden und Zahnrad lagen aufeinander |
+| 2378 | 34.22 · Der Laden rechnet ab, und zwei Texte |
+| 2465 | 34.23 · Jede neue Seite beginnt oben |
+| 2522 | 34.24 · Der Spielerpass: Stärke, Binden, Flaggen |
+| 2594 | 34.25 · Die Ränge der Errungenschaften |
+| 2657 | 34.26 · Der Rückblick liegt auf Karteikarten |
+| 2727 | 34.27 · Drei wirklich runde Kopfformen |
+| 2796 | 34.28 · Zwei Kopfformen ohne markantes Kinn |
+| 2832 | 34.29 · Herkunft, Statur und Geschlecht wirken aufs Gesicht |
+| 2899 | 34.30 · Aufräumen nach dem Belastungstest |
+| 2961 | 34.31 · Kartenwechsel ohne Ruckler, Schritte auf Formularpa… |
+| 3007 | 34.32 · Die Wildcard auf hellem Papier |
+| 3045 | 34.33 · Die Kopfformen sind wieder spiegelgleich |
+| 3082 | 34.34 · Drei Meldungen aus dem Spiel |
+| 3137 | 34.35 · Bärte bleiben in der Kopfform |
+| 3170 | Kevins Testprotokoll zu 34.33 — Ergebnis |
+| 3195 | 34.36 / 34.37 · Goldton, Kopflinie, Zielverein des Trainers |
+| 3243 | 34.38 · Alle 212 Nationen haben eine echte Flagge |
+| 3290 | 35.0 · Ereigniswiederholung: gemessen statt vermutet |
+| 3341 | 35.1 · Werkzeugpflege |
+| 3396 | 35.2 · STAND.md hat ein Verzeichnis |
+| 3431 | 35.3 · Eine Regel weniger zum Merken |
+| 3468 | 35.4 · Vier Fundstellen aus der Eingangsprüfung |
+| 3576 | 35.5 · Ein Prüfwerkzeug für die Ereignisse |
+| 3705 | 35.6 · Die Ereignisse ziehen aus |
+| 3781 | 35.7 · Entscheidungen mit Folgen |
+| 3847 | 35.8 · Deine Werte öffnen Türen |
+| 3923 | 35.9 · Storystränge |
+| 3989 | 35.10 · Der Anfang war die engste Stelle |
+| 4062 | 35.11 · Wo die Bedingungen hingehören — und ein grober eige… |
+| 4126 | 35.12 · Die Ehrentafel sagt jetzt, wohin |
+| 4193 | 35.13 · Die Akademie wird größer |
+| 4279 | 35.14 · Antworten, die nur manchmal da sind |
+| 4349 | 35.15 · Vier Geschichten statt einer |
+| 4401 | 35.16 · Vierundzwanzig weitere Male anders |
+| 4466 | 35.17 · Der eigene Verein — Durchstich |
+| 4560 | 35.18 · Der Vereinsmodus ist zu Ende gerechnet |
+| 4622 | 35.19 · Die Akademie wird zeitlos |
+| 4667 | 35.20 · Der Verein bekommt ein Gesicht |
+| 4731 | 35.21 · Der Verein ist erreichbar |
+| 4781 | 35.22 · Was hier stand, stimmte nicht mehr |
+| 4867 | 35.23 · Der Pass wuchs an zwei Stellen, keine davon war die… |
+| 4973 | 35.24 · Durchsicht des ganzen Projektwissens |
+| 5084 | 35.25 · Ein gemeldeter Fehler, den es nicht gab |
+| 5155 | 35.26 · Das Tutorial |
+| 5257 | 35.27 · Erster Gerätetest des Vereinsmodus |
+| 5340 | 35.28 · Der Verein läuft nebenher |
+| 5456 | 35.29 · Die Knopfprüfung hätte den Fehler nicht gefunden |
+| 5534 | 35.30 · Die Bauanleitung war unvollständig |
+| 5693 | 35.31 · Die Moral steht in der Anleitung — und liefert ande… |
+| 5783 | 35.32 · Die Akademie steht im Rückblick |
+| 5888 | 35.33 · Die Ruhmeshalle war nie geprüft |
+| 5967 | 35.34 · Jugendturniere bekommen Namen und Gegner |
+| 6105 | 35.35 · Drei Flaggen bekommen Folgen |
+| 6220 | 35.36 · Die letzten zwei Flaggen bekommen Inhalt |
+| 6314 | 35.37 · Ereignisse, die zum falschen Moment kommen |
+| 6466 | 35.38 · Der Kapitän spricht nicht mehr mit sich selbst |
+| 6576 | 35.39 · Die Akademie zahlt früher — und sagt es |
+| 6689 | 35.40 · Weibliche Frisuren: 9 von 14 waren dieselbe |
+| 6771 | 35.41 · Werkzeugkasten aufgeräumt |
+| 6879 | 35.42 · Der Abschlussbildschirm wird übersichtlich |
+| 7001 | 35.43 · Namen nach Land statt nach Sprachraum |
+| 7206 | 35.44 · Eine Kennzahl, die nichts mehr bedeutete |
+| 7270 | 35.45 · Sechs Listen, die auseinandergelaufen waren |
+| 7422 | 35.46 · Der Bau ist wiederholbar — und eine eigene Behauptu… |
+| 7558 | 35.47 · Der Prüfstand sieht nach der Sicherheitslage |
+| 7664 | 35.48 · Die Akademie zieht aus |
+| 7791 | 35.49 · Stufe A — die Aufstellung von Hand |
+| 7913 | 35.50 · Ein Dach über Akademie und Profimannschaft |
+| 7988 | 35.51 · Der Abschluss schließt ab |
+| 8114 | 35.52 · Stufe B — die Saison wird gespielt |
+| 8234 | 35.53 · Stufe C, erster Teil — Verträge und Postkorb |
+| 8342 | 35.54 · Stufe C, zweiter Teil — Kaderverträge, und Punkt 21… |
+| 8440 | 35.55 · Stufe D — den Kader ausdünnen |
+| 8516 | 35.56 · Die Werkstatt war nie da, und die Namen kamen alle… |
+| 8622 | 35.57 · Die Namen haben ihre Zeichen zurück |
+| 8703 | 35.58 · Drei Befunde vom Gerät — und einer davon war unsich… |
+| 8778 | 35.59 · Die Auswahl steht dort, wo man hingetippt hat |
+| 8813 | 35.60 · Das Dach zeigt den Stand, statt ihn zu verstecken |
+| 8872 | 35.61 · Verwaltung im Jugendhaus |
+| 8922 | 35.62 · Errungenschaften für den eigenen Verein |
+| 9018 | 35.63 · Kartenoptik hinter dem Porträt |
+| 9086 | 35.64 · Derselbe Fehler, eine Klasse weiter |
+| 9141 | 35.65 · Verträge auf Papier — und eine ganze Farbwelt war u… |
+| 9201 | 35.66 · Der Rücktrittsknopf tat vier Fassungen lang nichts |
+| 9253 | 35.67 · Erst der Verein, dann die Liga |
+| 9325 | 35.68 · Wappen im Dach, Postfach zu |
+| 9371 | 35.69 · Der Rahmen von damals, und eine Rückseite |
+| 9442 | 35.70 · „Dein Verein" gehört jetzt zum Blatt |
+| 9487 | 35.71 · Nachgesehen: hängt jeder Bildschirm am Blatt? |
+| 9539 | 35.72 · Gleich gebaut war nicht gleich laut |
+| 9595 | 35.73 · Der Abschluss lebte nur im Arbeitsspeicher |
+| 9649 | 35.74 · Achtzehn Ziele für die langen Jahre |
+| 9726 | 35.75 · Die Hallenkarten wenden sich wie ein Spielerpass |
+| 9769 | 35.76 · Der Sonderschuss |
+| 9866 | 35.77 · Sonderschuss auf Knopfdruck |
+| 9909 | 35.78 · Der Sonderschuss wird ein Fenster |
+| 9971 | 35.79 · Das Fundament für die Sammelkarten |
+| 10057 | 35.80 · Vier Packs, und sie sagen, was sie kosten |
+| 10127 | 35.81 · Zwei von drei Häusern arbeiteten umsonst |
+| 10199 | 35.82 · Die Spielerkarte |
+| 10256 | 35.83 · Feste Karten, Merkmale, Jubel |
+| 10330 | 35.84 · Holoschimmer |
+| 10393 | 35.85 · Der Packladen — das Kartensystem wird spielbar |
+| 10441 | 35.86 · Eine Grenze ohne Ausweg ist eine Falle |
+| 10501 | 35.87 · Der Fundus, und Karten wischen weg |
+| 10541 | 35.88 · Die Aufstellung wird zum Kartenraster |
+| 10618 | 35.89 · Karten fallen aus dem Pack — und das Startpaket |
+| 10680 | 35.90 · Vier Befunde vom Gerät |
+| 10750 | 35.91 · Die Elf steht jetzt so, wie sie spielt |
+| 10815 | 35.92 · Ist der Tisch leer, geht es zurück |
+| 10850 | 35.93 · Das Postfach wird ein Briefsymbol |
+| 10914 | 35.94 · Acht Befunde vom Gerät |
+| 11024 | 35.95 · Ein neuer Zugang braucht einen passenden Ausgang |
+| 11059 | 35.96 · Der Schimmer, zum dritten Mal — diesmal gerechnet |
+| 11125 | 35.97 · „Warum funktioniert das an anderen Stellen?" |
+| 11189 | 35.98 · Eine Ziffer, und ein Lauf an der Zeitgrenze |
+| 11249 | 35.99 · Ein stetiger Verlauf ist nicht dasselbe wie ein ruh… |
+| 11299 | 35.100 · Neues App-Symbol, echtes Mannschaftsfoto |
+| 11366 | 35.101 · Der Prüfstand meldete sieben Fehler, die keine waren |
+| 11494 | 35.102 · Eine Wildcard war unerreichbar, und niemand hat es… |
+| 11650 | 35.103 · Drei Entscheidungen, und was danach folgte |
+| 11760 | 35.104 · Jede Spielzeit bekommt eine Schlagzeile |
+| 11875 | 35.105 · Eine Rückkehr war keine Rückkehr |
+| 11999 | 35.106 · Marken für Laufbahnen, die keine Weltkarriere werden |
+| 12123 | 35.107 · Das eine Ziel |
+| 12223 | 35.108 · Sechs Entscheidungen kommen zurück |
+| 12331 | 35.109 · Was für eine Laufbahn war das eigentlich? |
+| 12438 | 35.110 · Warum ruft gerade dieser Verein an? |
+| 12538 | 35.111 · Die Tabelle hatte die Namen die ganze Zeit |
+| 12620 | 35.112 · Vier Auswege, jeder mit einem Preis |
+| 12703 | 35.113 · Der Archetyp bekommt seine Wirkung |
+| 12788 | 35.114 · Das erste neue Feld — und warum es unvermeidlich war |
+| 12863 | 35.115 · Ein Fünftel des Spielstands war Ballast |
+| 12935 | 35.116 · Zwanzig Rekorde, die längst mitliefen |
+| 12989 | 35.117 · Die Ruhmeshalle wird ein Museum |
+| 13060 | 35.118 · Fünfzehn Jahre in Kapiteln — und eine Prüfung, die… |
+| 13148 | 35.119 · Die Zeitleiste — und das Jahr, das dem Verein fehlte |
+| 13230 | 35.120 · Das Hauptmenü hatte schon fast alles |
+| 13287 | 35.121 · Der erste Gerätebefund seit 35.28 |
+| 13347 | 35.122 · Meine Korrektur war zu breit |
+| 13410 | 35.123 · Fast geschafft — abgeleitet statt gepflegt |
+| 13500 | 35.124 · Zwei stille Fehler, einer davon meiner |
+| 13581 | 35.125 · Die Kette ist geschlossen |
+| 13640 | 35.126 · Sechs Sammlungsseiten |
+| 13697 | 35.127 · Entwicklungstypen — die letzte Stufe |
+| 13765 | 35.128 · Ein abgestürzter Prüfteil sagt jetzt, dass er abge… |
+| 13822 | 35.129 · F29 — zwei Systeme, ein Speicherplatz |
+| 13916 | 35.130 · F01 — Fortsetzen sprang zurück ins Training |
+| 13972 | 35.131 · Der Sicherungspfad — F02, F03, F04, F05, F15, F18 |
+| 14054 | 35.132 · F06 — was sich nicht speichern ließ |
+| 14112 | 35.133 · F41 — „Nicht umkehrbar" war eine falsche Zusage |
+| 14172 | 35.134 · F44 und F17 — Etappe 1 ist durch |
+| 14236 | 35.135 · F07 — die Kalibrierung maß ein anderes Spiel |
+| 14304 | 35.136 · F08 — eine Saison versprochen, zwei geliefert |
+| 14360 | 35.137 · F09 bis F14 — wenn der Text mehr verspricht als di… |
+| 14469 | 35.138 · F16 und F19 — und eine Umbenennung, die ich nicht… |
+| 14534 | 35.139 · F20 bis F28 — neun kleine Rechenfehler |
+| 14628 | 35.140 · F30 bis F40 — elf Befunde an meinen eigenen Systemen |
+| 14695 | 35.141 · F49 und F50 — bedienbar ohne Tippen |
+| 14757 | 35.142 · F51 — eine Sperre mit Trostpflaster |
+| 14822 | 35.143 · F45 bis F48 — Dialoge, aus denen man herauskam |
+| 14886 | 35.144 · F52 — und zwei Fehler, die ich selbst gebaut habe |
+| 14946 | 35.145 · F53 — der Kontrastwächter sah drei von sieben Ansi… |
+| 14999 | 35.146 · F54 — drei Belohnungen, die nie ankamen |
+| 15050 | 35.147 · F55 und F56 — der Fehlerkatalog ist durch |
+| 15105 | 35.148 · V01 — was eine Wahl wirklich bewirkt hat |
+| 15162 | 35.149 · V02 — warum die Saison so lief |
+| 15223 | 35.150 · V03 — Vorschau und Rückweg |
+| 15288 | 35.151 · V04 — was ansteht und was schwebt |
+| 15341 | 35.152 · Ein Buchführungsfehler — und die echten F45/F46 |
+| 15407 | 35.153 · V05 — nachgeprüft und in Ordnung |
+| 15466 | 35.154 · V09 — wann ein Kauf wirkt |
+| 15509 | 35.155 · V12 — ein Textkatalog aus fertigen Ausgaben |
+| 15577 | 35.156 · V10 — wiederholbare Messungen, und Punkt 21 ist ge… |
+| 15636 | 35.157 · V08 — die Karte sagt, woher der Spieler kommt |
+| 15686 | 35.158 · V11 — die erste Laufbahn bleibt |
+| 15736 | 35.159 · F33 und F34 — die zwei, die ich übersprungen hatte |
+| 15804 | 35.160 · Das Seed-Problem — eine Zeile |
+| 15859 | 35.161 · V06 — die erste echte Konsequenzkette |
+| 15916 | 35.162 · V07 — ein Vorsatz statt eines zweiten Zielsystems |
+| 15983 | 35.163 · F47 und F48 — beim Berichtschreiben aufgefallen |
+| 16040 | 35.164 · Die Einstellungen waren kaputt — ausgeliefert |
+| 16089 | 35.168 · Zusammenführung mit dem Codex-Stand 35.167 |
+| 16289 | Für den nächsten Durchgang |
+| 16366 | Offene Punkte (Stand 35.164) |
+| 16711 | Zusätzliche Stolperfallen |
 
 <!-- ENDE VERZEICHNIS -->
+
+## 35.167
+
+Gemeinsame Journalbuchungen für Karriereabschluss, Karten, Coins, Akademie- und Vereinsübergaben. Feste Kennungen für 1.161 Ereignisantworten, mit Migration des bisherigen Ablauf-Schemas. Wiederholung nach Speicherfehler korrigiert; Fanshop-Reichweite berichtigt. Zwei zusätzliche Vorsätze und kleine Verbesserungen am Spielerpass. Neue Buchungslogik in `buchungen.js`.
+
+### Geprüft
+
+Aktueller Prüfstand und Grenzen: `PRUEFERGEBNISSE-35.167.md`. Frühere Prüfergebnisse behalten ihren Versionsbezug. Übergabe: `UEBERGABE-CLAUDE-35.167.md`.
+
+## 35.166
+
+Kevins UI-Wunsch: Tätigkeitskasten unter dem Spielerpass vollständig entfernt. Der ausgewählte Vorsatz steht unter der Wildcard im Bereich Zustand, einschließlich bisherigem Erfüllungsstatus. Übergabe: `UEBERGABE-CLAUDE-35.166.md`. Vorherige Korrekturen aus 35.165 bleiben enthalten.
+
+### Geprüft
+
+Ergebnisse und Grenzen dieses kleinen UI-Updates: `PRUEFERGEBNISSE-35.166.md`, Protokolle unter `nachweise/35.166/`. Frühere große Prüfläufe sind weiterhin als Ergebnisse von 35.165 gekennzeichnet.
+
+## 35.165
+
+Aktuelle Korrekturen und Übergabe: `UEBERGABE-CLAUDE-35.165.md`.
+F01-F04, F17, F31, F35, F42-F44, F47, F51-F53 bearbeitet.
+Die älteren Erledigt-Meldungen gelten nur zusammen mit der aktuellen Übergabe.
+
+### Geprüft
+
+33 neue Regressionen, 816 Ansichtsprüfungen, 646 Vereinsprüfungen und 6 × 63 Rückwärtsansichten bestanden. Vollständiger npm-Audit: 0 bekannte Treffer. Web-Build: rund 1.500,58 kB Hauptpaket, gzip 553,09 kB. Protokolle und Grenzen: PRUEFERGEBNISSE-35.165.md.
 
 *Eigene Schriften · harte Form · Sammelalbum · neue Spielerporträts · **das Heft: dunkles Zeitungspapier***
 
@@ -260,6 +326,9 @@ nachzählbar an den `import`-Zeilen 2 bis 7:
 | `akademie.js` | die Jugendakademie: Talente, Jahreslauf, Ausbau, Gabe | 35.48 |
 | `schriften.js` | Anton und Archivo als Base64 | 33.3 |
 | `storage.js` | Speicher über Capacitor | vor 33.0 |
+| `buchungen.js` | validierte Pack- und Verkaufsbuchungen | 35.167 |
+| `sicherung.js` | validierter Import, Journal und serialisierte Speicherzugriffe | 35.165 |
+| `spielstand.js` | vollständiger Ablauf und Ereignis-Wiederherstellung | 35.165 |
 
 Bis 35.22 stand hier „**eine einzige** `App.jsx`“. Für Schriften und Speicher
 war das immer schon eine Vereinfachung, seit dem Auszug der Ereignisse (35.6),
@@ -520,6 +589,10 @@ Ehrentafel auf 40 gekappt, Chronik auf 25 Jahre).
 
 ## 5. Prüfstand
 
+Testdaten: `pruefstand/aufstellung-f58.json`.
+
+Zusätzlich: `pruefstand/korrekturen.mjs` prüft die Reparaturen der Version 35.165 mit `npm run test:korrekturen`.
+
 Ein Aufruf baut alles auf und misst durch (~3 Minuten):
 
 ```bash
@@ -577,6 +650,7 @@ die Vorgabe in `pruefen.sh` nach; wer sie ändert, muss beide ändern.
 | `argumente.cjs` | gemeinsamer Argumentleser für alle Werkzeuge: `--quelle=` · `--ziel=` · `--anzahl=`; fehlt die Quelle, wird abgebrochen statt still zurückzufallen (seit 35.41) |
 | `ruecktritt.cjs` | beendet im echten Browser eine Laufbahn OHNE Verein — der häufigste Fall und der einzige, der nirgends nachgestellt war (seit 35.66). **Läuft in `sicht.sh`** |
 | `kontrast.cjs` | misst im echten Browser das Helligkeitsverhältnis jedes sichtbaren Textes und prüft die Klassen einzeln (seit 35.58). **Läuft in `sicht.sh`** |
+| `texte.cjs` | erzeugt aus allen 532 Ereignissen die **fertigen** Texte — mit eingesetztem Kontext und in beiden Geschlechtsformen — und sucht darin nach Mustern, die niemand lesen soll: technische Werte, offene Platzhalter, „1 Datensätze", ss statt ß, unpassende Artikel. 4.881 Textstellen, rund 9.800 Proben (35.155, V12). Einzeln aufrufen: `node pruefstand/texte.cjs` |
 | `schriftabdeckung.cjs` | liest die Zeichentabelle aus den eingebetteten WOFF2-Schriften und meldet, welche Alphabete vollständig sind (seit 35.57). **Läuft in `pruefen.sh`** |
 | `gleichheit.cjs` | Gleichheitsprobe für Umschichtungen: fester Zufall, 125 Akademiejahre, JSON-Abzug zum byte-genauen Vergleich zweier Stände (seit 35.48). Auf Abruf |
 | `sicherheit-bekannt.txt` | bewusst abgenickte Sicherheitsfunde im Auslieferungspfad, je Zeile ein Paket mit Begründung (seit 35.47). Keine Ausführung, eine Liste — **wird von `pruefen.sh` gelesen** |
@@ -602,6 +676,10 @@ erzeugt, sondern leere Zahlenfelder. Daraufhin ergänzt: `zahlenPruefen`
 und eine allgemeine Prüfung auf `NaN`/`undefined` in jeder Ansicht.
 
 ---
+
+`pruefstand/ereignis-ids.cjs`: einmalige Vergabe historischer Antwortkennungen; bestehende IDs und altIndex bleiben unverändert.
+
+`pruefstand/android-version.cjs`: Android-Versionsname und aufsteigender Versionscode aus package.json.
 
 ## 6. Stolperfallen — teuer gelernt
 
@@ -702,7 +780,7 @@ unterscheiden. Siehe offener Punkt 19. `UEBERSICHT.md` ist auf 33.13 neu erzeugt
        bash pruefstand/pruefen.sh /pfad/zu/App.jsx
 
    Der Aufruf **braucht den Pfad**. Die Ausgabe muss `Baudateien: 7 von 7
-   gefunden`, `Schriften: 128K` und `Ereignisse: 530 Einträge` enthalten;
+   gefunden`, `Schriften: 128K` und `Ereignisse: 532 Einträge` enthalten;
    steht dort weniger, ist das Projektwissen unvollständig und der
    Produktionsbau ungeprüft. Darunter listet der Aufbau **alle eigenen Dateien
    mit Größe und Zeilenzahl** — das ist die Stelle, an der diese Zahlen stehen,
@@ -13741,7 +13819,2491 @@ eine Zeichenkette vermutet.** Hier reichte `bash -n`.
 
 Keine Änderung am Spiel — nur am Prüfstand.
 
+## 35.129 · F29 — zwei Systeme, ein Speicherplatz
+
+Erster Punkt aus dem Gesamtbericht 35.128 (Revision 5). **P0, bestätigter
+Datenverlust.**
+
+### Nachgestellt, bevor etwas geändert wurde
+
+    const WC_KEY     = "rasenschach:karten";     Zeile 7701
+    const KARTEN_KEY = "rasenschach:karten";     Zeile 8291
+
+Zwei fachlich völlig verschiedene Systeme schrieben auf dieselbe Stelle:
+
+    kartenErgaenzen   schreibt den Kartenpool    { karten: [ … ] }
+    merkeErfolge      schreibt die Wildcard-Map  { w_vollstrecker: 1 }
+
+Im Karriereende laufen **beide nacheinander** — erst der Pool (16282), dann
+die Map (16357). Mit den echten Datenformen nachgestellt:
+
+    nach kartenErgaenzen:  1 Karte
+    nach merkeErfolge:     {"w_vollstrecker":1}
+    beim Laden:            0 Karten
+
+**Kein stummer Schreibfehler — ein erfolgreicher Schreibzugriff auf den
+falschen Datensatz.** Genau deshalb fällt so etwas keiner Prüfung auf, die
+nur nach Ausnahmen sucht.
+
+### Der Pool behält den alten Schlüssel
+
+`WC_KEY` heißt jetzt `rasenschach:wildcards`. Die Wildcard-Map zählt nur,
+welche Karte schon gezogen wurde; die Sammlung dagegen kann Jahre Arbeit
+enthalten. Sie bleibt, wo sie liegt — vorhandene Spielstände behalten sie
+ohne Migration.
+
+### Migration für die, bei denen es schon passiert ist
+
+Ein Spielstand von vor 35.129 trägt unter dem alten Schlüssel je nach Zufall
+die eine oder die andere Form. Unterschieden wird an der **Form**, nicht am
+Namen: ein Pool hat `karten` als Liste.
+
+Findet sich dort eine Wildcard-Map, wird sie auf den neuen Schlüssel
+gerettet — aber **nur, wenn dort noch nichts steht**, sonst überschriebe ein
+zweiter Start die inzwischen richtig geführte Map.
+
+**Was NICHT behauptet wird:** eine bereits überschriebene Sammlung ist
+verloren. Das Papier sagt es selbst — „bereits überschriebene Packkarten ohne
+unabhängige Sicherung nicht als wiederherstellbar versprechen".
+
+### Sechs neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| App.jsx gefunden | meldet sich ab, wenn nicht |
+| **keine zwei Konstanten zeigen auf dieselbe Stelle** | ✗ „KOLLISION: WC_KEY und KARTEN_KEY → rasenschach:karten" |
+| eine Kollision fällt auf | sichert die Zeile darüber ab |
+| die Migration erkennt beide Formen | 5 Formen geprüft |
+| `ladeAlles` prüft die Form, nicht den Namen | — |
+| die Sicherungsliste führt keinen doppelt | — |
+
+Die zweite ist die eigentliche Absicherung: **mit dem Stand von 35.128
+meldet sie rot.** Sie hätte F29 gefangen, bevor er ausgeliefert wurde.
+
+### Ein zweiter Befund unterwegs — nicht aus dem Bericht
+
+Beim Abnahmelauf meldete „fünfzehn Saisons laufen ohne Abbruch durch" rot:
+*„Jahr 15: Nicht spielbereit: zu wenige Spieler, 1 Plätze offen."*
+
+**Zuerst geklärt, ob ich das verursacht habe.** Fünf Läufe auf dem neuen
+Stand: 2 von 5 rot. Fünf Läufe auf dem **unveränderten 35.128**: 1 von 5.
+Also bestehend, nicht neu — und im Gesamtbericht nicht enthalten.
+
+**Ursache:** die Auffüllschleife im Test nimmt das **stärkste** Talent, und
+`hochziehen` weist alles unter 16 ab („Unter 16 wird niemand hochgezogen").
+War der beste Jahrgang gerade fünfzehn, brach die Schleife ab, obwohl ältere
+danebenstanden. Der Kader blieb unvollständig.
+
+Zwei Verdächtige vorher ausgeschlossen: die Ablehnung eines Talents greift
+nur mit `opt.fragen`, das der Test nicht setzt; und die Akademie lief nicht
+leer — es waren Talente da, nur zu junge.
+
+**Ein Testaufbau, kein Spielfehler.** Behoben durch Filtern auf Alter ab 16;
+danach acht Läufe hintereinander stabil.
+
+### Geprüft
+
+| | 35.128 | 35.129 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 469, 0 Fehler | **475**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+| Sicherheitslage | 0 Funde | 0 Funde |
+
+**Status F29: behoben.** Offen bleibt die Geräteprüfung — zweiter
+Karriereabschluss mit Packöffnung, Backup, Import und Reset.
+
+## 35.130 · F01 — Fortsetzen sprang zurück ins Training
+
+Zweiter Punkt aus dem Gesamtbericht. **P1, doppelter Fortschritt.**
+
+### Nachgestellt
+
+    saveGame(q, "result")     sichert den Schritt
+    onResume                  setzte IMMER setStep("training")
+
+Wer im Ergebnisschritt aufhörte, bekam beim Fortsetzen dieselbe Saison ein
+zweites Mal: Entwicklung, Abrechnung und Jahreswechsel liefen doppelt.
+
+### Die Saison war schon da, die Angebote nicht
+
+`simulateSeason` legt die Saison mit `p.seasons.push(season)` ab — **der
+letzte Eintrag ist sie.** Kein zweites Feld nötig.
+
+Die Angebote dagegen liegen nur im Ansichtszustand. Sie wandern jetzt in den
+Spielstand — nicht aus Bequemlichkeit: würden sie beim Fortsetzen neu
+gewürfelt, wäre ein Neustart ein **Reroll für bessere Verträge**.
+
+Alte Spielstände tragen keine Angebote. Dann fällt der Schritt sauber auf
+„training" zurück, statt eine halbe Ansicht zu zeigen.
+
+### Fünf neue Prüfungen
+
+Geprüft wird die Quelle, weil der Wiederaufnahmepfad in React sitzt:
+kein festes „training" mehr, Angebote werden gesichert, Rückfall für alte
+Stände, Saison wird abgeleitet.
+
+### Und noch eine flatternde Prüfung — meine eigene
+
+„Museum: die Schlagzeile im Eintrag streut" meldete rot. Sechs Läufe
+gemessen: **25 % · 42 % · 42 % · 42 % · 58 % · 58 %** — bei zwölf Laufbahnen
+streut der *Messwert selbst* um vierzig Punkte. Die Grenze von 60 % traf
+damit den Zufall, nicht die Sache.
+
+Über 80 Laufbahnen lag der wahre Wert bei 36 %. Stichprobe auf **30**
+erhöht, Grenze **unverändert bei 60 %** — sie wird nicht verschoben, weil sie
+stört; die Messung wird genauer. Danach sechs Läufe stabil.
+
+Das ist in dieser Sitzung die dritte flatternde Probe (Vereinskader,
+Museum, dazu das bekannte Zielband). Ein Muster: **kleine Stichproben mit
+harten Grenzen.**
+
+### Geprüft
+
+| | 35.129 | 35.130 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 475, 0 Fehler | **480**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+
+**Status F01: behoben.** Offen: die Geräteprüfung — jeden Schritt verlassen,
+fortsetzen, nach Prozessneustart laden.
+
+## 35.131 · Der Sicherungspfad — F02, F03, F04, F05, F15, F18
+
+Sechs Befunde an derselben Stelle. Einzeln behoben hätten sie sich
+gegenseitig widersprochen, deshalb in einer Fassung.
+
+### Was der Import vorher tat
+
+    for (const k of Object.keys(paket.daten)) {
+      if (!SICHER_KEYS.includes(k)) continue;
+      try { await store.set(k, paket.daten[k]); n++; } catch (e) { }
+    }
+
+Drei Fehler in fünf Zeilen. Nur Schlüssel **aus dem Paket** wurden
+geschrieben — fehlende blieben liegen, und zwei Spielverläufe standen
+nebeneinander (F02). Der Inhalt wurde nie geprüft, ein formal passendes
+Paket konnte „kein JSON" in den Spielstand schreiben (F03). Und einzelne
+Schreibfehler verschwanden im leeren `catch`, während die Meldung nur die
+Zahl der gelungenen nannte (F04).
+
+### Jetzt in drei Schritten
+
+**Erst prüfen, dann sichern, dann schreiben.** Jeder Datensatz wird gegen
+eine Grundform geprüft, bevor irgendetwas geschrieben wird — je Schlüssel
+eine eigene, weil sie unterschiedliche Dinge tragen. Der bisherige Stand
+wird zwischengesichert; scheitert ein Schreibzugriff, wird zurückgerollt.
+Scheitert auch das, sagt die Meldung genau das.
+
+**Fehlende Schlüssel werden gelöscht, nicht stehengelassen.** Eine Sicherung
+ist ein Zustand, kein Nachtrag.
+
+### Export und Kopieren
+
+Ein **Lesefehler ist kein fehlender Schlüssel** (F18). Bis hierher wurden
+beide übersprungen, und wer eine Sicherung ohne Spielstand mitnahm, hielt sie
+für vollständig. Jetzt bricht der Export ab: eine unvollständige Sicherung
+ist gefährlicher als keine.
+
+`document.execCommand("copy")` liefert einen Wahrheitswert, der nie gelesen
+wurde (F05) — bei `false` erschien trotzdem „In die Zwischenablage kopiert".
+
+Und „1 Datensätze" heißt jetzt „1 Datensatz" (F15).
+
+### Ich habe eine Speichermethode erfunden
+
+Mein erster Entwurf rief `store.remove`. **Die gibt es nicht** —
+`storage.js` kennt `get`, `set` und `delete`. Der Import wäre beim ersten
+fehlenden Schlüssel abgestürzt.
+
+Keine Ansichtsprüfung hätte das gefangen, weil der Importpfad dort nie
+läuft. Aufgefallen ist es, weil ich nach dem Schreiben in `storage.js`
+nachgesehen habe — dieselbe Klasse wie `p.nt.titel` (35.109), `fx.wage`
+(35.108) und `aka.ehrentafel` (35.124). Das ist der vierte Fall.
+
+Deshalb prüft jetzt eine eigene Probe **alle** `store.*`-Aufrufe gegen das,
+was `storage.js` wirklich anbietet. Gegenprobe: **„kennt `store` nicht:
+remove"**.
+
+### Acht neue Prüfungen
+
+| Probe | |
+|---|---|
+| der Import prüft, bevor er schreibt | Reihenfolge im Quelltext |
+| was die Sicherung nicht enthält, bleibt nicht liegen | F02 |
+| ein Schreibfehler wird zurückgerollt | F04 |
+| Kopieren meldet nur bei echtem Erfolg | F05 |
+| ein Lesefehler bricht den Export ab | F18 |
+| Mengenformen stimmen bei eins | F15 |
+| **nur Speichermethoden, die es gibt** | ✗ „kennt `store` nicht: remove" |
+
+### Geprüft
+
+| | 35.130 | 35.131 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 480, 0 Fehler | **488**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+
+**Status: F02, F03, F04, F05, F15 (Sicherungstexte), F18 behoben.** F06
+(stumme Speicherfehler außerhalb der Sicherung) bleibt offen — er betrifft
+`saveGame`, `vereinSichern` und `speichereAka` und gehört in die nächste
+Fassung.
+
+## 35.132 · F06 — was sich nicht speichern ließ
+
+### Vier Stellen fingen gar nichts
+
+    try { store.set(k, v); } catch (e) {}
+
+`store.set` gibt eine **Promise** zurück. Wird sie abgelehnt, läuft das
+synchrone `catch` längst nicht mehr — die Ablehnung bleibt unbehandelt.
+Betroffen waren: Einstellungen, Verein, Freischaltungen und die Sammlung
+nach einem Packkauf.
+
+Die übrigen sechzehn Stellen fingen den Fehler zwar, verschluckten ihn aber:
+leeres `catch`, kein Wort nach außen. **Der Spieler sah nichts und spielte
+weiter, während nichts mehr ankam.**
+
+### Ein Weg statt zwanzig
+
+`schreibe(key, wert, was)` ist jetzt der einzige Schreibweg. Er merkt sich,
+**was** zuletzt nicht ankam, und nimmt die Warnung zurück, sobald derselbe
+Datensatz wieder durchgeht.
+
+Im Hauptmenü steht dann ganz oben in Warnfarbe:
+
+> **Nicht gespeichert**
+> Dein Verein ließ sich zuletzt nicht sichern. Dein Fortschritt ist auf
+> diesem Gerät nicht sicher — mach über Optionen eine Sicherung, bevor du
+> weiterspielst.
+
+**Kein Dialog mitten im Spiel.** Der Fehler ist wichtig, aber er darf die
+Saison nicht unterbrechen — und wer ihn liest, soll etwas tun können, nicht
+nur wegklicken.
+
+### Die Prüfung fand eine Stelle, die ich übersehen hatte
+
+Nach dem Umbau meldete „kein Schreibzugriff ohne `await`" weiterhin **eine
+Stelle** — `onAkaAendern` im Vereinsschirm, die in meiner Liste nicht stand.
+Genau dafür ist die Probe da: sie zählt alle `store.set(` und nicht die, an
+die ich mich erinnere.
+
+### Fünf neue Prüfungen
+
+| Probe | |
+|---|---|
+| **kein Schreibzugriff ohne `await`** | fand eine übersehene Stelle |
+| es gibt einen gemeinsamen Schreibweg | — |
+| das Hauptmenü zeigt den Fehler an | ein unsichtbarer Fehler ist halb behoben |
+| die Warnung verschwindet nach Erfolg | sonst stünde sie bis zum Neustart |
+
+### Geprüft
+
+| | 35.131 | 35.132 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 488, 0 Fehler | **493**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+
+**Status F06: behoben.** Damit ist von Etappe 1 offen: F17, F41, F44.
+
+## 35.133 · F41 — „Nicht umkehrbar" war eine falsche Zusage
+
+### Der geleerte Spielstand kam zurück
+
+Der Reset löschte eine von Hand geführte Liste. Darin fehlten **zwei
+Fortschrittsschlüssel** — `WC_KEY` (gezogene Wildcards) und `HSV_KEY` (der
+Ausgleichszähler der Rautekarte).
+
+Schwerer wiegt der zweite Teil: die **Migrationsschlüssel** blieben stehen.
+Beim nächsten Start holt `ladeMitAltbestand` daraus den alten Spielstand und
+schreibt ihn auf den aktuellen Schlüssel zurück. Eine gelöschte Laufbahn
+stand wieder da.
+
+### Die Liste führt sich jetzt selbst
+
+Sie wird aus den Konstanten gebildet und um `...Object.values(ALT_KEYS).flat()`
+ergänzt. Wer künftig einen Schlüssel hinzufügt, muss nicht daran denken —
+und eine Prüfung zählt nach, dass **jeder** `_KEY` darin vorkommt.
+
+Ein Löschfehler wird gemeldet statt überspielt: bleibt auch nur ein Eintrag
+stehen, wird **nicht neu geladen**, sondern gesagt, was nicht ging.
+
+### Ich habe dabei einen Absturz gebaut
+
+Mein Reset-Code rief `setLoeschFehler`, während die zugehörige
+`useState`-Zeile an einem gescheiterten Python-Ersatz hängengeblieben war:
+**ein Aufruf, keine Definition.** Das Zurücksetzen wäre abgestürzt.
+
+Keine Ansichtsprüfung hätte es gefangen — der Löschdialog wird dort nie
+geöffnet. Aufgefallen ist es, weil der Ersatz einen `AssertionError` warf und
+ich danach nachgezählt habe.
+
+**Daraus eine Prüfung gemacht:** jeder freistehende `setX(`-Aufruf muss
+irgendwo deklariert sein. 115 Setzer werden geprüft; Browser-eigene Namen
+und Modulaufrufe wie `KARTEN.setStand` sind ausgenommen. Gegenprobe —
+Definition entfernt: **„nirgends deklariert: setLoeschFehler"**.
+
+Der erste Entwurf dieser Probe war zu grob und meldete `setTimeout`,
+`setProperty` und mehrere gewöhnliche Funktionen. Die richtige Frage ist
+nicht „ist es ein React-Setzer", sondern „gibt es den Namen überhaupt".
+
+### Fünf neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| die Löschliste kennt jeden Speicherschlüssel | 12 Schlüssel |
+| die Altnamen werden mitgelöscht | sonst kehrt der Stand zurück |
+| ein Löschfehler wird gemeldet | — |
+| **jeder Zustandssetzer ist deklariert** | ✗ „nirgends deklariert: setLoeschFehler" |
+
+### Geprüft
+
+| | 35.132 | 35.133 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 493, 0 Fehler | **498**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+
+**Status F41: behoben.** Etappe 1 offen: F17, F44.
+
+## 35.134 · F44 und F17 — Etappe 1 ist durch
+
+### F44: die zweite Übergabe warf die erste weg
+
+`kartenErgaenzen` rechnete mit `karten` aus dem laufenden Render. `setKarten`
+ändert diese eingefangene Variable **nicht** — zwei Übergaben desselben
+Abschlusses gingen beide vom alten Pool aus.
+
+Nachgestellt: Talentkarte A, dann Vereinskarte B → gespeichert wurde **[B]
+statt [A, B]**. Im Karriereende passiert genau das: neue Akademiekarten und
+der Kader des fünfzehnten Vereinsjahres kommen nacheinander.
+
+Ein `useRef` trägt jetzt immer den zuletzt geschriebenen Stand. **Alle drei
+Stellen**, die `setKarten` rufen, ziehen ihn mit — bliebe eine zurück,
+arbeitete der nächste Abschluss mit veralteten Daten. Eine Prüfung zählt das
+nach.
+
+Die Gegenprobe belegt, dass die alte Art wirklich verlor: *„alte Art: 1
+Karte statt 2"*. Ohne sie prüfte die Zeile darüber etwas, das nie kaputt war.
+
+### F17: abgebucht, aber nirgends angekommen
+
+`start` leerte `aka.laden` und speicherte das **sofort** — die neue Karriere
+erst beim nächsten Speicherpunkt. Ein Prozessende dazwischen kostete den
+gekauften Vorrat.
+
+Jetzt umgekehrt: erst die Laufbahn sichern, dann abbuchen. Scheitert das
+Sichern, bleibt der Vorrat, wo er war — **lieber ein nicht gestarteter Start
+als bezahlte Extras im Nichts.** Dafür gibt `saveGame` jetzt zurück, ob es
+angekommen ist.
+
+### Zwei erfundene Namen, diesmal sofort bemerkt
+
+Mein erster Entwurf rief `saveGameSofort` und `setStartFehler` — beides gibt
+es nicht. Diesmal habe ich direkt nach dem Schreiben nachgezählt, statt es
+der Prüfung zu überlassen.
+
+Das ist der **sechste** Fall dieser Art in dieser Reihe (`store.remove`,
+`p.nt.titel`, `fx.wage`, `aka.ehrentafel`, `setLoeschFehler`, jetzt diese
+zwei). Nachzählen direkt nach dem Schreiben kostet einen Befehl und findet
+sie alle.
+
+### Acht neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| zwei Übergaben ergeben beide Karten | ✗ alte Art: 1 statt 2 |
+| jede Zustandsänderung zieht das Ref mit | 3 Stellen |
+| der Pool kommt aus dem Ref | — |
+| erst sichern, dann abbuchen | Reihenfolge im Quelltext |
+| gescheitertes Sichern bricht ab | — |
+| `saveGame` meldet den Erfolg | — |
+
+### Geprüft
+
+| | 35.133 | 35.134 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 498, 0 Fehler | **506**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+
+**Etappe 1 abgeschlossen.** F01, F02, F03, F04, F05, F06, F17, F18, F29,
+F41, F44 — dazu F15 an den Sicherungstexten.
+
+## 35.135 · F07 — die Kalibrierung maß ein anderes Spiel
+
+Erster Punkt aus Etappe 2, und er stand aus gutem Grund weit vorn: **solange
+die Messung falsch ist, taugt keine Zahl daraus für eine Entscheidung.**
+
+### Sie wählte, was der Spieler nicht anklicken kann
+
+    Kalibrierung:  pick(e.choices)
+    Das Spiel:     pick(offeneWahlen(e, q))
+
+Gemessen: **36 der 1.156 Optionen** tragen eine Bedingung — genau die 3 %,
+die der Bericht nennt. Jede davon war für die Simulation offen: „Auf einen
+Spezialisten bestehen" ohne das nötige Geld, „Auf dem Trainerschein
+aufbauen" ohne Schein.
+
+`offeneWahlen` war die ganze Zeit ausgeführt. Die Kalibrierung hätte es
+benutzen können.
+
+### Und das erklärt das flatternde Zielband
+
+Bei gleicher Stichprobe (400 Laufbahnen), je drei Läufe:
+
+    vorher   20,1 · 20,6 · 21,3      Spanne 1,2
+    nachher  20,7 · 20,5 · 20,4      Spanne 0,3
+
+**Die unzulässigen Entscheidungen waren eine Rauschquelle.** Offener Punkt
+21 — das Band, das in fünf Fassungen zweimal grundlos rot meldete und in
+35.134 sogar auf 19,8 fiel — sieht damit anders aus als bisher gedacht.
+
+Ich verschiebe trotzdem nichts. Der Bericht sagt es genauso: erst die
+korrigierte Simulation, dann echte Verteilungen beurteilen. Die
+**Entscheidung** zu Punkt 21 bleibt offen, aber sie steht jetzt auf einer
+belastbaren Messung.
+
+### Zwei eigene Fehler in der Prüfung
+
+**Die Kalibrierung war „nicht auffindbar"** — die Probe suchte relativ zum
+Arbeitsverzeichnis, läuft aber aus `/tmp/ps`. Jetzt über `__dirname`, den
+einzigen verlässlichen Anker.
+
+**Und sie meldete „wählt weiterhin aus ALLEN Optionen"**, obwohl der Code
+stimmte: mein Ausdruck fand `pick(e.choices)` in dem Kommentar, der die
+Behebung *erklärt*. Ein Kommentar ist kein Code — die Probe entfernt jetzt
+Kommentare, bevor sie sucht.
+
+### Fünf neue Prüfungen
+
+| Probe | |
+|---|---|
+| die Datei ist auffindbar | über `__dirname` |
+| **sie wählt nur offene Optionen** | ohne Kommentare geprüft |
+| Spiel und Messung nutzen dieselbe Funktion | nicht zwei Nachbauten |
+| ein Ereignis ohne offene Option wird übersprungen | — |
+| es gibt bedingte Optionen zu schützen | 36 von 1.156 |
+
+Die dritte ist die wichtigere: nicht „beide prüfen dasselbe", sondern
+**beide rufen dieselbe Funktion**. Zwei Nachbauten mit gleichen Regeln
+laufen irgendwann auseinander.
+
+### Geprüft
+
+| | 35.134 | 35.135 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 506, 0 Fehler | **511**, 0 Fehler |
+| Zielband, Spanne über 3 Läufe | 1,2 | **0,3** |
+| Knöpfe | 154 | 154 |
+
+## 35.136 · F08 — eine Saison versprochen, zwei geliefert
+
+    alt:  seasons.length <= sonderSchutz + 1
+    neu:  seasons.length === sonderSchutz
+
+Die Marke wird auf die Zahl der **abgeschlossenen** Saisons gesetzt. Die alte
+Bedingung war damit für zwei Läufe wahr:
+
+    Marke = 3   →   n = 3 geschützt, n = 4 geschützt, n = 5 frei
+
+Nachgerechnet und dann gemessen: mit Schutz **heil · verletzt · verletzt**,
+ohne Schutz **verletzt · verletzt · verletzt**. Vorher waren die ersten
+beiden heil.
+
+### Das Bündel war älter als meine Änderung
+
+Die erste Messung zeigte weiterhin zwei geschützte Saisons — ich hatte
+`App.jsx` geändert, aber nicht neu gebaut. Genau die Falle, die diese Datei
+seit Langem führt: **ein Werkzeug, das ein altes Bündel misst, misst den
+alten Fehler.** Nach `TEILE=aufbau` stimmte es.
+
+### Vier neue Prüfungen
+
+| Probe | |
+|---|---|
+| die erste Saison bleibt verschont | — |
+| **die zweite ist nicht mehr geschützt** | der eigentliche Befund |
+| ohne Schutz trifft es sofort | Gegenprobe |
+| die Marke wird verbraucht | nicht nur wirkungslos |
+
+### Die vierte flatternde Probe
+
+„Archetyp: keiner beherrscht das Feld" meldete 86 %. Sechs Läufe: **29 · 36 ·
+36 · 43 · 43 · 50 %** bei vierzehn Laufbahnen. Über 300 liegt der Wert bei
+25,7 % (gemessen in 35.109).
+
+Stichprobe auf 30, Grenze unverändert. Danach zwölf Läufe grün.
+
+**Ehrlich dazu:** ein Lauf zwischendurch meldete zwei Fehler, die ich in
+zwölf weiteren Läufen nicht reproduzieren konnte. Ich schreibe nicht
+„stabil", sondern: nicht reproduzierbar. Falls es wiederkommt, steht es hier.
+
+Vier flatternde Proben in dieser Sitzung — Vereinskader, Museum, Archetyp,
+dazu das Zielband. Immer dasselbe Muster: **kleine Stichprobe, harte
+Grenze.** Jedes Mal die Messung genauer gemacht, nie die Grenze verschoben.
+
+### Geprüft
+
+| | 35.135 | 35.136 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 511, 0 Fehler | **515**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+
+**Status F08: behoben.**
+
+## 35.137 · F09 bis F14 — wenn der Text mehr verspricht als die Mechanik
+
+Sechs Befunde derselben Klasse. **Zwei davon sind meine eigenen Ereignisse
+aus 35.112.**
+
+### F09 und F10: meine Krisenpfade
+
+„Du unterschreibst zwei Ligen unter deinem alten Anspruch" — tatsächlich
+wird nur `wantMove` gesetzt, ein Wechselwunsch fürs nächste Fenster. Verein
+und Liga bleiben, und `neuanfangTief` wird nirgends als Zielvorgabe gelesen.
+
+**Der Text wurde an die Wirkung angepasst, nicht umgekehrt.** Einen echten
+Wechsel samt Zielliga abzuwickeln würde die Transferlogik umgehen, die sonst
+entscheidet, wer welches Angebot bekommt. Die Entscheidung bleibt dieselbe,
+nur die Zusage ist jetzt eine Absicht statt einer Tatsache.
+
+„Die Reha zu Ende bringen — die Saison ist damit gelaufen" setzte gar keinen
+Ausfall; in einem Testzustand folgten 42 Einsätze. Hier ging der andere Weg:
+`forceInjury` macht den Ausfall **echt**, weil der Text stimmt und nur die
+Wirkung fehlte.
+
+**Warum meine Prüfung aus 35.112 das nicht fand:** sie belegt, dass jede
+Option einen *Preis* hat — nicht, dass der Text die Wirkung trifft. Zwei
+verschiedene Fragen.
+
+### F11 und F12: Bedingungen, die etwas anderes prüfen
+
+`al_reha` schildert eine Rückkehr nach Verletzung, prüfte aber nur
+Anfälligkeit — eine **Veranlagung, kein Nachweis**. Jetzt braucht es eine
+Verletzung in einer der letzten drei Saisons. Eine Probe belegt, dass die
+Szene trotzdem erreichbar bleibt: 10 von 12 Laufbahnen erfüllen sie.
+
+`ew_lebensplan` ließ „Auf dem Trainerschein aufbauen" auch mit bloßem
+Schulabschluss zu — und schrieb dazu „Der Lehrgang ist schon durch". Jetzt
+**zwei getrennte Wege** mit eigenem Text, statt einer Bedingung, die zwei
+Dinge gleichsetzt.
+
+### F13: „ab der 2. Laufbahn"
+
+Die Logik verlangt zwei **abgeschlossene** Laufbahnen — verfügbar wird es in
+Laufbahn 3. Beide Texte nennen das jetzt so, und eine Probe sucht nach
+`ab der N. Laufbahn` im ganzen Quelltext.
+
+### F14: die Grammatik im Frauenmodus
+
+Drei Fälle an echten Ausgaben gemessen:
+
+    Ein ehemaliger Mitspieler …   →  Ein ehemaliger Mitspielerin …
+    der Einzige, der normal geht  →  die Einzige, der normal geht
+    als der Mann, der von der …   →  unverändert
+
+Immer dasselbe: zwischen Artikel und Substantiv steht ein Adjektiv, oder das
+Bezugswort steht **hinter** dem Substantiv. Eine Wortliste kann das nicht
+sehen.
+
+Sieben Nachbesserungen fassen jeweils die ganze Wendung. Bewusst wenige und
+konkret — eine allgemeine Grammatik wäre der falsche Aufwand und gefährdete
+männliche Ausgaben, die heute stimmen. **Trainer und Arzt bleiben männlich:**
+ihr Geschlecht folgt nicht dem der Spielerin. Eine eigene Probe hält das
+fest.
+
+### Die fünfte flatternde Probe
+
+„Typen: die Mehrheit bleibt bewusst ohne" meldete 61 %. Sechs Läufe: **24 ·
+24 · 26 · 29 · 36 · 58 %** — die Probe maß *eine* Akademie mit rund zwanzig
+Absolventen. Über zwölf lag der Wert bei 36 %. Jetzt drei Akademien, Grenze
+unverändert; danach acht Läufe stabil.
+
+### Zehn neue Prüfungen
+
+Alle an echten Ausgaben oder ausgeführten Bedingungen, keine an den
+Ersetzungslisten — eine Liste kann vollständig aussehen und trotzdem falsche
+Sätze erzeugen.
+
+### Der dritte Fehlalarm — und diesmal ist die Sache klar
+
+Der Abnahmelauf meldete erneut **19,8** bei „Laufbahnen bis Vollausbau".
+Neun Läufe auf diesem Stand:
+
+    20,8 · 19,8 · 20,7 · 20,4 · 20,3 · 20,8 · 21,0 · 21,3 · 20,9
+
+Median **20,8**, Spanne **1,5**, Untergrenze **20**. Der Abstand des Medians
+zur Grenze ist rund 0,8 — **kleiner als die Hälfte der Streuung.**
+
+Nach F07 ist die größte Rauschquelle beseitigt; was bleibt, ist die echte
+Streuung der Simulation. Damit ist offener Punkt 21 nicht mehr eine
+Vermutung, sondern gemessen: **die Grenze liegt innerhalb des normalen
+Schwankungsbereichs.** Jede dritte bis vierte Fassung wird grundlos rot
+melden, egal was geändert wurde.
+
+Ob F09/F10 zusätzlich gewirkt haben, lässt sich nicht sagen — der Median
+liegt mit 20,8 dort, wo er vor der Änderung lag. Ich behaupte also keine
+Wirkung, die ich nicht belegen kann.
+
+**Ich verschiebe die Grenze weiterhin nicht.** Die Entscheidung steht bei
+Kevin und ist in Punkt 21 mit drei Möglichkeiten beschrieben. Neu ist nur:
+sie steht jetzt auf einer korrigierten Messung.
+
+### Geprüft
+
+| | 35.136 | 35.137 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 515, 0 Fehler | **525**, 0 Fehler |
+| Ereignisse | 530 | 530 |
+| Knöpfe | 154 | 154 |
+
+**Status: F09, F10, F11, F12, F13, F14 behoben.**
+
+## 35.138 · F16 und F19 — und eine Umbenennung, die ich nicht erwartet hatte
+
+### F16: die erste Laufbahn war nicht die erste
+
+Meine Zeitleiste aus 35.119 bestimmte sie am **kleinsten Endjahr**. Jede
+Laufbahn startet 2026 — eine später gespielte kurze endet also früher als
+eine zuerst gespielte lange. Im Test wurde eine danach gespielte Karriere
+bis 2040 als „erste" genannt.
+
+Die Abschlussreihenfolge stand nirgends. Jetzt trägt jeder Halleneintrag
+`nr` aus `G.karrieren`, das ohnehin mitzählt. **Alte Einträge haben sie
+nicht** — dort bleibt das Endjahr die beste Näherung, statt eine Reihenfolge
+zu erfinden.
+
+### F19: ein Bonus von +2 kostete acht Punkte
+
+    vorher:  105 mit {pot: +2}  →  97
+
+Zwei Stellen setzen das Potenzial. Eine nutzt `wertGrenze(p)` (99, mit
+Rautekarte oder Freischaltung 112), die andere hatte eine **fest eingebaute
+97**. Ein legitim erreichter Wert von 105 fiel dadurch.
+
+Jetzt gilt überall dieselbe Grenze, und ein positiver Bonus **senkt nie**:
+liegt der Wert schon darüber, stagniert er. Gemessen über alle Grenzfälle
+aus der Abnahme: 95→97, 99→99, 105→105, mit Freischaltung 105→107, und −5
+senkt weiterhin auf 100.
+
+### Die Prüfung aus 35.123 hat sich bezahlt gemacht
+
+Sie meldete plötzlich: *„KEINER — das Ablesen greift im Bündel nicht."*
+
+Ursache: esbuild hatte den Parameter `G` in den Errungenschaftsbedingungen
+zu **`G2`** umbenannt — weil ich in dieser Fassung ein `G && G.karrieren`
+eingeführt habe und damit ein Namenskonflikt entstand.
+
+**Meine Begründung in 35.123 war unvollständig.** Dort stand: esbuild
+benenne Feldnamen und Zahlen nicht um, deshalb sei das Parsen hier sicher.
+Das stimmt — **Parameternamen benennt er sehr wohl um.** Dritte Umbenennung
+dieser Art nach `her` → `her2` (35.108) und den Kapitelnamen (35.105).
+
+Behoben mit `G\d*`, wie damals bei `her\d*`. Die Probe hat genau das getan,
+wofür sie gebaut wurde: ein Verfahren abgesichert, das ich für sicher
+hielt — und dessen Begründung falsch war.
+
+### Acht neue Prüfungen
+
+| Probe | |
+|---|---|
+| die erste Laufbahn ist die zuerst abgeschlossene | — |
+| alte Einträge fallen aufs Endjahr zurück | keine erfundene Reihenfolge |
+| der Halleneintrag bekommt eine Nummer | — |
+| **ein positiver Bonus senkt nie** | sechs Werte geprüft |
+| die Freischaltung hebt die Grenze wirklich | — |
+| ein negativer Wert senkt weiterhin | Gegenprobe |
+
+### Geprüft
+
+| | 35.137 | 35.138 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 525, 0 Fehler | **531**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+
+**Status: F16, F19 behoben.**
+
+## 35.139 · F20 bis F28 — neun kleine Rechenfehler
+
+### F20: „vier Saisons bis 103" waren dreimal 100
+
+Zwei Fehler übereinander. `Math.min(103, …)` zog einen Wert von 110 — legitim
+über die Freischaltung erreicht — auf **103 herunter**. Und die normale
+Entwicklung kappte vorher auf 99, sodass aus 103 erst 99 und dann 100 wurde.
+
+Beide Grenzen sind jetzt „die höhere aus Regel und Bestand": **die
+Entwicklung darf nicht über die Grenze steigern, aber einen erreichten Wert
+auch nicht senken.** Gemessen: 99 → 100 → 101 → 102 → **103**, genau wie der
+Laden verspricht. Mit Freischaltung 110 → 112.
+
+### F23: ein Schlüssel, den es nicht gab
+
+`roleFor` liefert `"rot"`, `makeOffers` prüfte `"rotation"`. Der vorgesehene
+Rotationsanteil von −0,06 wurde **nie** gewählt — jeder Rotationsspieler
+bekam den Restzweig −0,18. Jede Rolle steht jetzt ausdrücklich da, statt dass
+ein Restzweig unbemerkt einspringt.
+
+### F24: `&&` bindet stärker als `||`
+
+    pas >= 68 || sho >= 68 && !flags.standards
+
+Das Zuständigkeitsmerkmal wirkte nur auf den Abschluss-Zweig. Mit Passwert 70
+und geklärter Zuständigkeit war der Freistoß-Streit weiterhin zulässig.
+Klammern gesetzt.
+
+### F25 bis F28: Text gegen Wirkung
+
+| | Versprochen | Getan |
+|---|---|---|
+| F25 | weniger Grundgehalt, dafür Prämien | +15 % Grundgehalt |
+| F26 | Psychologe für 0,35 Mio. | bei Kontostand 0 gratis |
+| F27 | Trennung aus Ehe kostet mehr | Ehe-Zweig unerreichbar |
+| F28 | zwei Spiele Tribüne | drei |
+
+**F27 war eine verdrehte Reihenfolge:** erst wurde `status` auf „getrennt"
+gesetzt, dann gefragt, ob er „verheiratet" ist. Das konnte nie mehr wahr
+sein. Jetzt: verheiratet 10 → 5,80, Beziehung 10 → 8,80.
+
+Bei **F26** bekommt die gesperrte Option einen Sperrhinweis, damit sie nicht
+wortlos fehlt — und eine Wahl bleibt immer ohne Bedingung.
+
+Bei **F25** wurde der Text angepasst, nicht die Wirkung: ein echtes
+Prämienmodell wäre ein neues Vertragssystem.
+
+### F21 und F22
+
+Die Vitrine kannte drei der vier Bereiche — ein WM-Halbfinale ohne Titel
+blieb unsichtbar. Und die Ausgabennummer war `hall.length + 1`; die Halle ist
+auf zwölf gekappt, also blieb die Titelseite ab der zwölften Laufbahn bei
+„Ausgabe 13" stehen. Jetzt `gesamt.karrieren`.
+
+### Ein Python-Ersatz scheiterte still
+
+Mein erster Versuch fasste F24, F25 und F28 in einem Block zusammen. Er brach
+bei F25 mit `AssertionError` ab — `raise:.15` kommt **dreimal** vor — und
+damit wurde **nichts** geschrieben, auch F24 und F28 nicht. Nur weil danach
+nachgezählt wurde, fiel es auf.
+
+Die Regel `assert s.count(a) == 1` hat wieder getan, wofür sie da ist: lieber
+gar nichts ändern als die falsche Stelle.
+
+### Und ein Absturz, den nur die Sichtprüfung fand
+
+Der Abnahmelauf meldete beim Karriereende: **„G is not defined"**.
+
+In 35.138 hatte ich `nr: (G && G.karrieren)` eingebaut — `G` gibt es an
+dieser Stelle nicht, der Zustand heißt `ges`. Den Namen hatte ich aus der
+Beschreibung des Berichts übernommen, statt im Code nachzusehen.
+
+**Siebter erfundener Name in dieser Reihe** — und der erste, der es bis in
+einen Abnahmelauf geschafft hat. Ansichts- und Vereinsprüfung erreichen den
+Abschlusspfad nicht; die Sichtprüfung ist die einzige, die eine Laufbahn
+wirklich zu Ende klickt. Ohne sie wäre der Fehler ausgeliefert worden.
+
+Dabei kam ein zweiter Punkt heraus: `ges.karrieren` wird erst **nach**
+`finish` erhöht, die laufende Laufbahn ist also die nächste in der Zählung.
+Jetzt `+1`.
+
+### Elf neue Prüfungen
+
+### Geprüft
+
+| | 35.138 | 35.139 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 531, 0 Fehler | **540**, 0 Fehler |
+| Ereignisse | 530 | 530 |
+| Knöpfe | 154 | 154 |
+
+**Status: F20 bis F28 behoben.** Damit sind alle Punkte bis F29 erledigt.
+
+## 35.140 · F30 bis F40 — elf Befunde an meinen eigenen Systemen
+
+Alle an dem, was ich in 35.115 bis 35.127 selbst gebaut habe.
+
+### F30: drei Rekorde, die nie erschienen
+
+`laender`, `ligen` und `vereine` sind **Zählkarten** der Form
+`{ DE: 3, FR: 1 }` — keine Zahlen. `rekordListe` prüft `wert > 0`, und das
+ist bei einem Objekt immer falsch. Die drei Zeilen fielen seit 35.116
+**immer** weg, auch bei 4 Ländern, 5 Ligen und 12 Vereinen.
+
+Gezählt werden jetzt verschiedene Einträge, nicht Besuche: wer dreimal in
+Spanien spielte, war in **einem** Land.
+
+### F32: das Wunderkind mit Höchststärke 58
+
+Der Kennwert sah nur das Peak-Alter. Eine Laufbahn ohne Titel, ohne
+Länderspiel und mit Stärke 58 hieß „Das Wunderkind", weil sie mit 18 endete.
+**Früh den Bestwert erreicht zu haben heißt nichts, wenn der Bestwert
+niedrig ist.** Jetzt zusätzlich Höchststärke 75 — dieselbe Grenze, die diese
+Datei seit 35.106 für „schwache Laufbahn" benutzt.
+
+### F31: eine Eigenschaft, die niemand sehen kann
+
+Die Entwicklungstypen wirken seit 35.127 auf den Zuwachs. `typVon` wurde
+importiert und **nie aufgerufen**. Jetzt im aufgeklappten Talent — nicht in
+der Zeile, weil zwei Drittel keinen Typ haben und eine leere Stelle in jeder
+Zeile schlechter wäre als ein Fund beim Nachsehen.
+
+### F37 und F40: falsche Namen für richtige Dinge
+
+Akademiekarten wurden als „eigener Verein" ausgewiesen — genau der Ursprung,
+der sie besonders macht, war falsch beschriftet. Und „Vereinstreue" zählte
+nur die **Herkunft**, nicht die Verweildauer; eine Karte trägt keine. Die
+Seite heißt jetzt „Aus den eigenen Reihen" — wahr und dieselbe Sammlung.
+
+### F35, F36, F38, F39
+
+Der Sammlungsteaser öffnete das Vereinsdach, ohne es zu sagen. Die Summen auf
+der Errungenschaftsseite lasen sich wie Zahlen der laufenden Laufbahn. Im
+Museum standen Saisonform und Kalenderjahr nebeneinander. Und ein Verein, der
+fünfzehn Jahre in derselben Liga blieb, bekam **gar keine** Geschichte —
+dabei ist dort die Beständigkeit die Geschichte.
+
+### Zwei Python-Ersätze scheiterten still
+
+Beide mit `AssertionError`, weil mein Suchmuster nicht exakt passte — einmal
+`(G && G.karrieren)`, einmal eine Zeile, die mit `if (t) return` beginnt. In
+beiden Fällen wurde **nichts** geschrieben, und nur das Nachzählen danach hat
+es gezeigt.
+
+Das ist inzwischen Routine und funktioniert: lieber gar nichts ändern als
+die falsche Stelle. Aber es kostet jedes Mal einen Durchgang.
+
+### Elf neue Prüfungen
+
+### Geprüft
+
+| | 35.139 | 35.140 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 540, 0 Fehler | **550**, 0 Fehler |
+| Knöpfe | 154 | 154 |
+
+**Status: F30 bis F40 behoben** — außer F33 und F34, die der Bericht selbst
+als beibehaltbare Designentscheidungen einstuft.
+
+## 35.141 · F49 und F50 — bedienbar ohne Tippen
+
+### Sechs Flächen, an denen man hängenblieb
+
+Die großen Weiter-Flächen des Spiels — Saisonrückblick, Karriererückblick,
+Enthüllung, Schleier — waren `<div onClick=…>`. **Kein Tastaturzugriff,
+keine Rolle, keine Beschriftung.** Wer mit externer Tastatur, Schalter-
+steuerung oder Vorlesedienst spielt, kam an ihnen nicht vorbei: der Rückblick
+ließ sich nicht weiterschalten.
+
+`flaecheAlsKnopf(fn, label)` liefert jetzt die vier Angaben, die eine Fläche
+zum Knopf machen — Rolle, Reihenfolge, Beschriftung, Tastenbehandlung. Ein
+Helfer statt sechsmal derselben vier Zeilen.
+
+Enter **und** Leertaste: Enter ist die Erwartung bei `role="button"`, die
+Leertaste die bei jedem echten Knopf. `preventDefault` verhindert, dass die
+Leertaste zusätzlich scrollt.
+
+**Nicht angefasst:** Flächen, die nur `stopPropagation` rufen. Sie sind keine
+Bedienelemente — eine Rolle wäre dort irreführend.
+
+### Neun Felder ohne Beschriftung
+
+Ein Vorlesedienst nennt sie „Eingabefeld". Der `placeholder` reicht nicht: er
+verschwindet, sobald jemand tippt. Alle neun tragen jetzt ein `aria-label`,
+vom Vereinsnamen bis zum Sicherungstext.
+
+### Zwei Prüfungsentwürfe daneben — und was daraus folgt
+
+Der erste Ausdruck fand `<div onClick=…>` **im Kommentar, der diese Behebung
+erklärt** — dieselbe Falle wie bei der Kalibrierung in 35.135. Der zweite
+suchte 400 Zeichen weit und meldete **99 Treffer**, weil er jedes
+umschließende `<div>` mitzählte.
+
+Und beim Aufräumen blieb `divs.length` in einer Meldung stehen, während die
+Variable weg war: `ReferenceError: divs is not defined` — die ganze
+Vereinsprüfung stürzte ab.
+
+**JSX mit Regex zu zerlegen ist fragil.** Die Probe prüft deshalb jetzt, was
+sich sicher prüfen lässt: jede `rs-schleier`-Fläche muss den Helfer tragen.
+Eine neue Fläche dieser Art fällt auf; eine allgemeine JSX-Analyse wäre mehr
+Fehlerquelle als Schutz.
+
+### Die sechste flatternde Probe
+
+„Der Archetyp steht nicht von Anfang an fest" meldete 2 von 10. Sechs Läufe:
+**4 · 5 · 5 · 6 · 6 · 8 von 10** bei einer Grenze von 5. Über 120 Laufbahnen
+lag der Anteil bei 89 %. Stichprobe auf 30, Grenze unverändert.
+
+### Geprüft
+
+| | 35.140 | 35.141 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 550, 0 Fehler | **555**, 0 Fehler |
+| Eingabefelder ohne Beschriftung | 9 | **0** |
+| Knöpfe | 154 | 154 |
+
+**Status: F49, F50 behoben.** Was der Prüfstand hier nicht kann: ob die
+Fokusreihenfolge sinnvoll ist und ob ein Vorlesedienst die Beschriftungen
+gut vorliest. Das braucht ein Gerät.
+
+## 35.142 · F51 — eine Sperre mit Trostpflaster
+
+### Die Begründung im Code war falsch
+
+`index.html` sperrte das Zoomen mit `maximum-scale=1,user-scalable=no`. Der
+Kommentar daneben begründete das so: die App bringe unter „Optionen" eine
+eigene Textgröße mit, also leide die Barrierefreiheit nicht.
+
+**Nachgemessen:** die eigene Skala reichte von 0,92 bis **1,12** — höchstens
++12 %. Wer 200 % braucht, bekam zwölf Prozent und durfte nicht nachhelfen.
+
+Der ursprüngliche Anlass bleibt richtig: versehentliches Zoomen beim Wischen
+ist störend. Dagegen hilft `touch-action` gezielt auf den Spielflächen —
+nicht eine Sperre für das ganze Dokument. **Wer bewusst zoomt, soll es
+können.**
+
+### Zwei Wege statt eines halben
+
+Der Zoom ist frei, und die eigene Skala geht jetzt bis **1,5** in fünf Stufen
+(XS bis XL). Wer die App dauerhaft größer will, stellt sie um; wer kurz etwas
+genau lesen will, zoomt. Zusammen sind 200 % erreichbar.
+
+**1,5 und nicht 2,0:** darüber bricht das Layout auf schmalen Geräten
+sichtbar, und die Sichtprüfung misst nur die Standardstufe. Eine Zahl, die im
+Ernstfall nicht trägt, wäre schlimmer als eine kleinere, die hält.
+
+Kurze Knopfnamen, weil fünf Knöpfe auf 360 px sonst umbrechen — die Reihe
+wäre sonst genau das, was sie zu beheben anbietet. `aria-label` nennt jede
+Stufe ausgeschrieben.
+
+### Ein echter Rückgang, keine Streuung
+
+„Der Archetyp steht nicht von Anfang an fest" meldete rot. Über 60
+Laufbahnen gemessen: **55 %**, in 35.113 waren es **89 %**.
+
+Das ist eine **Folge meiner F32-Behebung**: „Das Wunderkind" verlangt jetzt
+zusätzlich Höchststärke 75, und schwache junge Laufbahnen wechseln dadurch
+seltener zwischen Archetypen.
+
+Die Grenze bleibt bei 50 % — mehr als die Hälfte wechselt weiterhin, das
+Papier ist erfüllt. Aber der Abstand ist von 39 auf **5 Punkte** geschrumpft,
+und bei dreißig Laufbahnen streute der Messwert darüber. Stichprobe auf 60.
+
+**Das ist kein Flattern, sondern eine Verschiebung der Sache.** Der
+Unterschied ist wichtig: bei den sechs flatternden Proben habe ich die
+Messung genauer gemacht, hier hat sich der gemessene Wert wirklich bewegt.
+
+### Was die Knopfprüfung nicht sieht
+
+Zwei neue Knöpfe, und die Zahl bleibt bei 154: **die Sichtprüfung öffnet die
+Optionen nicht.** Keine neue Lücke, aber sie gehört notiert — Knöpfe, die nur
+dort stehen, werden nicht auf Lesbarkeit und Trefferfläche geprüft.
+
+### Geprüft
+
+| | 35.141 | 35.142 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 555, 0 Fehler | 555, 0 Fehler |
+| Textskala | 0,92–1,12 | **0,92–1,50** |
+| Zoom | gesperrt | **frei** |
+
+**Status F51 behoben.** Ob 1,5 auf dem S24 Ultra trägt und ob die
+Optionsreihe bei XL noch passt, muss das Gerät zeigen.
+
+## 35.143 · F45 bis F48 — Dialoge, aus denen man herauskam
+
+Beide Dialoge trugen `role="dialog"` und `aria-modal` — und keine der vier
+Eigenschaften, die einen Dialog bedienbar machen:
+
+| | Befund |
+|---|---|
+| F45 | der Fokus blieb draußen; ein Vorlesedienst las die Seite dahinter |
+| F46 | Escape schloss nicht — ohne Zeigegerät kam man nicht heraus |
+| F47 | Tabulator lief durch den Hintergrund, unter dem Schleier |
+| F48 | nach dem Schließen war der Fokus verloren |
+
+**Die Rolle allein macht keinen Dialog.** `aria-modal="true"` sagt einem
+Vorlesedienst, dass der Rest nicht erreichbar *sein soll* — es macht ihn
+nicht unerreichbar.
+
+### Ein Hook statt vier Mustern
+
+`useDialog(offen, onZu)` erledigt alle vier an einer Stelle. Wer den nächsten
+Dialog baut, ruft ihn auf, statt vier Muster nachzubauen — dieselbe
+Überlegung wie bei `flaecheAlsKnopf` in 35.141.
+
+Der Hintergrund wird mit **`inert` und `aria-hidden`** gesperrt: `inert`
+nimmt auch die Tabulatorreihenfolge weg, `aria-hidden` nur die
+Vorlesbarkeit. Ältere Android-Webansichten kennen `inert` nicht — beides
+zusammen deckt alte und neue ab.
+
+**Und die Sperre wird wieder aufgehoben.** Bliebe sie stehen, wäre die App
+nach dem ersten Dialog unbedienbar — schlimmer als der Fehler, den sie
+behebt. Dafür gibt es eine eigene Probe.
+
+### Sechs neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| **jeder Dialog trägt den Rahmen** | ✗ „1 von 2 Dialogen mit `ref`" |
+| Escape schließt | — |
+| der Hintergrund ist gesperrt | — |
+| die Sperre wird aufgehoben | — |
+| der Fokus kehrt zurück | — |
+
+Die erste fängt den nächsten Dialog, der ohne Hook gebaut wird.
+
+### Geprüft
+
+| | 35.142 | 35.143 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 555, 0 Fehler | **561**, 0 Fehler |
+| Dialoge mit Fokusführung | 0 von 2 | **2 von 2** |
+
+**KORREKTUR DER NUMMERN (nachgetragen in 35.152).** Diese Fassung hat vier
+Dialogmängel behoben — aber unter den **falschen Kennungen**. F45 bis F48
+sind im Bericht ganz andere Punkte: Akademiekarten-Alter, Berater-Ablauf,
+Extraschicht, Winter-Vertragsverlängerung. Die Dialogarbeit gehört zu V05
+und ergänzt F49/F50.
+
+Die Arbeit war richtig, die Buchführung nicht. Aufgefallen beim Lesen von
+V09, das auf „F46/F47" verweist und dort etwas ganz anderes meint.
+
+**Status dieser Fassung: vier Dialogmängel behoben (V05).** Was hier niemand prüfen kann: ob die
+Fokusreihenfolge im Dialog sinnvoll ist und ob TalkBack die Beschriftungen
+gut vorliest. Das braucht ein Gerät mit eingeschaltetem Vorlesedienst.
+
+## 35.144 · F52 — und zwei Fehler, die ich selbst gebaut habe
+
+### Die kleinen Knöpfe waren zu klein
+
+`.btn` hat 48 px Mindesthöhe, `.btn.sm` hatte **38** — über der
+AA-Anforderung von 24, unter dem, woran sich Android misst. Es sind
+**69 Knöpfe** im Spiel.
+
+Jetzt 44, nicht 48: der große Knopf hat 48, und die kleinen sollen sichtbar
+kleiner bleiben — sonst sind es zwei gleiche Knöpfe mit verschiedenen Namen.
+Die Polsterung wächst mit, die Schriftgröße bleibt; es geht um die Fläche.
+
+Eine Probe liest die Knopfklassen **aus dem CSS-Block**, nicht aus einer
+Liste von Namen — eine Liste liefe auseinander. Zehn Klassen geprüft.
+
+### Backticks im CSS-Kommentar — zum zweiten Mal
+
+Mein Kommentar enthielt `` `.btn` `` in Rückwärts-Anführungszeichen. Der
+Block steht im CSS-Vorlagenliteral, das damit mittendrin endete: **die halbe
+App war ohne Stil.** Die Sichtprüfung meldete „Stilblock der App vorhanden"
+rot.
+
+Zweites Mal nach 35.121, und die Hygieneprüfung gibt es seit 35.34 genau
+dafür.
+
+### Warum sie trotzdem nicht half
+
+**Ich hatte ihre Ausgabe verworfen.** Der Lauf ging mit `>/dev/null`, und ich
+bin direkt zur Sichtprüfung weiter. Nachgestellt: mit Backtick meldet sie
+sofort „FEHLER: 2 Rueckwaerts-Anfuehrungszeichen im CSS-Block."
+
+**Die Prüfung war in Ordnung. Ich habe weggeschaut.** Ein Lauf, dessen
+Ergebnis man braucht, gehört nicht nach `/dev/null`.
+
+### Und das Bündel war wieder älter als die Quelle
+
+Nach dem Entfernen der Backticks meldete die Vereinsprüfung `TypeError: "` —
+die Fehlermeldung des kaputten CSS. Der Grund: `/tmp/ps/motor.js` trug noch
+den Stand von vor der Behebung. Dritter Fall dieser Art; jedes Mal hilft
+`TEILE=aufbau` vor dem Messen.
+
+### Drei neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| jede Knopfklasse erreicht 44 px | ✗ Testblock mit 30px: 1 erkannt |
+
+### Geprüft
+
+| | 35.143 | 35.144 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 561, 0 Fehler | **564**, 0 Fehler |
+| Kleinste Knopfhöhe | 38 px | **44 px** |
+| Knöpfe | 154 | 154 |
+
+**Status F52 behoben.** Ob die Reihen mit 69 größeren Knöpfen auf 360 px
+noch passen, zeigt das Gerät — die Sichtprüfung misst 154 davon und meldet
+keine Überläufe.
+
+## 35.145 · F53 — der Kontrastwächter sah drei von sieben Ansichten
+
+### Die Lücke, die Kevins Befund durchgelassen hat
+
+In 35.121 fand Kevin dunkelblaue Schrift auf dunkelbraunem Grund, Kontrast
+**1,13**. Der Kontrastwächter meldete daneben „145 Textstellen · 0 Befunde"
+— und das stimmte, weil er den Karriererückblick gar nicht ansah.
+
+Vier Ansichten ergänzt, die vom Hauptmenü aus erreichbar sind: Ruhmeshalle,
+Errungenschaften, Optionen, Sicherung. **145 → 897 geprüfte Textstellen.**
+
+### Und sofort 192 Befunde
+
+Alle derselbe Fall, alle auf der Errungenschaftsseite: die laufenden Nummern,
+9 px, Kontrast **2,66**.
+
+    color: "var(--ln2)", opacity: .9
+
+`--ln2` ist eine **Linienfarbe**, keine Textfarbe — dazu auf 90 % Deckung
+gesetzt. Beides zusammen ergab 2,66 bei einer Grenze von 3, und das 192 Mal
+auf einer Seite. Jetzt `--mu`, die Farbe für Nebentext: **5,99**, Deckung
+weg.
+
+### Achter erfundener Name
+
+Mein erster Entwurf rief `seite.goto(ZIEL, …)`. `ZIEL` gibt es nicht — die
+Datei heißt dort `"file://" + datei`. Die vier neuen Ansichten erschienen
+schlicht nicht in der Ausgabe, und der Bereich meldete rot.
+
+Aufgefallen beim Nachzählen der Zeilen, nicht durch eine Prüfung.
+
+### Was weiterhin nicht geprüft wird
+
+**Der Karriererückblick** — genau die Seite, auf der Kevins Befund lag. Sie
+braucht einen vollständigen Karriereabschluss, und den führt nur
+`browsertest.sh` durch. Das wäre die nächste Erweiterung; hier ist sie nicht
+gemacht.
+
+Das gehört gesagt, statt „alle Ansichten geprüft" zu behaupten. Der Wächter
+sieht jetzt sieben statt drei — nicht alle.
+
+### Geprüft
+
+| | 35.144 | 35.145 |
+|---|---|---|
+| Kontrast: Ansichten | 3 | **7** |
+| Kontrast: Textstellen | 145 | **897** |
+| Kontrast: Befunde | 0 (von 145) | 0 (von 897) |
+| Verein | 564, 0 Fehler | 564, 0 Fehler |
+
+**Status F53 behoben**, soweit hier messbar. Reale Kontraste auf dem Gerät —
+mit echtem Bildschirm, echter Helligkeit — bleiben offen.
+
+## 35.146 · F54 — drei Belohnungen, die nie ankamen
+
+### Die Wildcard löschte, was kurz vorher gesetzt wurde
+
+`createPlayer` setzt drei dauerhaft freigeschaltete Werte — `ntBonus` +3 aus
+„Verbandskontakt", `offers` +1 aus „Volles Postfach", `dev` aus dem
+Akademie-Ruhm. Zwölf Zeilen später überschrieb `applyWildcard` das gesamte
+`wcMod`-Objekt mit Nullen.
+
+**Drei Belohnungen, für die man lange spielt, waren wirkungslos.** Bei
+Akademie-Ruhm 135 wurde `dev` 0,06 sauber berechnet, in `p.aka` vermerkt —
+und in `wcMod` auf 0 gesetzt.
+
+### Die Nullsetzung wegzulassen wäre falsch gewesen
+
+Beim Kartentausch müssen die Effekte der **alten** Karte verschwinden, sonst
+summieren sich Wildcards über jeden Tausch. Der naheliegende Fix hätte einen
+schlimmeren Fehler eingebaut.
+
+Deshalb ein Grundstock: was nicht von einer Karte kommt, wird einmal in
+`p.wcBasis` festgehalten und bei jedem Tausch wiederhergestellt. Die Karte
+legt nur obendrauf.
+
+    Start (Freischaltung):   ntBonus 3
+    nach Karte mit +4:       ntBonus 7
+    nach Tausch auf neutral: ntBonus 3
+
+### Vier neue Prüfungen — beide Richtungen
+
+| Probe | |
+|---|---|
+| der Verbandskontakt überlebt die Zuweisung | 0 ohne, 3 mit |
+| das volle Postfach überlebt sie auch | 0 ohne, 1 mit |
+| **ein Kartenbonus wird beim Tausch entfernt** | 3 → 7 → 3 |
+| mehrfacher Tausch lässt den Grundstock unverändert | nach drei Zuweisungen: 3 |
+
+Die dritte und vierte sind die wichtigeren: ohne sie wäre „Nullsetzung
+weglassen" durchgegangen, und Wildcards hätten sich aufsummiert.
+
+`applyWildcard` musste dafür ausgeführt werden — es war bis hierher nicht im
+Prüfbündel.
+
+### Geprüft
+
+| | 35.145 | 35.146 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 564, 0 Fehler | **568**, 0 Fehler |
+
+**Status F54 behoben.**
+
+## 35.147 · F55 und F56 — der Fehlerkatalog ist durch
+
+### Fünf Ansichten ohne Rückweg
+
+`VereinDach`, `Packladen`, `VereinGruenden`, `VereinScreen`,
+`VereinAbschluss` meldeten **keinen** Rückweg an. Die sichtbare
+Zurück-Schaltfläche funktionierte, die Android-Taste lief ins Leere — und
+dort beendet sie im Zweifel die App. Mitten im Packöffnen.
+
+Die Akademie machte es seit jeher richtig. **Sie war die Gegenprobe, an der
+der Unterschied überhaupt auffiel** — ohne sie hätte man denken können, das
+Spiel binde die Taste generell nicht an.
+
+Alle fünf hatten `onZurueck` bereits als Prop. Es war nur nie an
+`useZurueck` gehängt.
+
+Bei der **Kennungsgründung** kam laut Bericht dazu, dass auch sichtbar kein
+Abbruch angeboten wurde. `onZurueck` gibt es dort — damit führen jetzt Taste
+und sichtbarer Weg zum selben Ziel.
+
+### F56: zwei Wege aus demselben Untermenü
+
+Hauptmenü → Optionen → Sicherung → Zurück landete auf der **Titelseite**.
+`MenuScreen` wird beim Phasenwechsel abgebaut, der lokale `opt`-Zustand ist
+danach wieder false. „Anleitung" verhält sich anders: sie bleibt im Menü und
+kehrt in die Optionen zurück.
+
+Die Herkunft wird jetzt gemerkt und einmal eingelöst.
+
+### Vier neue Prüfungen
+
+| Probe | Gegenprobe |
+|---|---|
+| **jede Ansicht mit `onZurueck` meldet ihn an** | ✗ Testansicht ohne: 1 erkannt |
+| die Sicherung merkt sich ihre Herkunft | — |
+
+Die erste sucht nach dem Funktionskopf, nicht nach einer Namensliste — eine
+Liste liefe auseinander, sobald jemand eine Ansicht hinzufügt. Die nächste
+Ansicht ohne Anmeldung fällt damit auf.
+
+### Geprüft
+
+| | 35.146 | 35.147 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 568, 0 Fehler | **572**, 0 Fehler |
+| Ansichten mit Rückweg | 14 | **19** |
+
+**Damit ist der Fehlerkatalog F01–F56 abgearbeitet** — bis auf F33 und F34,
+die der Bericht ausdrücklich als Designentscheidung zum Beibehalten
+freigibt.
+
+Was bleibt: die zwölf Empfehlungen V01–V12 und alles, was nur auf dem Gerät
+zu beurteilen ist.
+
+## 35.148 · V01 — was eine Wahl wirklich bewirkt hat
+
+Erste Empfehlung aus dem Bericht. Der Weg dorthin war schon gebaut:
+`applyFx` nimmt einen `log`-Sammler entgegen, `nextEvent` reicht ihn als
+`extra` an den Ergebnisschirm weiter. **Er wurde nur nie gefüllt.**
+
+### Abgeleitet aus dem Zustand, nicht aus dem Effekt
+
+Gemeldet wird der Unterschied vorher/nachher — nicht der Wunschwert aus `fx`.
+Das ist der Punkt, den die Empfehlung ausdrücklich verlangt, und er trifft
+den Kern des halben Fehlerkatalogs: **Text verspricht, Mechanik liefert
+nicht.**
+
+    5,00 Mio, Effekt {money: -0.35}   →  „Konto -350 Tsd"
+    0,01 Mio, derselbe Effekt          →  „Konto -10 Tsd"
+
+Der zweite Fall ist der wichtige. Ein `{pot:2}` an der Obergrenze bewirkt
+nichts — und dann steht auch nichts da.
+
+### Drei Arten, getrennt benannt
+
+    Sofort:      Vertrauen des Trainers +8 · Form -6 · Konto -10 Tsd
+    Vorgemerkt:  Wechselwunsch für das nächste Transferfenster
+
+**„Vorgemerkt" ist genau die Unterscheidung aus F09:** ein Wechselwunsch ist
+kein Wechsel. Was angestoßen wurde und später fällt, steht getrennt von dem,
+was jetzt geschah.
+
+**Höchstens vier Einträge.** Die Empfehlung warnt vor einer Effektliste bei
+jeder Kleinigkeit; wer nach jeder Wahl zwölf Zeilen liest, liest bald keine
+mehr. Bei acht gleichzeitigen Effekten erscheinen die vier größten.
+
+Das Vorher-Bild wird nur angelegt, wenn jemand zuhört — bei 532 Ereignissen
+und tausenden Simulationsläufen zählt das.
+
+### Fünf neue Prüfungen
+
+| Probe | |
+|---|---|
+| eine Wahl meldet ihre sofortige Wirkung | — |
+| **gemeldet wird das Geschehene, nicht das Gewollte** | 0,01 statt 0,35 |
+| ein wirkungsloser Effekt meldet nichts | 0 Zeilen |
+| ein Wechselwunsch steht unter „Vorgemerkt" | — |
+| höchstens vier auf einmal | 4 bei acht Effekten |
+
+### Geprüft
+
+| | 35.147 | 35.148 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 572, 0 Fehler | **577**, 0 Fehler |
+
+**Status V01 umgesetzt.** Was der Bericht zusätzlich vorschlägt — „laufende
+Wirkung" als dritte Art —, fehlt: es gibt im Spiel keine Effekte mit
+Laufzeit, die hier anfielen. Eine Zeile für etwas zu bauen, das nie
+erscheint, wäre toter Code.
+
+## 35.149 · V02 — warum die Saison so lief
+
+Eine neue Seite im Saisonrückblick, zwischen Bewertung und Marktwert:
+höchstens **drei beobachtete Gründe**.
+
+    1  Eine schwere Verletzung hat dich lange gekostet.
+    2  Du warst Ergänzungsspieler — der Kader war stark besetzt.
+    3  Wenn du gespielt hast, warst du gut (Note 2,4).
+
+### Beobachtet, nicht gerechnet
+
+Der Bericht nennt das Gegenbeispiel selbst: *„Verletzung kostete fünf Tore"*
+darf nicht dastehen, wenn niemand einen Gegenvergleich gerechnet hat.
+
+Deshalb steht hier, **was war** — nicht, was dadurch angeblich verloren
+ging. Jeder Grund hängt an einem Feld der Saison: `injury`, `banned`, `role`,
+`note`, `rank`, `club`. Fehlt das Feld, fällt der Grund weg, statt zu raten.
+
+Eine Ausnahme ist der Kadervergleich: liegt die Vereinsstärke sechs Punkte
+über der eigenen, heißt es „der Kader war stark besetzt" — **plausibel, nicht
+bewiesen**, und deshalb ohne „deshalb".
+
+### Ein Drittel bekommt keine Seite
+
+Gemessen über 300 Saisons:
+
+    0 Gründe   33 %
+    1 Grund    40 %
+    2 Gründe   22 %
+    3 Gründe    5 %
+
+**Das ist Absicht.** Nicht jede Saison braucht eine Erklärung; wo nichts
+Auffälliges war, fällt die Seite weg, statt eine zu erfinden. Zwei Drittel
+bekommen mindestens einen Grund — genug, dass die Seite trägt.
+
+### Sieben neue Prüfungen
+
+| Probe | |
+|---|---|
+| eine unauffällige Saison bekommt keine Erklärung | 0 bei Note 3,4 |
+| eine schwere Verletzung wird genannt | — |
+| **keine gerechnete Ursache wird behauptet** | sucht nach „kostete … Tore" |
+| höchstens drei auf einmal | 3 bei sechs Merkmalen |
+| ohne Wechsel steht kein Wechsel da | — |
+| unvollständige Saisons | — |
+
+Die dritte ist die eigentliche Absicherung: sie sucht im erzeugten Text nach
+gerechneten Behauptungen und meldet rot, wenn jemand später eine einbaut.
+
+### Geprüft
+
+| | 35.148 | 35.149 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 577, 0 Fehler | **584**, 0 Fehler |
+
+**Status V02 umgesetzt.** Nicht gebaut: das „kompakte Erklärungsobjekt aus
+dem Simulationskern", das der Bericht als Ausbaustufe nennt. Die Saison trägt
+bereits alle Felder, die für diese Gründe nötig sind — ein zweiter Datenpfad
+wäre eine zweite Wahrheit über dieselbe Saison.
+
+## 35.150 · V03 — Vorschau und Rückweg
+
+### Was steht in dieser Sicherung?
+
+Ein Import ersetzt seit 35.131 den **ganzen** Stand — richtig so, aber
+unumkehrbar. Vor dem Einspielen steht jetzt da, was drin ist:
+
+    Fassung                       35.147
+    Erstellt                      09.09.2026
+    Abgeschlossene Laufbahnen     8
+    Einträge in der Ruhmeshalle   8
+    Laufende Laufbahn             Felix Sané
+    Akademie                      Talentschmiede Nord
+    Eigener Verein                FC Sülldorf
+    Karten in der Sammlung        34
+
+Alles aus **echten Metadaten** — der Bericht verlangt das ausdrücklich. Was
+fehlt, bekommt einen Strich; nichts wird geschätzt.
+
+### Der Rückweg
+
+Der Import rollt bei einem *Schreibfehler* zurück. Wer aber eine gültige,
+nur eben **falsche** Sicherung einspielt, hatte keinen Weg zurück — der
+Vorgang gelang ja.
+
+`RUECK_KEY` hält jetzt den Stand von vor dem letzten Import. Er steht
+bewusst **nicht in `SICHER_KEYS`**: ein Wiederherstellungspunkt gehört nicht
+in die Sicherung, sonst wäre er beim nächsten Import selbst überschrieben.
+Beim Zurücksetzen fällt er mit weg — dort ist Löschen gewollt.
+
+**Einmalig:** nach dem Zurückholen ist er verbraucht. Sonst stünde dauerhaft
+die Frage im Raum, welcher der beiden Stände der echte ist.
+
+### Was ich nicht gebaut habe
+
+**Den Dateiexport.** Er bräuchte `@capacitor/filesystem` — eine neue
+Abhängigkeit. Der Bericht warnt an anderer Stelle selbst davor,
+Abhängigkeiten während einer Fachkorrektur mitzuziehen, und ein
+Blob-Download verhält sich in Android-Webansichten unzuverlässig.
+
+Eine Sicherung, die manchmal keine Datei erzeugt, wäre schlechter als der
+Text, den es gibt: sie täuschte Sicherheit vor. Wenn der Dateiexport kommen
+soll, gehört er in einen eigenen Durchgang mit Gerätetest.
+
+### Acht neue Prüfungen
+
+| Probe | |
+|---|---|
+| der Zeitpunkt kommt aus dem Paket | nicht geschätzt |
+| fehlende Angaben werden nicht erfunden | Strich statt Null |
+| **der Rückweg steht nicht in der Sicherungsliste** | sonst überschriebe er sich selbst |
+| beim Zurücksetzen wird er mitgelöscht | — |
+| nach dem Zurückholen ist er verbraucht | — |
+| er entsteht, bevor der Import schreibt | Reihenfolge |
+
+### Geprüft
+
+| | 35.149 | 35.150 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 584, 0 Fehler | **592**, 0 Fehler |
+
+**Status V03 teilweise umgesetzt** — Vorschau und Rückweg ja, Dateiexport
+begründet nicht.
+
+## 35.151 · V04 — was ansteht und was schwebt
+
+Eine Zeile über dem Trainingsschirm, zwei Sorten:
+
+    Wähle einen Schwerpunkt — er bestimmt, wohin dein Fortschritt fließt.
+    LÄUFT  Dein Wechselwunsch gilt fürs nächste Transferfenster —
+           bis dahin bleibst du bei Bodrum FK.
+
+### Kein Assistent
+
+Der Bericht setzt die Grenze selbst: *„Kein zusätzlicher Zwangsassistent vor
+jeder Karriere. Keine nochmalige Erklärung bereits verstandener Funktionen
+nach jedem Neustart."*
+
+Deshalb keine Schrittfolge zum Wegklicken, sondern eine Zeile, die den
+Zustand benennt — **und die Erklärung verschwindet nach drei Saisons.** Wer
+fünf gespielt hat, muss nicht mehr lesen, dass nach dem Training das Ergebnis
+kommt. Eine Probe hält das fest.
+
+### Die eigentliche Lücke war „LÄUFT"
+
+„Wechselwunsch läuft" stand seit jeher als Chip da — **ohne zu sagen, was
+daraus folgt.** Wer das las, wusste nicht, ob er schon weg ist. Genau der
+Punkt aus F09: eine Absicht ist kein Vollzug.
+
+Jetzt steht dabei, dass die Entscheidung im Transferfenster fällt und man
+bis dahin bleibt, wo man ist. Dasselbe für eine sich abzeichnende
+Verletzung, eine laufende Sperre und einen auslaufenden Vertrag.
+
+**Ohne Anlass erscheint gar nichts** — keine leere Kiste über dem Schirm.
+
+### Sieben neue Prüfungen
+
+| Probe | |
+|---|---|
+| die erste Saison bekommt eine Erklärung | — |
+| **nach fünf Saisons wird nichts mehr erklärt** | die Grenze aus dem Bericht |
+| ein Wechselwunsch wird auch später erklärt | Schwebendes bleibt |
+| **er sagt, dass der Wechsel nicht vollzogen ist** | der Kern von F09 |
+| ohne Anlass erscheint gar nichts | `null` |
+| unvollständige Spieler | — |
+
+### Geprüft
+
+| | 35.150 | 35.151 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 592, 0 Fehler | **599**, 0 Fehler |
+
+**Status V04 umgesetzt.** Ob die Zeile im Spielfluss hilft oder stört, sagt
+nur das Gerät — sie steht an der Stelle, an der man ohnehin hinsieht, aber
+das ist eine Vermutung.
+
+## 35.152 · Ein Buchführungsfehler — und die echten F45/F46
+
+### Ich habe vier Punkte falsch verbucht
+
+In 35.143 habe ich vier Dialogmängel behoben und sie als **F45 bis F48**
+eingetragen. Im Bericht sind das ganz andere Punkte:
+
+    F45  Akademiekarten machen Absolventen zwei Jahre älter
+    F46  Gekaufter Berater verfällt vor dem Sommerangebot
+    F47  Extraschicht kann nach dem Training wirkungslos verfallen
+    F48  Winter-Vertragsverlängerung übernimmt die Laufzeit nicht
+
+**Die Arbeit war richtig, die Zuordnung nicht.** Die Dialogsachen gehören zu
+V05 und ergänzen F49/F50; der Eintrag in 35.143 ist berichtigt.
+
+Aufgefallen beim Lesen von V09 — es verweist auf „F46/F47" und meint dort
+Käufe, nicht Dialoge. **Ohne diesen Querverweis wären vier Punkte als
+erledigt durchgegangen, die nie angefasst wurden.**
+
+### F45: zwei Jahre zu alt
+
+`karten.js` rechnete das Alter mit `(raus - ein) + 17`. Ein Talent beginnt
+aber mit **15**. Gemessen: Eintritt 2029, Abgang 2034 → Karte zeigte **22**
+statt 20. `karteEinsetzen` übernahm das ins Vereinsalter — kein Druckfehler,
+sondern ein falscher Spielwert.
+
+Behoben an der Wurzel: der Absolvent trägt sein Alter jetzt selbst
+(15 von 15 geprüft). Alte Datensätze ohne das Feld werden weiter abgeleitet —
+mit dem richtigen Eintrittsalter.
+
+### F46: der Berater war weg, bevor er wirken konnte
+
+`runSeason` ruft erst `simulateSeason`, dann `makeOffers`. Der Ablauf des
+Ladenvorrats steckte in `simulateSeason` — **eine Zeile bevor die Angebote
+entstanden, auf die der Berater wirken sollte.** 26 VC für nichts.
+
+Artikel, die auf die Angebote wirken, bekommen jetzt einen Aufschub und
+werden erst danach verbraucht. Den Ablauf komplett zu verschieben hätte die
+Kalibrierung getroffen, die `simulateSeason` ohne `runSeason` ruft — deshalb
+die kleinere Lösung.
+
+Eine Gegenprobe hält fest, dass **andere** Artikel weiterhin sofort ablaufen;
+sonst wäre aus der Behebung ein Freibrief geworden.
+
+### Und die Bauumgebung war weg
+
+Der Lauf brach ab mit „Übersetzungsfehler". Es war keiner: `node_modules`
+war leer. Danach meldete er „das Verzeichnis in STAND.md ist veraltet" — auch
+kein Codefehler, sondern eine Folge meiner Korrektur am Text.
+
+Zweimal hintereinander eine Abbruchmeldung, die etwas anderes meinte, als sie
+sagte. Beides in der Ausgabe nachlesbar, beides hätte ich schneller gesehen,
+wenn ich sie sofort gelesen hätte statt nach `/dev/null` zu schicken.
+
+### Fünf neue Prüfungen
+
+### Geprüft
+
+| | 35.151 | 35.152 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 599, 0 Fehler | **604**, 0 Fehler |
+
+**Status: F45, F46 behoben.** F47 und F48 stehen noch aus — sie gehören zur
+selben Gruppe und kommen als Nächstes.
+
+## 35.153 · V05 — nachgeprüft und in Ordnung
+
+Der letzte messbare Punkt aus V05: **„Informationen nicht allein durch Farbe
+unterscheiden."**
+
+Nachgesehen, wo Farbe wirklich allein stehen könnte:
+
+| Stelle | Befund |
+|---|---|
+| die drei Chip-Arten (`g`, `a`, `r`) | tragen alle Text — Farbe verstärkt nur |
+| Postfachzähler (goldene Blase) | `aria-label` nennt die Zahl bereits |
+| Fortschrittsbalken Ruhmpunkte | die Zahl steht darüber im Text |
+
+**Hier war nichts zu beheben.** Das ist selten genug, um es festzuhalten:
+nicht jeder Punkt eines Prüfberichts ist ein Fehler, und etwas zu „beheben",
+was stimmt, macht es nur anders — nicht besser.
+
+Drei Prüfungen halten den Zustand fest, damit die nächste farbige Anzeige
+ohne Text auffällt.
+
+### Der Container hat zwischendurch `node_modules` verloren
+
+Mitten in der Arbeit meldete der Bau, dass nichts mehr da sei. Ursache war
+nicht der Code: die Bauumgebung war zurückgesetzt. `npm ci` stellte sie in
+drei Sekunden wieder her.
+
+Das gehört hierhin, weil es beim nächsten Mal wieder passieren kann — und
+weil die Fehlermeldung dann nach einem Codefehler aussieht.
+
+### Die Archetyp-Probe, dritter Anlauf
+
+Sie meldete wieder rot: 28 von 60. Sechs Läufe: **27 · 35 · 35 · 37 · 38 ·
+42 von 60** — 45 % bis 70 % bei einer Grenze von 50 %.
+
+**Dass ich dieselbe Probe zum dritten Mal anfasse, ist das eigentliche
+Signal.** Der Grund liegt nicht in der Stichprobe: nach F32 wechseln schwache
+Laufbahnen seltener den Archetyp, und der wahre Wert ist von 89 % auf rund
+60 % gefallen. Eine Grenze, die mit 39 Punkten Abstand gesetzt wurde, hat
+heute zehn.
+
+Stichprobe auf 120 — der Lauf wächst von 11 auf rund 18 Sekunden. Danach
+acht Läufe ohne Befund an dieser Stelle. Die Grenze bleibt bei 50 %.
+
+**Neu aufgefallen dabei:** „Marken: jede neue Marke wird im echten Verlauf
+auch erreicht" meldete in einem von acht Läufen `comeback` als nie erreicht.
+Eine seltene Marke in einer Stichprobe — dieselbe Klasse, noch nicht
+untersucht. Steht als offener Punkt.
+
+### Geprüft
+
+| | 35.152 | 35.153 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 604, 0 Fehler | **607**, 0 Fehler |
+
+**Status V05: geprüft, kein Handlungsbedarf.** Der Rest von V05 —
+Bedienbarkeit bei großer Schrift, offene Tastatur, echte Trefferflächen —
+kam über F49 bis F52 und braucht darüber hinaus ein Gerät.
+
+## 35.154 · V09 — wann ein Kauf wirkt
+
+Der Bericht verlangt: *„Preis, aktueller Bestand und **Ziel** des Kaufs
+müssen vor dem Kauf eindeutig sein."* Preis und Bestand standen schon da,
+das Ziel nicht.
+
+    Extraschicht                              22 VC
+    Eine Woche mehr Arbeit als die anderen.
+    Wirkt bei der nächsten Entwicklung, also vor der kommenden Saison.
+    Danach bleiben dir 78 VC.
+
+**Genau daran hingen F46 und F47:** der Berater verfiel vor dem
+Sommerangebot, die Extraschicht nach dem Training. Beide sind behoben — aber
+wer nicht weiß, *wann* etwas greift, kauft es trotzdem zum falschen
+Zeitpunkt.
+
+### Und was danach bleibt
+
+Der Bericht will, dass sich jede Buchung mit dem tatsächlichen
+Kassenunterschied erklären lässt. Vorher zu wissen, was bleibt, gehört dazu.
+
+### Vier neue Prüfungen
+
+| Probe | |
+|---|---|
+| **jeder Artikel sagt, wann er wirkt** | 7 von 7 |
+| keine Zeile ohne zugehörigen Artikel | keine verwaisten |
+| vor dem Kauf steht da, was danach bleibt | — |
+
+Die ersten beiden zusammen halten Tabelle und Artikelliste aneinander. Eine
+Tabelle neben einer Liste läuft auseinander, sobald jemand einen Artikel
+ergänzt — dieses Muster hat das Projekt oft genug getroffen.
+
+### Geprüft
+
+| | 35.153 | 35.154 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 607, 0 Fehler | **611**, 0 Fehler |
+
+**Status V09 umgesetzt.** Nicht gebaut: eine feingranulare Finanzhistorie —
+der Bericht rät selbst davon ab („kein umfangreiches Buchhaltungsspiel").
+
+## 35.155 · V12 — ein Textkatalog aus fertigen Ausgaben
+
+Der Bericht verlangt „einen prüfbaren Textkatalog aus **tatsächlich
+gerenderten** Szenen". Genau das ist der Punkt: `stimmigkeit.cjs` sieht die
+Rohtexte, und dort steht alles richtig. **Die Fehler entstehen erst beim
+Zusammensetzen.**
+
+`pruefstand/texte.cjs` erzeugt aus allen 532 Ereignissen die fertigen Texte —
+mit eingesetztem Kontext, in beiden Geschlechtsformen — und sucht darin nach
+acht Mustern: technische Werte, offene Platzhalter, doppelte Leerzeichen,
+Leerzeichen vor Satzzeichen, „1 Datensätze", ss statt ß, unpassende Artikel,
+falsche Relativpronomen.
+
+**4.881 Textstellen, 9.771 Proben.**
+
+### Und sofort: F15 war nur halb erledigt
+
+    16 Stellen:  beisst · weisst (5) · weiss (7) · dreissig (3)
+
+In 35.131 hatte ich F15 an den **Sicherungstexten** behoben und als erledigt
+verbucht. Die Ereignistexte waren nie lektoriert — 532 Ereignisse liest
+niemand von Hand durch, und deshalb stand es dort weiter falsch.
+
+Berichtigt. Eine Gegenprobe stellt sicher, dass keine Kennung getroffen
+wurde: `zweiteskind` und `nv_zweitverein` enthalten „wei", aber nicht „weiss"
+als ganzes Wort.
+
+### Drei falsche Treffer, drei Korrekturen an mir selbst
+
+**„Ein größerer Verein"** — mein Muster suchte Artikel plus Wort auf `-in`,
+und `Verein` endet auf „in". Jetzt eine Liste echter weiblicher Endungen.
+
+**„und du fängst wieder bei null an"** — `null` ist hier deutsch. Jetzt wird
+nur das englische `null` in Ausgabelage gesucht.
+
+**Reihenweise „Platzhalter offen"** — Label, Hinweis und Ausgänge können
+ebenfalls Funktionen sein, und ich schickte nur Titel und Einleitung durch
+den Kontext. Die übrigen landeten als Funktionsquelltext im Katalog. **Die
+Muster stimmten; geprüft wurde das Falsche.**
+
+### Der Kontext ist nicht geraten
+
+    grep -oE "\bc\.[a-zA-Z]+(\.[a-zA-Z]+)*" ereignisse.js | sort -u
+
+44 Pfade, die irgendein Text anfasst — daraus ist der Testkontext gebaut.
+Fehlt einer, meldet der Katalog „Text braucht mehr Kontext", statt ihn
+stillschweigend zu überspringen. Ein übersprungener Text wäre ein
+ungeprüftes Stück Spiel.
+
+### Der Prüfstand hat mich zweimal erzogen
+
+Nach dem Anlegen des Werkzeugs brach der Lauf ab: erst fehlte `texte.cjs` in
+der Werkzeugtabelle in STAND.md, dann in LIESMICH.md. *„Ein Werkzeug, das
+dort fehlt, benutzt niemand mehr."* Beide Male zu Recht.
+
+### Geprüft
+
+| | 35.154 | 35.155 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 611, 0 Fehler | 611, 0 Fehler |
+| **Textkatalog** | — | **9.771 Proben, 0 Befunde** |
+| ss-Formen in Ereignissen | 16 | **0** |
+
+**Status V12 umgesetzt**, soweit prüfbar. Was bleibt: ein echtes Lektorat der
+532 Ereignisse durch einen Menschen — der Katalog findet Muster, keine
+holprigen Sätze.
+
+## 35.156 · V10 — wiederholbare Messungen, und Punkt 21 ist geklärt
+
+### Der Zufall ist austauschbar
+
+`zufall` ersetzt `Math.random` an **allen 27 Stellen** — 20 in `App.jsx`, 2
+in `akademie.js`, 5 in `karten.js`. Im Spiel ändert sich nichts: die Quelle
+ist standardmäßig `Math.random`, nur der Prüfstand setzt sie um. Kein Feld im
+Spielstand, keine Einstellung.
+
+    node pruefstand/kalibrierung.cjs --seed=4711
+
+Viermal derselbe Seed: **20,5 · 20,5 · 20,5 · 20,5.** Anderer Seed: 21,0.
+
+### Drei Anläufe, bis es wirklich stimmte
+
+**Erst 21,2 und 20,8** — die Kalibrierung würfelte an einer Stelle selbst mit
+`Math.random`, an der austauschbaren Quelle vorbei. Dieselbe Sorte Fehler wie
+F07, eine Ebene tiefer.
+
+**Dann 20,5 und 20,2** — `E.zufall` direkt zu nehmen geht nicht: es ist eine
+**Variable**, deren Wert beim Ausführen eingefroren wird, nicht die später
+gesetzte Funktion. Über `pick`, das sie bei jedem Aufruf neu liest, stimmt es.
+
+**Dann 20,3 · 20,5 · 20,3** — `akademie.js` und `karten.js` würfelten noch
+selbst. Sie bekommen die Helfer längst übergeben und benutzten sie an sieben
+Stellen nicht.
+
+Jede Zwischenstufe sah aus wie „fast fertig". Nur das Nachmessen hat gezeigt,
+dass es das nicht war.
+
+### Und damit: offener Punkt 21
+
+Zehn verschiedene Seeds, je 300 Laufbahnen:
+
+    21,1 · 20,8 · 21,0 · 20,7 · 20,4 · 21,1 · 21,0 · 21,0 · 21,0 · 20,8
+
+**Median 21,0. Spanne 0,7. Untergrenze 20.**
+
+Der Wert liegt sauber im Band, und die Streuung ist klein genug, dass die
+Grenze nicht mehr zufällig unterschritten wird. Die vier grundlosen
+Rotmeldungen kamen aus **zwei** Quellen: den unzulässigen Entscheidungen
+(F07, behoben) und dem fehlenden Startwert (jetzt behoben).
+
+**Punkt 21 braucht keine Entscheidung mehr.** Das Band war nie falsch — die
+Messung war es. Ich lasse die Grenze bei 20 und schließe den Punkt.
+
+### Geprüft
+
+| | 35.155 | 35.156 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 611, 0 Fehler | 611, 0 Fehler |
+| Textkatalog | 9.771 Proben, 0 | 9.771 Proben, 0 |
+| **Kalibrierung mit Seed** | nicht möglich | **viermal identisch** |
+
+**Status V10 umgesetzt.** Was fehlt: Verteilungen statt Mittelwerte in der
+Ausgabe — der Bericht nennt das getrennt, und es ist ohne den Startwert
+ohnehin nicht sinnvoll gewesen. Jetzt wäre es möglich.
+
+## 35.157 · V08 — die Karte sagt, woher der Spieler kommt
+
+    Eigengewächs, Jahrgang 2029 · erster Profiklub: Hamburger SV · Nationalspieler
+
+Der Bericht war hier präzise: `ausAbsolvent` speichert seit 35.124
+`zusatz.jahrgang`, `zusatz.klub` und `zusatz.ns` — **die Karte zeigte nichts
+davon.** Die Daten lagen drei Fassungen lang ungenutzt herum.
+
+Das ist der Unterschied zwischen einer Karte und einer Erinnerung:
+„Eigengewächs, Jahrgang 2029" ist ein Spieler, den man aufwachsen sah. Ohne
+das ist es eine Karte wie jede andere.
+
+**Alte Karten haben kein `zusatz`** — dann fällt die Zeile weg, statt
+„Jahrgang undefined" zu zeigen. Genau die Sorte sichtbarer technischer Wert,
+nach der `texte.cjs` sucht.
+
+### Vier neue Prüfungen
+
+| Probe | |
+|---|---|
+| die Karte trägt Jahrgang und Klub | Datenseite |
+| **die Kartenansicht zeigt sie auch** | die eigentliche Lücke |
+| alte Karten zeigen keine leere Zeile | — |
+| ohne Klub wird keiner erfunden | — |
+
+Die zweite ist die wichtige: dass Daten *da* sind, hieß hier drei Fassungen
+lang nicht, dass jemand sie sieht.
+
+### Ein roter Lauf, nicht reproduzierbar
+
+„Speicher: der Laufbahn-Aufbau hat Langzeitläufe erzeugt" meldete einmal
+rot — eine der sechs Testlaufbahnen endete zufällig nach zehn Saisons. Zehn
+weitere Läufe waren grün.
+
+Ich fasse die Probe **nicht** an: sie verlangt zu Recht lange Läufe, und ein
+einzelner Ausreißer in zehn Durchgängen ist kein Muster. Falls er
+wiederkommt, steht er hier.
+
+### Geprüft
+
+| | 35.156 | 35.157 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 611, 0 Fehler | **615**, 0 Fehler |
+| Textkatalog | 9.771 Proben, 0 | 9.771 Proben, 0 |
+
+**Status V08 umgesetzt.** Der zweite Teil der Empfehlung — „vor einer
+Entscheidung erklären, welche Alternative aufgegeben wird" — betrifft die
+Talentfreigabe und wäre ein eigener Eingriff in den Akademieschirm.
+
+## 35.158 · V11 — die erste Laufbahn bleibt
+
+### Eine Bestenliste ist kein Archiv
+
+Die Ruhmeshalle sortiert nach Punkten und kappt bei zwölf. Wer schwach
+anfing, verlor seine **erste** Laufbahn nach zwölf besseren — und mit ihr die
+Zeitleistenzeile „Die erste Laufbahn endet".
+
+Der Bericht nennt genau das: *„Die erste tatsächlich abgeschlossene Karriere
+bleibt erinnerbar, auch wenn sie später nicht mehr zu den zwölf stärksten
+gehört."*
+
+Sie behält jetzt einen Platz — den dreizehnten, wenn sie sonst herausfiele.
+**Kein neues Feld:** `nr` gibt es seit 35.138, und `nr === 1` ist die Erste.
+
+Zwei Gegenproben halten fest, dass daraus keine Dauerregel wird: eine
+**starke** Erste bekommt keinen zusätzlichen Platz, und alte Einträge ohne
+`nr` bleiben bei zwölf — eine Reihenfolge wird nicht erfunden.
+
+### Der Auszug heißt jetzt Auszug
+
+Vier Vereinsstationen werden je Halleneintrag gespeichert. Wer zwölf hatte,
+sah vier und konnte glauben, das seien alle gewesen.
+
+    Auszug — insgesamt 9 Stationen
+
+`statN` kostet eine Zahl und sagt, was fehlt. Erscheint nur, wenn wirklich
+etwas fehlt, und nur bei Einträgen ab dieser Fassung.
+
+### Vier neue Prüfungen
+
+| Probe | |
+|---|---|
+| **die erste Laufbahn bleibt, auch wenn sie schwach war** | 13 Einträge |
+| eine starke Erste bekommt keinen Extraplatz | 12 |
+| alte Einträge ohne Nummer bleiben bei zwölf | 12 |
+| der Auszug sagt, wie viele es insgesamt waren | — |
+
+### Geprüft
+
+| | 35.157 | 35.158 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 615, 0 Fehler | **619**, 0 Fehler |
+
+**Status V11 umgesetzt.** Nicht gebaut: „wichtige Vereins- und
+Akademieereignisse" als eigene Meilensteine — dafür gibt es bereits die
+Zeitleiste aus 35.119, und ein zweiter Speicher daneben wäre eine zweite
+Wahrheit über dieselbe Welt.
+
+## 35.159 · F33 und F34 — die zwei, die ich übersprungen hatte
+
+Kevin hat nachgefragt, und die Frage war berechtigt. Ich hatte beide als
+„vom Bericht als Designentscheidung freigegeben" abgehakt. **Der Bericht
+sagt etwas anderes:** sie *dürfen* nach begründeter Entscheidung
+abgeschlossen werden. Eine Begründung hatte ich nicht — ich hatte sie
+übersprungen und das Überspringen als Entscheidung ausgegeben.
+
+Beide nachgestellt, beide bestätigt.
+
+### F33: viermal dieselbe Zeile
+
+    Der Anfang · Eine große Spielzeit · Eine große Spielzeit ·
+    Eine große Spielzeit · Eine große Spielzeit
+
+Sachlich richtig — es waren vier große Spielzeiten. Als Rückblick liest es
+sich wie ein Druckfehler.
+
+**Behoben, aber vorsichtig.** Der Bericht setzt die Grenze selbst:
+*„Wichtige tatsächliche Ereignisse nicht zugunsten von Abwechslung
+verschweigen."* Deshalb wird nichts unterdrückt und nichts gewürfelt: die
+Funktion liefert weiter die beste passende Zeile. Nur wenn sie mit der
+vorigen übereinstimmt **und eine zweite passt**, wird die zweite genommen.
+
+    Der Anfang · Eine große Spielzeit · Das dritte Jahr ·
+    Eine große Spielzeit · Das fünfte Jahr
+
+„Das dritte Jahr" ist ebenso wahr. Passt keine zweite, bleibt die
+Wiederholung — **eine korrekte Wiederholung ist besser als eine falsche
+Abwechslung.**
+
+Deterministisch: derselbe Spielstand ergibt denselben Text, auch beim
+erneuten Öffnen. Eine Probe hält das fest.
+
+### F34: entschieden und beibehalten
+
+Die Schlagzeile „Zurückgeschrieben" gilt nach **jeder** Verletzung, Archetyp
+und Meilenstein verlangen eine **schwere**. Drei Regeln, zwei Schwellen.
+
+**Sie bleiben verschieden, weil sie verschiedene Fragen beantworten:**
+
+| | Frage | Schwelle |
+|---|---|---|
+| Archetyp | ein Urteil über die ganze Laufbahn | schwer |
+| Meilenstein | eine Auszeichnung | schwer |
+| Schlagzeile | ein Urteil über eine Saison | jede |
+
+Wer nach einem verletzten Jahr wieder 25 Spiele macht, hat sich
+zurückgeschrieben — auch nach einer leichten Verletzung. Der Text behauptet
+nichts Falsches: *„Nach der Verletzung wieder 25 Spiele."* Keine schwere,
+keine lange.
+
+Eine Angleichung wäre die bequemere Antwort und die schlechtere: sie nähme
+dem Rückblick einen wahren Satz, um drei Regeln gleich aussehen zu lassen.
+
+Eine Probe hält die **Entscheidung** fest, nicht eine Behebung — wer das
+später angleicht, soll es bewusst tun.
+
+### Geprüft
+
+| | 35.158 | 35.159 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 619, 0 Fehler | **624**, 0 Fehler |
+
+**Damit ist der Fehlerkatalog F01–F56 wirklich vollständig** — keiner
+übersprungen, F34 als einziger begründet beibehalten.
+
+## 35.160 · Das Seed-Problem — eine Zeile
+
+In 35.159 hatte ich geschrieben, der feste Startwert wirke nur zur Hälfte und
+die Ursache sei nicht gefunden. Kevin fragte, ob wir das angehen. **Die
+Antwort war: erst messen, wie groß es ist.**
+
+### Die Suche
+
+    createPlayer, dreimal Seed 777        56/99/w_goat1  ·  identisch
+    1 · 3 · 8 Saisons, je dreimal          identisch
+
+**Der Spielkern war sauber.** Damit war klar: die Streuung kam aus dem
+Prüfstand selbst.
+
+    pruefstand/vereinpruefung.cjs:1233
+    if (ch.roll) { const r = Math.random(); …
+
+**Dieselbe Zeile wie in `kalibrierung.cjs`** — dort in 35.156 behoben, hier
+übersehen. Eine einzige Stelle.
+
+    vorher:   69 · 71 · 72 · 72 · 73 · 76 · 77 von 120
+    nachher:  achtmal 71 von 120
+
+### Zwei eigene Fehler auf dem Weg
+
+**Der Wächter stolperte über die eigene Fußspur.** Meine neue Probe sucht
+`Math.random(` in allen Prüfwerkzeugen — und fand sich selbst: der
+Gegenprobe-Teststring enthielt den Aufruf wörtlich. Jetzt wird er
+zusammengesetzt.
+
+**Und das Bündel war wieder älter als die Quelle.** Nach der Rücknahme der
+Gegenprobe meldete die Prüfung weiter rot; die Datei stimmte längst. Vierter
+Fall dieser Art in dieser Reihe.
+
+### Eine Prüfung für die Klasse
+
+Zweimal dieselbe Zeile, zweimal derselbe Fehler — das ist ein Muster, kein
+Einzelfall. Die neue Probe liest **alle fünf Prüfwerkzeuge** und meldet
+jedes eigene `Math.random`. Kommentare werden vorher entfernt: sie erklären
+den Fehler und sind keiner (dieselbe Falle wie 35.135 und 35.141).
+
+Gegenprobe an der echten Stelle: **„eigener Zufall in:
+vereinpruefung.cjs"**.
+
+### Geprüft
+
+| | 35.159 | 35.160 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 624, 0 Fehler | **626**, 0 Fehler |
+| Archetyp-Probe über 8 Läufe | 69–77 | **achtmal 71** |
+
+**Damit sind alle Messungen dieses Projekts wiederholbar.** Ändert sich eine
+Zahl, hat sich das Spiel geändert.
+
+## 35.161 · V06 — die erste echte Konsequenzkette
+
+Der Bericht nennt das Beispiel selbst: *„Ein abgelehntes Angebot kann später
+zu einer Begegnung führen."*
+
+**`p.abgelehnt` gibt es seit 35.114 — und kein einziges Ereignis hat es je
+gelesen.** Acht gespeicherte Absagen, und nie kam eine zurück.
+
+### Zwei Glieder, eine Entscheidung
+
+    ab_wiedersehen   Der Verein von damals steht auf dem Spielplan.
+                     Wie man damit umgeht, setzt ein Merkmal.
+    ab_quittung      Jahre später zahlt sich die Haltung aus — oder nicht.
+                     Nur erreichbar mit dem Merkmal aus dem ersten.
+
+> Auf dem Spielplan steht Ajax Amsterdam. Vor 3 Jahren wollten sie dich, und
+> du hast abgesagt. In der Kabine wissen es alle.
+
+**Kein neues Feld.** Die Kette läuft über `flags` und über `c.absage`, das
+aus `p.abgelehnt` abgeleitet wird.
+
+**Mindestens zwei Jahre Abstand:** eine Absage von letzter Woche ist keine
+Geschichte. Sonst käme das Ereignis direkt nach dem Transfer.
+
+### Beide Wege führen weiter
+
+„Ihnen zeigen, was sie verpasst haben" kann nach hinten losgehen — 45 % Hohn
+statt Applaus. „Es wie jedes andere Spiel behandeln" ist die ruhige Antwort
+und setzt ein anderes Merkmal. **Keine Sackgasse:** beide führen zur zweiten
+Stufe, mit verschiedenen Texten.
+
+### Sieben neue Prüfungen
+
+| Probe | |
+|---|---|
+| beide Glieder gibt es | — |
+| das Wiedersehen braucht eine echte Absage | ohne: nicht erreichbar |
+| eine frische Absage löst noch nichts aus | nach einem Jahr: false |
+| **die Quittung kommt erst nach dem Wiedersehen** | das ist die Kette |
+| sie endet und wiederholt sich nicht | — |
+| der Text nennt Verein und Jahre | keine Behauptung ohne Bezug |
+| jede Wahl führt weiter | keine Sackgasse |
+
+### Geprüft
+
+| | 35.160 | 35.161 |
+|---|---|---|
+| Ereignisse | 530 | **532** |
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 626, 0 Fehler | **633**, 0 Fehler |
+| Textkatalog | 9.771 Proben, 0 | **9.805 Proben, 0** |
+
+**Status V06 angefangen.** Das ist eine Kette von wenigen, die der Bericht
+vorschlägt — die anderen brauchen dieselbe Sorte Datenbasis, und die gibt es
+nur an wenigen Stellen. Wo sie fehlt, wäre eine Kette erfunden statt
+gewachsen.
+
+## 35.162 · V07 — ein Vorsatz statt eines zweiten Zielsystems
+
+### Zuerst die Überschneidung geprüft
+
+Der Bericht verlangt das ausdrücklich, und das Ergebnis war eindeutig: **alle
+drei vorgeschlagenen Herausforderungen gibt es bereits als Errungenschaft.**
+
+    Vereinstreue   „Fünf Jahre ein Verein" · „Ein Verein, ein Leben"
+    Comeback       „Zehnmal aufgehört" und die Rückkehr-Marken
+    Nachwuchs      fünf Akademie-Errungenschaften
+
+Ein zweites Zielsystem daneben wäre eine zweite Wahrheit über dieselbe
+Leistung — genau das Muster, das dieses Projekt schon mehrfach eingeholt hat.
+
+### Was fehlte, ist die Wahl
+
+Errungenschaften erreicht man **nebenbei**. Niemand entscheidet sich vorher
+für eine. Der Unterschied, den der Bericht verlangt — *„unterschiedliche
+Abwägungen, nicht nur andere Endpunktzahlen"* — entsteht dadurch, dass man
+ein Ziel im Blick hat, während man Entscheidungen trifft.
+
+    Der Weltenbummler       Daheim bleiben
+    Die lange Laufbahn      Eine herausragende Saison
+
+**Die ersten beiden schließen sich aus.** Das ist der Punkt: eine Wahl soll
+etwas kosten.
+
+**Keine Belohnung.** Der Bericht warnt vor einem leicht wiederholbaren
+Sonderweg — der einfachste Schutz ist, dass es nichts zu holen gibt. Wer den
+Vorsatz hält, hat ohnehin die Errungenschaft.
+
+Er bleibt während der Laufbahn sichtbar und zeigt, ob er gerade gehalten ist.
+„Daheim bleiben" kann kippen — ein Ziel, das man beim Start wählt und nie
+wiedersieht, ist keins.
+
+### Neunter erfundener Name
+
+Mein erster Entwurf nannte `f_treue10`, `f_heimat`, `f_kapitaen1` und
+`f_alt38`. **Keine davon existiert.** Diesmal direkt nach dem Schreiben
+nachgezählt, statt es der Prüfung zu überlassen — die echten Kennungen habe
+ich dann aus den Bedingungen gelesen, die nur `p` lesen (63 von 192).
+
+Eine Probe hält das fest: jeder Vorsatz muss auf eine Errungenschaft zeigen,
+die es gibt.
+
+### Acht neue Prüfungen
+
+| Probe | |
+|---|---|
+| **jeder zeigt auf eine echte Errungenschaft** | fängt erfundene Kennungen |
+| keiner bringt eine Belohnung | der Schutz aus dem Bericht |
+| zwei stehen gegeneinander | ohne Gegensatz keine Wahl |
+| der Stand folgt der echten Bedingung | keine nachgebaute Regel |
+| „Daheim bleiben" kippt beim Wechsel | — |
+
+### Geprüft
+
+| | 35.161 | 35.162 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 633, 0 Fehler | **641**, 0 Fehler |
+| Ereignisse | 532 | 532 |
+
+**Damit sind alle zwölf Empfehlungen bearbeitet** — V06 mit einer Kette
+(mehr gehen nur mit erfundenen Daten), V07 ohne zweites Zielsystem, V03 ohne
+Dateiexport. Jedes „nicht gebaut" steht mit Begründung in seinem Messblock.
+
+## 35.163 · F47 und F48 — beim Berichtschreiben aufgefallen
+
+In 35.152 hatte ich einen Buchführungsfehler korrigiert und dabei notiert:
+*„F47 und F48 stehen noch aus."* Dann habe ich sie nicht mehr angefasst und
+später „der Bericht ist abgearbeitet" gemeldet.
+
+**Aufgefallen beim Sammeln der Fakten für den Abschlussbericht.** Ein
+Bericht, der Vollständigkeit meldet, muss stimmen — also erst die zwei
+Punkte, dann der Bericht.
+
+### F47: ein Kauf, der nichts bewirken konnte
+
+Die Extraschicht wirkt ausschließlich in `develop`, also **vor** der Saison.
+In der Ereignisphase ist die Entwicklung längst gelaufen — der Laden blieb
+aber offen und der Artikel kaufbar. Die nächste `simulateSeason` zählte den
+frisch gekauften Vorrat von 1 auf 0 herunter, bevor `develop` wieder dran
+war. **22 VC bezahlt, nichts bekommen.**
+
+`ladenGesperrt` kennt jetzt den Schritt. Nach dem Training: *„Das Training
+dieser Saison ist durch"* — mit Grund, nicht wortlos ausgeblendet.
+
+**Nur dieser Artikel.** Die übrigen Saisonartikel wirken in
+`simulateSeason` und sind bis dahin nutzbar; eine pauschale Sperre wäre
+bequemer und falsch. Eine Probe hält das fest.
+
+### F48: eine Verlängerung ist kein Wechsel
+
+`winterAccept` behandelte **jedes** Angebot wie einen Vereinswechsel: neuer
+Kader, Vertrauen auf 50, Kapitänsbinde weg. Und die Vertragsjahre übernahm
+nur der `transfer`-Zweig — eine im Winter angenommene Verlängerung ließ
+`contract` auf 0 stehen.
+
+    Vierjahresangebot angenommen  →  contract = 0
+
+Jetzt: `renew` und `stay` behalten Verein, Kader und Binde, und `years` gilt
+für jede Art, die welche mitbringt. **Dieselbe Angebotsart bedeutet in
+beiden Fenstern dasselbe** — sonst hängt die Wirkung am Kalender.
+
+### Fünf neue Prüfungen
+
+| Probe | |
+|---|---|
+| Extraschicht im Trainingsschritt kaufbar | — |
+| **nach dem Training gesperrt** | der Befund |
+| andere Saisonartikel bleiben kaufbar | keine pauschale Sperre |
+| die Laufzeit gilt für jede Angebotsart | — |
+| eine Verlängerung wechselt nicht den Verein | — |
+
+### Geprüft
+
+| | 35.162 | 35.163 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | 814, 0 Fehler |
+| Verein | 641, 0 Fehler | **646**, 0 Fehler |
+
+**Jetzt ist der Fehlerkatalog wirklich vollständig.**
+
+## 35.164 · Die Einstellungen waren kaputt — ausgeliefert
+
+Kevin kam nicht mehr in die Optionen. Auf dem Bildschirm:
+
+    vorsatz is not defined
+
+**In dem Paket, das ich zwei Antworten vorher als „alles grün" übergeben
+habe.**
+
+### Was passiert war
+
+Die Vorsatz-Auswahl aus 35.162 landete in `Optionen` statt in
+`CreateScreen`. Beide Komponenten haben einen „Spielweise"-Block, mein
+Textersatz traf den falschen — und `useState` für `vorsatz` steht in
+`CreateScreen`, 640 Zeilen weiter unten.
+
+Umgehängt. Die Auswahl steht jetzt dort, wo sie hingehört: über dem
+Startknopf.
+
+### Warum keine Prüfung das gefangen hat
+
+`Optionen` ist ein **Unterzustand** des Hauptmenüs (`opt`). Die
+Ansichtsprüfung rendert `MenuScreen` — aber nie mit geöffneten Optionen.
+Also wurde die Komponente in 814 Prüfungen kein einziges Mal aufgebaut.
+
+**Ich hatte die Lücke in 35.142 selbst notiert:** *„Zwei neue Knöpfe, und die
+Zahl bleibt bei 154: die Sichtprüfung öffnet die Optionen nicht."* Ich habe
+es aufgeschrieben und nicht geschlossen. Zweiundzwanzig Fassungen später kam
+der Absturz genau dort heraus.
+
+Jetzt sind die Optionen zwei eigene Ansichten in der Prüfung — mit und ohne
+laufende Laufbahn. **816 statt 814.**
+
+### Was ich daraus mitnehme
+
+Eine notierte Lücke ist keine geschlossene. Beim nächsten „das prüft der
+Prüfstand nicht" gehört die Prüfung in dieselbe Fassung, nicht in den
+Messblock.
+
+Und: Kevin hat den Fehler in Minuten gefunden. Der dritte Gerätebefund
+dieser Reihe, und der dritte, der etwas fand, das kein Werkzeug sah.
+
+### Geprüft
+
+| | 35.163 | 35.164 |
+|---|---|---|
+| Ansichten | 814, 0 Fehler | **816**, 0 Fehler |
+| Verein | 646, 0 Fehler | 646, 0 Fehler |
+
+## 35.168 · Zusammenführung mit dem Codex-Stand 35.167
+
+### Verbindlich: was von Codex stammt und erhalten bleibt
+
+Kevin hat das am 14.09.2026 ausdrücklich festgelegt. Diese Arbeiten sind der
+bestehende Stand und werden **nicht** aus stilistischen Gründen umgebaut oder
+durch ältere eigene Lösungen ersetzt. Eine Änderung braucht einen
+nachgewiesenen Fehler, dokumentierte Ursache und ein Prüfergebnis; größere
+konzeptionelle Eingriffe vorher mit Kevin abstimmen.
+
+**Erhalten:**
+
+- gemeinsame Journalbuchungen für Karriereabschluss, Kartenkäufe,
+  Kartenverkäufe und zusammengehörige Vereins-/Akademieänderungen
+- Sperren gegen gleichzeitige Buchungen; Erfolgsmeldungen und sichtbare
+  Bestandsänderungen erst **nach** erfolgreicher Speicherung
+- Wiederherstellung nach Speicherfehlern, Wiederaufnahme eines endgültigen
+  Karriereendes
+- Spielstandschema 2 mit festen Auswahl-IDs, Schema 1 über `altIndex` lesbar
+- **bestehende Ereignis-IDs und `altIndex` niemals neu nummerieren oder
+  wiederverwenden**
+- Fanshopkorrektur, Packpreis- und Berechtigungsprüfungen
+- Formularbeschriftungen, native Kartenbuttons, Fokusführung
+- die sechs Vorsätze; die redundante Tätigkeitsbox bleibt entfernt; der
+  gewählte Vorsatz steht unter der Wildcard
+- die 47 Regressionstests einschließlich der injizierten Speicherfehler
+
+**Modulzuordnung (korrigiert):**
+
+| Was | Wo |
+|---|---|
+| `datenErsetzen` | `sicherung.js` |
+| `bucheBestand`, `bucheAenderung` | `App.jsx` |
+| `packBuchung`, `verkaufsBuchung` (reine Vorbereitung) | `buchungen.js` |
+
+In `buchungen.js` gehören **keine** Schreib- oder React-Nebeneffekte. Karten-
+und Vereinsmodule werden als Abhängigkeiten übergeben.
+
+### Der APK-Workflow kommt aus dem GitHub-Updatepaket
+
+Meine erste Zusammenführung hatte ihn übersehen: die höhere Nummer 35.168
+bedeutete nicht, dass die späteren Arbeiten enthalten waren. Übernommen aus
+`Rasenschach-XI-35.167-GitHub-Update-APK.zip`:
+
+- `.github/workflows/apk.yml` (209 Zeilen statt der alten 254)
+- `.gitignore` — berücksichtigt jetzt den Android-Quellcode
+- `GITHUB-APK-ANLEITUNG.md`
+
+Geprüft: Secret `ANDROID_DEBUG_KEYSTORE_BASE64` oder vorhandener
+`signing/debug.keystore`, sonst **verständlicher Abbruch** — kein
+Ersatzschlüssel wird erzeugt. Zehn `exit 1`-Stellen, `apksigner`-Prüfung
+vorhanden, **kein `git push` oder `git commit`** im Workflow.
+
+**Nicht belegt:** dass eine so gebaute APK Kevins installierte Fassung
+aktualisieren kann. Schlüssel und Signaturprüfung zeigen das nicht — das
+zeigt erst ein Update auf dem Gerät.
+
+### Versionsangaben vereinheitlicht
+
+    App.jsx            35.168
+    package.json       35.168.0
+    package-lock.json  35.168.0
+    build.gradle       versionName 35.168.0 · versionCode 3516800
+
+Gesetzt mit Codex' eigenem Werkzeug
+`node pruefstand/android-version.cjs android/app/build.gradle package.json`.
+
+### Babel-Parser: meine erste Aussage war falsch
+
+Ich hatte berichtet, `@babel/parser` fehle im Paket. Tatsächlich war
+**7.29.8 bereits im Lock**, als indirekte Abhängigkeit von `@babel/core`. Neu
+ist nur die Aufnahme als **direkte** Entwicklungsabhängigkeit.
+
+Schlimmer: mein erster Anlauf installierte `^8.0.5`. Diese Hauptversion
+verlangt Node `^22.18.0 || >=24.11.0`, während `package.json` `>=22.12.0`
+angibt — ein stiller Konflikt für Node 22.12 bis 22.17. Jetzt `^7.29.8`
+(`engines: >=6.0.0`); die Mindestversion bleibt unverändert.
+
+
+### Das Zielband ist knapp geworden
+
+Ein Prüflauf meldete **20,0 bei einer Untergrenze von 20** — genau auf der
+Kante. Nachgemessen:
+
+    fünf feste Startwerte, je 300:   21,1 · 20,8 · 21,0 · 20,7 · 20,4
+    sechs Läufe ohne Seed, je 600:   21,0 · 20,8 · 20,6 · 21,0 · 20,8 · 20,6
+
+Der Wert liegt sicher im Band; die 20,0 war ein seltener Ausreißer bei 300
+Laufbahnen. **Ich fasse die Grenze nicht an** — sie ist richtig, und ein
+gelegentlicher Grenzfall ist kein Grund, sie zu verschieben.
+
+Aber der Abstand ist von einst mehreren Punkten auf **0,6** geschrumpft.
+Falls das Band künftig häufiger rot meldet, ist die Ursache im Spiel zu
+suchen, nicht in der Messung: seit 35.156 ist sie mit festem Startwert
+reproduzierbar.
+
+### Die sechs neuen Punkte aus Revision 6
+
+Codex hat sie in 35.167 gefunden und behoben. Sie standen bis hierher nicht
+in dieser Dokumentation — nachgetragen aus dem Gesamtbericht, nicht aus dem
+Gedächtnis:
+
+| ID | Befund | Behebung in 35.167 |
+|---|---|---|
+| **F59** | Packkauf begrenzte die Abbuchung aufs Guthaben statt abzuweisen | Kauf bei Unterdeckung wird abgewiesen; die Oberfläche ist nicht mehr der einzige Schutz |
+| **F60** | Nach einer Speicherstörung blieb die Spielroute aktiv, der Zustand war leer | „Erneut versuchen" lädt neu und führt ins Menü |
+| **F61** | Falsche Klammerung setzte den Fanshop-Basisfaktor auf 0,2 | 1,0 ohne, 1,2 mit Fanshop |
+| **F62** | Karriereende war teils nur als Einblendung vorgemerkt | eindeutiger Endgrund mit Abschlussphase im fortsetzbaren Stand |
+| **F63** | Abschluss, Karten und VC konnten teilweise gespeichert sein | gemeinsame Journalbuchungen, mit Fehlern an jeder Schreibstelle geprüft |
+| **F64** | Der Workflow suchte `machVerein` im minifizierten Bundle | Prüfung ersetzt, Symbolquelle als Rückfall angebunden |
+
+Dazu geschlossen: **F49** (native Kartenbedienung) und der verbleibende Teil
+von **F50** (Formularbeschriftungen). Der Geräteanteil beider bleibt offen.
+
+**F61 ist der interessanteste:** eine falsch gesetzte Klammer, die den
+Basisfaktor fünffach verkleinerte. Dieselbe Klasse wie F24 aus dem alten
+Katalog — dort band `&&` stärker als `||`. Der Prüfstand hat beide nicht
+gesehen, weil er Ergebnisse prüft und keine Formeln.
+
+
+Kevin hat den von Codex weiterentwickelten Stand 35.167 als neue Grundlage
+gesetzt. Er baut auf **35.166** auf — meine parallelen Fassungen 35.167 und
+35.168 waren dort nicht enthalten.
+
+### Drei Gerätebefunde waren zurück
+
+| Befund | im Codex-Stand | jetzt |
+|---|---|---|
+| Vorsatz auf der Passrückseite | enthalten | — |
+| **Kontrast in der Saisonbilanz** (`pan` auf Karton, 1,08) | zurück | behoben |
+| **Die drei Erklärzeilen** über dem Spielschirm | zurück | entfernt |
+
+Der Kontrastfehler ist damit zum **dritten Mal** aufgetreten: Kevin fand ihn
+in 35.121, ich baute ihn in 35.149 erneut ein, und beim Zusammenführen kam er
+über den älteren Zweig zurück. Bei parallelen Ständen ist das die eigentliche
+Gefahr — nicht der Fehler selbst, sondern sein Wiederauftauchen.
+
+### Zwei Lücken im übergebenen Paket
+
+**`@babel/parser` fehlte in `package.json`.** Das neue Werkzeug
+`ereignis-ids.cjs` war damit nicht lauffähig und brach den ganzen Prüflauf
+ab — mit der irreführenden Meldung „Bitte zuerst npm ci ausführen".
+Nachgetragen als Entwicklungsabhängigkeit. Zusätzlich lädt das Werkzeug
+Babel jetzt aus dem Quellverzeichnis, weil `pruefen.sh` es aus `/tmp/ps`
+aufruft.
+
+**Der Produktionsbau löschte den Regressionen die Grundlage weg.** Er räumt
+`node_modules` im Quellverzeichnis auf (`rm -rf "$ARBEIT/node_modules"`) und
+läuft **vor** dem Regressionsteil. Der meldete danach `Cannot find module
+'esbuild'`, obwohl er allein aufgerufen durchlief. Fehlt die Umgebung, wird
+sie jetzt einmal wiederhergestellt.
+
+Beide Male sah es nach einem Codefehler aus und war ein Ablauffehler im
+Prüfstand.
+
+### Eine meiner Prüfungen passte nicht mehr
+
+„Kartenübergabe: der Pool kommt aus dem Ref" suchte wörtlich
+`const basis = kartenRef.current || karten`. Diese Zeile gibt es nach dem
+Umbau auf `packBuchung` nicht mehr — **die Sache stimmt weiter**, an sechs
+Stellen wird aus dem Ref gelesen. Die Probe prüft jetzt das, was F44
+verlangt, statt einer Fundstelle.
+
+### Der Zielkonflikt am Spielerpass
+
+Codex hat lange Vereinsnamen umbrechen lassen statt sie abzuschneiden —
+richtig, „Borussia Mönchengladbach" endete vorher als „Borussia Mönchen…".
+
+Nur wuchs der Pass dadurch: **14,6 px Sprung bei 360 px**, erlaubt ist 1.
+Beim Blättern springt dann der ganze Kasten. Die Sichtprüfung braucht Chrome
+und lief bei der Übergabe offenbar nicht.
+
+Beides geht: Umbruch bis zu zwei Zeilen, und die Zeile behält die Höhe von
+zweien. Pass konstant, Namen lesbar.
+
+### Geprüft
+
+| | Codex 35.167 | 35.168 |
+|---|---|---|
+| Ansichten | 816, 0 Fehler | 816, 0 Fehler |
+| Verein | 645, 1 Fehler | **646**, 0 Fehler |
+| Textkatalog | 9.805 Proben, 0 | 9.805 Proben, 0 |
+| Regressionen | nicht lauffähig im Prüfstand | **47 bestanden** |
+| Ereignis-IDs | Werkzeug nicht lauffähig | **532 / 1.161 / 0 fehlend** |
+| Passhöhe bei 360 px | **Sprung 14,6 px** | konstant |
+| Kontraststellen | 906, 0 Befunde | 906, 0 Befunde |
+
+**Alles durchgelaufen, keine Fehler** — zum ersten Mal seit der Übernahme.
+
+### Was noch offen ist
+
+Die Statusmatrix aus Revision 6 nennt **F59 bis F64** als neue Punkte
+(Packprüfung, leerer Wiederaufnahmebildschirm, Fanshopfaktor, endgültiges
+Ende nach Neustart, unvollständige Buchungen, Android-Bauprüfung). Codex hat
+sie bearbeitet; in dieser Dokumentation fehlen sie noch als eigene Einträge.
+
+Ebenso offen: die elf Punkte, die Revision 6 als weiterhin unerledigt führt —
+darunter F01, F02, F04, F35, F42, F43, F51, F52, F53. Sie sind **nicht** Teil
+dieser Zusammenführung.
+
 ## Für den nächsten Durchgang
+
+### REGEL: nur auf einer eindeutig benannten Grundlage arbeiten
+
+Verbindlich seit 14.09.2026, nach der Zusammenführung 35.168.
+
+1. **Vor jeder Änderung die verwendete Ausgangslieferung nennen** — mit
+   Dateinamen, nicht nur mit Versionsnummer.
+2. **Bei Zusammenführungen Dateien vergleichen, nicht Nummern.** Meine 35.168
+   war höher als das GitHub-Updatepaket zu 35.167 und enthielt es trotzdem
+   nicht. Eine Nummer sagt nichts darüber, was drin ist.
+3. **Danach festhalten:** was unverändert übernommen, was ergänzt, was
+   korrigiert und was geprüft wurde.
+
+Der Anlass: drei Gerätebefunde kamen zurück, weil zwei Stände parallel
+liefen, und ein ganzes Updatepaket fehlte, weil ich auf die Nummer geschaut
+habe statt auf den Inhalt.
+
 
 Dieser Abschnitt steht bewusst VOR den offenen Punkten: er ist das Erste, was
 ein frischer Durchgang wissen muss.
@@ -13769,7 +16331,7 @@ die Quelle jetzt selbst absolut auf, wie `sicht.sh` es immer getan hat.
 **Wer eine Zahl aus diesem Block nicht erreicht, prüft zuerst, ob die Meldung
 von der Sache handelt oder vom Pfad.**
 
-### Erwartete Zahlen für 35.128
+### Erwartete Zahlen für 35.164
 
     Ansichten:        814 Prüfungen bestanden
     Verein:           438 Prüfungen bestanden  (431 + 7 Zeitleiste, 35.119)
@@ -13801,7 +16363,7 @@ Kartensystem, dem Sonderschuss, der neuen Aufstellung und den neuen Bildern.
 
 Alles andere in diesem Projekt lässt sich messen. Das nicht.
 
-## Offene Punkte (Stand 35.128)
+## Offene Punkte (Stand 35.164)
 
 1. **Seitenscheitel (Frisur 2)** liest sich noch immer eher als Glanzstreifen denn
    als Scheitel. Und **Halbglatze und Glatze sind zusammen 2 von 12** Möglichkeiten;

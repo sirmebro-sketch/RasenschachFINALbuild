@@ -570,16 +570,25 @@ export const machVerein = (H) => {
         frei.splice(frei.indexOf(best), 1);
       }
     });
-    /* Reparaturdurchgang. Der gierige Lauf oben nimmt fuer jeden Platz den
-       STAERKSTEN — und kann damit einen Spieler verbrauchen, den ein spaeterer
-       Platz zwingend gebraucht haette. Was danach offen ist, wird mit irgend-
-       jemandem besetzt, der dort spielen kann. Ein schwacher Mann auf dem Platz
-       ist immer besser als eine Luecke: eine Luecke zaehlt mit Staerke 24. */
-    form.plaetze.forEach((platz, i) => {
-      if (auf[i] != null) return;
-      const k = frei.findIndex((sp) => kannSpielen(sp, platz));
-      if (k >= 0) { auf[i] = frei[k].id; frei.splice(k, 1); }
-    });
+    /* F58 (35.165): freie Plätze können einen Tausch über mehrere bereits
+       besetzte Positionen brauchen. Ein reiner Griff auf die Bank reicht
+       nicht. Ergänzende Zuordnungswege erhalten vollständige Vorschläge und
+       maximieren bei echten Engpässen die Zahl korrekt besetzter Plätze. */
+    const platzVon = new Map(Object.entries(auf).map(([i,id]) => [id,Number(i)]));
+    const belegen = (i, besucht) => {
+      const kandidaten = (v.kader || []).filter(sp => kannSpielen(sp, form.plaetze[i]))
+        .sort((a,b) => b.ovr * guete(b.pos,form.plaetze[i]) - a.ovr * guete(a.pos,form.plaetze[i]));
+      for (const sp of kandidaten) {
+        if (besucht.has(sp.id)) continue;
+        besucht.add(sp.id);
+        const alt = platzVon.get(sp.id);
+        if (alt == null || belegen(alt, besucht)) {
+          auf[i] = sp.id; platzVon.set(sp.id,i); return true;
+        }
+      }
+      return false;
+    };
+    form.plaetze.forEach((_,i) => { if (auf[i] == null) belegen(i,new Set()); });
     return { ...v, aufstellung: auf };
   };
 

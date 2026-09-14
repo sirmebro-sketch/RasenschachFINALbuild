@@ -199,7 +199,10 @@ export const machAkademie = (H) => {
     /* Zwei Drittel bleiben ohne Typ. */
     if (!chance(.34)) return null;
     const summe = TALENTTYPEN.reduce((x, y) => x + y.w, 0);
-    let r = Math.random() * summe;
+    /* Ueber `ri`, nicht `Math.random` (35.156, V10): die Module bekommen die
+       Helfer uebergeben, und die laufen ueber die austauschbare Quelle. So
+       folgt auch die Akademie einem festen Startwert. */
+    let r = (ri(0, 1e6) / 1e6) * summe;
     for (const ty of TALENTTYPEN) { r -= ty.w; if (r <= 0) return ty.id; }
     return null;
   };
@@ -214,7 +217,7 @@ export const machAkademie = (H) => {
     const ovr = clamp(Math.round(34 + S.plaetze * 1.2 + gauss(0, 3)), 26, 56);
     const pot = clamp(Math.round(ovr + 10 + S.lehre * 2.6 + gauss(0, 3.5 + S.scouting * .9)), ovr + 3, 97);
     return {
-      id: "t" + jahr + "_" + Math.floor(Math.random() * 1e6).toString(36),
+      id: "t" + jahr + "_" + ri(0, 999999).toString(36),
       name: genName(natId, "m"), nat: natId, flag: nat.flag,
       pos, alter: 15, ovr, pot, ein: jahr, verletzt: 0, ruf: 0, typ: typWaehlen(),
       /* Zwei oder drei Jahre. Laenger nicht: ein Jahr ist eine abgeschlossene
@@ -248,7 +251,7 @@ export const machAkademie = (H) => {
       absolventen: [...(a0.absolventen || []), { id: f.talentId, name: f.name, flag: f.flag,
         nat: t ? t.nat : null, pos: f.pos, ein: t ? t.ein : null, raus: f.gestellt,
         peak: f.peak, ns: f.ns, klub: f.klub, klubLiga: f.klubLiga,
-        typ: (t && t.typ) || null }],
+        alter: t ? t.alter : null, typ: (t && t.typ) || null }],
     };
     return { a, fehler: null,
       text: f.name + " unterschreibt bei " + f.klub + "." };
@@ -480,7 +483,13 @@ export const machAkademie = (H) => {
       if (peak >= 85) a.bilanz.weltklasse++;
       if (ns) a.bilanz.nationalspieler++;
       a.absolventen.push({ id: t.id, name: t.name, flag: t.flag, nat: t.nat, pos: t.pos,
-        ein: t.ein, raus: jahr, peak, ns, klub: verein.n, klubLiga: verein.l,
+        /* DAS ECHTE ALTER MIT (35.152, F45). `karten.js` rechnete es mit
+           (raus - ein) + 17 nach — aber ein Talent beginnt mit 15, und bei
+           Gruendungsjahrgaengen ist `ein` entsprechend zurueckgerechnet. Die
+           Karte zeigte damit zwei Jahre zu viel, und `karteEinsetzen`
+           uebernahm das ins Vereinsalter. Der Absolvent WEISS sein Alter —
+           es muss nur mitgegeben werden. */
+        ein: t.ein, raus: jahr, alter: t.alter, peak, ns, klub: verein.n, klubLiga: verein.l,
         typ: t.typ || null });
       E.push({ art: peak >= 85 ? "gross" : "profi",
         txt: t.name + " unterschreibt bei " + verein.n
@@ -502,7 +511,7 @@ export const machAkademie = (H) => {
       if (f.peak >= 85) a.bilanz.weltklasse++;
       if (f.ns) a.bilanz.nationalspieler++;
       a.absolventen.push({ id: t.id, name: t.name, flag: t.flag, nat: t.nat, pos: t.pos,
-        ein: t.ein, raus: jahr, peak: f.peak, ns: f.ns, klub: f.klub, klubLiga: f.klubLiga,
+        ein: t.ein, raus: jahr, alter: t.alter, peak: f.peak, ns: f.ns, klub: f.klub, klubLiga: f.klubLiga,
         typ: t.typ || null });
       const i = bleibenNach.indexOf(t);
       if (i >= 0) bleibenNach.splice(i, 1);

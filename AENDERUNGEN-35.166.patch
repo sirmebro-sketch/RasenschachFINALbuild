@@ -1,0 +1,93 @@
+--- a/App.jsx
++++ b/App.jsx
+@@ -21,7 +21,7 @@
+    ================================================================ */
+ 
+ const NAME = "Rasenschach XI";
+-const VERSION = "35.165";
++const VERSION = "35.166";
+ const VERSION_INFO = "Fortsetzen, Sammlung und Sicherungen überarbeitet.";
+ 
+ /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
+@@ -18625,42 +18625,21 @@
+                 <div className="eb" style={{ color: r.col }}>Wildcard</div>
+                 <div className="d" style={{ fontSize: 15, marginTop: 1 }}>{p.wc.n}</div>
+               </div>); })()}
++            {/* 35.166: Vorsatz bei der Wildcard, ohne Tätigkeitskasten im Spielfluss. */}
++            {(() => {
++              const vs = vorsatzStand(p, ges, aka);
++              if (!vs) return null;
++              return (
++                <div style={{ marginTop: 11, paddingTop: 9, borderTop: "1px solid var(--ln)" }}>
++                  <div className="eb" style={{ color: vs.erfuellt ? "var(--ok)" : "var(--mu)" }}>
++                    Vorsatz{vs.erfuellt ? " · gehalten" : ""}</div>
++                  <div className="d" style={{ fontSize: 15, marginTop: 1 }}>{vs.n}</div>
++                </div>);
++            })()}
+           </div>
+         </div>
+ 
+         <div className="a-buehne g1" style={{ alignContent: "start", minWidth: 0 }}>
+-          {/* WAS STEHT AN, WAS SCHWEBT (35.151, V04). Eine Zeile, kein
+-              Assistent — der Bericht setzt die Grenze selbst: keine
+-              Erklärung bereits verstandener Funktionen nach jedem Neustart.
+-              Die Erklärung zum aktuellen Schritt verschwindet nach drei
+-              Saisons; was schwebt, steht immer da. */}
+-          {(() => {
+-            const hin = naechsterSchritt(p, step);
+-            const vs = vorsatzStand(p, ges, aka);
+-            if (!hin && !vs) return null;
+-            return (
+-              <div className="pan pad" style={{ marginBottom: 10 }}>
+-                {hin && hin.jetzt.map((t, i) => (
+-                  <div key={"j" + i} className="m" style={{ fontSize: 12, lineHeight: 1.4 }}>{t}</div>))}
+-                {hin && hin.schwebt.map((t, i) => (
+-                  <div key={"s" + i} style={{ display: "flex", gap: 7, marginTop: hin.jetzt.length || i ? 6 : 0 }}>
+-                    <span className="m" style={{ fontSize: 10, color: "var(--go)", whiteSpace: "nowrap" }}>
+-                      LÄUFT</span>
+-                    <span className="m" style={{ fontSize: 12, lineHeight: 1.4 }}>{t}</span>
+-                  </div>))}
+-                {/* DER VORSATZ BLEIBT SICHTBAR (35.162, V07). Ein Ziel, das
+-                    man beim Start wählt und dann nie wiedersieht, ist keins.
+-                    Der Haken zeigt an, ob er derzeit gehalten ist — bei „Daheim
+-                    bleiben" kann er auch wieder kippen. */}
+-                {vs && (
+-                  <div style={{ display: "flex", gap: 7, marginTop: hin ? 6 : 0 }}>
+-                    <span className="m" style={{ fontSize: 10, whiteSpace: "nowrap",
+-                      color: vs.erfuellt ? "var(--ok)" : "var(--mu)" }}>
+-                      {vs.erfuellt ? "GEHALTEN" : "VORSATZ"}</span>
+-                    <span className="m" style={{ fontSize: 12, lineHeight: 1.4 }}>{vs.n}</span>
+-                  </div>)}
+-              </div>);
+-          })()}
+           {step === "training" && (
+             <div className="fade g1 laufzettel"><div className="zettelkopf"><span>Training</span><span className="nr">Schritt 1 von 3</span></div>
+               {p.seasons.length === 0 && p.wc && (
+--- a/package.json
++++ b/package.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "rasenschach",
+   "private": true,
+-  "version": "35.165.0",
++  "version": "35.166.0",
+   "type": "module",
+   "scripts": {
+     "dev": "vite",
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "rasenschach",
+-  "version": "35.165.0",
++  "version": "35.166.0",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "rasenschach",
+-      "version": "35.165.0",
++      "version": "35.166.0",
+       "dependencies": {
+         "@capacitor/android": "^7.0.0",
+         "@capacitor/app": "^7.0.0",

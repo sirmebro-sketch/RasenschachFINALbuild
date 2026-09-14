@@ -1,3 +1,4 @@
+import { packBuchung, verkaufsBuchung } from "./buchungen.js";
 import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
 /* Nur fuer `createPortal` (35.78). Der Sonderschuss ist ein Fenster ueber
    allem, und `.fade` animiert `transform` mit `fill-mode: both` — ein Vorfahr
@@ -6,6 +7,8 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from "re
    `react-dom` ist ohnehin da: main.jsx baut damit die Wurzel. */
 import { createPortal } from "react-dom";
 import { store } from "./storage.js";
+import { backupLesen, datenErsetzen, importWiederherstellen, IMPORT_JOURNAL } from "./sicherung.js";
+import { laufStand, laufWeiter } from "./spielstand.js";
 import { SCHRIFTEN } from "./schriften.js";
 import { TITELBILD } from "./titelbild.js";
 import { machKarten } from "./karten.js";
@@ -19,8 +22,8 @@ import { machAkademie } from "./akademie.js";
    ================================================================ */
 
 const NAME = "Rasenschach XI";
-const VERSION = "35.128";
-const VERSION_INFO = "Ein abgestürzter Prüfteil sagt jetzt, dass er abgestürzt ist.";
+const VERSION = "35.168";
+const VERSION_INFO = "Zusammengeführt mit Codex — drei Befunde zurückgeholt.";
 
 /* Fester Zufallsstrom aus einer Zeichenkette — damit Angebote des eigenen
    Vereins nicht bei jedem Klick anders aussehen.                        */
@@ -33,11 +36,44 @@ const mulberry = (a) => () => { a |= 0; a = (a + 0x6D2B79F5) | 0;
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const rnd = (a, b) => a + Math.random() * (b - a);
+/* ---------------------------------------- Zufall, austauschbar -----------
+   V10 aus dem Bericht: „Zufallsquelle fuer Tests austauschbar machen. Ein
+   Seed muss mit Version und Szenariokonfiguration nachvollziehbar sein."
+
+   WARUM DAS NOETIG IST. Jede Messung an diesem Spiel streut, weil jeder Lauf
+   neu wuerfelt. Sechs Pruefungen mussten in dieser Reihe auf groessere
+   Stichproben umgestellt werden, und das Zielband „Laufbahnen bis
+   Vollausbau" hat viermal grundlos rot gemeldet. Ohne feste Startwerte
+   laesst sich nicht sagen, ob eine Aenderung gewirkt hat oder der Wuerfel
+   anders fiel.
+
+   IM SPIEL AENDERT SICH NICHTS. `zufall` ist standardmaessig `Math.random`;
+   nur der Pruefstand setzt sie um. Ein festes Spiel waere kein Spiel — und
+   ein Seed, der versehentlich in die Auslieferung geraet, waere ein Fehler,
+   den niemand bemerkt. Deshalb kein Feld im Spielstand, keine Einstellung,
+   nur eine Ausfuhr fuer Werkzeuge.
+
+   Der Generator ist ein mulberry32: klein, schnell, gut genug fuer
+   Verteilungen. Kryptografisch taugt er nichts — das braucht hier niemand. */
+let zufall = Math.random;
+const zufallSetzen = (seed) => {
+  if (seed == null) { zufall = Math.random; return null; }
+  let z = (seed >>> 0) || 1;
+  zufall = () => {
+    z = (z + 0x6D2B79F5) >>> 0;
+    let t = z;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  return seed;
+};
+
+const rnd = (a, b) => a + zufall() * (b - a);
 const ri = (a, b) => Math.floor(rnd(a, b + 1));
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
-const chance = (p) => Math.random() < p;
-const gauss = (m, s) => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return m + s * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+const pick = (a) => a[Math.floor(zufall() * a.length)];
+const chance = (p) => zufall() < p;
+const gauss = (m, s) => { let u = 0, v = 0; while (!u) u = zufall(); while (!v) v = zufall(); return m + s * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
 const eur = (m) => {
   if (m == null || !isFinite(m)) return "—";
   const x = Math.abs(m), s = m < 0 ? "−" : "";
@@ -50,7 +86,7 @@ const eur = (m) => {
 const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return Math.abs(h); };
 /* Poisson-verteilte Torzahl für die Spielsimulation */
 const poisson = (l) => { const L = Math.exp(-Math.max(.02, l)); let k = 0, p = 1, g = 0;
-  do { k++; p *= Math.random(); } while (p > L && g++ < 60); return k - 1; };
+  do { k++; p *= zufall(); } while (p > L && g++ < 60); return k - 1; };
 /* Zwei Farben mischen. Für den Lippenstift: der Grundton bleibt erkennbar,
    der Farbstich legt sich darüber. Eine feste Farbe säße auf hellen und
    dunklen Hauttönen nie zugleich richtig. */
@@ -4463,7 +4499,7 @@ function drawWildcard(pos, exclude, typeId, meta, gesehen, hsvZaehler) {
   const gew = {};
   stufen.forEach((k) => { gew[k] = Math.max(.2, RARITY[k].w * (1 + bonus * SCHUB[k])); });
   const tot = stufen.reduce((a, k) => a + gew[k], 0);
-  let x = Math.random() * tot, key = stufen[0] || "normal";
+  let x = zufall() * tot, key = stufen[0] || "normal";
   for (const k of stufen) { x -= gew[k]; if (x <= 0) { key = k; break; } }
   let pool = wcByRarity(key).filter(passt);
   if (!pool.length) pool = WILDCARDS.filter(passt);
@@ -4473,7 +4509,7 @@ function drawWildcard(pos, exclude, typeId, meta, gesehen, hsvZaehler) {
   if (gesehen && pool.length > 3) {
     const gew = pool.map((w) => 1 / (1 + 1.6 * Math.min(gesehen[w.id] || 0, 4)));
     const tot2 = gew.reduce((a, b) => a + b, 0);
-    let y = Math.random() * tot2;
+    let y = zufall() * tot2;
     for (let i = 0; i < pool.length; i++) { y -= gew[i]; if (y <= 0) return pool[i]; }
   }
   return pool.length ? pick(pool) : pick(WILDCARDS);
@@ -4543,8 +4579,26 @@ const tauschRest = (p) => tauschMax(p) - (p.wcRerolls || 0);
 function applyWildcard(p, card) {
   const f = typeof card.fx === "function" ? card.fx(p) : (card.fx || {});
   p.wc = { id: card.id, n: card.n, r: card.r, t: card.t };
-  p.wcMod = { dev:0, slowDecay:0, injMod:0, note:0, wageMult:0, offers:0,
-    ntBonus:0, goalMod:0, assistMod:0, csMod:0, bigGame:0, loyalBonus:0 };
+  /* DAUERHAFTE BONI UEBERLEBEN DEN KARTENTAUSCH (35.146, F54).
+
+     Hier wurde `p.wcMod` mit lauter Nullen UEBERSCHRIEBEN. `createPlayer`
+     setzt kurz davor drei dauerhafte Werte — `ntBonus` +3 aus
+     „Verbandskontakt", `offers` +1 aus „Volles Postfach" und `dev` aus dem
+     Akademie-Ruhm — und die waren danach weg. Mit Akademie-Ruhm 135 wurde
+     `dev` 0,06 berechnet, in `p.aka` vermerkt und in `wcMod` auf 0 gesetzt.
+
+     EINFACH DIE NULLSETZUNG WEGZULASSEN WAERE FALSCH: beim Kartentausch
+     muessen die Effekte der ALTEN Karte verschwinden, sonst summieren sich
+     Wildcards ueber jeden Tausch hinweg.
+
+     Deshalb der Grundstock: was nicht von einer Karte kommt, wird einmal in
+     `p.wcBasis` festgehalten und bei jedem Tausch wiederhergestellt. Die
+     Karte legt nur obendrauf. */
+  if (!p.wcBasis) {
+    p.wcBasis = { ...(p.wcMod || { dev:0, slowDecay:0, injMod:0, note:0, wageMult:0,
+      offers:0, ntBonus:0, goalMod:0, assistMod:0, csMod:0, bigGame:0, loyalBonus:0 }) };
+  }
+  p.wcMod = { ...p.wcBasis };
   Object.keys(p.wcMod).forEach((k) => { if (f[k]) p.wcMod[k] += f[k]; });
   AK.forEach((k) => { if (f[k]) p.attrs[k] = clamp(p.attrs[k] + f[k], 8, wertGrenze(p)); });
   if (f.ovrBoost) AK.forEach((k) => { p.attrs[k] = clamp(p.attrs[k] + f.ovrBoost, 8, wertGrenze(p)); });
@@ -4595,6 +4649,7 @@ function createPlayer(cfg) {
     name: (cfg.name || "").trim() || "Der Namenlose", nation: nat, pos: cfg.pos, foot: cfg.foot,
     number: cfg.number, avatar: cfg.avatar ?? ri(1, 999999), zuege: cfg.zuege || null, type, mode, g, bei: cfg.bei || "",
     statur: cfg.statur || "normal",
+    karriereId: (globalThis.crypto?.randomUUID?.() || (Date.now().toString(36) + "-" + Math.random().toString(36).slice(2))),
     lauf: ++laufZaehler,                        // eindeutige Kennung dieser Laufbahn
     traum: cfg.traum || null, traumMale: 0,
     speed: !!cfg.speed,
@@ -4630,6 +4685,7 @@ function createPlayer(cfg) {
   AK.forEach((k) => { if (ST[k]) p.attrs[k] = clamp(p.attrs[k] + ST[k], 8, 99); });
   p.ovr = ovrOf(p.attrs, p.pos);
   const M = cfg.meta || {};
+  if (M.ms_start2) { p.money += META.ms_start2.wert.money; p.potential = clamp(p.potential + META.ms_start2.wert.pot, 42, 99); }
   if (M.ms_geld)    p.money += .12;
   if (M.ms_anlage)  p.potential = clamp(p.potential + 2, 42, 99);
   if (M.ms_talent)  p.potential = clamp(p.potential + 5, 42, 99);
@@ -4652,12 +4708,68 @@ function createPlayer(cfg) {
   return p;
 }
 
+/* WAS EINE WAHL WIRKLICH BEWIRKT HAT (35.148, V01).
+
+   `applyFx` nahm den `log`-Sammler seit jeher entgegen und fuellte ihn nie.
+   Der Weg zur Anzeige stand schon: `nextEvent` reicht ein Feld `extra` an
+   den Ergebnisschirm weiter — es kam nur nichts an.
+
+   ABGELEITET AUS DEM ZUSTAND, NICHT AUS DEM EFFEKT. Gemeldet wird der
+   Unterschied VORHER/NACHHER, nicht der Wunschwert aus `fx`. Das ist der
+   Unterschied, den der Vorschlag verlangt: ein `{pot:2}` an der Obergrenze
+   bewirkt nichts, und dann darf auch nichts dastehen. Genau diese Sorte
+   Luege — Text verspricht, Mechanik liefert nicht — war der halbe
+   Fehlerkatalog.
+
+   DREI ARTEN, GETRENNT BENANNT:
+     sofort      der Wert hat sich jetzt geaendert
+     vorgemerkt  etwas ist angestossen und faellt spaeter (Wechselwunsch,
+                 Verletzung, Sperre)
+     laufend     eine Wirkung ueber mehrere Saisons
+
+   HOECHSTENS VIER ZEILEN. Der Vorschlag warnt ausdruecklich vor einer
+   Effektliste bei jeder Kleinigkeit; wer nach jeder Wahl zwoelf Zeilen liest,
+   liest bald keine mehr. Gezeigt werden die groessten Aenderungen. */
+const FX_NAMEN = {
+  money: "Geld", rep: "Bekanntheit", form: "Form", morale: "Moral",
+  trust: "Vertrauen des Trainers", fitness: "Fitness", legacy: "Vermächtnis",
+  injuryProne: "Verletzungsanfälligkeit", potential: "Potenzial",
+};
+const AK_NAMEN = { pac: "Tempo", sho: "Abschluss", pas: "Passspiel",
+  dri: "Dribbling", def: "Defensive", phy: "Physis" };
+
 function applyFx(p, f, log) {
   if (!f) return;
+  /* Vorher-Bild, aber nur wenn jemand zuhoert — sonst kostet es Zeit fuer
+     nichts. Bei 530 Ereignissen und tausenden Simulationslaeufen zaehlt das. */
+  const vor = log ? {
+    money: p.money, rep: p.rep, form: p.form, morale: p.morale, trust: p.trust,
+    fitness: p.fitness, legacy: p.legacyBonus, injuryProne: p.injuryProne,
+    potential: p.potential, wage: p.wage,
+    attrs: { ...p.attrs },
+    wunsch: !!(p.flags && p.flags.wechselwunsch),
+    sperre: p.suspended || 0, pending: p.pendingInjury || null,
+  } : null;
   AK.forEach((k) => { if (f[k]) p.attrs[k] = clamp(p.attrs[k] + f[k], 5, wertGrenze(p)); });
   const S = { form:[0,100], morale:[0,100], fitness:[0,100], trust:[0,100], rep:[0,100], injuryProne:[3,95] };
   Object.keys(S).forEach((k) => { if (f[k] != null) p[k] = clamp(p[k] + f[k], S[k][0], S[k][1]); });
-  if (f.pot) p.potential = clamp(p.potential + f.pot, 40, 97);
+  /* DIESELBE GRENZE WIE UEBERALL (35.138, F19). Hier stand eine fest
+     eingebaute 97, waehrend Attribute und die zweite Potenzialstelle
+     `wertGrenze(p)` benutzen — 99, mit Rautekarte oder Freischaltung 112.
+     Ein Spieler mit Potenzial 105 verlor durch einen Bonus von +2 acht
+     Punkte: gemessen 105 → 97. Ein POSITIVER Bonus senkte den Wert.
+
+     `Math.max` statt `clamp` nach oben: liegt der Wert bereits ueber der
+     Grenze — legitim erreicht ueber einen anderen Weg —, darf ein positiver
+     Bonus ihn nicht nach unten ziehen. Er stagniert dann, was richtig ist;
+     er faellt aber nicht. */
+  if (f.pot) {
+    const grenzeP = wertGrenze(p);
+    const neu = p.potential + f.pot;
+    p.potential = f.pot > 0
+      ? Math.max(p.potential, Math.min(neu, Math.max(grenzeP, p.potential)))
+      : clamp(neu, 40, Math.max(grenzeP, p.potential));
+  }
   if (f.money) p.money = Math.max(0, p.money + f.money);
   if (f.legacy) p.legacyBonus += f.legacy;
   if (f.flag) p.flags[f.flag] = true;
@@ -4748,8 +4860,19 @@ function applyFx(p, f, log) {
   if (f.wedding) { p.life.status = "verheiratet"; p.life.weddingY = p.year + 1; }
   if (f.kids) p.life.kids += f.kids;
   if (f.split) {
+    /* DEN VORHERIGEN STAND MERKEN (35.139, F27). Die Reihenfolge war
+       verdreht: erst wurde `status` auf „getrennt" gesetzt, dann gefragt, ob
+       er „verheiratet" ist — das konnte nie mehr wahr sein. Der Ehe-Zweig
+       mit Faktor 0,58 war damit unerreichbar; nur `f.divorce` loeste ihn
+       noch aus. Bei verheiratet, Geld 10 und `{split:true}` blieben 8,8
+       statt 5,8.
+
+       Eine Trennung aus einer Ehe kostet mehr als eine aus einer Beziehung —
+       das war die Absicht und ist jetzt auch die Wirkung. Fiktive
+       Designwerte, keine Aussage ueber Familienrecht. */
+    const warVerheiratet = p.life.status === "verheiratet";
     p.life.status = "getrennt";
-    p.money = Math.max(0, p.money * (p.life.status === "verheiratet" || f.divorce ? .58 : .88));
+    p.money = Math.max(0, p.money * ((warVerheiratet || f.divorce) ? .58 : .88));
     p.life.partner = null;
   }
   if (f.newPartner) { p.life.partner = partnerName(p.nation.id); p.life.status = "beziehung"; p.life.since = p.year; }
@@ -4765,6 +4888,48 @@ function applyFx(p, f, log) {
       if (log) log.push("Neue Position: " + POS[np].label + ".");
     }
   }
+
+  /* ---- Was ist tatsaechlich passiert? (35.148, V01) ------------------- */
+  if (!vor) return;
+  const sofort = [];
+  const zeichen = (d) => (d > 0 ? "+" : "");
+
+  /* Geld getrennt, weil es eine Einheit hat und niemand „Geld +0,35" liest
+     wie eine Punktzahl. */
+  const dG = p.money - vor.money;
+  if (Math.abs(dG) >= 0.005) {
+    sofort.push({ w: Math.abs(dG) * 40,
+      t: "Konto " + zeichen(dG) + (Math.abs(dG) >= 1
+        ? dG.toFixed(1) + " Mio" : Math.round(dG * 1000) + " Tsd") });
+  }
+  if (vor.wage && Math.abs(p.wage - vor.wage) > 0.001) {
+    const dW = Math.round((p.wage / vor.wage - 1) * 100);
+    if (dW) sofort.push({ w: Math.abs(dW), t: "Gehalt " + zeichen(dW) + dW + " %" });
+  }
+  ["rep", "form", "morale", "trust", "fitness", "injuryProne", "potential"].forEach((k) => {
+    const jetzt = k === "potential" ? p.potential : p[k];
+    const d = Math.round(jetzt - vor[k]);
+    if (d) sofort.push({ w: Math.abs(d), t: FX_NAMEN[k] + " " + zeichen(d) + d });
+  });
+  const dL = Math.round((p.legacyBonus || 0) - (vor.legacy || 0));
+  if (dL) sofort.push({ w: Math.abs(dL), t: FX_NAMEN.legacy + " " + zeichen(dL) + dL });
+  Object.keys(AK_NAMEN).forEach((k) => {
+    const d = Math.round((p.attrs[k] || 0) - (vor.attrs[k] || 0));
+    if (d) sofort.push({ w: Math.abs(d) * 2, t: AK_NAMEN[k] + " " + zeichen(d) + d });
+  });
+
+  sofort.sort((a2, b2) => b2.w - a2.w);
+  if (sofort.length) log.push("Sofort: " + sofort.slice(0, 4).map((x) => x.t).join(" · "));
+
+  /* Vorgemerkt: angestossen, faellt spaeter. Der Unterschied ist der Kern
+     des Vorschlags — ein Wechselwunsch ist kein Wechsel. */
+  const spaeter = [];
+  if (!vor.wunsch && p.flags && p.flags.wechselwunsch)
+    spaeter.push("Wechselwunsch für das nächste Transferfenster");
+  if (!vor.pending && p.pendingInjury) spaeter.push("Eine Verletzung zeichnet sich ab");
+  const dS = (p.suspended || 0) - vor.sperre;
+  if (dS > 0) spaeter.push(dS + (dS === 1 ? " Spiel Sperre" : " Spiele Sperre"));
+  if (spaeter.length) log.push("Vorgemerkt: " + spaeter.join(" · "));
 }
 
 function evCtx(p) {
@@ -4774,6 +4939,19 @@ function evCtx(p) {
   return { p, club: p.club, mate: pick(o), rival, star: o[0] || FBACK,
     vet: byAge[byAge.length - 1] || FBACK, young: byAge[0] || FBACK,
     rivalOrMate: (rival || o[0] || FBACK).name,
+    /* DER VEREIN, DEN MAN AUSGESCHLAGEN HAT (35.161, V06). `p.abgelehnt`
+       gibt es seit 35.114 und wurde von keinem einzigen Ereignis gelesen —
+       acht gespeicherte Absagen, und nie kam eine zurueck.
+
+       Genommen wird die AELTESTE, die mindestens zwei Jahre zurueckliegt:
+       eine Absage von letzter Woche ist keine Geschichte, eine von vor drei
+       Jahren schon. `null`, wenn es keine gibt — dann faellt das Ereignis
+       weg, statt einen Verein zu erfinden. */
+    absage: (() => {
+      const alt = (p.abgelehnt || [])
+        .filter((x) => x && x.club && x.jahr && (p.year - x.jahr) >= 2);
+      return alt.length ? alt[0] : null;
+    })(),
     ls: p.seasons[p.seasons.length - 1] || null,
     conf: confOf(p.club.c), natconf: NAT_CONF[p.nation.id], nat: p.nation,
     pn: p.life.partner || partnerName(p.nation.id),
@@ -4859,7 +5037,7 @@ function drawEvents(p, n) {
     const list = cand.length ? cand : pool.filter((e) => !out.includes(e));
     if (!list.length) break;
     const tot = list.reduce((a, e) => a + weigh(e), 0);
-    let r = Math.random() * tot, hit = list[list.length - 1];
+    let r = zufall() * tot, hit = list[list.length - 1];
     for (const e of list) { r -= weigh(e); if (r <= 0) { hit = e; break; } }
     out.push(hit); usedTags.add(hit.tag);
     p.tagLog[hit.tag] = si;
@@ -4881,7 +5059,7 @@ function drawEvents(p, n) {
      ein schlechter Wurf alle Knoepfe wegnehmen. */
   return out.map((e) => {
     const c = (e.choices || []).some((x) => x.manchmal != null)
-      ? e.choices.filter((x) => x.manchmal == null || Math.random() < x.manchmal)
+      ? e.choices.filter((x) => x.manchmal == null || zufall() < x.manchmal)
       : e.choices;
     return { ...e, choices: c, _ctx: ctx };
   });
@@ -4964,9 +5142,41 @@ const WEIBLICH = (() => {
   ].forEach(([m, w]) => aus.push([new RegExp("\\b" + m + "\\b", "g"), w]));
   return aus;
 })();
+/* WAS DIE WORTERSETZUNG NICHT KANN (35.137, F14).
+
+   `WEIBLICH` deckt Artikel + Substantiv ab („der Spieler" → „die
+   Spielerin"). Drei Faelle blieben trotzdem falsch, alle drei an echten
+   Ausgaben gemessen:
+
+     „Ein ehemaliger Mitspieler …"  →  „Ein ehemaliger Mitspielerin …"
+     „der Einzige, der normal geht" →  „die Einzige, der normal geht"
+     „als der Mann, der von der Bank kommt"  →  unveraendert
+
+   Der Grund ist jedes Mal derselbe: zwischen Artikel und Substantiv steht
+   etwas (ein Adjektiv), oder das Bezugswort steht HINTER dem Substantiv (ein
+   Relativpronomen). Eine Wortliste kann das nicht sehen.
+
+   Diese Nachbesserungen laufen NACH der Wortersetzung und fassen jeweils die
+   ganze Wendung. Sie sind bewusst wenige und konkret — eine allgemeine
+   Grammatik waere der falsche Aufwand und wuerde maennliche Ausgaben
+   gefaehrden, die heute stimmen. */
+const W_NACH = [
+  /* Artikel + Adjektiv + bereits ersetztes Substantiv auf -in */
+  [/\b([Ee])in ([a-zäöüß]+)er (\w*in)\b/g, (m, e, adj, s2) => e + "ine " + adj + "e " + s2],
+  [/\b([Dd])er ([a-zäöüß]+)e (\w*in)\b/g, (m, d, adj, s2) => d === "D" ? "Die " + adj + "e " + s2 : "die " + adj + "e " + s2],
+  [/\b([Dd])ein ([a-zäöüß]+)er (\w*in)\b/g, (m, d, adj, s2) => d + "eine " + adj + "e " + s2],
+  /* Relativpronomen nach weiblichem Bezugswort: „die Einzige, der …" */
+  [/\b(die [A-ZÄÖÜ][a-zäöüß]*e|die \w*in), der\b/g, "$1, die"],
+  /* Rollenbilder, die kein Substantiv-Paar haben */
+  [/\bder Mann, der\b/g, "die Frau, die"],
+  [/\bals der Mann\b/g, "als die Frau"],
+  [/\bein Mann, der\b/g, "eine Frau, die"],
+];
+
 const weiblichForm = (t) => {
   let x = String(t);
   for (let i = 0; i < WEIBLICH.length; i++) x = x.replace(WEIBLICH[i][0], WEIBLICH[i][1]);
+  for (let i = 0; i < W_NACH.length; i++) x = x.replace(W_NACH[i][0], W_NACH[i][1]);
   return x;
 };
 const evText = (v, ctx) => {
@@ -5002,7 +5212,18 @@ function develop(p) {
     else if (k === "sho") d -= dec * .35;
     else d -= dec * .1;
     if (p.age >= 30 && (k === "pas" || k === "def")) d += .35;
-    p.attrs[k] = clamp(Math.round(p.attrs[k] + d), 8, wertGrenze(p));
+    /* EIN BEREITS HOEHERER WERT DARF NICHT GEKAPPT WERDEN (35.139, F20).
+       `wertGrenze` liefert 99 (ohne Freischaltung). Wer ueber den Limit-Kauf
+       schon bei 103 stand, wurde hier auf 99 heruntergezogen und danach um
+       1 erhoeht — Ergebnis 100 statt 103. Drei Durchlaeufe ergaben 100, 100,
+       100, obwohl der Laden „vier Saisons bis 103" verspricht.
+
+       Die Obergrenze ist jetzt die hoehere aus der Regel und dem, was schon
+       da ist: die Entwicklung darf nicht ueber die Grenze STEIGERN, aber
+       einen legitim erreichten Wert auch nicht senken. Der Abbau durch Alter
+       (`d` negativ) wirkt weiter — er laeuft ueber dieselbe Zeile. */
+    const obenK = Math.max(wertGrenze(p), p.attrs[k]);
+    p.attrs[k] = clamp(Math.round(p.attrs[k] + d), 8, obenK);
   });
   const diff = {};
   AK.forEach((k) => { const d = p.attrs[k] - before[k]; if (d) diff[k] = d; });
@@ -5018,7 +5239,15 @@ function develop(p) {
   if ((p.laden && p.laden.ueber99) > 0) {
     let best = AK[0];
     AK.forEach((k) => { if (p.attrs[k] > p.attrs[best]) best = k; });
-    if (p.attrs[best] >= 99) p.attrs[best] = Math.min(103, p.attrs[best] + 1);
+    /* F20 (35.139): hier stand `Math.min(103, …)`. Wer ueber die dauerhafte
+       Freischaltung `mx_ueber99` (Grenze 112) oder die Rautekarte schon bei
+       110 stand, wurde vom Kauf auf 103 HERUNTERGEZOGEN — ein bezahlter
+       Vorteil machte den Spieler schlechter.
+
+       Die Grenze ist jetzt die hoehere aus 103 und dem, was ohnehin erlaubt
+       ist; und der Wert sinkt nie, er steigt hoechstens nicht mehr. */
+    const kaufGrenze = Math.max(103, wertGrenze(p), p.attrs[best]);
+    if (p.attrs[best] >= 99) p.attrs[best] = Math.min(kaufGrenze, p.attrs[best] + 1);
     p.ovr = ovrOf(p.attrs, p.pos);
   }
   p.morale = clamp(p.morale + perk(p, "morale")
@@ -5091,7 +5320,7 @@ function socialStats(p) {
   /* Reichweite wächst überproportional mit Bekanntheit und Bühne */
   const basis = Math.pow(Math.max(1, p.rep), 2.35) * (1 + buehne / 55)
     * (1 + titel * .16) * (1 + (p.nt.caps || 0) / 140) * (1 + (p.wc && p.wc.r === "goat" ? .3 : 0));
-  const follower = Math.round(basis * 62 * (1 + (p.flags.eigenemarke ? .55 : 0)) * (1 + (p.assets || []).includes("fanshop") ? .2 : 0));
+  const follower = Math.round(basis * 62 * (1 + (p.flags.eigenemarke ? .55 : 0)) * (1 + ((p.assets || []).includes("fanshop") ? .2 : 0)));
   const beliebt = clamp(Math.round(46 + (3.4 - (p.lastNote || 3.4)) * 13 + titel * 2.6
     + loyalty(p) * 2.2 + (p.legacyBonus || 0) * .16 + (p.flags.legende ? 12 : 0)
     - (p.flags.wechselwunschAlt ? 7 : 0) - (p.flags.wetten || p.flags.maulwurf ? 22 : 0)
@@ -5146,16 +5375,29 @@ function simulateSeason(p) {
      An derselben Stelle wie der Physio, weil es dieselbe Wirkung ist: der
      Wurf findet nicht statt. Eine zweite Stelle waere eine zweite Wahrheit
      darueber, wann jemand unverletzt bleibt. */
-  const schutz = p.sonderSchutz != null && p.seasons.length <= p.sonderSchutz + 1;
-  if (schutz && p.sonderSchutz != null && p.seasons.length > p.sonderSchutz) {
-    /* Die Saison, fuer die er galt, ist jetzt gespielt. */
-    p.sonderSchutz = null;
-  }
+  /* GENAU EINE SAISON (berichtigt 35.136, F08).
+
+     Bis 35.135 stand hier `seasons.length <= sonderSchutz + 1`. Die Marke
+     wird beim Schuss auf die Zahl der ABGESCHLOSSENEN Saisons gesetzt — und
+     die Bedingung war damit fuer zwei Laeufe wahr:
+
+         Marke = 3   →   n = 3 geschuetzt, n = 4 geschuetzt, n = 5 frei
+
+     Der Text verspricht eine Saison ohne Verletzung, geliefert wurden zwei.
+     Nachgerechnet und in einer Dreisaisonprobe bestaetigt: schwere
+     Vorverletzungen wurden in Saison 1 und 2 verhindert, erst in Saison 3
+     traten sie ein.
+
+     Jetzt gilt der Schutz fuer GENAU den Lauf, in dem `seasons.length` noch
+     der Marke entspricht — also die naechste gespielte Saison — und die
+     Marke wird im selben Zug verbraucht. */
+  const schutz = p.sonderSchutz != null && p.seasons.length === p.sonderSchutz;
+  if (schutz) p.sonderSchutz = null;   /* einmal und nie wieder */
   let injury = null;
   if (physio || schutz) { p.pendingInjury = null; }
   else if (p.pendingInjury) { injury = { sev: p.pendingInjury }; p.pendingInjury = null; }
   else if (!schutz && chance(clamp((.13 + p.injuryProne / 380 + Math.max(0, p.age - 28) * .022 - p.fitness / 1400) * (1 + (p.wcMod ? p.wcMod.injMod : 0)), .02, .65))) {
-    const r = Math.random();
+    const r = zufall();
     injury = { sev: r < .55 ? "leicht" : r < .86 ? "mittel" : "schwer" };
   }
   let missed = 0;
@@ -5314,7 +5556,7 @@ function simulateSeason(p) {
       /* Nur bei einer WM muss man sich überhaupt qualifizieren */
       const qual = turnier === "WM" ? clamp((nstr - 44) / 46, .05, .96) : clamp((nstr - 30) / 55, .12, .98);
       if (chance(qual)) {
-        const st = nstr + clamp((p.ovr - 80) * .45, -6, 7), r = Math.random() * 100;
+        const st = nstr + clamp((p.ovr - 80) * .45, -6, 7), r = zufall() * 100;
         const res = r > 100 - (st - 70) * .40 ? "Titel" : r > 100 - (st - 62) * .95 ? "Finale"
           : r > 100 - (st - 54) * 1.7 ? "Halbfinale" : r > 100 - (st - 44) * 2.8 ? "Viertelfinale" : "Vorrunde";
         p.nt.majors.push({ y, turnier, res });
@@ -5341,7 +5583,7 @@ function simulateSeason(p) {
     /* Juniorenturniere alle zwei Jahre */
     const y = p.year + 1;
     if (y % 2 === 1 && chance(.55)) {
-      const st = nstr * .9 + clamp((p.ovr - thrA + 12) * .8, -8, 10), r = Math.random() * 100;
+      const st = nstr * .9 + clamp((p.ovr - thrA + 12) * .8, -8, 10), r = zufall() * 100;
       const res = r > 100 - (st - 60) * .5 ? "Titel" : r > 100 - (st - 50) * 1.4 ? "Halbfinale" : "Vorrunde";
       p.nt.majors.push({ y, turnier: ntTeam + "-EM", res, u: true });
       if (res === "Titel") { p.rep = clamp(p.rep + 8, 0, 100); p.potential = clamp(p.potential + 1, 40, 97); }
@@ -5445,13 +5687,28 @@ function simulateSeason(p) {
      neuer Artikel mit Dauer waere dort schlicht vergessen worden und haette
      ewig gegolten. Der Vorrat (`vorrat`) zaehlt nicht herunter: er wird beim
      Tausch verbraucht, nicht von der Zeit. */
+  /* WAS AUF DIE ANGEBOTE WIRKT, LAEUFT SPAETER AB (35.152, F46).
+
+     `runSeason` ruft erst `simulateSeason`, dann `makeOffers`. Wer einen
+     Berater fuer 26 VC kaufte, verlor ihn hier — eine Zeile bevor die
+     Angebote entstanden, auf die er wirken sollte. Mit festem Zufall lieferte
+     der Zustand danach exakt dieselben Angebote wie ohne Bonus.
+
+     Diese Artikel bekommen einen Aufschub: sie werden markiert und erst nach
+     der Angebotsrunde verbraucht. Der Ablauf bleibt sonst, wo er war — ihn
+     komplett zu verschieben haette die Kalibrierung getroffen, die
+     `simulateSeason` ohne `runSeason` ruft. */
   if (p.laden) {
     const L = { ...p.laden };
+    const nachAngeboten = [];
     VCLADEN.forEach((a) => {
       if (a.vorrat || !a.dauer) return;
-      if (L[a.id] > 0) L[a.id] = L[a.id] - 1;
+      if (!(L[a.id] > 0)) return;
+      if (a.nachAngebot) { nachAngeboten.push(a.id); return; }
+      L[a.id] = L[a.id] - 1;
     });
     p.laden = L;
+    p.ladenOffen = nachAngeboten.length ? nachAngeboten : null;
   }
   p.flags.justMoved = false;
   p.flags.wechselwunsch = false;
@@ -5877,7 +6134,21 @@ function makeOffers(p) {
     let faktor = 1;
     faktor += p.lastNote <= 2.4 ? .22 : p.lastNote <= 3.0 ? .10 : p.lastNote <= 3.6 ? 0 : -.12;
     faktor += p.ovr >= p.club.s + 3 ? .12 : p.ovr >= p.club.s - 2 ? 0 : -.10;
-    faktor += r0.key === "star" ? .10 : r0.key === "start" ? .03 : r0.key === "rotation" ? -.06 : -.18;
+    /* „rot", NICHT „rotation" (35.139, F23). `roleFor` liefert den
+       Schluessel `rot`; hier stand `rotation`, das es nirgends gibt. Der
+       vorgesehene Rollenanteil von −0,06 wurde damit NIE gewaehlt — jeder
+       Rotationsspieler bekam den Restzweig −0,18, also 0,12 mehr Abzug im
+       Gehaltsfaktor.
+
+       Jede Rolle steht jetzt ausdruecklich da, statt dass ein Restzweig
+       unbemerkt einspringt. `tribune` und `bench` teilen sich −0,18; wer das
+       aendern will, sieht jetzt wenigstens, dass er es tut. */
+    faktor += r0.key === "star" ? .10
+            : r0.key === "start" ? .03
+            : r0.key === "rot" ? -.06
+            : r0.key === "bench" ? -.18
+            : r0.key === "tribune" ? -.18
+            : -.18;
     faktor += p.age >= 33 ? -.16 : p.age >= 31 ? -.08 : p.age <= 23 ? .06 : 0;
     faktor += lr ? lr.y * .012 : 0;
     /* Entscheidend ist, was der Verein überhaupt zahlen kann. Auch nach
@@ -6272,6 +6543,8 @@ const VCLADEN = [
     t: "Eine laufende Verletzung ist sofort auskuriert \u2014 und die ganze Saison "
       + "\u00fcber kommt keine neue dazu." },
   { id: "berater", n: "Ein Berater, der zieht", bild: "vertrag", preis: 26, wann: "saison", dauer: 1,
+    /* Wirkt auf `makeOffers`, das NACH `simulateSeason` laeuft (F46). */
+    nachAngebot: true,
     t: "Die nächsten Angebote kommen von stärkeren Vereinen." },
   { id: "trainer", n: "Der Trainer hört zu", bild: "pfeife", preis: 20, wann: "saison", dauer: 0,
     t: "Vertrauen sofort auf 85. Du spielst wieder." },
@@ -6292,12 +6565,51 @@ const ladenKaufbar = (a, laden) => {
    dass es mehr gibt. Ein Laden mit einem Regal sieht aus wie ein Fehler.
    Nicht nutzbare Artikel bleiben sichtbar und sind gesperrt, mit Grund. */
 const shopFuer = () => VCLADEN;
-const ladenGesperrt = (a, wo) =>
-  (a.wann === "saison" && wo !== "saison") ? "erst in der Laufbahn" : null;
+/* F47 (35.163): DIE EXTRASCHICHT NACH DEM TRAINING WAR EIN VERLORENER KAUF.
+
+   Sie wirkt ausschliesslich in `develop`, also VOR der Saison. In der
+   Ereignisphase ist die Entwicklung laengst gelaufen — der Laden blieb aber
+   offen und der Artikel kaufbar. Die naechste `simulateSeason` zaehlte den
+   frisch gekauften Vorrat von 1 auf 0 herunter, bevor `develop` wieder dran
+   war: 22 VC bezahlt, nichts bekommen.
+
+   `schritt` sagt jetzt, wo im Ablauf man steht. Nach dem Training ist die
+   Extraschicht gesperrt — mit Grund, nicht wortlos ausgeblendet.
+
+   Nur DIESER Artikel: die uebrigen „saison"-Artikel wirken in
+   `simulateSeason` und sind bis dahin nutzbar. Eine pauschale Sperre waere
+   bequemer und falsch. */
+const ladenGesperrt = (a, wo, schritt) => {
+  if (a.wann === "saison" && wo !== "saison") return "erst in der Laufbahn";
+  if (a.id === "training" && schritt && schritt !== "training")
+    return "Das Training dieser Saison ist durch";
+  return null;
+};
 
 /* Ein Artikel im Laden. Zeichen links, Preis rechts, Wirkung darunter.
    `rest` ist der Bestand: bei laufenden Artikeln die verbleibenden Saisons,
    beim Vorrat die Zahl der gekauften Tausche. */
+/* WANN WIRKT DER KAUF? (35.154, V09)
+
+   Der Bericht verlangt: „Preis, aktueller Bestand und ZIEL des Kaufs muessen
+   vor dem Kauf eindeutig sein." Preis und Bestand standen schon da, das Ziel
+   nicht — und genau daran hingen F46 und F47: der Berater verfiel vor dem
+   Sommerangebot, die Extraschicht nach dem Training. Beide sind behoben,
+   aber wer nicht weiss, WANN etwas greift, kauft es trotzdem zum falschen
+   Zeitpunkt.
+
+   Eine Zeile je Artikel, aus derselben Quelle wie die Mechanik: hier steht,
+   worauf der Artikel wartet. */
+const LADEN_WIRKT = {
+  reroll:   "Wirkt sofort — solange noch keine Saison gespielt ist.",
+  training: "Wirkt bei der nächsten Entwicklung, also vor der kommenden Saison.",
+  form:     "Wirkt über die ganze nächste Saison.",
+  physio:   "Wirkt über die ganze nächste Saison.",
+  berater:  "Wirkt auf die nächsten Vertragsangebote im Sommer.",
+  trainer:  "Wirkt über die ganze nächste Saison.",
+  ueber99:  "Wirkt über vier Saisons, jede Saison ein Punkt über 99.",
+};
+
 function LadenPosten({ a, vc, rest, kaufbar, sperre, onKauf }) {
   const laeuft = !a.vorrat && a.dauer > 0 && rest > 0;
   const kann = vc >= a.preis && kaufbar && !sperre;
@@ -6327,6 +6639,21 @@ function LadenPosten({ a, vc, rest, kaufbar, sperre, onKauf }) {
           </span>
           <span className="m" style={{ fontSize: 11, color: "var(--mu)", display: "block", marginTop: 3 }}>
             {a.t}</span>
+          {/* WANN ES WIRKT (35.154, V09). Nur solange es nicht schon läuft —
+              dann steht die Restlaufzeit oben und diese Zeile wäre doppelt.
+              Und nur, wenn der Kauf überhaupt möglich ist: bei einer Sperre
+              ist der Grund die wichtigere Auskunft. */}
+          {!sperre && !laeuft && LADEN_WIRKT[a.id] && (
+            <span className="m" style={{ display: "block", marginTop: 4, fontSize: 10.5,
+              color: vc >= a.preis ? "var(--ac)" : "var(--mu)" }}>
+              {LADEN_WIRKT[a.id]}</span>)}
+          {/* Was nach dem Kauf übrig bleibt — der Bericht verlangt, dass sich
+              jede Buchung mit dem tatsächlichen Kassenunterschied erklären
+              lässt. Vorher zu wissen, was bleibt, gehört dazu. */}
+          {!sperre && !laeuft && vc >= a.preis && (
+            <span className="m" style={{ display: "block", marginTop: 2, fontSize: 10.5,
+              color: "var(--mu)" }}>
+              Danach bleiben dir {vc - a.preis} VC.</span>)}
           {(sperre || laeuft) && (
             <span className="eb" style={{ display: "block", marginTop: 4, color: "var(--ln2)" }}>
               {sperre || "läuft schon — nachkaufen geht danach"}</span>)}
@@ -6344,7 +6671,7 @@ function Ueberlagerung({ children, onZu }) {
   useZurueck(onZu);
   useEffect(() => { rollSperren(true); return () => rollSperren(false); }, []);
   return (
-    <div onClick={onZu} style={{ position: "fixed", inset: 0, zIndex: 60,
+    <div onClick={onZu} {...flaecheAlsKnopf(onZu, "Schließen")} style={{ position: "fixed", inset: 0, zIndex: 60,
       background: "rgba(9,8,6,.86)", overflowY: "auto", padding: "18px 12px 40px" }}>
       <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 560, margin: "0 auto" }}>
         <div className="pan pad">{children}
@@ -6354,16 +6681,16 @@ function Ueberlagerung({ children, onZu }) {
     </div>);
 }
 
-function LadenSeite({ wo, vc, laden, onKauf, onBack }) {
+function LadenSeite({ wo, vc, laden, onKauf, onBack, schritt }) {
   useZurueck(onBack);
   return (
     <div className="fade">
-      <VCLadenAnsicht wo={wo} vc={vc} laden={laden} onKauf={onKauf} />
+      <VCLadenAnsicht wo={wo} vc={vc} laden={laden} onKauf={onKauf} schritt={schritt} />
       <button className="btn" style={{ marginTop: 14 }} onClick={onBack}>Zurück</button>
     </div>);
 }
 
-function VCLadenAnsicht({ wo, vc, laden, onKauf }) {
+function VCLadenAnsicht({ wo, vc, laden, onKauf, schritt }) {
   const artikel = shopFuer();
   const L = laden || {};
   return (
@@ -6375,7 +6702,7 @@ function VCLadenAnsicht({ wo, vc, laden, onKauf }) {
       <div className="g1" style={{ marginTop: 10 }}>
         {artikel.map((a) => (
           <LadenPosten key={a.id} a={a} vc={vc} onKauf={onKauf}
-            sperre={ladenGesperrt(a, wo)}
+            sperre={ladenGesperrt(a, wo, schritt)}
             rest={(L[a.id] || 0)}
             kaufbar={ladenKaufbar(a, L)} />))}
       </div>
@@ -6738,12 +7065,33 @@ function AkademieScreen({ aka, verein, onKauf, onGruenden, onBack, onAendern }) 
                           {t.vertragBis != null
                             ? " · Vertrag bis " + t.vertragBis : ""}
                         </div>
+                        {/* DER ENTWICKLUNGSTYP (35.140, F31). Er wirkt seit
+                            35.127 auf den Zuwachs, war aber nirgends zu
+                            sehen: `typVon` wurde importiert und nie
+                            aufgerufen. Eine Eigenschaft, die das Spiel
+                            beeinflusst und die niemand erkennen kann, ist
+                            für den Spieler nicht da.
+
+                            Steht im aufgeklappten Bereich, nicht in der
+                            Zeile: zwei Drittel der Talente haben keinen, und
+                            eine leere Stelle in jeder Zeile wäre schlechter
+                            als ein Fund beim Nachsehen. */}
+                        {(() => {
+                          const ty = typVon(t);
+                          if (!ty) return null;
+                          return (
+                            <div style={{ marginTop: 6 }}>
+                              <div className="eb" style={{ color: "var(--ac)" }}>{ty.n}</div>
+                              <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 1 }}>
+                                {ty.t}</div>
+                            </div>);
+                        })()}
                         <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 5 }}>
                           Verlängerungen laufen von selbst, solange er unter 19 ist.
                           Bei einem Profiangebot entscheidest du im Postfach.
                         </div>
                         {!t.auslaufen && (
-                          <input className="feld" placeholder="Notiz (freiwillig)" value={tnotiz}
+                          <input className="feld" aria-label="Notiz zum Talent, freiwillig" placeholder="Notiz (freiwillig)" value={tnotiz}
                             onChange={(e) => setTnotiz(e.target.value)}
                             style={{ width: "100%", marginTop: 8 }} />)}
                         <button className={"btn sm" + (t.auslaufen ? "" : " pri")}
@@ -7026,7 +7374,23 @@ button{color:inherit;}
  border-bottom:4px solid #8E97A6;}
 .btn.pri:hover{background:#F2F5FA;border-color:#F2F5FA;}
 .btn.pri:active{transform:translateY(2px);border-bottom-width:2px;background:var(--tx);}
-.btn.sm{min-height:38px;padding:8px 13px;width:auto;font-size:12.5px;}
+/* 44 STATT 38 (35.144, F52). Die Trefferflaeche der 69 kleinen Knoepfe lag
+   unter der Empfehlung fuer Beruehrungsziele. 38 px reicht fuer die
+   AA-Anforderung von 24, nicht fuer die, an der sich Android misst.
+
+   44 und nicht 48: der grosse Knopf hat 48, und die kleinen sollen sichtbar
+   kleiner bleiben — sonst sind es zwei gleiche Knoepfe mit verschiedenen
+   Namen. 44 ist der Wert, ab dem eine Flaeche mit dem Daumen zuverlaessig zu
+   treffen ist.
+
+   Die Polsterung waechst mit, sonst klebt der Text am Rand. Die
+   Schriftgroesse bleibt — es geht um die Flaeche, nicht um groessere
+   Beschriftung.
+
+   KEINE RUECKWAERTS-ANFUEHRUNGSZEICHEN: dieser Block steht im
+   CSS-Vorlagenliteral. Der erste Entwurf hatte zwei davon, und das Literal
+   endete mittendrin — die halbe App war ohne Stil. Zweites Mal nach 35.121. */
+.btn.sm{min-height:44px;padding:10px 13px;width:auto;font-size:12.5px;}
 /* HINTERGRUND AUSDRUECKLICH (35.64). chip setzte eine helle Schrift, aber
    keinen Grund — die Spielarten chip.g/.a/.r tun das, die schlichte nicht.
    An einem div faellt das nicht auf (durchsichtig), an einem button schon:
@@ -7698,8 +8062,39 @@ const ACH_KEY  = "rasenschach:erfolge";
    die daraus freigeschaltet werden.                                    */
 const LIFE_KEY = "rasenschach:gesamt";
 const META_KEY = "rasenschach:meta";
-const WC_KEY   = "rasenschach:karten";
+/* EIGENER SCHLUESSEL SEIT 35.129 — vorher stand hier „rasenschach:karten",
+   derselbe Wert wie `KARTEN_KEY` weiter unten. Zwei fachlich voellig
+   verschiedene Systeme schrieben damit auf dieselbe Stelle:
+
+     `kartenErgaenzen`  schreibt den Kartenpool   { karten: [ … ] }
+     `merkeErfolge`     schreibt die Wildcard-Map { w_vollstrecker: 1 }
+
+   Im Karriereende laufen beide nacheinander — erst der Pool, dann die Map.
+   Nachgestellt mit den echten Datenformen: eine Karte vor dem zweiten
+   Schreibzugriff, NULL Karten nach dem Neuladen. Das ist kein stummer
+   Schreibfehler, sondern ein erfolgreicher Schreibzugriff auf den falschen
+   Datensatz. Gemeldet als F29/P0.
+
+   DER POOL BEHAELT DEN ALTEN SCHLUESSEL. Die Wildcard-Map zaehlt nur, welche
+   Karte schon gezogen wurde; sie ist der leichter verschmerzbare Teil. Die
+   Sammlung dagegen kann Jahre Arbeit enthalten — sie bleibt, wo sie liegt,
+   damit vorhandene Spielstaende sie ohne Migration behalten. */
+const WC_KEY   = "rasenschach:wildcards";
 const HSV_KEY  = "rasenschach:raute";      // Ausgleichszähler der Rautekarte
+/* DER LETZTE STAND VOR EINEM IMPORT (35.150, V03). Der Bericht verlangt
+   „einen letzten validen Wiederherstellungspunkt getrennt vom neuen
+   Schreibversuch".
+
+   Der Import rollt seit 35.131 bei einem Schreibfehler zurueck — aber nur
+   INNERHALB des Vorgangs. Wer eine gueltige, aber falsche Sicherung
+   einspielt, hatte keinen Weg zurueck: der Vorgang gelang ja.
+
+   Dieser Schluessel haelt den Stand VOR dem letzten Import fest, genau einen.
+   Er steht bewusst NICHT in `SICHER_KEYS` — ein Wiederherstellungspunkt
+   gehoert nicht in die Sicherung, sonst waere er beim naechsten Import
+   selbst wieder ueberschrieben. Beim Zuruecksetzen faellt er mit weg
+   (`SPEICHERSCHLUESSEL`), denn dort ist das Loeschen gewollt. */
+const RUECK_KEY = "rasenschach:rueckweg";
 
 const leereBilanz = () => ({
   karrieren:0, saisons:0, apps:0, goals:0, assists:0, cs:0, titel:0, meister:0, pokale:0,
@@ -8275,12 +8670,10 @@ const ALT_KEYS = {
 };
 /* Liest einen Schlüssel und greift auf frühere Fassungen zurück, falls leer */
 async function ladeMitAltbestand(key) {
-  try { const r = await store.get(key); if (r && r.value) return r.value; } catch (e) {}
+  const r = await store.get(key); if (r && r.value) return r.value;
   for (const alt of (ALT_KEYS[key] || [])) {
-    try {
-      const r = await store.get(alt);
-      if (r && r.value) { try { await store.set(key, r.value); } catch (e2) {} return r.value; }
-    } catch (e) {}
+    const v = await store.get(alt);
+    if (v && v.value) { await store.set(key, v.value); return v.value; }
   }
   return null;
 }
@@ -8291,9 +8684,28 @@ const HALL_KEY = "rasenschach:halle";
 const KARTEN_KEY = "rasenschach:karten";
 /* Alles, was die App dauerhaft ablegt — einzige Wahrheit für „Alles
    zurücksetzen". Wer einen neuen Schlüssel einführt, trägt ihn hier ein. */
-const SPEICHERSCHLUESSEL = [SAVE_KEY, SEEN_KEY, WILL_KEY, ACH_KEY, LIFE_KEY, META_KEY, HALL_KEY, AKA_KEY, VER_KEY, KARTEN_KEY,
+/* WAS „ALLES LOESCHEN" WIRKLICH LOESCHEN MUSS (35.133, F41).
+
+   Bis 35.132 fehlten hier ZWEI Fortschrittsschluessel: `WC_KEY` (welche
+   Wildcards schon gezogen wurden) und `HSV_KEY` (der Ausgleichszaehler der
+   Rautekarte). Beide ueberlebten den Reset.
+
+   Schlimmer: die MIGRATIONSSCHLUESSEL blieben ebenfalls stehen. Beim
+   naechsten Start holt `ladeMitAltbestand` daraus den alten Spielstand
+   zurueck und schreibt ihn auf den aktuellen Schluessel — eine geloeschte
+   Laufbahn stand wieder da. „Nicht umkehrbar" war eine falsche Zusage.
+
+   Deshalb wird die Liste jetzt AUS den Konstanten gebildet und um alle
+   bekannten Altnamen ergaenzt, statt von Hand gefuehrt zu werden. Wer
+   kuenftig einen Schluessel hinzufuegt, muss nicht daran denken. */
+const SPEICHERSCHLUESSEL = [
+  IMPORT_JOURNAL, SAVE_KEY, SEEN_KEY, WILL_KEY, ACH_KEY, LIFE_KEY, META_KEY, HALL_KEY,
+  AKA_KEY, VER_KEY, KARTEN_KEY, WC_KEY, HSV_KEY, RUECK_KEY,
   "rasenschach:ruhe", "rasenschach:vib", "rasenschach:text",
-  "rasenschach:speed", "rasenschach:schwer", "rasenschach:wach"];
+  "rasenschach:speed", "rasenschach:schwer", "rasenschach:wach",
+  /* Altnamen aus `ALT_KEYS` — ohne sie kehrt der geloeschte Stand zurueck. */
+  ...Object.values(ALT_KEYS).flat(),
+];
 /* Schulnoten laufen von 1 bis 6 — die Farbe soll das auch tun. Vorher:
    Gold, Grün, Grau, Braun, Rot ohne erkennbare Ordnung. */
 const noteCol = (n) => (n <= 2 ? "#3DA35D" : n <= 2.7 ? "#7FBF6A" : n <= 3.5 ? "#B9C4BE" : n <= 4.2 ? "#F2C230" : "#E5493C");
@@ -8583,6 +8995,12 @@ const FARBTOENE = ["#c0392b", "#1f5c9e", "#1e7d44", "#2b2b2b", "#e0a21c",
    auseinander (siehe die Reiterzeilen in 35.59). Deshalb eine Datei mit einer
    Weiche — und `art` entscheidet, welche Felder ueberhaupt erscheinen. */
 function VereinGruenden({ aka, verein, art = "voll", onFertig, onZurueck }) {
+  /* F55 (35.147): siehe VereinDach. Der Bericht merkt zusaetzlich an, dass
+     die KENNUNGSGRUENDUNG auch sichtbar keinen Abbruch bot — man kam nur
+     vorwaerts heraus. `onZurueck` gibt es hier, es wurde nur nie an die
+     Systemtaste gehaengt. Damit ist beides gelöst: sichtbarer Weg und
+     Taste fuehren zum selben Ziel. */
+  useZurueck(onZurueck);
   const nurKennung = art === "kennung";
   const nurLiga = art === "spielbetrieb";
   const laender = React.useMemo(() => {
@@ -8674,16 +9092,16 @@ function VereinGruenden({ aka, verein, art = "voll", onFertig, onZurueck }) {
         {!nurLiga && (
         <div className="pan pad" style={{ marginTop: 10 }}>
           <div className="eb">Name und Ort</div>
-          <input className="inp" value={name} maxLength={26} placeholder="Vereinsname"
+          <input className="inp" aria-label="Vereinsname" value={name} maxLength={26} placeholder="Vereinsname"
             onChange={(e) => setName(e.target.value)} style={{ marginTop: 6 }} />
-          <input className="inp" value={stadt} maxLength={22} placeholder="Stadt"
+          <input className="inp" aria-label="Stadt" value={stadt} maxLength={22} placeholder="Stadt"
             onChange={(e) => setStadt(e.target.value)} style={{ marginTop: 6 }} />
         </div>)}
 
         {!nurKennung && (
         <div className="pan pad" style={{ marginTop: 10 }}>
           <div className="eb">Land</div>
-          <select className="sel" value={land} onChange={(e) => setLand(e.target.value)}
+          <select className="sel" aria-label="Land des Vereins" value={land} onChange={(e) => setLand(e.target.value)}
             style={{ marginTop: 6 }}>
             {laender.map((l) => <option key={l.id} value={l.id}>{l.n}</option>)}
           </select>
@@ -8777,7 +9195,9 @@ function VereinGruenden({ aka, verein, art = "voll", onFertig, onZurueck }) {
    wird der Anpfiffknopf aktiv — und er sagt, WAS fehlt. Ein grauer Knopf ohne
    Begründung ist eine Zumutung; dieselbe Überlegung wie bei `sperre` an den
    Auswahlmöglichkeiten und bei „noch 2 bis zum Verein". */
-function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss }) {
+function VereinScreen({ v, aka, onAendern, onZurueck, onAbschluss }) {
+  /* F55 (35.147): siehe VereinDach. */
+  useZurueck(onZurueck);
   const [reiter, setReiter] = React.useState("kader");
   const [bericht, setBericht] = React.useState(null);
   /* Welcher Platz gerade besetzt wird (35.49). `null` heisst: keiner offen.
@@ -8820,7 +9240,7 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
                     {" · "}{s.jahreImVerein} Jahr{s.jahreImVerein === 1 ? "" : "e"} dabei
                   </div>
                   {!s.auslaufen && (
-                    <input className="feld" placeholder="Notiz (freiwillig)" value={notiz}
+                    <input className="feld" aria-label="Notiz, freiwillig" placeholder="Notiz (freiwillig)" value={notiz}
                       onChange={(e) => setNotiz(e.target.value)}
                       style={{ width: "100%", marginTop: 8 }} />)}
                   <button className={"btn sm" + (s.auslaufen ? "" : " pri")}
@@ -8852,7 +9272,7 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
                           <button className="btn sm" style={{ flex: "1 1 0" }}
                             onClick={() => { const r = VEREIN.zurueckInDieJugend(aka, v, s.id, v.jahr);
                               if (r.fehler) setKfehler(r.fehler);
-                              else { onAkaAendern(r.aka); onAendern(r.v);
+                              else { onAendern(r.v, r.aka);
                                 setNotiz(""); setOffen(null); setSicher(null); setKfehler(null); } }}>
                             In die Jugend</button>)}
                         <button className="btn sm" style={{ flex: "1 1 100%" }}
@@ -9081,7 +9501,7 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
                     <span className="m" style={{ fontSize: 12 }}>{t.alter} J · {t.ovr}</span>
                     <button className="btn sm" onClick={() => {
                       const r = VEREIN.hochziehen(aka, v, t.id);
-                      if (!r.fehler) { onAkaAendern(r.aka); onAendern(VEREIN.autoAufstellen(r.v)); }
+                      if (!r.fehler) { onAendern(VEREIN.autoAufstellen(r.v), r.aka); }
                     }}>Hoch</button>
                   </div>);
               })}
@@ -9186,10 +9606,10 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                 <div className="eb">Elf</div>
                 <button className="btn sm" onClick={() => onAendern(VEREIN.autoAufstellen(v))}>
-                  Bestmöglich</button>
+                  Automatisch aufstellen</button>
               </div>
               <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 4 }}>
-                Platz antippen, um ihn zu besetzen.</div>
+                Vorschlag nach Stärke und Positionspassung. Plätze kannst du einzeln ändern.</div>
               {/* VIER SPALTEN, feste Breite. `auto-fit` waere bequemer und
                   falsch: dann haengt die Zahl der Spalten von der Breite ab,
                   und die Rechnung fuer den Auswahlkasten („welche Reihe?")
@@ -9353,7 +9773,7 @@ function VereinScreen({ v, aka, onAendern, onAkaAendern, onZurueck, onAbschluss 
                     disabled={k == null || !aka || aka.vc < k}
                     onClick={() => {
                       const r = VEREIN.ausbauen(v, ab.id, aka ? aka.vc : 0);
-                      if (!r.fehler) { onAendern(r.v); onAkaAendern({ ...aka, vc: aka.vc - r.kosten,
+                      if (!r.fehler) { onAendern(r.v, { ...aka, vc: aka.vc - r.kosten,
                         ausgegeben: (aka.ausgegeben || 0) + r.kosten }); }
                     }}>
                     {k == null ? "Voll ausgebaut" : "Ausbauen · " + k + " VC"}
@@ -9459,6 +9879,8 @@ function vereinsPhasen(chronik) {
 }
 
 function VereinAbschluss({ v, ergebnis, ges, onNeu, onZurueck }) {
+  /* F55 (35.147): siehe VereinDach. */
+  useZurueck(onZurueck);
   return (
     <Shell wide blatt="verein">
       <div className="fade">
@@ -9470,10 +9892,17 @@ function VereinAbschluss({ v, ergebnis, ges, onNeu, onZurueck }) {
             die Geschichte ist — die Kennzahlen darunter sind der Beleg. */}
         {(() => {
           const ph = vereinsPhasen(v.chronik);
-          if (ph.length < 2) return null;
+          /* F39 (35.140): bei nur einer Station wurde der ganze Block
+             ausgeblendet — ein Verein, der fünfzehn Jahre in derselben Liga
+             blieb, bekam gar keine Geschichte. Genau dort ist die
+             Beständigkeit aber die Geschichte. Ab einer Phase wird gezeigt;
+             die Überschrift nennt die Zahl, damit „ein Kapitel" nicht nach
+             einem Fehler aussieht. */
+          if (!ph.length) return null;
           return (
             <div className="pan pad" style={{ marginBottom: 10 }}>
-              <div className="eb" style={{ color: "var(--ac)" }}>Fünfzehn Jahre in Kapiteln</div>
+              <div className="eb" style={{ color: "var(--ac)" }}>
+                {ph.length === 1 ? "Fünfzehn Jahre, ein Kapitel" : "Fünfzehn Jahre in Kapiteln"}</div>
               <div style={{ marginTop: 6 }}>
                 {ph.map((x, i) => (
                   <div key={x.liga + x.von + i} style={{ padding: "4px 0",
@@ -9542,6 +9971,96 @@ function VereinAbschluss({ v, ergebnis, ges, onNeu, onZurueck }) {
     </Shell>);
 }
 
+/* ---------------------------------------- Flächen, die Knöpfe sind --------
+   F49 (35.141): sechs grosse Bedienflaechen waren `<div onClick=…>` ohne
+   Tastaturzugriff und ohne Rolle. Wer nicht tippen kann — externe Tastatur,
+   Schaltersteuerung, Vorlesedienst —, kam an ihnen nicht vorbei: der
+   Saisonrueckblick liess sich nicht weiterschalten, der Schleier nicht
+   schliessen.
+
+   `flaecheAlsKnopf(fn, label)` liefert die vier Angaben, die eine Flaeche
+   zum Knopf machen: Rolle, Reihenfolge, Beschriftung und Tastenbehandlung.
+   Ein Helfer statt sechsmal derselben vier Zeilen — und die naechste Flaeche
+   bekommt sie mit einem Aufruf.
+
+   Enter UND Leertaste: Enter ist die Erwartung bei `role="button"`, die
+   Leertaste die bei jedem echten Knopf. `preventDefault` verhindert, dass
+   die Leertaste zusaetzlich die Seite scrollt.
+
+   NICHT betroffen sind Flaechen, die nur `stopPropagation` rufen — sie sind
+   keine Bedienelemente, sondern verhindern, dass ein Klick nach aussen
+   durchschlaegt. Eine Rolle waere dort irrefuehrend. */
+/* ---------------------------------------- Dialoge, die sich benehmen ------
+   F45 bis F48 (35.143). Beide Dialoge trugen `role="dialog"` und
+   `aria-modal`, aber keine der vier Eigenschaften, die einen Dialog
+   bedienbar machen:
+
+     F45  der Fokus blieb draussen — ein Vorlesedienst las weiter die Seite
+          dahinter, nicht den Dialog
+     F46  Escape schloss nicht; ohne Zeigegeraet kam man nicht heraus
+     F47  der Hintergrund blieb erreichbar — Tabulator lief durch die Seite
+          darunter, unter dem Schleier
+     F48  nach dem Schliessen war der Fokus verloren, statt auf dem Knopf zu
+          stehen, der den Dialog geoeffnet hat
+
+   `useDialog(offen, onZu)` erledigt alle vier an einer Stelle. Wer den
+   naechsten Dialog baut, ruft einen Hook statt vier Muster nachzubauen —
+   dieselbe Ueberlegung wie bei `flaecheAlsKnopf`.
+
+   Der Hintergrund wird mit `inert` gesperrt, wo es der Browser kennt, und
+   sonst mit `aria-hidden`: `inert` nimmt auch die Tabulatorreihenfolge weg,
+   `aria-hidden` nur die Vorlesbarkeit. Beides zusammen deckt alte und neue
+   Android-Webansichten ab. */
+const useDialog = (offen, onZu) => {
+  const rahmen = useRef(null);
+  const vorher = useRef(null);
+  useEffect(() => {
+    if (!offen || typeof document === "undefined") return undefined;
+    vorher.current = document.activeElement;
+    const wurzel = document.getElementById("root") || document.body.firstElementChild;
+    if (wurzel && wurzel !== rahmen.current) {
+      try { wurzel.setAttribute("inert", ""); } catch (e) { /* alt */ }
+      try { wurzel.setAttribute("aria-hidden", "true"); } catch (e) { /* alt */ }
+    }
+    /* Den ersten bedienbaren Punkt im Dialog anspringen; gibt es keinen,
+       den Rahmen selbst, damit der Vorlesedienst wenigstens dort landet. */
+    const t = setTimeout(() => {
+      const r = rahmen.current;
+      if (!r) return;
+      const ziel = r.querySelector(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      try { (ziel || r).focus(); } catch (e) { /* nicht fokussierbar */ }
+    }, 0);
+    const taste = (e) => { if (e.key === "Escape") { e.preventDefault(); if (onZu) onZu(); } };
+    document.addEventListener("keydown", taste);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("keydown", taste);
+      if (wurzel) {
+        try { wurzel.removeAttribute("inert"); } catch (e) { /* alt */ }
+        try { wurzel.removeAttribute("aria-hidden"); } catch (e) { /* alt */ }
+      }
+      /* Zurueck auf den Knopf, der geoeffnet hat — sonst steht der Fokus
+         nach dem Schliessen am Seitenanfang. */
+      try { if (vorher.current && vorher.current.focus) vorher.current.focus(); }
+      catch (e) { /* Element ist weg */ }
+    };
+  }, [offen, onZu]);
+  return rahmen;
+};
+
+const flaecheAlsKnopf = (fn, label) => ({
+  role: "button",
+  tabIndex: 0,
+  "aria-label": label,
+  onKeyDown: (e) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      if (fn) fn(e);
+    }
+  },
+});
+
 function Shell({ children, wide, blatt, zusatz }) {
   const r = blatt ? RESSORT[blatt] : null;
   return (
@@ -9593,10 +10112,24 @@ const setWach = (v) => {
 const wachMoeglich = () => {
   try { return typeof navigator !== "undefined" && !!navigator.wakeLock; } catch (e) { return false; }
 };
-let TEXTSTUFE = 1;   // 0 klein · 1 normal · 2 groß
-const TEXTSKALA = [0.92, 1, 1.12];
+/* FUENF STUFEN STATT DREI (35.142, F51). Die Skala reichte von 0,92 bis
+   1,12 — hoechstens +12 %, waehrend `index.html` gleichzeitig das Zoomen
+   sperrte und das mit eben dieser Skala begruendete. Beides zusammen hiess:
+   wer groesseren Text braucht, bekommt 12 % und darf nicht nachhelfen.
+
+   Der Zoom ist jetzt frei (siehe index.html), und die eigene Skala geht bis
+   1,5. Zwei Wege zum selben Ziel, die sich nicht ausschliessen: wer die App
+   dauerhaft groesser will, stellt sie um; wer kurz etwas genau lesen will,
+   zoomt.
+
+   1,5 und nicht 2,0: darueber bricht das Layout auf schmalen Geraeten
+   sichtbar, und die Sichtpruefung misst nur die Standardstufe. Eine Zahl,
+   die im Ernstfall nicht traegt, waere schlimmer als eine kleinere, die
+   haelt. Mit Zoom zusammen sind 200 % erreichbar. */
+let TEXTSTUFE = 1;   // 0 sehr klein · 1 normal · 2 groß · 3 größer · 4 sehr groß
+const TEXTSKALA = [0.92, 1, 1.12, 1.28, 1.5];
 const setTextstufe = (n) => {
-  TEXTSTUFE = Math.max(0, Math.min(2, n | 0));
+  TEXTSTUFE = Math.max(0, Math.min(TEXTSKALA.length - 1, n | 0));
   if (typeof document !== "undefined" && document.documentElement)
     document.documentElement.style.setProperty("--skala", String(TEXTSKALA[TEXTSTUFE]));
 };
@@ -10173,11 +10706,11 @@ function Konfetti({ farben, staerke = 1, dauer = 2600 }) {
     const F = farben && farben.length ? farben : ["#F2C230", "#3DA35D", "#EDF2E9"];
     const n = Math.round(90 * staerke);
     const teile = Array.from({ length: n }, () => ({
-      x: Math.random() * W, y: -Math.random() * H * .6,
-      b: 5 + Math.random() * 9 * staerke, h: 8 + Math.random() * 14 * staerke,
-      vy: 2.4 + Math.random() * 4.6, vx: (Math.random() - .5) * 2.6,
-      dr: (Math.random() - .5) * .26, r: Math.random() * 6.3,
-      c: F[Math.floor(Math.random() * F.length)],
+      x: zufall() * W, y: -zufall() * H * .6,
+      b: 5 + zufall() * 9 * staerke, h: 8 + zufall() * 14 * staerke,
+      vy: 2.4 + zufall() * 4.6, vx: (zufall() - .5) * 2.6,
+      dr: (zufall() - .5) * .26, r: zufall() * 6.3,
+      c: F[Math.floor(zufall() * F.length)],
     }));
     const t0 = Date.now(); let id = 0;
     const tick = () => {
@@ -10224,7 +10757,7 @@ function MarkeJubel({ marke, onFertig }) {
     return () => clearTimeout(t);
   }, []);
   return (
-    <div className="rs-schleier" onClick={onFertig} style={{ cursor: "pointer", padding: "0 18px" }}>
+    <div className="rs-schleier" onClick={onFertig} {...flaecheAlsKnopf(onFertig, "Weiter")} style={{ cursor: "pointer", padding: "0 18px" }}>
       <Konfetti farben={["#E8B84B", "#DCE3D8", "#5E9BD8"]} staerke={.7} dauer={2000} />
       <div className="rs-rein" style={{ textAlign: "center", zIndex: 3 }}>
         <div className="eb" style={{ color: "var(--go)", letterSpacing: ".22em" }}>MEILENSTEIN</div>
@@ -10246,7 +10779,7 @@ function TitelJubel({ titel, club, land, onFertig }) {
   const f = farbPaar(land ? landesFarben(land) : club ? clubColors(club) : null);
   const gross = titel.length === 1;
   return (
-    <div className="rs-schleier" onClick={onFertig} style={{ cursor: "pointer", padding: "0 16px" }}>
+    <div className="rs-schleier" onClick={onFertig} {...flaecheAlsKnopf(onFertig, "Weiter")} style={{ cursor: "pointer", padding: "0 16px" }}>
       <Konfetti farben={[f.p, f.s, f.p, "#DCE3D8"]} staerke={1.1 + titel.length * .18} dauer={3000} />
       <div className="rs-rein" style={{ textAlign: "center", zIndex: 3, maxWidth: 520 }}>
         <div className="eb" style={{ color: hell(f.p) ? f.p : hell(f.s) ? f.s : "var(--go)",
@@ -10425,7 +10958,18 @@ function vereinsKapitel(seasons, p) {
    KEIN FOMO. Angezeigt werden höchstens drei, alle mindestens zu 60 %
    erreicht, und nur solche, deren Schwelle wirklich in Reichweite ist. Wer
    bei 12 von 500 steht, liest das nicht. */
-const FASTRX = /^\(\s*p\s*,\s*G\s*(?:,[^)]*)?\)\s*=>\s*\(?\s*([A-Za-z]+)\.([A-Za-z]+)\s*(?:\|\|\s*0\s*\))?\s*>=\s*(\d+)\s*$/;
+/* `G\d*` UND NICHT NUR `G` (berichtigt 35.138). In 35.123 stand hier `G`,
+   mit der Begruendung: esbuild benenne Feldnamen und Zahlen nicht um. Das
+   stimmt — PARAMETERNAMEN aber schon. Sobald im selben Bündel eine Variable
+   `G` existiert, heisst der Parameter `G2`, und der Ausdruck fand nichts
+   mehr. Genau das ist in dieser Fassung passiert, als `saveHall` ein
+   `G && G.karrieren` bekam.
+
+   Aufgefallen ist es, weil die Probe aus 35.123 rot meldete — sie prueft
+   das Ablesen im GEBUENDELTEN Code und hat damit getan, wofuer sie da ist.
+   Dritte Umbenennung dieser Art nach `her` → `her2` (35.108) und den
+   Kapitelnamen (35.105). */
+const FASTRX = /^\(\s*p\s*,\s*G\d*\s*(?:,[^)]*)?\)\s*=>\s*\(?\s*([A-Za-z]+\d*)\.([A-Za-z]+)\s*(?:\|\|\s*0\s*\))?\s*>=\s*(\d+)\s*$/;
 
 function fastGeschafft(G, erledigt) {
   if (!G) return [];
@@ -10438,7 +10982,7 @@ function fastGeschafft(G, erledigt) {
     if (!m) return;
     /* Nur die Gesamtbilanz — `p` und `A` sind beim Anschauen der
        Errungenschaftsseite nicht dieselben wie beim Erfüllen. */
-    if (m[1] !== "G") return;
+    if (!/^G\d*$/.test(m[1])) return;   /* nur die Gesamtbilanz, egal wie sie im Bündel heisst */
     const ist = G[m[2]];
     const soll = Number(m[3]);
     if (typeof ist !== "number" || !soll || ist >= soll) return;
@@ -10447,6 +10991,206 @@ function fastGeschafft(G, erledigt) {
     offen.push({ id: a.id, titel: a.n, ist, soll, anteil });
   });
   return offen.sort((x, y) => y.anteil - x.anteil).slice(0, 3);
+}
+
+/* ---------------------------------------- Warum lief die Saison so? ------
+   V02 aus dem Bericht: „Im bestehenden Rueckblick maximal drei Hauptgruende
+   hervorheben. Beobachtete Fakten und berechnete Einfluesse unterscheiden."
+
+   NUR BEOBACHTETES, KEINE ERFUNDENE URSACHE. Der Bericht nennt das
+   Gegenbeispiel selbst: „Verletzung kostete fuenf Tore" darf nicht
+   dastehen, wenn niemand einen Gegenvergleich gerechnet hat. Hier steht
+   deshalb, WAS war — Verletzung, Rolle, Sperre, Notenschnitt —, nicht was
+   dadurch angeblich verloren ging.
+
+   Jeder Grund haengt an einem Feld der Saison. Gibt es das Feld nicht (alte
+   Spielstaende), faellt der Grund weg statt zu raten.
+
+   HOECHSTENS DREI, nach Gewicht sortiert. Eine vollstaendige Liste waere
+   wieder eine Statistikseite — und davon gibt es genug. */
+/* ---------------------------------------- Was steht gerade an? -----------
+   V04 aus dem Bericht: „Die ersten Schritte im tatsaechlichen Ablauf
+   begleiten. Bei einem vorgemerkten Wechsel: Die Entscheidung faellt im
+   Transferfenster, du bist noch im bisherigen Verein."
+
+   KEIN ASSISTENT. Der Bericht setzt selbst die Grenze: „Kein zusaetzlicher
+   Zwangsassistent vor jeder Karriere. Keine nochmalige Erklaerung bereits
+   verstandener Funktionen nach jedem Neustart." Deshalb keine Schrittfolge,
+   die man wegklicken muss, sondern EINE Zeile, die den Zustand benennt.
+
+   ZWEI SORTEN, klar getrennt:
+     was JETZT dran ist   — der aktuelle Schritt in Worten
+     was SCHWEBT          — angestossen, faellt spaeter
+
+   Die zweite ist die eigentliche Luecke: „Wechselwunsch laeuft" stand als
+   Chip da, ohne zu sagen, was daraus folgt. Wer das liest, weiss nicht, ob
+   er schon weg ist. (Genau der Punkt aus F09.)
+
+   Die erste Sorte verschwindet nach den ersten Saisons: wer fuenf gespielt
+   hat, braucht nicht mehr zu lesen, dass nach dem Training das Ergebnis
+   kommt. */
+function naechsterSchritt(p, step) {
+  if (!p) return null;
+  const n = (p.seasons || []).length;
+  const jetzt = [];
+  const schwebt = [];
+
+  /* KEINE ERKLAERZEILEN (35.168). Hier standen drei Saetze, die den
+     aktuellen Schritt erklaerten:
+
+       „Waehle einen Schwerpunkt …"   daneben stehen die Kacheln mit
+                                      „Physis · Tempo", „Dribbling · Passspiel"
+       „Deine Entscheidung wirkt …"   allgemeine Aussage ohne Bezug
+       „Die Saison ist gespielt …"    daneben steht „SCHRITT 3 VON 3"
+
+     Alle drei beschreiben, was direkt daneben zu sehen ist, und kosten dafuer
+     einen Kasten ueber dem halben Schirm. Kevin hat sie auf dem Geraet
+     zweimal eingekreist. Der Bericht warnte genau davor: „Keine nochmalige
+     Erklaerung bereits verstandener Funktionen."
+
+     WAS BLEIBT, IST DAS SCHWEBENDE: „Dein Wechselwunsch gilt fuers naechste
+     Transferfenster" steht nirgends sonst. Der Kasten erscheint nur noch
+     dafuer.
+
+     Beim Zusammenfuehren mit dem Codex-Stand 35.167 waren die Zeilen
+     zurueck — die Entfernung lag in meiner parallelen Fassung. */
+
+  if (p.flags && p.flags.wechselwunsch)
+    schwebt.push("Dein Wechselwunsch gilt fürs nächste Transferfenster — bis dahin bleibst du bei "
+      + (p.club?.n || "deinem Verein") + ".");
+  if (p.pendingInjury)
+    schwebt.push("Eine Verletzung zeichnet sich ab und wirkt sich auf die kommende Saison aus.");
+  if ((p.suspended || 0) > 0)
+    schwebt.push("Du bist noch " + p.suspended + (p.suspended === 1 ? " Spiel" : " Spiele") + " gesperrt.");
+  if (p.contract === 0 && n > 0)
+    schwebt.push("Dein Vertrag läuft aus — im Sommer entscheidet sich, wie es weitergeht.");
+
+  if (!jetzt.length && !schwebt.length) return null;
+  return { jetzt, schwebt };
+}
+
+function saisonGruende(s, vorSaison) {
+  if (!s) return [];
+  const g = [];
+  const apps = s.apps || 0;
+
+  /* Verletzung: das Feld sagt, dass eine da war — mehr behaupten wir nicht. */
+  if (s.injury) {
+    g.push({ w: 100, t: s.injury.sev === "schwer"
+      ? "Eine schwere Verletzung hat dich lange gekostet."
+      : "Eine Verletzung hat dich aus dem Rhythmus gebracht." });
+  }
+  if (s.banned) g.push({ w: 70, t: "Eine Sperre hat dich " + s.banned
+    + (s.banned === 1 ? " Spiel" : " Spiele") + " gekostet." });
+
+  /* Rolle: das Spiel schreibt sie selbst hin. Der Vergleich mit der
+     Vereinsstaerke sagt, ob Konkurrenz plausibel ist — plausibel, nicht
+     bewiesen, deshalb „hoch" statt „deshalb". */
+  const vs = (s.clubRef && s.clubRef.s) || 0;
+  if (/Tribüne|Ergänzung/.test(s.role || "") && apps < 15) {
+    g.push({ w: 85, t: vs && s.ovr && vs - s.ovr >= 6
+      ? "Du warst " + s.role + " — der Kader war stark besetzt."
+      : "Du warst " + s.role + " und kamst kaum zum Zug." });
+  } else if (/Stammspieler|Star/.test(s.role || "") && apps >= 25) {
+    g.push({ w: 40, t: "Du hast als " + s.role + " fast alles gespielt." });
+  }
+
+  /* Note: eine gute Leistung bei wenig Spielzeit ist die Beobachtung, die
+     man sonst uebersieht. */
+  if (s.note && apps > 0) {
+    if (s.note <= 2.6 && apps < 18)
+      g.push({ w: 60, t: "Wenn du gespielt hast, warst du gut (Note " + s.note.toFixed(1) + ")." });
+    else if (s.note >= 4.2 && apps >= 15)
+      g.push({ w: 55, t: "Die Bewertungen waren schwach (Note " + s.note.toFixed(1) + ")." });
+  }
+
+  /* Der Verein selbst: Tabellenplatz und Feldgroesse stehen beide da. */
+  if (s.rank && s.N) {
+    if (s.rank <= 2) g.push({ w: 45, t: "Deine Mannschaft stand ganz oben (Platz " + s.rank + " von " + s.N + ")." });
+    else if (s.rank >= s.N - 2) g.push({ w: 50, t: "Deine Mannschaft steckte unten fest (Platz " + s.rank + " von " + s.N + ")." });
+  }
+
+  /* Ein Wechsel erklaert viel — aber nur, wenn er in DIESER Saison lag. */
+  if (vorSaison && vorSaison.club && s.club && vorSaison.club !== s.club)
+    g.push({ w: 65, t: "Neuer Verein: von " + vorSaison.club + " zu " + s.club + "." });
+
+  return g.sort((a, b) => b.w - a.w).slice(0, 3).map((x) => x.t);
+}
+
+/* ---------------------------------------- Ein Vorsatz für die Laufbahn ---
+   V07 aus dem Bericht: „Wenige optionale Herausforderungen auf dem
+   vorhandenen Karriereablauf aufbauen."
+
+   ZUERST DIE UEBERSCHNEIDUNG GEPRUEFT, wie der Bericht verlangt. Alle drei
+   genannten Beispiele gibt es bereits als Errungenschaft:
+
+     Vereinstreue   „Fuenf Jahre ein Verein", „Ein Verein, ein Leben"
+     Comeback       „Zehnmal aufgehoert" und die Rueckkehr-Marken
+     Nachwuchs      fuenf Akademie-Errungenschaften
+
+   Ein zweites Zielsystem daneben waere eine zweite Wahrheit ueber dieselbe
+   Leistung — genau das, was dieses Projekt schon mehrfach eingeholt hat.
+
+   WAS FEHLT, IST DIE WAHL. Errungenschaften erreicht man nebenbei; niemand
+   entscheidet sich VORHER fuer eine. Der Unterschied, den der Bericht
+   verlangt — „unterschiedliche Abwaegungen, nicht nur andere Endpunktzahlen"
+   — entsteht dadurch, dass man ein Ziel im Blick hat, waehrend man
+   Entscheidungen trifft.
+
+   Deshalb: kein neues System, sondern ein VORSATZ. Man waehlt vor dem Start
+   eine der vorhandenen Errungenschaften, sie steht waehrend der Laufbahn
+   sichtbar da, und am Ende steht, ob man sie gehalten hat.
+
+   KEINE BELOHNUNG. Der Bericht warnt: „Belohnungen so bemessen, dass kein
+   leicht wiederholbarer Sonderweg die Vermaechtnisoekonomie aushebelt." Der
+   einfachste Weg, das sicherzustellen, ist gar keine Belohnung — der Vorsatz
+   ist eine Selbstverpflichtung, kein Auftrag mit Lohn. Wer ihn haelt, hat
+   ohnehin die Errungenschaft. */
+/* DIE KENNUNGEN SIND AUS DEM CODE GELESEN, NICHT ERFUNDEN. Der erste
+   Entwurf nannte `f_treue10`, `f_heimat`, `f_kapitaen1` und `f_alt38` — es
+   gibt keine davon. Neunter Fall dieser Art in dieser Reihe, diesmal vor dem
+   Ausliefern gefunden, weil direkt nach dem Schreiben nachgezaehlt wurde.
+
+   Gewaehlt sind vier, die in EINER Laufbahn erreichbar sind (also nur `p`
+   lesen) und eine echte Abwaegung erzwingen:
+
+     Weltenbummler  drei Laender — kostet Vereinstreue und Eingewoehnung
+     Daheim         kein Ausland — kostet die grossen Angebote
+     Ausdauer       zehn Saisons — kostet frühe Rücktrittsoptionen
+     Glanz          eine Saison mit Note 2,0 — kostet Sicherheit
+
+   Je zwei stehen gegeneinander: Weltenbummler und Daheim schliessen sich
+   aus. Das ist der Punkt des Vorschlags — eine Wahl, die etwas kostet. */
+const VORSAETZE = [
+  { id: "welt",   ach: "b_drei",    n: "Der Weltenbummler",
+    t: "In drei Ländern spielen — jeder Wechsel kostet Eingewöhnung." },
+  { id: "daheim", ach: "a_ausland", n: "Daheim bleiben", umkehr: true,
+    t: "Nie im Ausland spielen, egal wie gut das Angebot ist." },
+  { id: "lange",  ach: "a_zehn",    n: "Die lange Laufbahn",
+    t: "Mindestens zehn Saisons — auch durch schwache Jahre hindurch." },
+  { id: "glanz",  ach: "b_note2",   n: "Eine herausragende Saison",
+    t: "Einmal eine Note von 2,0 oder besser." },
+  { id: "beruf", ach: "a_beruf", n: "Ein zweites Standbein",
+    t: "Während dieser Laufbahn einen Abschluss machen." },
+  { id: "einsatz", ach: "b_300", n: "Auf dem Platz zuhause",
+    t: "300 Pflichtspiele in dieser Laufbahn bestreiten." },
+];
+
+/* Ob der Vorsatz noch zu halten ist — geprueft an derselben Bedingung wie
+   die Errungenschaft, nicht an einer nachgebauten. Zwei Regeln fuer
+   dieselbe Sache liefen sonst auseinander. */
+function vorsatzStand(p, G, A) {
+  if (!p || !p.vorsatz) return null;
+  const v = VORSAETZE.find((x) => x.id === p.vorsatz);
+  if (!v) return null;
+  const a = ACHIEVEMENTS.find((x) => x.id === v.ach);
+  let erfuellt = false;
+  try { erfuellt = !!(a && a.ok(p, G || leereBilanz(), A)); } catch (e) { erfuellt = false; }
+  /* „Daheim bleiben" ist die UMKEHRUNG von „Ins Ausland": erfuellt ist, wer
+     die Errungenschaft NICHT hat. Ein eigener Eintrag dafuer waere eine
+     zweite Regel fuer dieselbe Sache. */
+  if (v.umkehr) erfuellt = !erfuellt;
+  return { n: v.n, t: v.t, erfuellt };
 }
 
 function naechstesZiel(p) {
@@ -10500,7 +11244,15 @@ const ARCHETYPEN = [
   ["Die Vereinsikone",  (m) => m.treu * 1.4 + m.rueck * 3 - m.stationen * 0.5],
   ["Der Wandervogel",   (m) => m.stationen * 0.55 + m.laender * 0.9 - m.treu * 0.8],
   ["Der Spätstarter",   (m) => Math.max(0, m.peakAlter - 27) * 4.0],
-  ["Das Wunderkind",    (m) => Math.max(0, 28 - m.peakAlter) * 2.6],
+  /* F32 (35.140): der Kennwert sah nur das PEAK-ALTER. Eine Laufbahn mit
+     Hoechststaerke 58, ohne Titel und ohne Laenderspiel wurde „Das
+     Wunderkind" genannt, weil sie mit 18 endete — frueh den Bestwert
+     erreicht zu haben heisst nichts, wenn der Bestwert niedrig ist.
+
+     Jetzt muss auch das Niveau stimmen: unter 75 Hoechststaerke kein
+     Wunderkind. Die Grenze ist dieselbe, die diese Datei seit 35.106 fuer
+     „schwache Laufbahn" benutzt — keine neue Zahl, sondern die vorhandene. */
+  ["Das Wunderkind",    (m) => (m.peak < 75 ? 0 : Math.max(0, 28 - m.peakAlter) * 2.6)],
   ["Der Pechvogel",     (m) => m.verletzt * 4.5 + Math.max(0, m.absturz - 10) * 0.35],
   ["Der Wiederaufer­standene", (m) => m.comeback * 7 + m.verletzt * 2.5 - Math.max(0, m.absturz - 16) * 0.5],
   ["Der ewige Profi",   (m) => Math.max(0, m.saisons - 16) * 1.5],
@@ -10565,6 +11317,7 @@ function archetypMerkmale(p) {
     treu: st.length ? Math.max(...st.map((x) => x.jahre)) : 0,
     rueck: st.filter((x) => x.rueckkehr).length,
     peakAlter, verletzt, comeback,
+    peak: p.peakOvr || 0,
     absturz: Math.max(0, (p.peakOvr || 0) - (p.ovr || 0)),
     caps: (p.nt && p.nt.caps) || 0,
     /* `p.nt.titel` GIBT ES NICHT — die Turniere stehen in `p.nt.majors`, und
@@ -10786,7 +11539,7 @@ function KarriereRueckblick({ p, onFertig }) {
   return (
     <div className="fl">
       <style>{CSS}</style>
-      <div className="rs-schleier" onClick={weiter} style={{ cursor: "pointer", padding: "0 16px" }}>
+      <div className="rs-schleier" onClick={weiter} {...flaecheAlsKnopf(weiter, "Weiter")} style={{ cursor: "pointer", padding: "0 16px" }}>
         <div style={{ position: "absolute", top: 14, left: 14, right: 14, display: "flex", gap: 4 }}>
           {seiten.map((_, k) => <i key={k} style={{ flex: 1, height: 3, borderRadius: 0, display: "block",
             background: k <= i ? "var(--go)" : "var(--ln2)" }} />)}
@@ -10828,8 +11581,35 @@ function KarriereRueckblick({ p, onFertig }) {
 const ROLLENRANG = { "Tribüne": 0, "Ergänzungsspieler": 1, "Rotationsspieler": 2,
   "Stammspieler": 3, "Leistungsträger": 4 };
 
-function saisonSchlagzeile(s, vor, p) {
-  if (!s) return { kopf: "Die Saison", satz: null };
+/* F33 (35.159): WIEDERHOLUNGSSCHUTZ, aber nur wo es ehrlich bleibt.
+
+   Fuenf gleichartige Saisons ergaben „Der Anfang" und dann VIERMAL „Eine
+   grosse Spielzeit". Sachlich richtig — es waren vier grosse Spielzeiten —
+   aber als Rueckblick liest sich das wie ein Druckfehler.
+
+   DER BERICHT SETZT DIE GRENZE SELBST: „Wichtige tatsaechliche Ereignisse
+   nicht zugunsten von Abwechslung verschweigen." Deshalb wird nichts
+   unterdrueckt und nichts gewuerfelt: `saisonSchlagzeile` liefert weiterhin
+   die BESTE passende Zeile. Nur wenn sie mit der vorigen uebereinstimmt UND
+   eine zweite passt, wird die zweite genommen.
+
+   Passt keine zweite, bleibt die Wiederholung stehen. Eine korrekte
+   Wiederholung ist besser als eine falsche Abwechslung.
+
+   DETERMINISTISCH: kein Zufall, keine neue Ziehung beim Oeffnen. Derselbe
+   Spielstand ergibt denselben Text — auch das verlangt der Bericht. */
+function saisonSchlagzeile(s, vor, p, vorigeZeile) {
+  const beste = schlagzeileRoh(s, vor, p);
+  if (!vorigeZeile || !beste || beste.kopf !== vorigeZeile) return beste;
+  /* Dieselbe wie letztes Jahr — gibt es eine zweite, die auch passt? */
+  const zweite = schlagzeileRoh(s, vor, p, beste.kopf);
+  return zweite || beste;
+}
+
+/* `aus` nennt eine Zeile, die uebersprungen werden soll — so kommt man an
+   die zweitbeste, ohne die Rangfolge zu verdoppeln. */
+function schlagzeileRoh(s, vor, p, aus) {
+  if (!s) if (aus !== "Die Saison") return { kopf: "Die Saison", satz: null };
   const rang = (x) => (x && ROLLENRANG[x.role] != null ? ROLLENRANG[x.role] : null);
   const jetzt = rang(s), vorher = rang(vor);
   const sprung = (jetzt != null && vorher != null) ? jetzt - vorher : 0;
@@ -10841,33 +11621,61 @@ function saisonSchlagzeile(s, vor, p) {
 
   /* 1. Die Binde. Das groesste Einzelereignis einer Vereinssaison. */
   if (s.kapitaen && s.kapiNeu === "auf") {
-    if (vorher != null && vorher <= 1) return { kopf: "Vom Reservisten zum Kapitän",
+    if (vorher != null && vorher <= 1) if (aus !== "Vom Reservisten zum Kapitän") return { kopf: "Vom Reservisten zum Kapitän",
       satz: "Vor einem Jahr saß er noch draußen. Jetzt trägt er die Binde." };
-    return { kopf: "Die Binde", satz: "Sie haben ihn zum Kapitän gemacht." };
+    if (aus !== "Die Binde") return { kopf: "Die Binde", satz: "Sie haben ihn zum Kapitän gemacht." };
   }
-  if (s.kapiNeu === "ntauf") return { kopf: "Kapitän seines Landes",
+  if (s.kapiNeu === "ntauf") if (aus !== "Kapitän seines Landes") return { kopf: "Kapitän seines Landes",
     satz: "Die Nationalmannschaft führt jetzt er an." };
 
   /* 2. Titel. Zwei oder mehr in einem Jahr sind ein eigenes Kapitel. */
-  if (titel >= 2) return { kopf: "Das Jahr der Titel",
+  if (titel >= 2) if (aus !== "Das Jahr der Titel") return { kopf: "Das Jahr der Titel",
     satz: titel + " Titel in einer einzigen Spielzeit." };
 
   /* 3. Durchbruch: mindestens zwei Rollenstufen nach oben, oder von ganz
         unten in die Startelf. */
   if (sprung >= 2 || (vorher != null && vorher <= 1 && jetzt >= 3))
-    return { kopf: "Durchbruch",
+    if (aus !== "Durchbruch") return { kopf: "Durchbruch",
       satz: "Aus dem " + (vor.role || "Kader") + " in die erste Elf — " + apps + " Pflichtspiele." };
 
   /* 4. Zurueckgeschrieben: im Vorjahr verletzt, jetzt wieder eine volle
-        Saison. Das ist der wichtigste Satz fuer eine Laufbahn mit Rueckschlaegen. */
+        Saison. Das ist der wichtigste Satz fuer eine Laufbahn mit Rueckschlaegen.
+
+     F34 (35.159) — ENTSCHIEDEN UND BEIBEHALTEN, mit Begruendung.
+
+     Der Prüfbericht merkt an, dass hier JEDE Verletzung zaehlt, waehrend der
+     Archetyp „Der Zurueckgekommene" und der Meilenstein `sev === "schwer"`
+     verlangen. Drei Regeln, zwei Schwellen — der Bericht nennt das
+     ausdruecklich „kein eindeutiger Regelbruch allein durch den Vergleich"
+     und ueberlaesst die Entscheidung.
+
+     SIE BLEIBEN VERSCHIEDEN, weil sie verschiedene Fragen beantworten:
+
+       Archetyp     ein Urteil ueber die GANZE Laufbahn. „Der
+                    Zurueckgekommene" zu heissen, muss eine schwere
+                    Verletzung voraussetzen — sonst traegt fast jeder den
+                    Namen.
+       Meilenstein  eine Auszeichnung. Auszeichnungen brauchen eine hohe
+                    Huerde, sonst sind sie keine.
+       Schlagzeile  ein Urteil ueber EINE Saison. Wer nach einem verletzten
+                    Jahr wieder 25 Spiele macht, hat sich zurueckgeschrieben
+                    — auch nach einer leichten Verletzung.
+
+     Der Text behauptet nichts, was nicht stimmt: „Nach der Verletzung wieder
+     25 Spiele." Keine schwere, keine lange — eine Verletzung, und danach
+     eine volle Saison. Das ist genau, was passiert ist.
+
+     Eine Angleichung waere die bequemere Antwort und die schlechtere: sie
+     naehme dem Rueckblick einen wahren Satz, um drei Regeln gleich aussehen
+     zu lassen. */
   if (vor && vor.injury && apps >= 25)
-    return { kopf: "Zurückgeschrieben",
+    if (aus !== "Zurückgeschrieben") return { kopf: "Zurückgeschrieben",
       satz: "Nach der Verletzung wieder " + apps + " Spiele. Er ist zurück." };
 
   /* 5. Der alte Mann. Ab 34 und noch gut — eine Geschichte, die sonst
         niemand erzaehlt. */
   if (alter >= 34 && note > 0 && note <= 2.8)
-    return { kopf: "Der alte Mann ist noch da",
+    if (aus !== "Der alte Mann ist noch da") return { kopf: "Der alte Mann ist noch da",
       satz: "Mit " + alter + " eine Saisonnote von " + note.toFixed(1).replace(".", ",") + "." };
 
   /* 6. Ein grosses Turnier mit der Nationalmannschaft. */
@@ -10877,43 +11685,43 @@ function saisonSchlagzeile(s, vor, p) {
   /* 7. Das verlorene Jahr: Einsatzzeit auf ein Drittel eingebrochen. Nur
         wenn es vorher etwas zu verlieren gab. */
   if (vorApps >= 15 && apps < vorApps / 3)
-    return { kopf: "Das verlorene Jahr",
+    if (aus !== "Das verlorene Jahr") return { kopf: "Das verlorene Jahr",
       satz: "Von " + vorApps + " Spielen auf " + apps + ". Mehr war nicht drin." };
 
   /* 8. Verletzung als Hauptthema. */
-  if (s.injury && apps < 20) return { kopf: "Das Jahr der Verletzung",
+  if (s.injury && apps < 20) if (aus !== "Das Jahr der Verletzung") return { kopf: "Das Jahr der Verletzung",
     satz: "Nur " + apps + " Pflichtspiele — der Rest war Reha." };
 
   /* 9. Nach hinten durchgereicht. */
-  if (sprung <= -2) return { kopf: "Nach hinten durchgereicht",
+  if (sprung <= -2) if (aus !== "Nach hinten durchgereicht") return { kopf: "Nach hinten durchgereicht",
     satz: "Vom " + vor.role + " zum " + s.role + "." };
 
   /* 10. Jahr zum Vergessen — sportlich, nicht organisatorisch. */
-  if (note >= 4.2) return { kopf: "Ein Jahr zum Vergessen",
+  if (note >= 4.2) if (aus !== "Ein Jahr zum Vergessen") return { kopf: "Ein Jahr zum Vergessen",
     satz: "Saisonnote " + note.toFixed(1).replace(".", ",") + ". Das war nichts." };
 
   /* 11. Die erste Saison ueberhaupt. */
-  if (erste) return { kopf: "Der Anfang",
+  if (erste) if (aus !== "Der Anfang") return { kopf: "Der Anfang",
     satz: "Die erste Spielzeit als Profi." + (apps ? " " + apps + " Einsätze." : "") };
 
   /* 12. Ein Wechsel. Wer sofort einschlaegt, bekommt die staerkere Zeile —
          gemessen fiel „Eine große Spielzeit" sonst auf 0,8 %, weil der
          Wechsel jede gute erste Saison ueberdeckte. */
   if (vor && vor.club && s.club && vor.club !== s.club) {
-    if (note > 0 && note <= 2.5) return { kopf: "Sofort angekommen",
+    if (note > 0 && note <= 2.5) if (aus !== "Sofort angekommen") return { kopf: "Sofort angekommen",
       satz: "Erste Saison bei " + s.club + ", und gleich Note "
         + note.toFixed(1).replace(".", ",") + "." };
-    return { kopf: "Neuer Verein, neues Jahr",
+    if (aus !== "Neuer Verein, neues Jahr") return { kopf: "Neuer Verein, neues Jahr",
       satz: "Erste Saison bei " + s.club + " nach " + vor.club + "." };
   }
 
   /* 13. Rueckfall nach Leistung. Kein Urteil, eine Einordnung — und immer
          eine Zeile, damit keine Saison ohne Schlagzeile bleibt. */
-  if (note > 0 && note <= 2.3) return { kopf: "Eine große Spielzeit",
+  if (note > 0 && note <= 2.3) if (aus !== "Eine große Spielzeit") return { kopf: "Eine große Spielzeit",
     satz: "Note " + note.toFixed(1).replace(".", ",") + " über " + apps + " Spiele." };
-  if (jetzt === 4) return { kopf: "Der Mann, auf den sie bauen",
+  if (jetzt === 4) if (aus !== "Der Mann, auf den sie bauen") return { kopf: "Der Mann, auf den sie bauen",
     satz: "Leistungsträger, " + apps + " Pflichtspiele." };
-  if (jetzt != null && jetzt <= 1) return { kopf: "Warten auf die Chance",
+  if (jetzt != null && jetzt <= 1) if (aus !== "Warten auf die Chance") return { kopf: "Warten auf die Chance",
     satz: s.role + " — " + apps + (apps === 1 ? " Einsatz." : " Einsätze.") };
 
   /* 14. Die ruhige Saison. HIER STAND BIS ZUR MESSUNG nur „Die Saison
@@ -10943,7 +11751,7 @@ function saisonSchlagzeile(s, vor, p) {
      schlimmer ist als eine langweilige Zeile — aber sie ist ausdruecklich
      nicht Teil der Erzaehlung. Eine Gegenprobe auf DIESE Zeile schlaegt
      deshalb nie an; die Proben im Pruefstand zielen bewusst auf Regel 12. */
-  return { kopf: "Die Saison " + (s.year || ""),
+  if (aus !== "Die Saison ") return { kopf: "Die Saison " + (s.year || ""),
     satz: (s.role || "") + (apps ? " · " + apps + " Pflichtspiele" : "") };
 }
 
@@ -11023,7 +11831,13 @@ function SaisonRueckblick({ p, s, onFertig }) {
   const iS = alleS.indexOf(s);
   const vorSaison = iS > 0 ? alleS[iS - 1]
     : iS === -1 && alleS.length ? alleS[alleS.length - 1] : null;
-  const schlag = saisonSchlagzeile(s, vorSaison, p);
+  /* Die vorige Zeile mitgeben, damit der Wiederholungsschutz greift
+     (35.159, F33). Sie wird frisch berechnet statt gespeichert — derselbe
+     Spielstand ergibt so immer denselben Text. */
+  const vorVor = (p.seasons || [])[(p.seasons || []).indexOf(vorSaison) - 1] || null;
+  const vorigeZeile = vorSaison
+    ? (saisonSchlagzeile(vorSaison, vorVor, p) || {}).kopf : null;
+  const schlag = saisonSchlagzeile(s, vorSaison, p, vorigeZeile);
 
   S(schlag.kopf, "Die Saison " + s.year + " · " + s.club, (
     <div style={{ textAlign: "center" }}>
@@ -11167,6 +11981,40 @@ function SaisonRueckblick({ p, s, onFertig }) {
       </div>), weg >= 12 ? "var(--bad)" : "var(--go)");
   }
 
+  /* WARUM LIEF ES SO? (35.149, V02) Höchstens drei beobachtete Gründe —
+     Verletzung, Rolle, Sperre, Note, Tabellenplatz, Vereinswechsel. Keine
+     erfundene Ursache: es steht da, WAS war, nicht was dadurch angeblich
+     verloren ging. Gibt es nichts Auffälliges, fällt die Seite weg statt
+     eine Erklärung zu erfinden. */
+  {
+    const gruende = saisonGruende(s, (p.seasons || [])[(p.seasons || []).indexOf(s) - 1]);
+    if (gruende.length) S("Warum es so lief", "Was diese Saison geprägt hat", (
+      <div style={{ maxWidth: 380, margin: "0 auto" }}>
+        {/* KEIN `pan` AUF KARTON (35.168).
+
+            Der Saisonrueckblick laeuft auf einem Kartonblatt, und `--pan`
+            bleibt dort DUNKEL — die Wildcard-Karte braucht das (35.122).
+            Tinte auf #211E17 ergibt Kontrast 1,08 bei einer Grenze von 3:
+            die drei Gruende waren praktisch unsichtbar.
+
+            DRITTES MAL DIESELBE FALLE. Kevin fand sie in 35.121, ich lief in
+            35.149 wieder hinein, und beim Zusammenfuehren mit dem
+            Codex-Stand 35.167 kam sie zurueck — die Behebung lag in meiner
+            parallelen Fassung, auf der dort nicht aufgesetzt wurde.
+
+            Die anderen Seiten dieses Rueckblicks setzen Text direkt auf das
+            Papier. Genau das hier auch, mit feinen Linien als Trennung. */}
+        {gruende.map((g, i) => (
+          <div key={i} style={{ marginTop: i ? 10 : 0, paddingTop: i ? 10 : 0,
+            borderTop: i ? "1px solid var(--ln)" : "none",
+            display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <span className="d" style={{ fontSize: 15, color: "var(--ac)", lineHeight: 1.25 }}>
+              {i + 1}</span>
+            <span style={{ fontSize: 13.5, lineHeight: 1.42 }}>{g}</span>
+          </div>))}
+      </div>), "var(--ac)");
+  }
+
   /* Nationalmannschaft und Wert auf einer Seite */
   S((s.ntCaps || 0) > 0 ? "Land und Wert" : "Dein Wert",
     (s.ntCaps || 0) > 0 ? (s.ntTeam === "A" ? "Nationalmannschaft" : s.ntTeam) + " · Marktwert" : "Marktwert und Vermögen", (
@@ -11198,7 +12046,7 @@ function SaisonRueckblick({ p, s, onFertig }) {
   const se = seiten[Math.min(i, seiten.length - 1)];
   const seRaus = raus === null ? null : seiten[Math.min(raus, seiten.length - 1)];
   return (
-    <div className="rs-schleier" onClick={weiter} style={{ cursor: "pointer", padding: "0 16px" }}>
+    <div className="rs-schleier" onClick={weiter} {...flaecheAlsKnopf(weiter, "Weiter")} style={{ cursor: "pointer", padding: "0 16px" }}>
       {/* Fortschritt oben, wie bei einer Bildergeschichte */}
       <div style={{ position: "absolute", top: 14, left: 14, right: 14, display: "flex", gap: 4 }}>
         {seiten.map((_, k) => <i key={k} style={{ flex: 1, height: 3, borderRadius: 0, display: "block",
@@ -11297,6 +12145,7 @@ function WildcardEnthuellung({ card, onFertig }) {
   const auf = stufe >= 1;
   return (
     <div className="rs-schleier" onClick={() => bereit && onFertig && onFertig()}
+      {...flaecheAlsKnopf(() => bereit && onFertig && onFertig(), "Weiter")}
       style={{ cursor: bereit ? "pointer" : "default", overflow: "hidden" }}>
 
       {/* Blitz im Moment des Umschlags */}
@@ -11618,6 +12467,20 @@ function Elfkarte({ spieler, stufe, klein, onTippen, aktiv, platz, eignung }) {
 function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
                     onReiterGesehen, onKauf, onGratis,
                     onStartpaket, onEinsetzen, onEntfernen, onVerkauf, onZurueck }) {
+  /* F55 (35.147): siehe VereinDach. Hier ist der Rueckweg besonders wichtig
+     — wer mitten im Packoeffnen die Taste drueckt, soll nicht die App
+     verlassen, sondern zurueck ins Dach. */
+  const aktiv = React.useRef(false);
+  const [speichert, setSpeichert] = React.useState(false);
+  const zurueck = () => { if (!aktiv.current) onZurueck(); };
+  useZurueck(zurueck);
+  const ausfuehren = async (fn) => {
+    if (aktiv.current) return;
+    aktiv.current = true; setSpeichert(true); setMeldung(null);
+    try { await fn(); }
+    catch (e) { setMeldung(e.message || "Die Buchung konnte nicht gespeichert werden."); }
+    finally { aktiv.current = false; setSpeichert(false); }
+  };
   const [offen, setOffen] = React.useState(null);      /* gezogene Karten */
   const [gezeigt, setGezeigt] = React.useState([]);    /* welche schon aufgedeckt */
   const [meldung, setMeldung] = React.useState(null);
@@ -11632,6 +12495,11 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
   const [wischt, setWischt] = React.useState([]);
   const [weg, setWeg] = React.useState([]);
   const [offenPack, setOffenPack] = React.useState(null);
+  const fokusNachAufdecken = React.useRef(null);
+  React.useLayoutEffect(() => {
+    const el = fokusNachAufdecken.current;
+    if (el) { el.querySelector("button")?.focus(); fokusNachAufdecken.current = null; }
+  }, [gezeigt]);
   const [filter, setFilter] = React.useState("alle");
   const [sortier, setSortier] = React.useState("staerke");
 
@@ -11671,19 +12539,22 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
     return () => clearTimeout(id);
   }, [weg, offen]);
 
-  const ziehen = (packId, umsonst) => {
+  const ziehen = (packId, umsonst) => ausfuehren(async () => {
     const r = KARTEN.ziehen(packId, pool, new Date().getFullYear());
-    if (r.fehler) { setMeldung(r.fehler); return; }
+    if (r.fehler) throw Error(r.fehler);
     const alle = r.sonder ? [...r.karten, r.sonder] : r.karten;
+    if (umsonst) await onGratis(alle); else await onKauf(packId, alle);
     setOffen(alle); setGezeigt([]); setMeldung(null);
     setWischt([]); setWeg([]); setOffenPack(packId);
-    if (umsonst) onGratis(alle); else onKauf(packId, alle);
-  };
+  });
 
   if (offen) {
     const alleAuf = gezeigt.length >= offen.length;
     return (
       <Shell blatt="verein">
+        {speichert && <div role="status" aria-live="polite" style={{ position: "fixed", inset: 0,
+          zIndex: 9999, background: "#000B", display: "grid", placeItems: "center" }}>
+          <div className="pan pad">Buchung wird gespeichert …</div></div>}
         <div className="fade">
           <div style={{ display: "flex", alignItems: "baseline",
             justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
@@ -11724,7 +12595,10 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
                 <Spielerkarte karte={k} gross
                   aufgedeckt={gezeigt.indexOf(i) >= 0}
                   jubel={gezeigt.indexOf(i) >= 0}
-                  onTippen={() => setGezeigt((g) => (g.indexOf(i) >= 0 ? g : [...g, i]))} />
+                  onTippen={(e) => {
+                    if (e.detail === 0) fokusNachAufdecken.current = e.currentTarget.parentElement;
+                    setGezeigt((g) => (g.indexOf(i) >= 0 ? g : [...g, i]));
+                  }} />
                 {/* ZWEI WEGE, UND BEIDE FUEHREN WEG (35.90, von Kevin
                     gemeldet): „Die gezogenen Karten kann ich nicht zum Fundus
                     hinzufuegen, wenn das Limit erreicht ist, und die Karten
@@ -11743,11 +12617,11 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
                   <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
                     {verein && verein.gegruendet && VEREIN.packPlatz(verein) > 0 && (
                       <button className="btn sm" style={{ flex: 1 }}
-                        onClick={() => {
-                          const f = onEinsetzen(k);
-                          setMeldung(f || (k.name + " steht im Kader."));
-                          if (!f) ablegen(i);
-                        }}>
+                        onClick={() => ausfuehren(async () => {
+                          const f = await onEinsetzen(k);
+                          if (f) throw Error(f);
+                          setMeldung(k.name + " steht im Kader."); ablegen(i);
+                        })}>
                         In den Kader</button>)}
                     <button className="btn sm" style={{ flex: 1 }}
                       onClick={() => {
@@ -11810,6 +12684,9 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
         <span className="m" style={{ fontSize: 10.5 }}>{text}</span></button>);
     return (
       <Shell blatt="verein">
+        {speichert && <div role="status" aria-live="polite" style={{ position: "fixed", inset: 0,
+          zIndex: 9999, background: "#000B", display: "grid", placeItems: "center" }}>
+          <div className="pan pad">Buchung wird gespeichert …</div></div>}
         <div className="fade">
           <div style={{ display: "flex", alignItems: "baseline",
             justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
@@ -11827,7 +12704,7 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
             <div style={{ display: "flex", gap: 6 }}>
               <button className="btn sm" onClick={() => { setReiter("laden"); setFragt(null); }}>
                 Zum Laden</button>
-              <button className="btn sm" onClick={onZurueck}>Zurück</button>
+              <button className="btn sm" onClick={zurueck} disabled={speichert}>Zurück</button>
             </div>
           </div>
           <p style={{ fontSize: 12, color: "var(--mu)", margin: "5px 0 10px" }}>
@@ -11889,18 +12766,25 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
                 <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
                   {verein && verein.gegruendet && (imKader(k) ? (
                     <button className="btn sm" style={{ flex: 1 }}
-                      onClick={() => setMeldung(onEntfernen(k) || (k.name + " ist wieder frei."))}>
+                      onClick={() => ausfuehren(async () => {
+                        const f = await onEntfernen(k); if (f) throw Error(f);
+                        setMeldung(k.name + " ist wieder frei."); })}>
                       Aus dem Kader</button>
                   ) : (
                     <button className="btn sm" style={{ flex: 1 }}
-                      onClick={() => setMeldung(onEinsetzen(k) || (k.name + " steht im Kader."))}>
+                      onClick={() => ausfuehren(async () => {
+                        const f = await onEinsetzen(k); if (f) throw Error(f);
+                        setMeldung(k.name + " steht im Kader."); })}>
                       In den Kader</button>))}
                   {KARTEN.verkaeuflich(k) ? (
                     fragt === k.kid ? (
                       <>
                         <button className="btn sm" style={{ borderColor: "var(--bad)" }}
-                          onClick={() => { setFragt(null);
-                            setMeldung(onVerkauf(k) || (k.name + " verkauft.")); }}>
+                          disabled={speichert} onClick={() => ausfuehren(async () => {
+                            const fehler = await onVerkauf(k);
+                            if (fehler) throw Error(fehler);
+                            setFragt(null); setMeldung(k.name + " verkauft.");
+                          })}>
                           Wirklich verkaufen</button>
                         <button className="btn sm" onClick={() => setFragt(null)}>Doch nicht</button>
                       </>
@@ -11912,7 +12796,15 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
                   ) : (
                     <span className="m" style={{ fontSize: 10.5, color: "var(--mu)",
                       alignSelf: "center" }}>
-                      {k.herkunft === "halle" ? "Ruhmeshalle" : "eigener Verein"}</span>)}
+                      {/* F37 (35.140): die Zeile kannte nur zwei Herkuenfte.
+                          Seit 35.125 gibt es Akademiekarten — sie wurden als
+                          „eigener Verein" ausgewiesen, obwohl sie aus der
+                          Jugend stammen. Genau der Ursprung, der sie
+                          besonders macht, war falsch beschriftet. */}
+                      {k.herkunft === "halle" ? "Ruhmeshalle"
+                        : k.herkunft === "akademie" ? "aus der eigenen Jugend"
+                        : k.herkunft === "pack" ? "aus einem Pack"
+                        : "eigener Verein"}</span>)}
                 </div>
               </div>))}
           </div>
@@ -11926,6 +12818,9 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
 
   return (
     <Shell blatt="verein">
+        {speichert && <div role="status" aria-live="polite" style={{ position: "fixed", inset: 0,
+          zIndex: 9999, background: "#000B", display: "grid", placeItems: "center" }}>
+          <div className="pan pad">Buchung wird gespeichert …</div></div>}
       <div className="fade">
         <div style={{ display: "flex", alignItems: "baseline",
           justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
@@ -11933,7 +12828,7 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
           <div style={{ display: "flex", gap: 6 }}>
             <button className="btn sm" onClick={() => setReiter("sammlung")}>
               Sammlung ({sammlung.length})</button>
-            <button className="btn sm" onClick={onZurueck}>Zurück</button>
+            <button className="btn sm" onClick={zurueck} disabled={speichert}>Zurück</button>
           </div>
         </div>
         <p style={{ fontSize: 12, color: "var(--mu)", margin: "5px 0 14px" }}>
@@ -11955,12 +12850,13 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
               Drei aus {startpaket.vorher || "deiner alten Mannschaft"}, mindestens
               einer aus deiner Ruhmeshalle. Du fängst nicht bei null an.</div>
             <button className="btn pri" style={{ marginTop: 10, width: "100%" }}
-              onClick={() => {
+              disabled={speichert} onClick={() => ausfuehren(async () => {
                 const r = KARTEN.startpaket(pool, startpaket.vorher, new Date().getFullYear());
+                if (r.fehler) throw Error(r.fehler);
+                await onStartpaket(r.karten);
                 setOffen(r.karten); setGezeigt([]); setMeldung(null);
                 setWischt([]); setWeg([]); setOffenPack("gold");
-                onStartpaket(r.karten);
-              }}>Startpaket öffnen</button>
+              })}>Startpaket öffnen</button>
           </div>)}
 
         {gratis > 0 && (
@@ -11971,7 +12867,7 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
             <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 3 }}>
               Für jede beendete Laufbahn eines.</div>
             <button className="btn pri" style={{ marginTop: 10, width: "100%" }}
-              onClick={() => ziehen("bronze", true)}>Gratispack öffnen</button>
+              disabled={speichert} onClick={() => ziehen("bronze", true)}>Gratispack öffnen</button>
           </div>)}
 
         <div className="m" style={{ fontSize: 11.5, color: "var(--mu)", marginBottom: 8 }}>
@@ -12001,7 +12897,7 @@ function Packladen({ vc, pool, verein, gratis, startpaket, startReiter,
                 <div className="m" style={{ fontSize: 10.5, color: "var(--mu)", marginTop: 3 }}>
                   entspricht etwa {KARTEN.preisInLaufbahnen(pk.id).toString().replace(".", ",")}
                   {" "}Laufbahnen Akademieausbau</div>
-                <button className="btn" disabled={!leistbar}
+                <button className="btn" disabled={speichert || !leistbar}
                   style={{ marginTop: 9, width: "100%",
                     borderColor: leistbar ? KARTEN.STUFEN[pk.id].farbe : undefined }}
                   onClick={() => ziehen(pk.id, false)}>
@@ -12028,16 +12924,16 @@ function Spielerkarte({ karte, gross, aufgedeckt = true, onTippen, jubel }) {
      schon — sonst waere das Aufdecken ohne Spannung, weil man nichts erwartet. */
   if (!aufgedeckt) {
     return (
-      <div className="pan pad winkel" style={{ borderColor: st.farbe, borderWidth: 2,
+      <button type="button" className="pan pad winkel" style={{ borderColor: st.farbe, borderWidth: 2,
         background: "linear-gradient(150deg," + KARTEN.flaeche(karte.stufe).oben
           + " 0%," + KARTEN.flaeche(karte.stufe).unten + " 100%)",
-        minHeight: Math.round(150 * gr), display: "flex",
+        width: "100%", minHeight: Math.round(150 * gr), display: "flex",
         alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-        onClick={onTippen} role="button" tabIndex={0}
+        onClick={onTippen}
         aria-label={"Verdeckte Karte, Stufe " + st.n + ". Antippen zum Aufdecken."}>
         <div className="d" style={{ fontSize: Math.round(15 * gr), color: st.farbe,
           letterSpacing: ".1em" }}>{st.n.toUpperCase()}</div>
-      </div>);
+      </button>);
   }
   const fl = KARTEN.flaeche(karte.stufe);
   const merk = KARTEN.merkmaleVon(karte);
@@ -12094,6 +12990,23 @@ function Spielerkarte({ karte, gross, aufgedeckt = true, onTippen, jubel }) {
             {karte.alter} Jahre{karte.verein ? " · " + karte.verein : ""}
             {karte.herkunft === "halle" ? " · Ruhmeshalle" : ""}
             {karte.herkunft === "akademie" ? " · aus der Jugend" : ""}</div>
+          {/* WOHER DIESER SPIELER KOMMT (35.157, V08). `ausAbsolvent`
+              speichert seit 35.124 `zusatz.jahrgang` und `zusatz.klub` — die
+              Karte zeigte beides nicht. Genau das macht aus einer Karte eine
+              Erinnerung: „Eigengewächs, Jahrgang 2029" ist ein Spieler, den
+              man aufwachsen sah; ohne das ist es eine Karte wie jede andere.
+
+              Alte Karten haben kein `zusatz` — dann fällt die Zeile weg,
+              statt „Jahrgang undefined" zu zeigen. */}
+          {karte.herkunft === "akademie" && typVon({typ:karte.zusatz?.typ}) && (
+            <div className="m" style={{fontSize:12,color:"var(--mu)",marginTop:5}}>
+              Talenttyp: {typVon({typ:karte.zusatz.typ}).n}
+            </div>)}
+          {karte.herkunft === "akademie" && karte.zusatz && karte.zusatz.jahrgang && (
+            <div className="m" style={{ fontSize: 10.5, color: "var(--ac)", marginTop: 2 }}>
+              Eigengewächs, Jahrgang {karte.zusatz.jahrgang}
+              {karte.zusatz.klub ? " · erster Profiklub: " + karte.zusatz.klub : ""}
+              {karte.zusatz.ns ? " · Nationalspieler" : ""}</div>)}
         </div>
         <div className="d" style={{ fontSize: Math.round(26 * gr), color: st.farbe,
           lineHeight: 1 }}>{karte.ovr}</div>
@@ -12233,13 +13146,17 @@ const SCHUSS_PREISE = [
 ];
 const schussPreisZiehen = () => {
   const ges = SCHUSS_PREISE.reduce((a2, x) => a2 + x.w, 0);
-  let r = Math.random() * ges;
+  let r = zufall() * ges;
   for (const x of SCHUSS_PREISE) { r -= x.w; if (r <= 0) return x; }
   return SCHUSS_PREISE[0];
 };
 
 function Sonderschuss({ grund, ruhe, onFertig }) {
   const [halt, setHalt] = React.useState(null);
+  /* F45-F48 (35.143): Fokus hinein, Escape schliesst, Hintergrund gesperrt,
+     Fokus zurueck. Der Sonderschuss ist ein echter Dialog — bis hierher kam
+     man ohne Zeigegeraet nicht heraus. */
+  const dlgRahmen = useDialog(true, onFertig);
   const laeuft = useRef(true);
   const start = useRef(0);
   /* DIE STELLUNG LIEGT IN EINEM REF, NICHT IM ZUSTAND (berichtigt 35.78).
@@ -12324,7 +13241,7 @@ function Sonderschuss({ grund, ruhe, onFertig }) {
     <div className="fl" style={{ position: "fixed", inset: 0, zIndex: 90,
       background: "rgba(10,12,10,.82)", display: "flex",
       alignItems: "center", justifyContent: "center", padding: 14 }}
-      role="dialog" aria-modal="true" aria-label="Sonderschuss">
+      role="dialog" aria-modal="true" aria-label="Sonderschuss" ref={dlgRahmen} tabIndex={-1}>
     <div className="pan pad rs-rein" style={{ borderColor: "var(--go)",
       maxWidth: 420, width: "100%", boxShadow: "0 10px 40px rgba(0,0,0,.6)" }}>
       <div className="eb" style={{ color: "var(--go)" }}>Sonderschuss</div>
@@ -12483,8 +13400,25 @@ function Pass({ p, full }) {
           <div className="passzeile" style={{ marginTop: 6 }}>
             <span className="eb">Verein</span>
             <Crest club={p.club} size={17} />
-            <span className="m" style={{ fontSize: 11, overflow: "hidden",
-              textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--tinte)" }}>{p.club.n}</span>
+            {/* ZWEI ZEILEN, ABER FESTE HOEHE (35.168).
+
+                Codex hat in 35.167 `whiteSpace: "normal"` gesetzt, damit
+                lange Vereinsnamen umbrechen statt abgeschnitten zu werden —
+                richtig, denn „Borussia Mönchengladbach" endete vorher als
+                „Borussia Mönchen…".
+
+                Nur wuchs der Pass dadurch: die Sichtpruefung misst bei 360 px
+                einen Sprung von 14,6 px ueber neun Karrierestaende, erlaubt
+                ist 1. Beim Blaettern springt dann der ganze Kasten.
+
+                Beides geht: umbrechen bis zu zwei Zeilen, und die Zeile
+                behaelt die Hoehe von zweien — auch wenn nur eine gebraucht
+                wird. Der Pass bleibt konstant, lange Namen bleiben lesbar,
+                sehr lange enden nach der zweiten Zeile mit Auslassung. */}
+            <span className="m" style={{ fontSize: 11, overflowWrap: "anywhere",
+              whiteSpace: "normal", color: "var(--tinte)",
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+              overflow: "hidden", minHeight: "2.4em", lineHeight: 1.2 }}>{p.club.n}</span>
           </div>
           <div className="passzeile">
             <span className="eb">Position</span>
@@ -12521,7 +13455,7 @@ function Pass({ p, full }) {
                 <span className="m" style={{ fontSize: 9 }}>{aLab(p.pos, k)}</span>
                 <span className="m" style={{ fontSize: 11.5, fontWeight: 600, color: "var(--tinte)" }}>{p.attrs[k]}</span>
               </div>
-              <div className="bar" style={{ marginTop: 2 }}><i style={{ width: p.attrs[k] + "%", background: "var(--tinte)" }} /></div>
+              <div className="bar" style={{ marginTop: 2 }}><i style={{ width: clamp(p.attrs[k], 0, 100) + "%", background: "var(--tinte)" }} /></div>
             </div>
           ))}
         </div>
@@ -12697,6 +13631,12 @@ const ANLEITUNG = [
    Profimannschaft bleibt bei fuenf.                                        */
 function VereinDach({ aka, verein, gesamt, karten, onAka, onProfi, onPacks, onFundus,
                      onZurueck, onAendern, onVAendern }) {
+  /* F55 (35.147): fuenf Vereins- und Kartenansichten meldeten KEINEN
+     Rueckweg an. Die sichtbare Zurueck-Schaltflaeche funktionierte, die
+     Android-Taste lief ins Leere — und dort beendet sie im Zweifel die App.
+     Die Akademie machte es seit jeher richtig; sie war die Gegenprobe, an
+     der der Unterschied auffiel. */
+  useZurueck(onZurueck);
   const kartenZahl = ((karten && karten.karten) || []).length;
   const fr = VEREIN.freigeschaltet(gesamt);
   /* Der Postkorb (35.53). Er sitzt HIER und nicht in der Akademie, weil die
@@ -12724,6 +13664,10 @@ function VereinDach({ aka, verein, gesamt, karten, onAka, onProfi, onPacks, onFu
      auf. Ein anderer Name fuer ein anderes Verhalten — sonst sucht man
      spaeter den Aufklappmechanismus, den es nicht mehr gibt. */
   const [postOffen, setPostOffen] = React.useState(false);
+  /* F45-F48 (35.143): derselbe Hook wie beim Sonderschuss. `useCallback`
+     waere hier unnoetig — `postZu` haengt an nichts, das sich aendert. */
+  const postZu = React.useCallback(() => setPostOffen(false), []);
+  const postRahmen = useDialog(postOffen, postZu);
   /* WELTJAHR, nicht Akademiejahr. `vertragBis`, `gestellt` und `frist` werden
      in akademie.js mit demselben `jahr` gerechnet, das `akaJahr` bekommt —
      und das ist die Weltjahreszahl. Der erste Entwurf nahm `akaJahrNr(aka)`
@@ -13010,6 +13954,7 @@ function VereinDach({ aka, verein, gesamt, karten, onAka, onProfi, onPacks, onFu
             background: "rgba(10,12,10,.78)", display: "flex", alignItems: "center",
             justifyContent: "center", padding: 12 }}
             role="dialog" aria-modal="true" aria-label="Postfach"
+            ref={postRahmen} tabIndex={-1}
             onClick={() => setPostOffen(false)}>
           <div className="pan rs-rein" onClick={(e) => e.stopPropagation()}
             style={{ borderColor: offen ? "var(--go)" : "var(--ln2)", maxWidth: 440,
@@ -13076,8 +14021,7 @@ function VereinDach({ aka, verein, gesamt, karten, onAka, onProfi, onPacks, onFu
                                der Spieler im Kader und gleichzeitig als offener
                                Fall im Postkorb. */
                             onAendern && onAendern({ ...r.aka,
-                              faelle: (r.aka.faelle || []).filter((x) => x.id !== f.id) });
-                            onVAendern && onVAendern(r.v);
+                              faelle: (r.aka.faelle || []).filter((x) => x.id !== f.id) }, r.v);
                             setMeldung(f.name + " unterschreibt bei dir.");
                           }}>
                           In meine Mannschaft holen · {Math.round(p2 * 100)} % Aussicht</button>)}
@@ -13252,9 +14196,9 @@ function BildVerein() {
 const WILLKOMMEN = [
   { kopf: "Deine Laufbahn", bild: BildLaufbahn, frei: null,
     text: "Du bist der Spieler, nicht der Trainer. Jede Saison legst du dein Training fest, triffst eine Entscheidung und schaust zu, wie es läuft. Mit 16 geht's los, das Knie sagt Bescheid, wann Schluss ist." },
-  { kopf: "Die Jugendakademie", bild: BildAkademie, frei: "ab der 2. Laufbahn",
+  { kopf: "Die Jugendakademie", bild: BildAkademie, frei: "nach 2 abgeschlossenen Laufbahnen",
     text: "Am Karriereende bleiben dir Coins. Damit baust du eine Akademie, die weiterläuft, während du die nächste Laufbahn spielst. Neun Abteilungen, jede bis Stufe 6 — alles auf einmal geht nie." },
-  { kopf: "Dein eigener Verein", bild: BildVerein, frei: "ab der 5. Laufbahn",
+  { kopf: "Dein eigener Verein", bild: BildVerein, frei: "nach 5 abgeschlossenen Laufbahnen",
     text: "Irgendwann lässt du die Absolventen nicht mehr ziehen, sondern ziehst sie hoch. Sechzehn Mann, dritte Liga, und von da nach oben. Die Akademie muss nachliefern — das ist die Entscheidung." },
 ];
 
@@ -13355,10 +14299,15 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
   const [schwer, setSchwer] = useState(SCHWIERIGKEIT);
   const [wach, setWachAn] = useState(WACH);
   const [loeschen, setLoeschen] = useState(false);
+  /* Wie viele Schlüssel beim Zurücksetzen stehengeblieben sind (35.133). */
+  const [loeschFehler, setLoeschFehler] = useState(0);
   const [lizenz, setLizenz] = useState(false);
   const wachGeht = wachMoeglich();
 
-  const merken = (k, v) => { try { store.set(k, v); } catch (e) {} };
+  /* OHNE `await` FING DAS `catch` NICHTS (35.132). `store.set` gibt eine
+     Promise zurueck; wird sie abgelehnt, laeuft das synchrone `catch` laengst
+     nicht mehr. Jetzt ueber den gemeinsamen Weg. */
+  const merken = (k, v) => { schreibe(k, v, "eine Einstellung"); };
 
   return (
     <div className="fade" style={{ maxWidth: 520, margin: "0 auto" }}>
@@ -13381,6 +14330,7 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
             {speed
               ? "Ein Ereignis je Saison, Training und Anschaffungen laufen von selbst."
               : "Alles selbst entscheiden: Training, Einkäufe, Gehaltspoker."}</p>
+
 
           <div style={{ borderTop: "1px solid var(--ln)", paddingTop: 11, marginTop: 11 }}>
             <span className="eb">Schwierigkeit</span>
@@ -13436,10 +14386,16 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
           <div style={{ borderTop: "1px solid var(--ln)", paddingTop: 11, marginTop: 4 }}>
             <span className="eb">Anzeigegröße</span>
             <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-              {["Klein", "Normal", "Groß"].map((n, i) => (
-                <button key={n} className={"btn sm" + (stufe === i ? " on" : "")} style={{ flex: 1 }}
+              {/* FUENF STUFEN (35.142, F51). Kurze Namen, weil fuenf Knoepfe
+                  nebeneinander auf 360 px sonst umbrechen — und die Reihe
+                  waere bei hoher Textstufe genau das, was sie anbietet zu
+                  beheben. `aria-label` nennt die Stufe ausgeschrieben. */}
+              {[["XS", "Sehr klein"], ["S", "Klein"], ["M", "Normal"],
+                ["L", "Groß"], ["XL", "Sehr groß"]].map(([kurz, lang], i) => (
+                <button key={kurz} className={"btn sm" + (stufe === i ? " on" : "")}
+                  style={{ flex: 1, minWidth: 0, padding: "6px 2px" }} aria-label={"Anzeigegröße " + lang}
                   onClick={() => { setTextstufe(i); setStufe(i); merken("rasenschach:text", String(i)); haptik("tipp"); }}>
-                  <span style={{ fontSize: [11, 12.5, 14][i] }}>{n}</span>
+                  <span style={{ fontSize: [10.5, 11.5, 12.5, 13.5, 14.5][i] }}>{kurz}</span>
                 </button>))}
             </div>
             <span className="m" style={{ fontSize: 10.5, color: "var(--mu)", display: "block", marginTop: 6 }}>
@@ -13521,11 +14477,27 @@ function Optionen({ ruhe, aufRuhe, onBackup, onZu, onAnleitung, hall, aka, laeuf
                 <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "wrap" }}>
                   <button className="btn sm" style={{ borderColor: "var(--bad)", color: "var(--bad)" }}
                     onClick={async () => {
-                      for (const k of SPEICHERSCHLUESSEL) { try { await store.delete(k); } catch (e) {} }
+                      /* LOESCHFEHLER NICHT VERSCHLUCKEN (35.133, F41). Blieb
+                         auch nur ein Schluessel stehen, versprach der Neustart
+                         einen sauberen Anfang, den es nicht gab. */
+                      const blieb = [];
+                      for (const k of SPEICHERSCHLUESSEL) {
+                        try { await store.delete(k); } catch (e) { blieb.push(k); }
+                      }
+                      if (blieb.length) {
+                        setLoeschFehler(blieb.length);
+                        return;   /* NICHT neu laden — sonst sieht es aus, als hätte es geklappt */
+                      }
                       try { if (typeof location !== "undefined") location.reload(); } catch (e) {}
                     }}>Ja, alles löschen</button>
-                  <button className="btn sm" onClick={() => setLoeschen(false)}>Abbrechen</button>
+                  <button className="btn sm" onClick={() => { setLoeschen(false); setLoeschFehler(0); }}>Abbrechen</button>
                 </div>
+                {loeschFehler > 0 && (
+                  <div className="m" style={{ fontSize: 12, color: "var(--bad)", marginTop: 8 }}>
+                    {loeschFehler} {loeschFehler === 1 ? "Eintrag ließ" : "Einträge ließen"} sich
+                    nicht löschen. Es wurde NICHT alles zurückgesetzt — bitte die App neu starten
+                    und es noch einmal versuchen.
+                  </div>)}
               </div>)}
           </div>
         </div>
@@ -13670,12 +14642,23 @@ function titelgeschichte(save, laeuft, hall, aka) {
     unter: "Trainingsschwerpunkte, Vertragspoker, Leihen, Angebote, die man besser ablehnt. Eine Laufbahn, eine Entscheidung nach der anderen." };
 }
 
-function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, verein, onVerein, onVereinDach, gesamt, onLaden, meta, aufRahmen, freiHinweis, onFreiZu, karten }) {
+function MenuScreen({ onSammlung, hall, onNew, onHall, save, onResume, onAch, achN, metaN, onBackup, ruhe, setRuhe, setRuheState, aka, onAka, verein, onVerein, onVereinDach, gesamt, onLaden, meta, aufRahmen, freiHinweis, onFreiZu, karten, speicherFehler, optAuf, onOptAufGesehen }) {
   const [ask, setAsk] = useState(false);
   const [opt, setOpt] = useState(false);
+  /* F56 (35.147): kam man aus der Sicherung zurück, war `opt` wieder false
+     und man landete auf der Titelseite statt in den Optionen, aus denen man
+     kam. Die Herkunft steht in `optAuf` und wird einmal eingelöst. */
+  useEffect(() => {
+    if (optAuf) { setOpt(true); if (onOptAufGesehen) onOptAufGesehen(); }
+  }, [optAuf, onOptAufGesehen]);
   const [anleitung, setAnleitung] = useState(false);
   const schriftBefund = useSchriftBefund();
-  const ausgabe = String(hall.length + 1).padStart(2, "0");
+  /* F22 (35.139): die Ausgabennummer war `hall.length + 1`. Die Halle ist
+     auf zwoelf Eintraege gekappt — ab der zwoelften abgeschlossenen Laufbahn
+     blieb die Titelseite bei „Ausgabe 13" stehen, egal wie viele noch kamen.
+     `gesamt.karrieren` zaehlt alle Abschluesse und ist der gemeinte Wert;
+     wo er fehlt (sehr alte Staende), bleibt die Hallengroesse die Naeherung. */
+  const ausgabe = String(((gesamt && gesamt.karrieren) || hall.length) + 1).padStart(2, "0");
   const laeuft = save && save.p;
 
   if (anleitung) return <Shell blatt="optionen" zusatz="ANLEITUNG"><Kurzanleitung onZu={() => setAnleitung(false)} /></Shell>;
@@ -13842,6 +14825,20 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
         <div style={{ height: 1, background: "var(--ln2)", margin: "20px 0 0", opacity: .6 }} />
         <div className="eb" style={{ margin: "14px 0 2px" }}>In dieser Ausgabe</div>
         <div style={{ borderTop: "2px solid var(--ln2)" }}>
+          {/* WAS SICH NICHT SPEICHERN LIESS (35.132, F06). Steht ganz oben und
+              in Warnfarbe — wer das liest, soll wissen, dass sein Fortschritt
+              gefährdet ist, bevor er weiterspielt. Erscheint nur nach einem
+              echten Schreibfehler und verschwindet, sobald derselbe Datensatz
+              wieder ankommt. */}
+          {speicherFehler && (
+            <div className="pan pad" style={{ marginBottom: 10, borderColor: "var(--bad)" }}>
+              <div className="eb" style={{ color: "var(--bad)" }}>Nicht gespeichert</div>
+              <div className="m" style={{ fontSize: 12, marginTop: 3 }}>
+                {speicherFehler.was} ließ sich zuletzt nicht sichern. Dein Fortschritt
+                ist auf diesem Gerät nicht sicher — mach über Optionen eine Sicherung,
+                bevor du weiterspielst.
+              </div>
+            </div>)}
           {laeuft && !ask && zeile("anlegen", "Neue Laufbahn", "ersetzt den Spielstand", null, () => setAsk(true))}
           {ask && (
             <div className="up pad" style={{ borderLeft: "3px solid var(--bad)", margin: "9px 0" }}>
@@ -13881,9 +14878,8 @@ function MenuScreen({ hall, onNew, onHall, save, onResume, onAch, achN, metaN, o
             const gold = ((karten && karten.karten) || [])
               .filter((k) => k.stufe === "gold" || k.stufe === "legende").length;
             return zeile("karten", "Deine Sammlung", String(kn),
-              gold ? gold + (gold === 1 ? " besondere Karte" : " besondere Karten")
-                   : "Karten im Fundus",
-              onVereinDach);
+              gold ? gold + (gold === 1 ? " besondere Karte" : " besondere Karten") : "Karten im Fundus",
+              onSammlung || onVereinDach);
           })()}
               {/* EIN Eintrag statt zwei (35.50). Bis 35.49 standen Jugendakademie
                   und Verein nebeneinander im Hauptmenue — eine Folge der
@@ -13955,8 +14951,13 @@ const PORTRAET_REGLER = (g) => [
 ];
 
 function CreateScreen({ onStart, onBack, meta }) {
+  const formularId = React.useId();
   useZurueck(onBack);
   const [name, setName] = useState("");
+  /* Der Vorsatz für diese Laufbahn (35.162, V07) — freiwillig, `null` heißt
+     „keiner". Kein Vorschlag, keine Vorauswahl: wer nichts wählt, spielt wie
+     bisher. */
+  const [vorsatz, setVorsatz] = useState(null);
   const [nation, setNation] = useState("GER");
   const [pos, setPos] = useState("ZM");
   const [foot, setFoot] = useState("rechts");
@@ -13974,8 +14975,8 @@ function CreateScreen({ onStart, onBack, meta }) {
     return CLUBS.filter((c) => c.g === gender && c.n.toLowerCase().includes(q))
       .sort((a, b) => b.s - a.s).slice(0, 8);
   }, [suche, gender]);
-  const beinamen = ["mk_bei1", "mk_bei2", "mk_bei3"].filter((k) => meta && meta[k])
-    .flatMap((k) => BEINAMEN[k] || []);
+  const beinamen = [...new Set(Object.keys(BEINAMEN).filter((k) => meta && meta[k])
+    .flatMap((k) => BEINAMEN[k] || []))];
   const [avatar, setAvatar] = useState(() => ri(1, 999999));
   /* Der Name ist ein VORSCHLAG, solange nichts Eigenes getippt wurde. Er
      wechselt mit Herkunft und Geschlecht mit; sobald jemand selbst schreibt,
@@ -14096,9 +15097,9 @@ function CreateScreen({ onStart, onBack, meta }) {
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       <span className="m" style={{ fontSize: 9.5, color: "var(--ln2)", minWidth: 30, textAlign: "right" }}>
                         {n > 1 ? jetzt + "/" + n : "—"}</span>
-                      <button className="btn sm" style={{ padding: "4px 10px" }} disabled={n <= 1}
+                      <button className="btn sm" style={{ padding: "4px 10px" }} disabled={n <= 1} aria-label={lbl + ": vorherige Variante"}
                         onClick={() => setZuege((z) => zugDrehen(z, feld, -1, gender, nation, meta))}>‹</button>
-                      <button className="btn sm" style={{ padding: "4px 10px" }} disabled={n <= 1}
+                      <button className="btn sm" style={{ padding: "4px 10px" }} disabled={n <= 1} aria-label={lbl + ": nächste Variante"}
                         onClick={() => setZuege((z) => zugDrehen(z, feld, 1, gender, nation, meta))}>›</button>
                     </div>
                   </div>);
@@ -14112,9 +15113,9 @@ function CreateScreen({ onStart, onBack, meta }) {
 
         <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", marginTop: 12 }}>
           <div style={{ gridColumn: "span 2" }}>
-            <div className="eb" style={{ marginBottom: 5 }}>Name</div>
+            <label className="eb" htmlFor={formularId + "-name"} style={{ display: "block", marginBottom: 5 }}>Name</label>
             <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
-              <input className="inp" value={name} maxLength={22} placeholder="z. B. Kevin Sarantis"
+              <input id={formularId + "-name"} className="inp" aria-label="Name der Spielerin oder des Spielers" value={name} maxLength={22} placeholder="z. B. Kevin Sarantis"
                 style={{ flex: "1 1 auto", minWidth: 0 }}
                 onChange={(e) => { setName(e.target.value);
                   /* KLEBRIG. Vorher stand hier `länge > 0`, die Markierung fiel
@@ -14136,19 +15137,19 @@ function CreateScreen({ onStart, onBack, meta }) {
                 : "Vorschlag zur Herkunft. Einfach überschreiben."}</span>
           </div>
           <div>
-            <div className="eb" style={{ marginBottom: 5 }}>Nummer</div>
-            <input className="inp m" inputMode="numeric" value={number} maxLength={2}
+            <label className="eb" htmlFor={formularId + "-number"} style={{ display: "block", marginBottom: 5 }}>Nummer</label>
+            <input id={formularId + "-number"} className="inp m" aria-label="Rückennummer" inputMode="numeric" value={number} maxLength={2}
               onChange={(e) => setNumber(e.target.value.replace(/\D/g, "").slice(0, 2))} />
           </div>
           <div>
-            <div className="eb" style={{ marginBottom: 5 }}>Starker Fuß</div>
-            <select className="sel" value={foot} onChange={(e) => setFoot(e.target.value)}>
+            <label className="eb" htmlFor={formularId + "-foot"} style={{ display: "block", marginBottom: 5 }}>Starker Fuß</label>
+            <select id={formularId + "-foot"} className="sel" value={foot} onChange={(e) => setFoot(e.target.value)}>
               <option value="rechts">rechts</option><option value="links">links</option><option value="beidfüßig">beidfüßig</option>
             </select>
           </div>
           <div style={{ gridColumn: "span 2" }}>
-            <div className="eb" style={{ marginBottom: 5 }}>Nation</div>
-            <select className="sel" value={nation} onChange={(e) => setNation(e.target.value)}>
+            <label className="eb" htmlFor={formularId + "-nation"} style={{ display: "block", marginBottom: 5 }}>Nation</label>
+            <select id={formularId + "-nation"} className="sel" value={nation} onChange={(e) => setNation(e.target.value)}>
               {["UEFA","CONMEBOL","CONCACAF","CAF","AFC","OFC"].map((cf) => (
                 <optgroup key={cf} label={CONF_LABEL[cf]}>
                   {NATIONS.filter((n) => n.conf === cf).map((n) =>
@@ -14157,8 +15158,8 @@ function CreateScreen({ onStart, onBack, meta }) {
             </select>
           </div>
           <div style={{ gridColumn: "span 2" }}>
-            <div className="eb" style={{ marginBottom: 5 }}>Position</div>
-            <select className="sel" value={pos} onChange={(e) => setPos(e.target.value)}>
+            <label className="eb" htmlFor={formularId + "-pos"} style={{ display: "block", marginBottom: 5 }}>Position</label>
+            <select id={formularId + "-pos"} className="sel" value={pos} onChange={(e) => setPos(e.target.value)}>
               {Object.keys(POS).map((k) => <option key={k} value={k}>{POS[k].short} — {POS[k].label}</option>)}
             </select>
           </div>
@@ -14198,7 +15199,7 @@ function CreateScreen({ onStart, onBack, meta }) {
           {!jugend.length && <div style={{ fontSize: 12, color: "var(--mu)" }}>Dazu passt gerade kein Verein.</div>}
         </div>
 
-        <div className="eb" style={{ margin: "18px 0 6px" }}>Wunschverein</div>
+        <label className="eb" htmlFor={formularId + "-suche"} style={{ display: "block", margin: "18px 0 6px" }}>Wunschverein</label>
         <div style={{ fontSize: 11.5, color: "var(--mu)", marginBottom: 7 }}>
           Musst du nicht. Der Verein klopft im Lauf der Jahre ein- bis dreimal an —
           sofern du sportlich dorthin passt.
@@ -14215,7 +15216,7 @@ function CreateScreen({ onStart, onBack, meta }) {
                 <span className="m" style={{ fontSize: 10 }}>ändern</span></button>
             </div>
           </div>); })() : (<>
-          <input value={suche} onChange={(e) => setSuche(e.target.value)} placeholder="Verein suchen, z. B. Hamburger"
+          <input id={formularId + "-suche"} aria-label="Verein suchen" value={suche} onChange={(e) => setSuche(e.target.value)} placeholder="Verein suchen, z. B. Hamburger"
             style={{ width: "100%", background: "var(--pan2)", color: "var(--tx)", border: "1px solid var(--ln)",
               borderRadius: 0, padding: "8px 10px", fontSize: 13 }} />
           {traumTreffer.length > 0 && (
@@ -14271,6 +15272,28 @@ function CreateScreen({ onStart, onBack, meta }) {
           bleibt es dann so, wie es beim Start stand.
         </div>
 
+          {/* EIN VORSATZ FÜR DIESE LAUFBAHN (35.162, V07). Freiwillig, ohne
+              Belohnung — wer ihn hält, hat ohnehin die Errungenschaft. Der
+              Wert liegt darin, ein Ziel im Blick zu haben, während man
+              Entscheidungen trifft.
+
+              „Der Weltenbummler" und „Daheim bleiben" schließen sich aus:
+              genau darum geht es, eine Wahl soll etwas kosten. */}
+          <span className="eb" style={{ display: "block", marginTop: 14 }}>
+            Vorsatz <span className="m" style={{ fontSize: 10.5, color: "var(--mu)" }}>
+              · freiwillig</span></span>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 6 }}>
+            {VORSAETZE.map((v) => (
+              <button key={v.id} className={"btn sm" + (vorsatz === v.id ? " on" : "")}
+                style={{ minWidth: 0 }}
+                onClick={() => { setVorsatz(vorsatz === v.id ? null : v.id); haptik("tipp"); }}>
+                <span style={{ fontSize: 11.5 }}>{v.n}</span></button>))}
+          </div>
+          <p style={{ fontSize: 11.5, color: "var(--mu)", marginTop: 6 }}>
+            {vorsatz
+              ? (VORSAETZE.find((v) => v.id === vorsatz) || {}).t
+              : "Ohne Vorsatz spielst du wie bisher. Er bringt keine Belohnung — nur ein Ziel."}</p>
+
         <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
           <button className="btn pri" style={{ maxWidth: 200 }}
             onClick={() => onStart({
@@ -14279,7 +15302,7 @@ function CreateScreen({ onStart, onBack, meta }) {
                  Laufbahn mit einem namenlosen Spieler. */
               name: name.trim() || namensVorschlag(nation, gender, avatar + namensDreh * 7919),
               nation, pos, foot, zuege, number: clamp(parseInt(number || "1", 10) || 1, 1, 99),
-              type, mode, avatar, gender, club, bei, speed, traum, statur })}>
+              type, mode, avatar, gender, club, bei, speed, traum, statur, vorsatz })}>
             <span className="d" style={{ fontSize: 17 }}>Los geht's</span>
           </button>
           <button className="btn" style={{ maxWidth: 120 }} onClick={onBack}>Zurück</button>
@@ -14300,7 +15323,7 @@ function CompetitionView({ p }) {
   return (
     <div className="g1">
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-        <select className="sel" style={{ maxWidth: 200, minHeight: 36, fontSize: 13 }} value={idx}
+        <select className="sel" aria-label="Saison auswählen" style={{ maxWidth: 200, minHeight: 44, fontSize: 13 }} value={idx}
           onChange={(e) => setIdx(parseInt(e.target.value, 10))}>
           {seasons.map((x, i) => <option key={i} value={i}>{x.year} · {x.club}</option>)}
         </select>
@@ -15084,7 +16107,13 @@ function SocialView({ p }) {
 }
 
 function TrophyView({ p }) {
-  if (!p.trophies.length && !p.awards.length && !p.assets.length)
+  /* F21 (35.139): die Leerzustandspruefung kannte drei der vier Bereiche.
+     Ein Spieler mit WM-Halbfinale in `nt.majors`, aber ohne Titel, ohne
+     Auszeichnung und ohne Besitz bekam „Noch nichts gewonnen, noch nichts
+     aufgebaut" — und der Turnierbereich weiter unten wurde nie erreicht.
+     Seine Turnierleistung blieb unsichtbar, obwohl sie darstellbar ist. */
+  const turniere = ((p.nt && p.nt.majors) || []).filter((m) => m && !m.u);
+  if (!p.trophies.length && !p.awards.length && !p.assets.length && !turniere.length)
     return <div style={{ fontSize: 12.5, color: "var(--mu)" }}>Noch nichts gewonnen, noch nichts aufgebaut.</div>;
   return (
     <div className="g1">
@@ -15107,44 +16136,165 @@ function TrophyView({ p }) {
 const SICHER_KEYS = [SAVE_KEY, HALL_KEY, SEEN_KEY, WILL_KEY, ACH_KEY, META_KEY, WC_KEY, LIFE_KEY, AKA_KEY, VER_KEY, HSV_KEY, KARTEN_KEY];
 
 function BackupScreen({ onBack, onImport }) {
-  useZurueck(onBack);
+  const aktiv = useRef(false);
+  const [beschaeftigt, setBeschaeftigt] = useState(false);
+  const zurueckGehen = () => { if (!aktiv.current) onBack(); };
+  useZurueck(zurueckGehen);
+  const importKeys = [...SICHER_KEYS, ...Object.values(ALT_KEYS).flat()];
   const [text, setText] = useState("");
   const [eingabe, setEingabe] = useState("");
+  /* Ob ein Rückweg aus einem früheren Import bereitliegt (35.150, V03). */
+  const [rueckweg, setRueckweg] = useState(null);
+  useEffect(() => {
+    let weg = false;
+    (async () => {
+      if (!hasStore()) return;
+      try { const r = await store.get(RUECK_KEY);
+        if (!weg && r && r.value) setRueckweg(JSON.parse(r.value)); }
+      catch (e) { /* keiner da */ }
+    })();
+    return () => { weg = true; };
+  }, []);
+
+  /* Den Stand von vor dem letzten Import zurückholen. Bewusst schlicht: der
+     Rückweg wird eingespielt und danach GELÖSCHT — er ist eine einmalige
+     Rücknahme, kein zweiter Speicherplatz. Sonst entstünde die Frage, welcher
+     von beiden Ständen der echte ist. */
+  const zurueckholen = async () => {
+    if (!rueckweg?.daten || !hasStore() || aktiv.current) return;
+    aktiv.current = true; setBeschaeftigt(true);
+    try {
+      await datenErsetzen(store, rueckweg.daten, importKeys, RUECK_KEY, VERSION, true);
+      setRueckweg(null);
+      if (onImport) await onImport();
+      setInfo("Der Stand von vor dem letzten Einspielen ist zurück.");
+    } catch (e) { setInfo(e.message || "Das Zurückholen ist fehlgeschlagen.");
+      if (e.wiederherstellungOffen && onImport) await onImport().catch(() => {}); }
+    finally { aktiv.current = false; setBeschaeftigt(false); }
+  };
   const [info, setInfo] = useState("");
   const [modus, setModus] = useState("aus");
 
+  /* EIN LESEFEHLER IST NICHT DASSELBE WIE EIN FEHLENDER SCHLUESSEL (F18).
+     Bis 35.130 wurden beide gleich behandelt: uebersprungen, und die Meldung
+     nannte nur die Zahl der gelungenen. Wer eine Sicherung mit fehlendem
+     Spielstand mitnahm, hielt sie fuer vollstaendig. */
   const exportieren = async () => {
     if (!hasStore()) { setInfo("Auf diesem Gerät ist kein Speicher verfügbar."); return; }
     const daten = {};
+    const kaputt = [];
     for (const k of SICHER_KEYS) {
       try { const r = await store.get(k); if (r && r.value) daten[k] = r.value; }
-      catch (e) { /* Schlüssel nicht vorhanden */ }
+      catch (e) { kaputt.push(k); }
+    }
+    if (kaputt.length) {
+      /* KEIN halbes Paket ausgeben, das wie ein volles aussieht. */
+      setText("");
+      setInfo("Sicherung abgebrochen: " + kaputt.length
+        + (kaputt.length === 1 ? " Datensatz ließ" : " Datensätze ließen")
+        + " sich nicht lesen. Eine unvollständige Sicherung wäre gefährlicher als keine.");
+      return;
     }
     const paket = JSON.stringify({ spiel: "rasenschach", v: VERSION, t: Date.now(), daten });
     setText(paket);
-    setInfo(Object.keys(daten).length + " Datensätze gesichert (" + Math.round(paket.length / 1024) + " KB).");
+    const n = Object.keys(daten).length;
+    setInfo(n + (n === 1 ? " Datensatz" : " Datensätze") + " gesichert ("
+      + Math.round(paket.length / 1024) + " KB).");
   };
 
+  /* `execCommand` LIEFERT EINEN WAHRHEITSWERT (F05). Er wurde nie
+     ausgewertet: bei `false` erschien trotzdem „In die Zwischenablage
+     kopiert", und der Spieler ging von einer Sicherung aus, die er nicht
+     hatte. */
   const kopieren = () => {
     try {
       const el = document.getElementById("sicherungsfeld");
-      if (el) { el.focus(); el.select(); document.execCommand("copy"); setInfo("In die Zwischenablage kopiert."); }
+      if (!el) { setInfo("Bitte den Text von Hand markieren und kopieren."); return; }
+      el.focus(); el.select();
+      const ok = document.execCommand("copy");
+      setInfo(ok ? "In die Zwischenablage kopiert."
+                 : "Kopieren hat nicht geklappt — bitte den Text von Hand markieren und kopieren.");
     } catch (e) { setInfo("Bitte den Text von Hand markieren und kopieren."); }
   };
 
-  const importieren = async () => {
+  /* V03: zusätzlich zur Zwischenablage echte Dateien im Browser verwenden. */
+  const dateiSpeichern = () => {
+    if (!text) return;
+    try {
+      const url = URL.createObjectURL(new Blob([text], {type:"application/json"}));
+      const a = document.createElement("a"); a.href = url;
+      a.download = "rasenschach-sicherung-" + new Date().toISOString().slice(0,10) + ".json";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setInfo("Download angefordert. Bitte prüfen, ob die Datei gespeichert wurde; alternativ den Text kopieren.");
+    } catch (e) { setInfo("Dateidownload hier nicht verfügbar. Bitte den Sicherungstext kopieren."); }
+  };
+  const dateiLesen = async (e) => {
+    const f = e.target.files?.[0]; if (!f || aktiv.current) return;
+    aktiv.current = true; setBeschaeftigt(true);
+    try {
+      const wert = await f.text(); backupLesen(wert, SICHER_KEYS, VERSION);
+      setEingabe(wert); setInfo("Datei gelesen. Bitte Vorschau prüfen und anschließend Einspielen wählen.");
+    } catch (err) { setInfo(err.message || "Datei konnte nicht gelesen werden."); }
+    finally { aktiv.current = false; setBeschaeftigt(false); e.target.value = ""; }
+  };
+
+  /* WAS STECKT IN DIESER SICHERUNG? (35.150, V03)
+
+     Der Bericht verlangt „vor Import eine Vorschau mit Version, Zeitpunkt und
+     vorhandenem Fortschritt" — und dass der Zeitpunkt aus ECHTEN Metadaten
+     stammt, nicht geschaetzt wird.
+
+     Eine Sicherung einzuspielen ist unumkehrbar: sie ersetzt den ganzen
+     Stand (F02). Wer vorher sieht, dass die Datei drei Laufbahnen und keine
+     Akademie enthaelt, waehrend er selbst bei acht steht, spielt sie nicht
+     versehentlich ein.
+
+     Gelesen wird nur, was wirklich dasteht. Fehlt ein Feld, steht dort ein
+     Strich — keine Schaetzung. */
+  const vorschauLesen = (text) => {
     let paket;
-    try { paket = JSON.parse(eingabe.trim()); }
-    catch (e) { setInfo("Das ist kein gültiger Sicherungstext."); return; }
-    if (!paket || paket.spiel !== "rasenschach" || !paket.daten) { setInfo("Der Text gehört nicht zu diesem Spiel."); return; }
+    try { paket = JSON.parse(String(text || "").trim()); } catch (e) { return null; }
+    if (!paket || paket.spiel !== "rasenschach" || !paket.daten) return null;
+    const lies = (k) => {
+      try { const r = paket.daten[k]; return r ? JSON.parse(r) : null; }
+      catch (e) { return null; }
+    };
+    const bilanz = lies(LIFE_KEY) || {};
+    const halle = lies(HALL_KEY);
+    const stand = lies(SAVE_KEY);
+    const aka2 = lies(AKA_KEY);
+    const ver2 = lies(VER_KEY);
+    const pool2 = lies(KARTEN_KEY);
+    return {
+      fassung: paket.v || null,
+      zeit: paket.t && Number.isFinite(new Date(paket.t).getTime()) ? new Date(paket.t) : null,
+      laufbahnen: typeof bilanz.karrieren === "number" ? bilanz.karrieren : null,
+      halle: Array.isArray(halle) ? halle.length : null,
+      aktiv: stand && stand.p ? (stand.p.name || "eine Laufbahn") : null,
+      akademie: aka2 && aka2.gegruendet ? (aka2.name || "gegründet") : null,
+      verein: ver2 ? (ver2.name || ver2.v?.name || null) : null,
+      karten: pool2 && Array.isArray(pool2.karten) ? pool2.karten.length : null,
+      datensaetze: Object.keys(paket.daten).filter((k) => SICHER_KEYS.includes(k)).length,
+    };
+  };
+
+  /* F02-F04: zuerst Schema und Ablauf prüfen, dann abgesichert ersetzen. */
+  const importieren = async () => {
+    if (aktiv.current) return;
     if (!hasStore()) { setInfo("Auf diesem Gerät ist kein Speicher verfügbar."); return; }
-    let n = 0;
-    for (const k of Object.keys(paket.daten)) {
-      if (!SICHER_KEYS.includes(k)) continue;
-      try { await store.set(k, paket.daten[k]); n++; } catch (e) { /* überspringen */ }
-    }
-    setInfo(n + " Datensätze eingespielt. Die Ansicht wird aktualisiert.");
-    if (onImport) await onImport();
+    aktiv.current = true; setBeschaeftigt(true);
+    try {
+      const daten = backupLesen(eingabe.trim(), SICHER_KEYS, VERSION);
+      if (daten[SAVE_KEY]) laufWeiter(JSON.parse(daten[SAVE_KEY]), EVENTS);
+      const undo = await datenErsetzen(store, daten, importKeys, RUECK_KEY, VERSION);
+      setRueckweg(undo);
+      if (onImport) await onImport();
+      const n = Object.keys(daten).length;
+      setInfo(n + (n === 1 ? " Datensatz" : " Datensätze") + " eingespielt. Die Ansicht wurde aktualisiert.");
+    } catch (e) { setInfo(e.message || "Import fehlgeschlagen. Bitte den Sicherungstext prüfen.");
+      if (e.wiederherstellungOffen && onImport) await onImport().catch(() => {}); }
+    finally { aktiv.current = false; setBeschaeftigt(false); }
   };
 
   return (
@@ -15152,7 +16302,7 @@ function BackupScreen({ onBack, onImport }) {
       <div className="fade" style={{ maxWidth: 720, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div className="d" style={{ fontSize: 26 }}>Sicherung</div>
-          <button className="btn sm" onClick={onBack}>Zurück</button>
+          <button className="btn sm" onClick={zurueckGehen} disabled={beschaeftigt}>Zurück</button>
         </div>
         <p style={{ fontSize: 12, color: "var(--mu)", margin: "6px 0 14px" }}>
           Spielstand als Text mitnehmen und auf einem anderen Gerät wieder einspielen.
@@ -15168,11 +16318,12 @@ function BackupScreen({ onBack, onImport }) {
             <div className="eb" style={{ marginBottom: 6 }}>Daten auslesen</div>
             <button className="btn sm" onClick={exportieren}>Sicherungstext erzeugen</button>
             {text && (<>
-              <textarea id="sicherungsfeld" readOnly value={text} spellCheck="false"
+              <textarea id="sicherungsfeld" aria-label="Erzeugter Sicherungstext zum Kopieren" readOnly value={text} spellCheck="false"
                 style={{ width: "100%", height: 150, marginTop: 10, background: "var(--pan2)", color: "var(--tx)",
                   border: "1px solid var(--ln)", borderRadius: 0, fontSize: 10, fontFamily: "monospace", padding: 8 }} />
               <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
                 <button className="btn sm" onClick={kopieren}>Kopieren</button>
+                <button className="btn sm" onClick={dateiSpeichern}>Datei speichern</button>
               </div>
               <div style={{ fontSize: 11, color: "var(--mu)", marginTop: 8 }}>
                 Text sicher ablegen: Notiz, Mail an dich selbst oder Textdatei.
@@ -15185,12 +16336,68 @@ function BackupScreen({ onBack, onImport }) {
             <div style={{ fontSize: 11.5, color: "var(--mu)", marginBottom: 8 }}>
               Achtung: Der vorhandene Fortschritt auf diesem Gerät wird dabei überschrieben.
             </div>
-            <textarea value={eingabe} onChange={(e) => setEingabe(e.target.value)} spellCheck="false"
+            <label style={{display:"block",marginBottom:10}}>Sicherungsdatei auswählen
+              <input type="file" accept=".json,.txt,application/json,text/plain" aria-label="Sicherungsdatei auswählen"
+                onChange={dateiLesen} disabled={beschaeftigt} style={{display:"block",marginTop:5,maxWidth:"100%"}} />
+            </label>
+            <textarea aria-label="Sicherungstext zum Einspielen" value={eingabe} onChange={(e) => setEingabe(e.target.value)} spellCheck="false"
               placeholder="Sicherungstext hier einfügen"
               style={{ width: "100%", height: 150, background: "var(--pan2)", color: "var(--tx)",
                 border: "1px solid var(--ln)", borderRadius: 0, fontSize: 10, fontFamily: "monospace", padding: 8 }} />
-            <button className="btn sm" style={{ marginTop: 8 }} disabled={!eingabe.trim()} onClick={importieren}>
+            {/* VORSCHAU VOR DEM EINSPIELEN (35.150, V03). Ein Import ersetzt
+                den ganzen Stand — wer vorher sieht, was in der Sicherung
+                steht, spielt sie nicht versehentlich ein. Alles aus echten
+                Metadaten; was fehlt, bekommt einen Strich. */}
+            {(() => {
+              const v = vorschauLesen(eingabe);
+              if (!eingabe.trim()) return null;
+              if (!v) return (
+                <div className="m" style={{ fontSize: 12, color: "var(--bad)", marginTop: 8 }}>
+                  Das ist kein lesbarer Sicherungstext.</div>);
+              const z = (w, n) => (
+                <div key={w} style={{ display: "flex", justifyContent: "space-between",
+                  gap: 10, padding: "2px 0" }}>
+                  <span className="m" style={{ fontSize: 11.5, color: "var(--mu)" }}>{w}</span>
+                  <span style={{ fontSize: 12.5, textAlign: "right" }}>{n == null ? "—" : n}</span>
+                </div>);
+              return (
+                <div className="pan pad" style={{ marginTop: 10 }}>
+                  <div className="eb" style={{ color: "var(--ac)" }}>Das steht in dieser Sicherung</div>
+                  <div style={{ marginTop: 5 }}>
+                    {z("Fassung", v.fassung)}
+                    {z("Erstellt", v.zeit ? v.zeit.toLocaleDateString("de-DE",
+                      { day: "2-digit", month: "2-digit", year: "numeric" }) : null)}
+                    {z("Abgeschlossene Laufbahnen", v.laufbahnen)}
+                    {z("Einträge in der Ruhmeshalle", v.halle)}
+                    {z("Laufende Laufbahn", v.aktiv)}
+                    {z("Akademie", v.akademie)}
+                    {z("Eigener Verein", v.verein)}
+                    {z("Karten in der Sammlung", v.karten)}
+                  </div>
+                  <div className="m" style={{ fontSize: 11, color: "var(--mu)", marginTop: 7 }}>
+                    Beim Einspielen wird dein jetziger Stand vollständig ersetzt.
+                  </div>
+                </div>);
+            })()}
+            <button className="btn sm" style={{ marginTop: 8 }} disabled={beschaeftigt || !eingabe.trim()} onClick={importieren}>
               Einspielen und überschreiben</button>
+
+            {/* DER RÜCKWEG (35.150, V03). Erscheint nur, wenn wirklich einer
+                bereitliegt. Einmalig: nach dem Zurückholen ist er weg — sonst
+                stünde die Frage im Raum, welcher der beiden Stände der echte
+                ist. */}
+            {rueckweg && (
+              <div className="pan pad" style={{ marginTop: 12, borderColor: "var(--go)" }}>
+                <div className="eb" style={{ color: "var(--go)" }}>Rückweg vorhanden</div>
+                <div className="m" style={{ fontSize: 12, marginTop: 3 }}>
+                  Vor dem letzten Einspielen wurde dein damaliger Stand gesichert
+                  {rueckweg.t ? " (" + new Date(rueckweg.t).toLocaleDateString("de-DE",
+                    { day: "2-digit", month: "2-digit", year: "numeric" }) + ")" : ""}.
+                  Du kannst ihn einmal zurückholen.
+                </div>
+                <button className="btn sm" style={{ marginTop: 8 }} onClick={zurueckholen} disabled={beschaeftigt}>
+                  Diesen Stand zurückholen</button>
+              </div>)}
           </div>
         )}
         {info && <div className="up pad" style={{ marginTop: 12, fontSize: 12 }}>{info}</div>}
@@ -15225,7 +16432,14 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
           <div style={{ width: (pkt / maxPkt * 100) + "%", height: "100%", background: "var(--go)" }} />
         </div>
 
-        <div className="g3" style={{ marginTop: 14 }}>
+        {/* F36 (35.140): „Pflichtspiele 5.200" neben einer laufenden
+            Karriere las sich wie die Zahl DIESER Laufbahn. Es sind Summen
+            über alle. Eine Überschrift kostet eine Zeile und nimmt die
+            Verwechslung weg. */}
+        <div className="eb" style={{ marginTop: 14, color: "var(--mu)" }}>
+          Über alle {G.karrieren} {G.karrieren === 1 ? "Laufbahn" : "Laufbahnen"} zusammen
+        </div>
+        <div className="g3" style={{ marginTop: 5 }}>
           <Stat k="Laufbahnen" v={G.karrieren} />
           <Stat k="Pflichtspiele" v={G.apps} />
           <Stat k="Tore" v={G.goals} />
@@ -15363,7 +16577,16 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
                       nur die Nummer, damit das Leerfeld leer bleibt. */}
                   {hat
                     ? <Rangblock s={a.s} />
-                    : <span className="m" style={{ fontSize: 9, color: "var(--ln2)", opacity: .9 }}>{nr}</span>}
+                    /* `--mu` STATT `--ln2` (35.145, F53). Hier stand eine
+                       LINIENFARBE als Textfarbe, zusaetzlich auf 90 %
+                       Deckung gesetzt: Kontrast 2,66 bei einer Grenze von 3,
+                       und das 192 Mal auf einer Seite. Der Kontrastwaechter
+                       sah es nie, weil er bis 35.144 nur drei Ansichten
+                       prueste und die Errungenschaften nicht dazugehoerten.
+
+                       `--mu` ist die Farbe fuer Nebentext und erreicht 5,99.
+                       Die Deckung faellt weg — sie war der zweite Grund. */
+                    : <span className="m" style={{ fontSize: 9, color: "var(--mu)" }}>{nr}</span>}
                 </div>
                 <div style={{ fontSize: 11.5, color: hat ? "var(--tinte2)" : "var(--mu)", marginTop: 3 }}>{a.t}</div>
                 {a.lohn && META[a.lohn] && (
@@ -15400,6 +16623,14 @@ function AchievementScreen({ ach, ges, meta, onBack }) {
    leere Zeile. Wer noch keinen Aufstieg geschafft hat, liest das nicht als
    „0 Aufstiege", sondern gar nicht — sonst stünde die halbe Seite auf null
    und sähe nach Versagen aus statt nach offener Rechnung. */
+/* Wie viele verschiedene Orte stehen in einer Zaehlkarte? Vertraegt auch
+   eine blosse Zahl aus alten Staenden und fehlende Werte. */
+const zaehlOrte = (x) => {
+  if (typeof x === "number") return x;
+  if (x && typeof x === "object") return Object.keys(x).length;
+  return 0;
+};
+
 const REKORDE = [
   ["Höchste Karrierepunkte",     (g) => g.bestPunkte,   ""],
   ["Höchste Gesamtstärke",       (g) => g.ovrMax,       ""],
@@ -15416,9 +16647,19 @@ const REKORDE = [
   ["Turniersiege mit dem Land",  (g) => g.ntTitel,      ""],
   ["Längste Vereinstreue",       (g) => g.treueMax,     "Jahre am Stück"],
   ["Ältester Einsatz",           (g) => g.altMax,       "Jahre"],
-  ["Bespielte Länder",           (g) => g.laender,      ""],
-  ["Bespielte Ligen",            (g) => g.ligen,        ""],
-  ["Verschiedene Vereine",       (g) => g.vereine,      ""],
+  /* ZAEHLOBJEKTE, KEINE ZAHLEN (35.140, F30). `laender`, `ligen` und
+     `vereine` sind Karten der Form { DE: 1, FR: 1, … } — sie zaehlen, WIE
+     OFT jeder Ort bespielt wurde. `rekordListe` prueft `wert > 0`, und das
+     ist bei einem Objekt immer falsch: die drei Zeilen fielen seit 35.116
+     IMMER weg, auch bei 4 Laendern, 5 Ligen und 12 Vereinen.
+
+     Gezaehlt wird die Zahl VERSCHIEDENER Eintraege, nicht die Summe der
+     Besuche — wer dreimal in Spanien spielte, war in EINEM Land. Alte oder
+     beschaedigte Staende, in denen dort schon eine Zahl steht, werden
+     mitgenommen. */
+  ["Bespielte Länder",           (g) => zaehlOrte(g.laender), ""],
+  ["Bespielte Ligen",            (g) => zaehlOrte(g.ligen),   ""],
+  ["Verschiedene Vereine",       (g) => zaehlOrte(g.vereine), ""],
   ["Aufstiege geschafft",        (g) => g.aufstiege,    ""],
   ["Saisons als Kapitän",        (g) => g.kapitaen,     ""],
 ];
@@ -15454,15 +16695,22 @@ function metaZeitleiste(hall, aka, verein) {
 
   /* Die erste Laufbahn und jede besonders starke. Nicht alle zwölf — eine
      Zeitleiste, in der jede Karriere steht, ist die Ruhmeshalle noch einmal. */
+  /* DIE ERSTE NACH ABSCHLUSSREIHENFOLGE, nicht nach Endjahr (35.138, F16).
+     `nr` ist die laufende Nummer des Abschlusses; wo sie fehlt (Eintraege
+     von vor 35.138), bleibt das Endjahr die beste verfuegbare Naeherung.
+     Gemischte Bestaende sind moeglich — dann gewinnt, wer eine Nummer hat. */
+  const mitNr = H.filter((h) => h.nr && h.bis);
   const nachJahr = H.filter((h) => h.bis).slice().sort((a, b) => a.bis - b.bis);
-  if (nachJahr.length) {
-    const erste = nachJahr[0];
+  const erste = mitNr.length
+    ? mitNr.slice().sort((a, b) => a.nr - b.nr)[0]
+    : nachJahr[0];
+  if (erste) {
     E.push({ jahr: erste.bis, was: "Laufbahn",
       text: "Die erste Laufbahn endet: " + erste.name });
   }
   /* Der beste Eintrag überhaupt — der Maßstab der eigenen Welt. */
   const beste = H.slice().sort((a, b) => (b.score || 0) - (a.score || 0))[0];
-  if (beste && beste.bis && (!nachJahr.length || beste !== nachJahr[0]))
+  if (beste && beste.bis && beste !== erste)
     E.push({ jahr: beste.bis, was: "Laufbahn",
       text: beste.name + " — bis heute die stärkste Laufbahn" });
 
@@ -15716,6 +16964,16 @@ function HallScreen({ hall, onBack, ges, aka, verein }) {
                             <span className="m" style={{ fontSize: 9.5, color: "var(--mu)", whiteSpace: "nowrap" }}>
                               {x.k}{x.s ? " · " + x.s : ""}</span>
                           </div>))}
+                        {/* DER AUSZUG WIRD BENANNT (35.158, V11). Vier
+                            Stationen sind gespeichert; wer zwölf hatte, soll
+                            nicht glauben, das seien alle gewesen. Erscheint
+                            nur, wenn wirklich etwas fehlt — und nur bei
+                            Einträgen ab 35.158, die `statN` tragen. */}
+                        {h.statN > h.stat.length && (
+                          <div className="m" style={{ fontSize: 9.5, color: "var(--mu)",
+                            marginTop: 2 }}>
+                            Auszug — insgesamt {h.statN} Stationen
+                          </div>)}
                       </div>)}
                     </div>
                     <div className="m" style={{ fontSize: 9.5, color: "var(--mu)",
@@ -16143,9 +17401,52 @@ function FlutlichtApp() {
   const [tab, setTab] = useState("verlauf");
   const [hall, setHall] = useState([]);
   const [karten, setKarten] = useState(() => KARTEN.leererPool());
+  /* DER NEUESTE POOL, UNABHAENGIG VOM RENDER (35.134, F44).
+
+     `kartenErgaenzen` rechnete mit `karten` aus dem laufenden Render.
+     `setKarten` aendert diese eingefangene Variable nicht — zwei Uebergaben
+     im selben Abschluss gingen daher BEIDE vom alten Pool aus. Nachgestellt:
+     Talentkarte A, dann Vereinskarte B, gespeichert wurde [B] statt [A, B].
+
+     Im Karriereende passiert genau das: Zeile 16713 uebergibt neue
+     Akademiekarten, Zeile 16800 den Kader des fuenfzehnten Vereinsjahres.
+     Ein `useRef` traegt dagegen immer den zuletzt geschriebenen Stand,
+     unabhaengig davon, wann React neu zeichnet. */
+  const kartenRef = useRef(null);
+  const abschlussRef = useRef(null);
+  const buchungAktiv = useRef(false);
+  const [packsZurueck, setPacksZurueck] = useState("vereindach");
   /* Merkt, dass der Laden mit dem Fundus aufgehen soll (35.94). */
   const [fundusAuf, setFundusAuf] = useState(false);
   const [save, setSave] = useState(null);
+  /* WAS SICH NICHT SPEICHERN LIESS (35.132, F06). Bis 35.131 verschwand
+     jeder Schreibfehler in einem leeren `catch` — der Spieler sah nichts und
+     spielte weiter, waehrend nichts mehr ankam. Vier Stellen waren sogar
+     ohne `await`: dort faengt ein synchrones `try/catch` eine abgelehnte
+     Promise ueberhaupt nicht, sie wird zur unbehandelten Ablehnung.
+
+     `schreibe` ist der eine Weg fuer alle. Er meldet nicht bei jedem
+     Wackler, sondern merkt sich, WAS zuletzt nicht ankam — daraus wird eine
+     Zeile im Hauptmenue. Kein Dialog mitten im Spiel: der Fehler ist
+     wichtig, aber er darf die Saison nicht unterbrechen. */
+  const [speicherFehler, setSpeicherFehler] = useState(null);
+  const [geladen, setGeladen] = useState(false);
+  const [ladeFehler, setLadeFehler] = useState(null);
+  const startAktiv = useRef(false);
+  /* Ob die Sicherung aus den Optionen heraus geöffnet wurde (35.147, F56).
+     Beim Zurückkommen springt das Menü dann wieder dorthin. */
+  const [optZurueck, setOptZurueck] = useState(false);
+  const schreibe = async (key, wert, was) => {
+    if (!hasStore()) return false;
+    try {
+      await store.set(key, wert);
+      setSpeicherFehler((alt) => (alt && alt.key === key) ? null : alt);
+      return true;
+    } catch (e) {
+      setSpeicherFehler({ key, was: was || key, t: Date.now() });
+      return false;
+    }
+  };
   const [seen, setSeen] = useState({});
   const [wcSeen, setWcSeen] = useState({});
   const [ach, setAch] = useState({});
@@ -16179,56 +17480,63 @@ function FlutlichtApp() {
 
   /* Alles Dauerhafte aus dem Speicher holen — auch nach einer Sicherung */
   const ladeAlles = async () => {
-      if (!hasStore()) return;
-      try { const v = await ladeMitAltbestand(KARTEN_KEY);
-        if (v) setKarten({ ...KARTEN.leererPool(), ...JSON.parse(v) }); }
-      catch (e) { /* kein Pool, dann eben leer */ }
-      try { const v = await ladeMitAltbestand(HALL_KEY); if (v) setHall(JSON.parse(v)); }
-      catch (e) { /* noch keine Einträge */ }
-      try { const v = await ladeMitAltbestand(SAVE_KEY); if (v) setSave(JSON.parse(v)); }
-      catch (e) { /* kein Spielstand vorhanden */ }
-      try { const v = await ladeMitAltbestand(SEEN_KEY); if (v) setSeen(JSON.parse(v)); }
-      catch (e) { /* noch keine früheren Laufbahnen */ }
-      try { const r = await store.get(WILL_KEY);
-        setGesehen(r && r.value ? { ...leerGesehen(), ...JSON.parse(r.value) } : leerGesehen()); }
-      catch (e) { setGesehen(leerGesehen()); /* nichts gespeichert = noch nie gesehen */ }
-      try { const r = await store.get(ACH_KEY); if (r && r.value) setAch(JSON.parse(r.value)); }
-      catch (e) { /* noch keine Errungenschaften */ }
-      try { const r = await store.get(LIFE_KEY); if (r && r.value) setGes({ ...leereBilanz(), ...JSON.parse(r.value) }); }
-      catch (e) { /* noch keine Gesamtbilanz */ }
-      try { const r = await store.get(META_KEY); if (r && r.value) setMeta(JSON.parse(r.value)); }
-      catch (e) { /* noch nichts freigeschaltet */ }
-      try { const r = await store.get(WC_KEY); if (r && r.value) setWcSeen(JSON.parse(r.value)); }
-      catch (e) { /* noch keine Karten erlebt */ }
-      try { const r = await store.get(HSV_KEY);
-        if (r && r.value != null) setHsvZ(Math.max(0, parseInt(r.value, 10) || 0)); }
-      catch (e) { /* noch kein Zähler */ }
-      try { const r = await store.get(AKA_KEY);
-        if (r && r.value) setAka({ ...leereAkademie(), ...JSON.parse(r.value) }); }
-      catch (e) { /* noch keine Akademie */ }
-      try { const r = await store.get(VER_KEY);
-        if (r && r.value) setVerein({ ...VEREIN.leererVerein(), ...JSON.parse(r.value) }); }
-      catch (e) { /* noch kein Verein */ }
-      try { const r = await store.get("rasenschach:ruhe");
-        if (r && r.value != null) { setRuhe(r.value === "1"); setRuheState(r.value === "1"); } }
-      catch (e) { /* Voreinstellung behalten */ }
-      try { const r = await store.get("rasenschach:vib");
-        if (r && r.value != null) setVibration(r.value === "1"); }
-      catch (e) { /* Voreinstellung behalten */ }
-      try { const r = await store.get("rasenschach:text");
-        if (r && r.value != null) setTextstufe(parseInt(r.value, 10) || 0); }
-      catch (e) { /* Voreinstellung behalten */ }
-      try { const r = await store.get("rasenschach:speed");
-        if (r && r.value != null) setSpeedmodus(r.value === "1"); }
-      catch (e) { /* Voreinstellung behalten */ }
-      try { const r = await store.get("rasenschach:schwer");
-        if (r && r.value) setSchwierigkeit(r.value); }
-      catch (e) { /* Voreinstellung behalten */ }
-      try { const r = await store.get("rasenschach:wach");
-        if (r && r.value === "1") setWach(true); }
-      catch (e) { /* Voreinstellung behalten */ }
+    setGeladen(false);
+    setLadeFehler(null);
+    try {
+      await importWiederherstellen(store, SPEICHERSCHLUESSEL);
+      const auslesen = async (reader) => {
+        const werte = {};
+        for (const key of SPEICHERSCHLUESSEL) {
+          const r = await reader.get(key); werte[key] = r?.value ?? null;
+        }
+        return werte;
+      };
+      const roh = store.transaktion ? await store.transaktion(auslesen) : await auslesen(store);
+      for (const [key, alte] of Object.entries(ALT_KEYS)) {
+        if (roh[key] == null) {
+          const gefunden = alte.find(k => roh[k] != null);
+          if (gefunden) roh[key] = roh[gefunden];
+        }
+      }
+      const lies = (k, leer) => roh[k] == null ? leer : JSON.parse(roh[k]);
+      const H = lies(HALL_KEY, []), S = lies(SAVE_KEY, null);
+      const A = { ...leereAkademie(), ...lies(AKA_KEY, {}) };
+      const V = lies(VER_KEY, null);
+      let W = lies(WC_KEY, {}), K = lies(KARTEN_KEY, KARTEN.leererPool());
+      // Historischer Schlüsselkonflikt: Wildcard-Map ist keine Sammlung.
+      if (!Array.isArray(K?.karten)) {
+        if (roh[WC_KEY] == null) W = K || {};
+        K = KARTEN.leererPool();
+      }
+      // Alle JSON-Datensätze vor der ersten Zustandsänderung lesen.
+      const gesehenNeu = { ...leerGesehen(), ...lies(WILL_KEY, {}) };
+      const seenNeu = lies(SEEN_KEY, {}), achNeu = lies(ACH_KEY, {});
+      const gesNeu = { ...leereBilanz(), ...lies(LIFE_KEY, {}) }, metaNeu = lies(META_KEY, {});
+      const h = Number(roh[HSV_KEY] || 0);
+      // Bestehende Jugendkarten erhalten fehlende Typmetadaten, ohne verkaufte Karten neu zu erzeugen.
+      const absolventen = new Map(A.absolventen.map(t => ['t:' + t.id, t]));
+      K = { ...KARTEN.leererPool(), ...K, karten: K.karten.map(k => {
+        const t = absolventen.get(k.kid);
+        return t?.typ && !k.zusatz?.typ ? {...k, zusatz:{...k.zusatz,typ:t.typ}} : k;
+      }) };
+      setSave(S); setP(null); setHall(H); setSeen(seenNeu); setAch(achNeu); setGes(gesNeu);
+      setMeta(metaNeu); setWcSeen(W); setHsvZ(Number.isFinite(h) ? Math.max(0,h) : 0);
+      setAka(A); setVerein(V ? { ...VEREIN.leererVerein(), ...V } : null);
+      setVAbschluss(null); setQueue([]); setEi(0); setEr(null); setOffers([]); setSeason(null);
+      kartenRef.current = K; setKarten(K); setGesehen(gesehenNeu);
+      if (roh["rasenschach:ruhe"] != null) { setRuhe(roh["rasenschach:ruhe"] === "1"); setRuheState(roh["rasenschach:ruhe"] === "1"); }
+      if (roh["rasenschach:vib"] != null) setVibration(roh["rasenschach:vib"] === "1");
+      if (roh["rasenschach:text"] != null) setTextstufe(parseInt(roh["rasenschach:text"],10) || 0);
+      if (roh["rasenschach:speed"] != null) setSpeedmodus(roh["rasenschach:speed"] === "1");
+      if (roh["rasenschach:schwer"]) setSchwierigkeit(roh["rasenschach:schwer"]);
+      if (roh["rasenschach:wach"] != null) setWach(roh["rasenschach:wach"] === "1");
+      setGeladen(true);
+    } catch (e) {
+      setLadeFehler(e.message || "Der Speicher konnte nicht gelesen werden.");
+      throw e;
+    }
   };
-  useEffect(() => { ladeAlles(); }, []);
+  useEffect(() => { ladeAlles().catch(() => {}); }, []);
 
   /* Vibration für jede Schaltfläche — an einer Stelle statt an zweiundsiebzig.
      Auf pointerdown, damit die Rückmeldung im selben Moment kommt wie die
@@ -16251,55 +17559,70 @@ function FlutlichtApp() {
     assets: [...x.assets], milestones: [...x.milestones], seasons: [...x.seasons],
     trophies: [...x.trophies], awards: [...x.awards], squad: [...x.squad], traits: [...x.traits] });
 
-  /* Spielstand sichern, damit man die Seite verlassen kann */
-  const saveGame = async (q, st) => {
-    if (!hasStore() || !q || q.retired) return;
-    const stand = { v: VERSION, t: Date.now(), step: st || "training",
-      p: { ...q, verdict: undefined } };
-    /* `save` MUSS mitgezogen werden. Bis 34.8 schrieb dies nur in den
-       Speicher — im Hauptmenü stand danach weiter der alte Stand oder gar
-       keiner, obwohl gerade gespeichert worden war. Erst ein Neustart der
-       App zeigte den Fortschritt. Der Zustand wird sofort gesetzt, das
-       Schreiben darf danach in Ruhe laufen. */
-    setSave(stand);
+  /* F01: Angebote und bereits gezogene Ereignisse gehören zum Spielstand. */
+  const saveGame = async (q, st = step, ang = offers, extras = {}) => {
+    if (!hasStore() || !q || q.retired) return false;
     try {
-      await store.set(SAVE_KEY, JSON.stringify(stand));
-    } catch (e) { /* Speichern nicht verfügbar */ }
+      const stand = laufStand(q, st, { queue, ei, er, growth, season, offers: ang, ...extras }, EVENTS, VERSION);
+      setSave(stand);
+      return await schreibe(SAVE_KEY, JSON.stringify(stand), "dein Spielstand");
+    } catch (e) { setSpeicherFehler({key:SAVE_KEY,was:e.message,t:Date.now()}); return false; }
   };
-  const dropSave = async () => {
-    if (!hasStore()) return;
-    try { await store.delete(SAVE_KEY); } catch (e) {}
-    setSave(null);
-  };
-
+  /* Auch Entscheidungen und Geldbewegungen sichern, nicht erst den Menüweg.
+     setSave ist absichtlich keine Abhängigkeit (kein Speicherkreislauf). */
+  useEffect(() => {
+    if (phase === "play" && p && !p.retired) saveGame(p);
+  }, [phase, p, step, queue, ei, er, growth, season, offers]);
   /* Den Pool fortschreiben und sichern (35.79). Er waechst nur — geloescht
      wird hier nichts, das ist der Sinn von „dauerhaft". Doppelte fuehrt
      `poolErgaenzen` zusammen, auf den besseren Wert. */
-  const kartenErgaenzen = async (neue) => {
-    const p2 = KARTEN.poolErgaenzen(karten, neue);
-    setKarten(p2);
-    if (!hasStore()) return;
-    try { await store.set(KARTEN_KEY, JSON.stringify(p2)); } catch (e) { /* egal */ }
+  const akademieAendern = (n, v) => {
+    const ids = new Set((aka.absolventen || []).map(t => t.id));
+    const neu = (n.absolventen || []).filter(t => !ids.has(t.id));
+    const pool = KARTEN.poolErgaenzen(kartenRef.current || karten, neu.map(t => KARTEN.ausAbsolvent(t)));
+    const daten = { [AKA_KEY]: JSON.stringify(n), [KARTEN_KEY]: JSON.stringify(pool) };
+    if (v !== undefined) daten[VER_KEY] = JSON.stringify(v);
+    return bucheAenderung(daten, () => {
+      setAka(n); kartenRef.current = pool; setKarten(pool);
+      if (v !== undefined) setVerein(v);
+    });
   };
+  const bereiteHalle = (e) => {
+    /* DIE ERSTE LAUFBAHN BLEIBT (35.158, V11).
 
-  const saveHall = async (e) => {
-    const next = [e, ...hall].sort((a, b) => b.score - a.score).slice(0, 12);
-    setHall(next);
-    if (!hasStore()) return;
-    try { await store.set(HALL_KEY, JSON.stringify(next)); } catch (err) { /* Speichern nicht verfügbar */ }
+       Die Halle ist eine BESTENLISTE — zwölf nach Punkten, und das soll so
+       bleiben. Aber die erste abgeschlossene Karriere ist keine Bestleistung,
+       sondern eine Erinnerung: wer schwach anfing, verlor sie nach zwölf
+       besseren Laufbahnen, und mit ihr die Zeile „Die erste Laufbahn endet"
+       in der Zeitleiste.
+
+       Der Bericht nennt genau diesen Fall: „Die erste tatsaechlich
+       abgeschlossene Karriere bleibt erinnerbar, auch wenn sie spaeter nicht
+       mehr zu den zwoelf staerksten gehoert."
+
+       Sie behaelt deshalb einen Platz — der dreizehnte, wenn sie sonst
+       herausfiele. Kein neues Feld: `nr` gibt es seit 35.138, und `nr === 1`
+       ist die Erste. Alte Staende ohne `nr` verhalten sich wie bisher; eine
+       Reihenfolge wird nicht erfunden. */
+
+    const roh = [e, ...hall.filter(h => !e.id || h.id !== e.id)].sort((a, b) => b.score - a.score);
+    const zwoelf = roh.slice(0, 12);
+    const erste = roh.find((x) => x && x.nr === 1);
+    const next = (erste && zwoelf.indexOf(erste) < 0)
+      ? [...zwoelf, erste]
+      : zwoelf;
+    return { hall: next, karte: KARTEN.ausHalle(e, e.id || e.nr) };
   };
   /* Erlebte Ereignisse für kommende Laufbahnen merken, ältere verblassen lassen */
-  const merkeErlebtes = async (q) => {
+  const bereiteErlebtes = (q) => {
     const next = {};
     Object.keys(seen || {}).forEach((k) => { const v = seen[k] * .72; if (v >= .25) next[k] = v; });
     Object.keys(q.evLog || {}).forEach((k) => { next[k] = (next[k] || 0) + 1; });
-    setSeen(next);
-    if (!hasStore()) return;
-    try { await store.set(SEEN_KEY, JSON.stringify(next)); } catch (e) { /* kein Speicher */ }
+    return next;
   };
 
   /* Errungenschaften über alle Laufbahnen hinweg festhalten */
-  const merkeErfolge = async (q, akaJetzt, vereinJetzt, vereinsZahlen) => {
+  const bereiteErfolge = (q, akaJetzt, vereinJetzt, vereinsZahlen) => {
     const A = akaJetzt || aka || leereAkademie();
     const G = bilanzErgaenzen(ges, q);
     /* Die Vereinszahlen dazurechnen, falls in dieser Laufbahn einer fertig
@@ -16342,31 +17665,10 @@ function FlutlichtApp() {
        Summe kein kleiner Betrag, und der erste Entwurf mit 3/6/12/20/35 haette
        fast den ganzen Vollausbau verschenkt. */
     const erfLohn = vcAusHaeusern(null, null, neu);
-    if (erfLohn.vc > 0 && akaJetzt) {
-      const a3 = { ...akaJetzt, vc: (akaJetzt.vc || 0) + erfLohn.vc,
-        verdient: (akaJetzt.verdient || 0) + erfLohn.vc };
-      setAka(a3); speichereAka(a3);
-    }
-    setGes(G); setAch(next); setMeta(frei); setWcSeen(wcN);
+    const a3 = erfLohn.vc > 0 ? { ...A, vc: (A.vc || 0) + erfLohn.vc,
+      verdient: (A.verdient || 0) + erfLohn.vc } : A;
     q.neueErfolge = neu.map((a) => ({ id: a.id, n: a.n, s: a.s, lohn: a.lohn }));
-    if (!hasStore()) return;
-    try {
-      await store.set(LIFE_KEY, JSON.stringify(G));
-      await store.set(ACH_KEY, JSON.stringify(next));
-      await store.set(META_KEY, JSON.stringify(frei));
-      await store.set(WC_KEY, JSON.stringify(wcN));
-    } catch (e) { /* kein Speicher */ }
-  };
-
-  const speichereHsv = async (n) => {
-    setHsvZ(n);
-    if (!hasStore()) return;
-    try { await store.set(HSV_KEY, String(n)); } catch (e) { /* kein Speicher */ }
-  };
-
-  const speichereAka = async (n) => {
-    if (!hasStore()) return;
-    try { await store.set(AKA_KEY, JSON.stringify(n)); } catch (e) { /* kein Speicher */ }
+    return { ges: G, ach: next, meta: frei, wcSeen: wcN, aka: a3 };
   };
 
   /* Eine Abteilung ausbauen */
@@ -16376,7 +17678,7 @@ function FlutlichtApp() {
     haptik("wahl");
     const n = { ...aka, vc: aka.vc - preis, ausgegeben: (aka.ausgegeben || 0) + preis,
       stufen: { ...aka.stufen, [id]: akaStufe(aka, id) + 1 } };
-    setAka(n); speichereAka(n);
+    return bucheAenderung({[AKA_KEY]: JSON.stringify(n)}, () => setAka(n));
   };
 
   /* Im Laden kaufen. Die Coins liegen in derselben Kasse wie die der Akademie
@@ -16392,6 +17694,7 @@ function FlutlichtApp() {
      nur `p.laden` — also stand im Laden ewig „läuft“, Nachkaufen war für immer
      gesperrt, und `start()` schenkte den Kauf jeder weiteren Laufbahn erneut. */
   const ladenKauf = (a) => {
+    if (ladenGesperrt(a, p && !p.retired ? "saison" : "menu", step)) return;
     const kasse = aka.vc || 0;
     if (kasse < a.preis) return;
     /* Gegen den Bestand prüfen, der wirklich gilt: läuft eine Laufbahn, ist
@@ -16415,23 +17718,34 @@ function FlutlichtApp() {
       const q = { ...p, laden: buchen(p.laden || {}) };
       if (a.id === "physio") { q.injury = null; q.fitness = clamp((p.fitness || 70) + 18, 0, 100); }
       if (a.id === "trainer") q.trust = Math.max(p.trust || 0, 85);
-      setP(q); saveGame(q, step);
       const n = { ...aka, vc: kasse - a.preis, ausgegeben: (aka.ausgegeben || 0) + a.preis };
-      setAka(n); speichereAka(n);
+      const stand = laufStand(q, step, {queue, ei, er, growth, season, offers}, EVENTS, VERSION);
+      return bucheAenderung({[SAVE_KEY]: JSON.stringify(stand), [AKA_KEY]: JSON.stringify(n)},
+        () => { setP(q); setSave(stand); setAka(n); });
     } else {
       /* Ohne Laufbahn in den Vorrat. `start()` holt ihn ab. */
       const n = { ...aka, vc: kasse - a.preis, ausgegeben: (aka.ausgegeben || 0) + a.preis,
         laden: buchen(aka.laden || {}) };
-      setAka(n); speichereAka(n);
+      return bucheAenderung({[AKA_KEY]: JSON.stringify(n)}, () => setAka(n));
     }
   };
 
-  const finish = (q, reason) => {
+  const finish = async (q, reason) => {
+    const id = q.karriereId || `${q.name}:${q.avatar}:${q.lauf}`;
+    if (abschlussRef.current === id || q.retired || buchungAktiv.current) return;
+    buchungAktiv.current = true;
+    abschlussRef.current = id;
+    setSimLauf(true);
+    try {
+    q = clone(q);
+    let poolNachher = kartenRef.current || karten;
+    const ergaenze = (neue) => { poolNachher = KARTEN.poolErgaenzen(poolNachher, neue); };
+    q.karriereId = id;
     q.verdict = verdict(q); q.retired = true; q.endReason = reason || q.endNow || null;
     /* Vermächtnis-Coins und ein Jahr Akademie */
     /* Ausgleichszähler der Rautekarte: nach jeder abgeschlossenen Laufbahn
        ohne sie steigt die Aussicht, mit ihr beginnt alles von vorn. */
-    speichereHsv(q.flags.nurderhsv ? 0 : Math.max(hsvZ, q.hsvZaehler || 0) + 1);
+    const hsvNeu = q.flags.nurderhsv ? 0 : Math.max(hsvZ, q.hsvZaehler || 0) + 1;
     const vcNeu = vcFuer(q);
     const AK2 = akaVerbuchen(aka, vcNeu);
     q.vcGewinn = vcNeu; q.vcPosten = vcPosten(q);
@@ -16457,8 +17771,7 @@ function FlutlichtApp() {
       const vorher = new Set(((aka && aka.absolventen) || []).map((x) => x && x.id));
       const neueAbs = (AK2.a.absolventen || []).filter((x) => x && x.id && !vorher.has(x.id));
       if (neueAbs.length) {
-        try { kartenErgaenzen(neueAbs.map((x) => KARTEN.ausAbsolvent(x))); }
-        catch (e) { /* Sammlung nicht verfügbar — die Laufbahn endet trotzdem */ }
+        ergaenze(neueAbs.map((x) => KARTEN.ausAbsolvent(x)));
       }
     }
 
@@ -16495,7 +17808,7 @@ function FlutlichtApp() {
            `vereinSichern` — ein `speichereVerein` gibt es nicht. Drei erfundene
            Namen im ersten Entwurf, alle drei still: sie waeren `undefined`
            geworden und der Bericht haette Luecken gezeigt statt zu brechen. */
-        vereinSichern(VS.v);
+
         /* AUS DER SAISON, nicht aus der Tabellenzeile (35.58). Hier stand
            `meins.pts` — und seit 35.52 heisst das Feld `pkt`. Der Bericht am
            Karriereende zeigte deshalb bei „Punkte" einen Strich, waehrend
@@ -16528,9 +17841,9 @@ function FlutlichtApp() {
            ueberlebt. */
         if (VS.vorbei) {
           const erg = VEREIN.abschluss(VS.v);
-          setVAbschluss(erg);
+
           VS.v = { ...VS.v, abgeschlossen: erg };
-          vereinSichern(VS.v);
+  
           /* Die dauerhaften Vereinszahlen fortschreiben (35.74) — GENAU
              EINMAL je Verein, hier beim Abschluss. `vorbei` wird nur im
              fuenfzehnten Jahr wahr, und danach spielt der Verein nicht mehr
@@ -16544,7 +17857,7 @@ function FlutlichtApp() {
              mehr. */
           const poolNeu = (VS.v.kader || [])
             .map((sp) => KARTEN.ausKader(sp, VS.v.name, VS.v.jahr));
-          if (poolNeu.length) kartenErgaenzen(poolNeu);
+          if (poolNeu.length) ergaenze(poolNeu);
           /* DAS STARTPAKET FUER DEN NAECHSTEN VEREIN (35.89, Kevins Vorgabe).
              Es wird HIER vorgemerkt, nicht beim Gruenden: der Pool enthaelt
              gerade jetzt den eben abgeschlossenen Kader, und genau daraus
@@ -16608,20 +17921,36 @@ function FlutlichtApp() {
       q.vcPosten = [...(q.vcPosten || []), ...haus.posten];
     }
 
-    setAka(AK2.a); speichereAka(AK2.a);
-    setRueckblick(null); setJubel([]); setMarken([]); setSchluss(null); setSimLauf(false);
-    setKarriereRueck({ ...q, lauf: q.lauf });
-    /* Der Vereinsstand NACH der Saison. Ohne ihn zaehlte ein Meistertitel
-       erst eine Laufbahn spaeter — die Errungenschaft kaeme im falschen
-       Jahr und der Jubel am falschen Bildschirm. */
-    dropSave(); merkeErlebtes(q); merkeErfolge(q, AK2.a, vereinNachher, vereinsBilanz);
-    setP(q); setPhase("end"); setStopAsk(false);
+    const erlebtNeu = bereiteErlebtes(q);
+    const erfolge = bereiteErfolge(q, AK2.a, vereinNachher, vereinsBilanz);
     /* Verein mit den meisten Einsätzen — das ist der Verein, für den man
        in Erinnerung bleibt, nicht der letzte. */
     const proVerein = {};
     q.seasons.forEach((x) => { proVerein[x.club] = (proVerein[x.club] || 0) + (x.apps || 0); });
     const heimat = Object.keys(proVerein).sort((a, b) => proVerein[b] - proVerein[a])[0] || null;
-    saveHall({ name: q.name, pos: q.pos, nat: q.nation.flag, age: q.age, score: q.verdict.score,
+    /* DIE LAUFENDE NUMMER (35.138, F16). Ohne sie liess sich die erste
+       abgeschlossene Karriere nicht bestimmen: `metaZeitleiste` nahm das
+       kleinste ENDJAHR — aber jede Laufbahn startet 2026, und eine spaeter
+       gespielte kurze endet frueher als eine zuerst gespielte lange. Im Test
+       wurde eine danach gespielte Karriere bis 2040 als „erste" genannt.
+
+       `G.karrieren` zaehlt bereits alle Abschluesse und ist an dieser Stelle
+       schon erhoeht. Alte Eintraege haben `nr` nicht — die Zeitleiste faellt
+       dort auf das Endjahr zurueck, statt eine Reihenfolge zu erfinden. */
+    /* `ges`, NICHT `G` (berichtigt 35.139). `G` gibt es an dieser Stelle
+       nicht — der Karriereabschluss stuerzte mit „G is not defined" ab.
+       Gefangen von der Sichtpruefung, die als einzige einen echten
+       Karriereabschluss durchklickt; Ansichts- und Vereinspruefung
+       erreichen diesen Pfad nicht.
+
+       Siebter erfundener Name in dieser Reihe. Und der erste, der es bis in
+       einen Abnahmelauf geschafft hat — weil ich `G` aus der Beschreibung
+       des Berichts uebernommen habe, statt im Code nachzusehen.
+
+       `+1`, weil `ges.karrieren` erst NACH `finish` erhoeht wird: diese
+       Laufbahn ist die naechste in der Zaehlung. */
+    const halleNeu = bereiteHalle({ id: q.karriereId, nr: ((ges && ges.karrieren) || 0) + 1,
+      name: q.name, pos: q.pos, nat: q.nation.flag, age: q.age, score: q.verdict.score,
       tier: q.verdict.tier, peak: q.peakOvr, titles: q.trophies.length, caps: q.nt.caps,
       goals: q.tot.goals, worth: netWorth(q), wc: q.wc ? q.wc.n : null, wr: q.wc ? q.wc.r : null,
       speed: !!q.speed,
@@ -16648,6 +17977,11 @@ function FlutlichtApp() {
          die Felder gar nicht — die Anzeige muss ohne auskommen, wie schon
          bei den 33.10er-Feldern darüber. */
       at: (archetyp(q) || {}).haupt || null,
+      /* WIE VIELE ES INSGESAMT WAREN (35.158, V11). Gespeichert werden vier
+         Stationen — der Bericht verlangt, diesen Auszug „kenntlich zu
+         machen" statt ihn wie eine vollstaendige Laufbahn aussehen zu
+         lassen. `statN` kostet eine Zahl und sagt, was fehlt. */
+      statN: vereinsKapitel(q.seasons, q).length,
       stat: vereinsKapitel(q.seasons, q).slice(0, 4)
         .map((x) => ({ c: x.club, v: x.von, b: x.bis, k: x.kapitel, s: x.apps })),
       sz: (() => {
@@ -16672,12 +18006,20 @@ function FlutlichtApp() {
           "Das Jahr der Verletzung", "Eine große Spielzeit",
           "Ein Jahr zum Vergessen"];
         const alle = q.seasons.map((x, i) =>
-          ({ z: saisonSchlagzeile(x, i ? q.seasons[i - 1] : null, q), j: x.year }))
+          ({ z: saisonSchlagzeile(x, i ? q.seasons[i - 1] : null, q,
+               i > 1 ? (saisonSchlagzeile(q.seasons[i - 1], q.seasons[i - 2], q) || {}).kopf : null),
+             j: x.year }))
           .filter((x) => x.z && x.z.kopf);
         if (!alle.length) return null;
         for (const k of RANG) {
           const t = alle.find((x) => x.z.kopf === k);
-          if (t) return { k, j: String(t.j || "").slice(0, 7) };
+          /* F38 (35.140): hier stand `.slice(0, 7)` und damit die SAISONFORM
+             („2031/32"), waehrend die Vereinsstationen desselben Eintrags
+             Kalenderjahre fuehren („2030"–„2031"). Zwei Zaehlungen in einem
+             Museumseintrag — heute faellt es nicht auf, weil die Stationen
+             ihr Jahr nicht anzeigen, aber wer es spaeter einblendet,
+             stolpert darueber. Beide nutzen jetzt das Kalenderjahr. */
+          if (t) return { k, j: String(t.j || "").slice(0, 4) };
         }
         return null;   /* nichts Nennenswertes — dann steht auch nichts da */
       })(),
@@ -16696,40 +18038,102 @@ function FlutlichtApp() {
         if (w === "keiner") return "keiner";
         if (w && r.includes(w)) return w;
         return r[0] || null; })() });
+    ergaenze([halleNeu.karte]);
+    const daten = {
+      [SAVE_KEY]: null, [HSV_KEY]: String(hsvNeu),
+      [AKA_KEY]: JSON.stringify(erfolge.aka), [KARTEN_KEY]: JSON.stringify(poolNachher),
+      [HALL_KEY]: JSON.stringify(halleNeu.hall), [SEEN_KEY]: JSON.stringify(erlebtNeu),
+      [LIFE_KEY]: JSON.stringify(erfolge.ges), [ACH_KEY]: JSON.stringify(erfolge.ach),
+      [META_KEY]: JSON.stringify(erfolge.meta), [WC_KEY]: JSON.stringify(erfolge.wcSeen),
+    };
+    if (vereinNachher) daten[VER_KEY] = JSON.stringify(vereinNachher);
+    await datenErsetzen(store, daten, Object.keys(daten), null, VERSION);
+    // Erst nach der bestätigten Gesamtbuchung den sichtbaren Stand wechseln.
+    setSave(null); setHsvZ(hsvNeu); setAka(erfolge.aka);
+    kartenRef.current = poolNachher; setKarten(poolNachher); setHall(halleNeu.hall);
+    setSeen(erlebtNeu); setGes(erfolge.ges); setAch(erfolge.ach);
+    setMeta(erfolge.meta); setWcSeen(erfolge.wcSeen);
+    if (vereinNachher) { setVerein(vereinNachher); setVAbschluss(vereinNachher.abgeschlossen || null); }
+    setRueckblick(null); setJubel([]); setMarken([]); setSchluss(null);
+    setKarriereRueck({ ...q, lauf: q.lauf });
+    setP(q); setPhase("end"); setStopAsk(false);
+    } catch (e) {
+      abschlussRef.current = null;
+      setSpeicherFehler({key:SAVE_KEY,was:e.message,t:Date.now()});
+      // Sichtbar blockieren, damit nach unsicherer Speicherung nichts weiterläuft.
+      setLadeFehler(e.message);
+    } finally { buchungAktiv.current = false; setSimLauf(false); }
+  };
+
+
+  const bucheAenderung = async (daten, anwenden) => {
+    if (buchungAktiv.current) return false;
+    buchungAktiv.current = true;
+    try {
+      await datenErsetzen(store, daten, Object.keys(daten), null, VERSION);
+      anwenden();
+      return true;
+    } catch (e) {
+      setSpeicherFehler({key:SAVE_KEY,was:e.message,t:Date.now()});
+      setLadeFehler(e.message);
+      return false;
+    } finally { buchungAktiv.current = false; }
+  };
+
+  // Eine Buchung darf weder doppelt starten noch vor dem Speichern sichtbar werden.
+  const bucheBestand = async (vorbereiten) => {
+    if (buchungAktiv.current) throw Error("Eine Buchung wird noch gespeichert.");
+    buchungAktiv.current = true;
+    try {
+      const n = vorbereiten();
+      const daten = { [AKA_KEY]: JSON.stringify(n.aka), [KARTEN_KEY]: JSON.stringify(n.pool) };
+      if (n.verein !== undefined) daten[VER_KEY] = JSON.stringify(n.verein);
+      await datenErsetzen(store, daten, Object.keys(daten), null, VERSION);
+      setAka(n.aka); kartenRef.current = n.pool; setKarten(n.pool);
+      if (n.verein !== undefined) setVerein(n.verein);
+    } catch (e) {
+      if (e.wiederherstellungOffen) setLadeFehler(e.message);
+      throw e;
+    } finally { buchungAktiv.current = false; }
   };
 
   /* Alles wegräumen, was von einer vorherigen Laufbahn noch offen sein könnte */
   /* Verein sichern. Getrennt von der Akademie, weil er beim Abschluss ersetzt
      wird und sie bestehen bleibt. Faellt das Schreiben aus, laeuft das Spiel
      weiter — verloren waere nur der letzte Zug, nicht der Stand. */
-  const vereinSichern = (n) => {
-    setVerein(n);
-    try { store.set(VER_KEY, JSON.stringify(n)); } catch (e) { /* kein Speicher */ }
+  const vereinSichern = (n, a) => {
+    const daten = { [VER_KEY]: JSON.stringify(n) };
+    if (a !== undefined) daten[AKA_KEY] = JSON.stringify(a);
+    return bucheAenderung(daten, () => { setVerein(n); if (a !== undefined) setAka(a); });
   };
   const einblendungenLeeren = () => {
     setRueckblick(null); setJubel([]); setMarken([]); setSchluss(null);
     setKarriereRueck(null); setSimLauf(false); setEnthuellung(null); setStopAsk(false);
   };
 
-  const start = (cfg) => {
-    const q = createPlayer({ ...cfg, seen, meta, wcSeen, aka, hsvZaehler: hsvZ });
-    /* Den Vorrat ÜBERGEBEN, nicht kopieren. Bis 34.21 blieb er in `aka.laden`
-       stehen — jede weitere Laufbahn bekam denselben Kauf noch einmal
-       geschenkt, ohne zu zahlen. Jetzt wandert er an den Spieler und ist in
-       der Akademie weg. */
-    const vorrat = { ...(aka.laden || {}) };
-    q.laden = vorrat;
-    if (Object.keys(vorrat).length) {
+  const start = async (cfg) => {
+    if (startAktiv.current || buchungAktiv.current) return;
+    startAktiv.current = true;
+    try {
+      const q = createPlayer({ ...cfg, seen, meta, wcSeen, aka, hsvZaehler: hsvZ });
+      if (cfg.vorsatz) q.vorsatz = cfg.vorsatz;
+      q.laden = { ...(aka.laden || {}) };
       const ohne = { ...aka, laden: {} };
-      setAka(ohne); speichereAka(ohne);
-    }
-    /* Kommt die Raute, beginnt der Zähler sofort wieder von vorn — auch dann,
-       wenn die Laufbahn später abgebrochen statt beendet wird. */
-    if (q.flags.nurderhsv) { q.hsvZaehler = 0; speichereHsv(0); }
-    einblendungenLeeren();
-    setP(q); setPhase("play"); setStep("training"); setGrowth(null); setLog([]);
-    setSeason(null); setTab("verlauf"); setOvrAlt(null); setDetail(false);
-    if (q.wc) setEnthuellung(q.wc);
+      if (q.flags.nurderhsv) q.hsvZaehler = 0;
+      const stand = laufStand(q, "training", {}, EVENTS, VERSION);
+      const daten = { [SAVE_KEY]: JSON.stringify(stand), [AKA_KEY]: JSON.stringify(ohne) };
+      if (q.flags.nurderhsv) daten[HSV_KEY] = "0";
+      await datenErsetzen(store, daten, Object.keys(daten), null, VERSION);
+      setSave(stand); setAka(ohne); if (q.flags.nurderhsv) setHsvZ(0);
+      abschlussRef.current = null;
+      einblendungenLeeren(); setQueue([]); setEi(0); setEr(null); setOffers([]);
+      setP(q); setPhase("play"); setStep("training"); setGrowth(null); setLog([]);
+      setSeason(null); setTab("verlauf"); setOvrAlt(null); setDetail(false);
+      if (q.wc) setEnthuellung(q.wc);
+    } catch (e) {
+      setSpeicherFehler({key:SAVE_KEY,was:e.message,t:Date.now()}); setPhase("menu");
+      if (e.wiederherstellungOffen) setLadeFehler(e.message);
+    } finally { startAktiv.current = false; }
   };
 
   const chooseTraining = (id) => {
@@ -16754,7 +18158,7 @@ function FlutlichtApp() {
     const q = clone(p);
     let out;
     if (choice.roll) {
-      const r = Math.random(); let acc = 0;
+      const r = zufall(); let acc = 0;
       out = choice.roll[choice.roll.length - 1];
       for (const o of choice.roll) { acc += o.p; if (r <= acc) { out = o; break; } }
     } else out = { text: choice.text, fx: choice.fx };
@@ -16807,12 +18211,30 @@ function FlutlichtApp() {
     const q = clone(p);
     q.flags.winterMove = false; q.flags.wechselwunsch = false;
     if (o) {
-      q.prevClub = p.club.n; q.flags.justMoved = true;
-      if (o.type === "loan") { q.loanHome = p.club; q.flags.aufLeihe = true; }
-      else { q.loanHome = null; q.flags.aufLeihe = false; }
-      q.club = o.club; q.squad = makeSquad(o.club, q.g); q.trust = 50; q.flags.kapitaen = false;
-      if (o.type === "transfer") { q.contract = o.years; q.wage = o.wage; q.money += (o.signOn || 0) * .5; }
-      else q.wage = o.wage;
+      /* F48 (35.163): EINE VERLAENGERUNG IST KEIN WECHSEL.
+
+         Hier wurde jedes Angebot wie ein Vereinswechsel behandelt: neuer
+         Kader, Vertrauen auf 50, Kapitaensbinde weg, `prevClub` gesetzt. Und
+         die Vertragsjahre uebernahm nur der `transfer`-Zweig — eine im
+         Winter angenommene Verlaengerung liess `contract` auf 0 stehen.
+         Nachgestellt: Vierjahresangebot angenommen, danach contract = 0.
+
+         `makeOffers` liefert im Winter auch `renew`, und der Sommerweg
+         behandelt die Art anders. Dieselbe Angebotsart muss in beiden
+         Fenstern dasselbe bedeuten — sonst haengt die Wirkung am Kalender. */
+      const bleibt = o.type === "renew" || o.type === "stay";
+      if (!bleibt) {
+        q.prevClub = p.club.n; q.flags.justMoved = true;
+        if (o.type === "loan") { q.loanHome = p.club; q.flags.aufLeihe = true; }
+        else { q.loanHome = null; q.flags.aufLeihe = false; }
+        q.club = o.club; q.squad = makeSquad(o.club, q.g);
+        q.trust = 50; q.flags.kapitaen = false;
+      }
+      /* Die Laufzeit gehoert zu JEDER Art, die eine mitbringt — nicht nur
+         zum Wechsel. */
+      if (o.years) q.contract = o.years;
+      q.wage = o.wage;
+      if (o.type === "transfer") q.money += (o.signOn || 0) * .5;
       q.europeNext = null;
       q.mv = marketValue(q);
     }
@@ -16826,9 +18248,18 @@ function FlutlichtApp() {
     if (q.speed) { const kauf = []; autoKauf(q, kauf); if (kauf.length) s.notes = [...(s.notes || []), ...kauf]; }
     else { const vk = []; verwalterRunde(q, vk); if (vk.length) s.notes = [...(s.notes || []), ...vk]; }
     const erste = makeOffers(q);
+    /* Jetzt haben die Angebote gewirkt — die aufgeschobenen Artikel sind
+       verbraucht (35.152, F46). */
+    if (q.ladenOffen && q.laden) {
+      const L2 = { ...q.laden };
+      q.ladenOffen.forEach((id) => { if (L2[id] > 0) L2[id] = L2[id] - 1; });
+      q.laden = L2; q.ladenOffen = null;
+    }
     /* Steht das Ende ohnehin fest, wird nicht erst noch ein Markt vorgegaukelt */
     const ausAlter = q.age >= LAUFBAHN_MAX || (q.age >= 35 && q.ovr < 56) || (q.age >= 33 && q.ovr < 48);
     if (!erste.length || ausAlter) {
+      q.endNow = ausAlter ? "Der Körper macht es nicht mehr mit." : "Kein Verein meldet sich mehr.";
+      setStep("retire");
       setSeason(s); setP(q); setRueckblick({ p: q, s, lauf: q.lauf });
       const nt0 = (s.ntMajor && s.ntMajor.res === "Titel") ? [s.ntMajor.turnier + " " + s.ntMajor.y] : [];
       const v0 = (s.trophies || []).filter((t) => !nt0.includes(t));
@@ -16842,7 +18273,7 @@ function FlutlichtApp() {
     }
     askCache.current = { [q.wageAsk]: erste,
       _eigen: erste.filter((o) => o.type === "stay" || o.type === "renew") };
-    setSeason(s); setP(q); setOffers(erste); setStep("result"); setTab("tabelle"); saveGame(q, "result");
+    setSeason(s); setP(q); setOffers(erste); setStep("result"); setTab("tabelle"); saveGame(q, "result", erste);
     /* Erst der Rückblick, danach — falls etwas gewonnen wurde — der Jubel */
     setRueckblick({ p: q, s, lauf: q.lauf });
     /* Vereinstitel und Titel mit der Nationalmannschaft getrennt feiern */
@@ -16926,7 +18357,7 @@ function FlutlichtApp() {
            der Spieler von Hand nie haette anklicken koennen. */
         const ch = pick(offeneWahlen(e, q));
         let out;
-        if (ch.roll) { const r = Math.random(); let acc = 0; out = ch.roll[ch.roll.length - 1];
+        if (ch.roll) { const r = zufall(); let acc = 0; out = ch.roll[ch.roll.length - 1];
           for (const o of ch.roll) { acc += o.p; if (r <= acc) { out = o; break; } } } else out = { fx: ch.fx };
         applyFx(q, out.fx); strangWeiter(q, e, out.fx); q.ovr = ovrOf(q.attrs, q.pos);
       });
@@ -17007,10 +18438,19 @@ function FlutlichtApp() {
      einzeln — sonst überschreibt der zweite Schreibvorgang den ersten. */
   const merkeGesehen = async (teil) => {
     const next = { ...(gesehen || leerGesehen()), ...teil };
-    setGesehen(next);
-    try { await store.set(WILL_KEY, JSON.stringify(next)); } catch (e) { /* kein Speicher */ }
+    return bucheAenderung({[WILL_KEY]: JSON.stringify(next)}, () => setGesehen(next));
   };
 
+  if (ladeFehler || !geladen) return <Shell blatt="optionen">
+    <div className="pan pad" role="status">
+      <div className="d" style={{fontSize:24}}>{ladeFehler ? "Spielstand nicht geladen" : "Spielstand wird geladen …"}</div>
+      {ladeFehler && <><p>Dein bisheriger Stand wird nicht überschrieben. {ladeFehler}</p>
+        <button className="btn" onClick={async () => {
+          try { await ladeAlles(); einblendungenLeeren(); setPhase("menu"); }
+          catch (e) { /* Der Ladebildschirm zeigt den Fehler. */ }
+        }}>Erneut versuchen</button></>}
+    </div>
+  </Shell>;
   if (phase === "menu" && gesehen && !gesehen.schirm && hasStore()) return (
     <Shell blatt="optionen" zusatz="WILLKOMMEN">
       <Willkommen onFertig={() => merkeGesehen({ schirm: true })} />
@@ -17029,21 +18469,42 @@ function FlutlichtApp() {
   })();
 
   if (phase === "menu") return <MenuScreen hall={hall} save={save} karten={karten}
+    speicherFehler={speicherFehler}
+    optAuf={optZurueck} onOptAufGesehen={() => setOptZurueck(false)}
     freiHinweis={freiJetzt}
     onFreiZu={() => merkeGesehen(freiJetzt === "verein" ? { verein: true } : { aka: true })}
-    onNew={() => { dropSave(); setPhase("create"); }}
-    onResume={() => { if (save && save.p) { einblendungenLeeren();
-      setP(save.p); setPhase("play"); setStep("training");
-      setGrowth(null); setSeason(null); setLog([]); setTab("verlauf"); setOvrAlt(null); } }}
+    onNew={() => { setPhase("create"); }}
+    onResume={() => { if (save && save.p) {
+      try {
+        const r = laufWeiter(save, EVENTS);
+        einblendungenLeeren();
+        setP(save.p); setPhase("play"); setStep(r.step);
+        setQueue(r.queue); setEi(r.ei); setEr(r.er); setGrowth(r.growth);
+        setSeason(r.season); setLog([]); setOvrAlt(null);
+        // Nur Altstände ohne Angebotsliste benötigen einmalige Reparatur.
+        setOffers(Array.isArray(r.offers) ? r.offers : (["result","winter"].includes(r.step) ? makeOffers(save.p) : []));
+        setTab(r.step === "result" ? "tabelle" : "verlauf");
+      } catch (e) { setSpeicherFehler({key:SAVE_KEY,was:e.message,t:Date.now()}); }
+    } }}
     onHall={() => setPhase("hall")} onAch={() => setPhase("erfolge")}
     achN={ACHIEVEMENTS.filter((a) => ach && ach[a.id]).length}
     metaN={Object.keys(meta || {}).filter((k) => META[k]).length}
-    onBackup={() => setPhase("sicherung")}
+    /* F56 (35.147): die Sicherung wird aus den OPTIONEN heraus geoeffnet,
+       fuehrte aber zurueck auf die Titelseite — `MenuScreen` wird beim
+       Phasenwechsel abgebaut, und der lokale `opt`-Zustand ist danach wieder
+       false. „Anleitung" verhaelt sich anders: sie bleibt im Menue und kehrt
+       in die Optionen zurueck. Zwei Wege aus demselben Untermenue mit
+       verschiedenen Rueckwegen.
+
+       Die Herkunft wird jetzt gemerkt und beim Zurueckkommen wieder
+       hergestellt. */
+    onBackup={() => { setOptZurueck(true); setPhase("sicherung"); }}
     aka={aka} onAka={() => setPhase("akademie")}
+    onSammlung={() => { setPacksZurueck("menu"); setFundusAuf(true); setPhase("packs"); }}
     onVereinDach={() => setPhase("vereindach")}
       verein={verein} gesamt={ges} onVerein={() => setPhase("verein")} onLaden={() => setPhase("laden")}
     meta={meta} aufRahmen={(k) => { const n = { ...(meta || {}), rahmenWahl: k };
-      setMeta(n); store.set(META_KEY, JSON.stringify(n)); }}
+      setMeta(n); schreibe(META_KEY, JSON.stringify(n), "deine Freischaltungen"); }}
     ruhe={ruhe} setRuhe={setRuhe} setRuheState={setRuheState} />;
   /* Das Dach (35.50, nachgetragen 35.53). Es FEHLTE drei Fassungen lang: das
      Skript, das es einsetzen sollte, brach vorher mit einem Fehler ab und
@@ -17065,11 +18526,11 @@ function FlutlichtApp() {
         onFertig={(nv) => vereinSichern(nv)}
         onZurueck={() => setPhase("menu")} />;
     return <VereinDach aka={aka} verein={verein} gesamt={ges} karten={karten}
-      onPacks={() => setPhase("packs")}
-      onFundus={() => { setFundusAuf(true); setPhase("packs"); }}
+      onPacks={() => { setPacksZurueck("vereindach"); setFundusAuf(false); setPhase("packs"); }}
+      onFundus={() => { setPacksZurueck("vereindach"); setFundusAuf(true); setPhase("packs"); }}
       onAka={() => setPhase("akademie")}
       onProfi={() => setPhase("verein")}
-      onAendern={(n) => { setAka(n); speichereAka(n); }}
+      onAendern={akademieAendern}
       onVAendern={vereinSichern}
       onZurueck={() => setPhase(p && p.retired ? "end" : "menu")} />;
   }
@@ -17079,71 +18540,30 @@ function FlutlichtApp() {
     vc={(aka && aka.vc) || 0} pool={karten} verein={verein}
     gratis={(aka && aka.gratisPacks) || 0}
     startpaket={(aka && aka.startpaket) || null}
-    onStartpaket={(neue) => {
-      const a6 = { ...aka }; delete a6.startpaket;
-      setAka(a6); speichereAka(a6);
-      kartenErgaenzen(neue);
-    }}
-    onKauf={(packId, neue) => {
-      const pk = KARTEN.packById(packId);
-      /* PACKKAEUFE BUCHEN JETZT MIT (35.103). Bis 35.102 zog diese Stelle als
-         einzige der acht VC-Bewegungen ab, ohne `ausgegeben` fortzuschreiben —
-         Akademieausbau, Vereinsausbau und VC-Laden taten es alle. Gebucht wird
-         der TATSAECHLICH abgezogene Betrag, nicht der Listenpreis: das
-         `Math.max(0, …)` darunter kappt bei leerer Kasse, und wer 20 VC hat
-         und ein Pack fuer 30 kauft, hat 20 ausgegeben, nicht 30. Sonst waere
-         die Kasse rechnerisch im Minus. */
-      const hat = aka.vc || 0;
-      const zahlt = Math.min(hat, pk.preis);
-      const a4 = { ...aka, vc: hat - zahlt,
-        ausgegeben: (aka.ausgegeben || 0) + zahlt };
-      setAka(a4); speichereAka(a4);
-      kartenErgaenzen(neue);
-    }}
-    onGratis={(neue) => {
-      const a4 = { ...aka, gratisPacks: Math.max(0, (aka.gratisPacks || 0) - 1) };
-      setAka(a4); speichereAka(a4);
-      kartenErgaenzen(neue);
-    }}
-    onEinsetzen={(k) => {
+    onStartpaket={(neue) => bucheBestand(() => packBuchung(aka, kartenRef.current || karten, "start", null, neue, KARTEN))}
+    onKauf={(packId, neue) => bucheBestand(() => packBuchung(aka, kartenRef.current || karten, "kauf", packId, neue, KARTEN))}
+    onGratis={(neue) => bucheBestand(() => packBuchung(aka, kartenRef.current || karten, "gratis", "bronze", neue, KARTEN))}
+    onEinsetzen={async (k) => {
+      if (buchungAktiv.current) return "Eine Buchung wird noch gespeichert.";
       const r = VEREIN.karteEinsetzen(verein, k);
       if (r.fehler) return r.fehler;
-      vereinSichern(r.v);
-      return null;
+      return await vereinSichern(r.v) ? null : "Kaderänderung nicht gespeichert.";
     }}
-    onEntfernen={(k) => {
+    onEntfernen={async (k) => {
+      if (buchungAktiv.current) return "Eine Buchung wird noch gespeichert.";
       const r = VEREIN.karteEntfernen(verein, k.kid);
       if (r.fehler) return r.fehler;
-      vereinSichern(r.v);
+      return await vereinSichern(r.v) ? null : "Kaderänderung nicht gespeichert.";
+    }}
+    onVerkauf={async (k) => {
+      await bucheBestand(() => verkaufsBuchung(aka, kartenRef.current || karten, verein, k.kid, KARTEN, VEREIN));
       return null;
     }}
-    onVerkauf={(k) => {
-      /* ERST AUS DEM KADER, DANN VERKAUFEN. Sonst stuende ein Spieler im
-         Kader, den es in der Sammlung nicht mehr gibt — und die Obergrenze
-         zaehlte einen Platz, der zu nichts gehoert. */
-      let v2 = verein;
-      if (verein && (verein.kader || []).some((sp) => sp.id === k.kid)) {
-        const w = VEREIN.karteEntfernen(verein, k.kid);
-        if (!w.fehler) v2 = w.v;
-      }
-      const r = KARTEN.verkaufen(karten, k.kid);
-      if (r.fehler) return r.fehler;
-      if (v2 !== verein) vereinSichern(v2);
-      setKarten(r.pool);
-      if (hasStore()) { try { store.set(KARTEN_KEY, JSON.stringify(r.pool)); } catch (e) {} }
-      /* VERKAUFSERLOES BUCHT `verdient` MIT (35.103). Die zweite der beiden
-         Luecken: von vier VC-Zugaengen schrieb dieser als einziger nichts
-         fort. Ohne ihn stimmt die Kassenzeile im Dach nicht. */
-      const a5 = { ...aka, vc: (aka.vc || 0) + r.vc,
-        verdient: (aka.verdient || 0) + r.vc };
-      setAka(a5); speichereAka(a5);
-      return null;
-    }}
-    onZurueck={() => setPhase("vereindach")} />;
+    onZurueck={() => setPhase(packsZurueck)} />;
   if (phase === "akademie") return <AkademieScreen aka={aka} verein={verein} onKauf={akaKaufen}
-    onAendern={(n) => { setAka(n); speichereAka(n); }}
+    onAendern={akademieAendern}
     onGruenden={(n) => { const x = akaGruenden(aka, n, (aka && aka.jahr) || 2026);
-      setAka(x); speichereAka(x); }}
+      akademieAendern(x); }}
     onBack={() => setPhase(p && p.retired ? "end" : "vereindach")} />;
   /* Eigener Verein (35.21). Drei Zustaende in einer Route: noch nicht
      gegruendet, laufend, abgeschlossen. Der Abschluss hat Vorrang — er ist
@@ -17171,8 +18591,6 @@ function FlutlichtApp() {
         onZurueck={() => setPhase("vereindach")} />;
     return <VereinScreen v={verein} aka={aka}
       onAendern={vereinSichern}
-      onAkaAendern={(na) => { setAka(na);
-        try { store.set(AKA_KEY, JSON.stringify(na)); } catch (e) { /* kein Speicher */ } }}
       onAbschluss={(erg) => setVAbschluss(erg)}
       onZurueck={() => setPhase("vereindach")} />;
   }
@@ -17184,7 +18602,7 @@ function FlutlichtApp() {
   if (phase === "laden") return (
     <Shell blatt="laden">
       <LadenSeite wo={p ? "saison" : "start"} vc={aka.vc || 0} laden={p ? p.laden : aka.laden}
-        onKauf={ladenKauf} onBack={() => setPhase("menu")} />
+        onKauf={ladenKauf} onBack={() => setPhase("menu")} schritt={p ? step : null} />
     </Shell>);
   if (phase === "create") return <CreateScreen onStart={start} onBack={() => setPhase("menu")} meta={meta} />;
   if (!p) return null;
@@ -17276,6 +18694,17 @@ function FlutlichtApp() {
                 <div className="eb" style={{ color: r.col }}>Wildcard</div>
                 <div className="d" style={{ fontSize: 15, marginTop: 1 }}>{p.wc.n}</div>
               </div>); })()}
+            {/* 35.166: Vorsatz bei der Wildcard, ohne Tätigkeitskasten im Spielfluss. */}
+            {(() => {
+              const vs = vorsatzStand(p, ges, aka);
+              if (!vs) return null;
+              return (
+                <div style={{ marginTop: 11, paddingTop: 9, borderTop: "1px solid var(--ln)" }}>
+                  <div className="eb" style={{ color: vs.erfuellt ? "var(--ok)" : "var(--mu)" }}>
+                    Vorsatz{vs.erfuellt ? " · gehalten" : ""}</div>
+                  <div className="d" style={{ fontSize: 15, marginTop: 1 }}>{vs.n}</div>
+                </div>);
+            })()}
           </div>
         </div>
 
@@ -17705,7 +19134,13 @@ function FlutlichtApp() {
               </div>
             </div>)}
 
-          {step === "retire" && (
+          {step === "retire" && p.endNow && (
+            <div className="pan pad fade">
+              <div className="eb">Karriereende</div>
+              <p>{p.endNow}</p>
+              <button className="btn pri" onClick={() => finish(clone(p), p.endNow)}>Bilanz ziehen</button>
+            </div>)}
+          {step === "retire" && !p.endNow && (
             <div className="pan pad fade">
               <span className="chip a">Karriereende</span>
               <div className="d" style={{ fontSize: 24, marginTop: 8 }}>Wie lange noch?</div>
@@ -17748,7 +19183,7 @@ function FlutlichtApp() {
             display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
             {!stopAsk ? (<>
               <button className="btn sm" style={{ padding: "5px 12px" }}
-                onClick={() => { saveGame(p, step === "result" ? "result" : "training");
+                onClick={() => { saveGame(p, step, offers);
                   einblendungenLeeren(); setPhase("menu"); }}>
                 <span className="m" style={{ fontSize: 11 }}>Hauptmenü</span>
               </button>
@@ -17779,7 +19214,7 @@ function FlutlichtApp() {
 
       {ladenAuf && (
         <Ueberlagerung onZu={() => setLadenAuf(false)}>
-          <VCLadenAnsicht wo="saison" vc={aka.vc || 0} laden={p ? p.laden : aka.laden} onKauf={ladenKauf} />
+          <VCLadenAnsicht wo="saison" vc={aka.vc || 0} laden={p ? p.laden : aka.laden} onKauf={ladenKauf} schritt={p ? step : null} />
         </Ueberlagerung>)}
       {schluss && schluss.lauf === p.lauf && !rueckblick && (!jubel || !jubel.length) && !simLauf && (
         <div className="rs-schleier" style={{ padding: "0 18px" }}>

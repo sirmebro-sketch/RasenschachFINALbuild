@@ -3,7 +3,9 @@
    über denselben Aufruf mit localStorage darunter. Beides ohne Netz. */
 import { Preferences } from "@capacitor/preferences";
 
-export const store = {
+import { serialisierterSpeicher } from "./sicherung.js";
+
+export const store = serialisierterSpeicher({
   async get(key) {
     const { value } = await Preferences.get({ key });
     /* 35.41 (offener Punkt 16): hier stand `value ? … : null`. Ein gespeicherter
@@ -23,4 +25,4 @@ export const store = {
     await Preferences.remove({ key });
     return { key, deleted: true };
   },
-};
+});

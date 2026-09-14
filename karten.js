@@ -84,13 +84,23 @@ export const machKarten = (H) => {
   const ausAbsolvent = (t) => ({
     kid: "t:" + t.id,
     name: t.name, pos: t.pos, ovr: t.peak || t.ovr || 0, pot: t.peak || t.pot || 0,
-    alter: (t.raus && t.ein) ? (t.raus - t.ein) + 17 : (t.alter || 21),
+    /* DAS MITGEGEBENE ALTER ZUERST (35.152, F45). Hier stand
+       (raus - ein) + 17 als einzige Quelle. Ein Talent beginnt aber mit 15,
+       nicht mit 17 — die Karte zeigte zwei Jahre zu viel, und
+       `karteEinsetzen` uebernahm das ins Vereinsalter. Gemessen: Eintritt
+       2029, Abgang 2034, Karte 22 statt 20.
+
+       Seit 35.152 traegt der Absolvent sein Alter selbst. Fuer aeltere
+       Daten ohne dieses Feld bleibt die Ableitung — jetzt mit dem richtigen
+       Eintrittsalter 15. */
+    alter: (typeof t.alter === "number" && t.alter > 0) ? t.alter
+      : ((t.raus && t.ein) ? (t.raus - t.ein) + 15 : 21),
     flag: t.flag || "", nat: t.nat || "",
     stufe: stufeFuer(t.peak || t.ovr || 0), herkunft: "akademie",
     jahr: t.raus || t.ein || null,
     /* Der Jahrgang ist das, was die Karte erzaehlbar macht: „Eigengewaechs,
        Jahrgang 2030". Der erste Profiklub steht daneben, wenn es ihn gibt. */
-    zusatz: { jahrgang: t.ein || null, klub: t.klub || "", ns: !!t.ns },
+    zusatz: { typ: t.typ || null, jahrgang: t.ein || null, klub: t.klub || "", ns: !!t.ns },
   });
 
   const ausKader = (s, vereinName, jahr) => ({
@@ -108,7 +118,7 @@ export const machKarten = (H) => {
      Ruecktritt — sonst waere eine Legende eine Karte mit 58, weil sie mit
      achtunddreissig aufgehoert hat. */
   const ausHalle = (h, i) => ({
-    kid: "h:" + i + ":" + (h.name || ""),
+    kid: "h:" + (h.id || i) + ":" + (h.name || ""),
     name: h.name, pos: h.pos, ovr: h.peak || 0, pot: h.peak || 0,
     alter: h.age || 0, flag: h.nat || "", nat: h.natId || "",
     stufe: stufeFuer(h.peak), herkunft: "halle", jahr: h.bis || null,
@@ -242,7 +252,10 @@ export const machKarten = (H) => {
 
   const neueKarte = (stufe, jahr) => {
     const sp = SPANNE[stufe] || SPANNE.bronze;
-    const ovr = clamp(Math.round(sp[0] + Math.random() * (sp[1] - sp[0])), sp[0], sp[1]);
+    /* Ueber die uebergebenen Helfer statt `Math.random` (35.156, V10) —
+       sonst folgt die Kartenziehung keinem festen Startwert und jeder
+       Vergleichslauf wuerfelt anders. */
+    const ovr = clamp(ri(sp[0], sp[1]), sp[0], sp[1]);
     const natId = pick(REGION_KEYS);
     const nat = NAT_BY_ID[natId] || NATIONS[0];
     /* Alter passend zur Staerke: eine legendaere Karte ist kein Neunzehnjaehriger,
@@ -250,7 +263,7 @@ export const machKarten = (H) => {
     const alter = stufe === "legende" ? ri(26, 32)
       : stufe === "gold" ? ri(23, 31) : ri(20, 29);
     return {
-      kid: "p:" + jahr + ":" + Math.floor(Math.random() * 1e9).toString(36),
+      kid: "p:" + jahr + ":" + ri(0, 999999999).toString(36),
       name: genName(natId, "m"), nat: natId, flag: nat.flag,
       pos: pick(PACK_POS), ovr,
       /* Anlage nur knapp ueber der Staerke: der Spieler ist fertig. */
@@ -269,7 +282,7 @@ export const machKarten = (H) => {
     if (!pk) return { fehler: "Dieses Pack gibt es nicht.", karten: [] };
     const raus = [];
     const wuerfeln = () => {
-      let r = Math.random() * 100;
+      let r = ri(0, 1e6) / 1e4;
       for (const st of REIHE) { r -= pk.chancen[st] || 0; if (r <= 0) return st; }
       return "bronze";
     };
@@ -293,7 +306,7 @@ export const machKarten = (H) => {
        sie kommt dazu: das Pack verspricht `karten` Stueck, und wer eine
        Legende findet, soll nicht dafuer eine andere verlieren. */
     let sonder = null;
-    if (Math.random() < (SONDER_CHANCE[pk.id] || 0)) {
+    if (chance(SONDER_CHANCE[pk.id] || 0)) {
       const ausHalleP = nachHerkunft(pool, "halle");
       const ausVerein = nachHerkunft(pool, "verein");
       const topf = ausHalleP.length ? ausHalleP : ausVerein;
@@ -485,7 +498,7 @@ export const machKarten = (H) => {
     while (genommen.length < STARTPAKET.karten) {
       /* Frische Karten in der Mitte: silber und gold. Bronze waere ein
          mageres Geschenk fuer fuenfzehn Jahre Arbeit, legendaer zu viel. */
-      genommen.push(neueKarte(Math.random() < .3 ? "gold" : "silber", jahr));
+      genommen.push(neueKarte(chance(.3) ? "gold" : "silber", jahr));
     }
     return {
       karten: genommen.slice(0, STARTPAKET.karten),
@@ -522,8 +535,16 @@ export const machKarten = (H) => {
     { id: "gold11", n: "Die goldene Elf", soll: 11,
       t: "Elf Karten in Gold oder besser.",
       passt: (k) => k.stufe === "gold" || k.stufe === "legende" },
-    { id: "treue", n: "Vereinstreue", soll: 11,
-      t: "Elf Spieler aus dem eigenen Verein.",
+    /* F40 (35.140): die Seite hiess „Vereinstreue", zaehlte aber nur die
+       HERKUNFT — jede Karte aus dem eigenen Verein, auch die eines Spielers,
+       der nach einer Saison ging. Treue misst sie nicht und kann sie nicht
+       messen: eine Karte traegt keine Verweildauer.
+
+       Der Name wird an das angepasst, was gezaehlt wird. „Aus den eigenen
+       Reihen" ist wahr und beschreibt dieselbe Sammlung — ehrlicher als ein
+       Titel, der eine Eigenschaft verspricht, die nirgends gespeichert ist. */
+    { id: "treue", n: "Aus den eigenen Reihen", soll: 11,
+      t: "Elf Spieler, die in deinem Verein gespielt haben.",
       passt: (k) => k.herkunft === "verein" },
     { id: "sonder", n: "Sonderausgaben", soll: 5,
       t: "Fuenf veredelte Karten.",

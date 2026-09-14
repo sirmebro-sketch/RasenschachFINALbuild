@@ -2,11 +2,23 @@
 <html lang="de">
   <head>
     <meta charset="utf-8" />
-    <!-- maximum-scale und user-scalable=no: ohne die liess sich die App mit zwei
-         Fingern ziehen und zoomen wie eine Internetseite. In einer App ist das
-         ein Fehler, kein Merkmal. Die Barrierefreiheit leidet nicht darunter,
-         weil die App unter „Optionen" eine EIGENE Textgroesse mitbringt. -->
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+    <!-- VERGROESSERN IST WIEDER ERLAUBT (35.142, F51).
+
+         Hier stand `maximum-scale=1,user-scalable=no`, mit der Begruendung:
+         die App bringe unter „Optionen" eine eigene Textgroesse mit, also
+         leide die Barrierefreiheit nicht.
+
+         Die Begruendung war falsch — nachgemessen: die eigene Skala reichte
+         von 0,92 bis 1,12, also hoechstens +12 %. Wer 200 % braucht, bekam
+         12 % und durfte nicht zoomen. Das ist kein Ersatz, sondern eine
+         Sperre mit Trostpflaster.
+
+         Der urspruengliche Anlass bleibt richtig: versehentliches Zoomen
+         beim Wischen ist stoerend. Dagegen hilft `touch-action` im
+         Stilblock, das gezielt Doppeltipp- und Pinch-Gesten auf den
+         Spielflaechen abfaengt — nicht eine Sperre fuer das ganze Dokument.
+         Wer bewusst zoomt, soll es koennen. -->
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="theme-color" content="#070D0A" />
     <!-- Grundfarbe: Rasen bei Nacht, gleich wie --bg in App.jsx. Weicht sie ab,
          blitzt beim Start kurz die falsche Farbe auf. -->

@@ -5,6 +5,8 @@
 **Die App selbst**
 
     App.jsx                 das ganze Spiel
+    sicherung.js            Importprüfung, Transaktionen und Wiederherstellung
+    spielstand.js           Speicherformat für Saison und Ereignisse
     ereignisse.js           die Ereignisse, ausgelagert seit 35.6
     verein.js               der eigene Verein, ausgelagert seit 35.17
     karten.js               Sammelkarten und dauerhafter Spielerpool, seit 35.79
@@ -43,7 +45,7 @@ sich nicht bauen liess. Seit 35.30 rechnet `pruefen.sh` die Liste nach.
     browsertest.sh · messwerkzeug.js · startprobe.cjs
     ereignispruefung.cjs · vereinpruefung.cjs · verzeichnis.cjs
     stimmigkeit.cjs · namenpruefung.cjs · argumente.cjs
-    sicherheit-bekannt.txt · gleichheit.cjs · schriftabdeckung.cjs · kontrast.cjs · ruecktritt.cjs
+    sicherheit-bekannt.txt · gleichheit.cjs · schriftabdeckung.cjs · kontrast.cjs · ruecktritt.cjs · texte.cjs
 
 **Wer davon von allein läuft** (gemessen an den Aufrufen in den Skripten, nicht
 abgeschrieben):
@@ -143,6 +145,19 @@ Repository**, nicht im Projektwissen: ein Bild lässt sich dort nicht
 durchsuchen und wäre nur Ballast. Wer das Symbol wechselt, tauscht diese
 eine Datei im Repository; den ganzen Satz erzeugt `appicon.py` beim Bauen.
 
+## Einstieg und Arbeitsweise (35.168)
+
+Zwei Dateien im Wurzelverzeichnis, die vor dem Weiterarbeiten zu lesen sind:
+
+| Datei | Inhalt |
+|---|---|
+| `LIESMICH-ZUERST.txt` | woraus 35.168 besteht, Einstiegsbefehle, was geprüft ist und was nicht |
+| `ARBEITSWEISE.md` | der Ablauf einer Änderung, die Fallen die mehrfach zuschlugen, was der Prüfstand strukturell nicht sieht |
+| `ZUSAMMENFUEHRUNG-35.168.md` | was von Codex stammt, was von Claude, und die Prüfstufen-Matrix |
+
+`ARBEITSWEISE.md` ist keine Theorie: jede Falle darin ist mindestens zweimal
+zugeschlagen. Der Kontrastfehler auf Kartonblättern dreimal.
+
 ## Auf dem Gerät prüfen
 
     bash pruefstand/browsertest.sh App.jsx              # zum Prüfen
@@ -230,3 +245,16 @@ Braucht `motor.js` unter `/tmp/ps/` — das entsteht beim Prüfstandlauf.
 Jede Zahl darin stammt aus dem laufenden Spielcode, nichts ist abgeschrieben.
 
 Ausführliche Beschreibung: `STAND.md`.
+
+## Regressionen 35.165
+
+`pruefstand/korrekturen.mjs`: `npm ci`, dann `npm run test:korrekturen`.
+
+`pruefstand/aufstellung-f58.json` ist der feste Gegenbeispiel-Kader für F58.
+
+## Ergänzungen 35.167
+
+`buchungen.js`: geprüfte Pack- und Verkaufsbuchungen.
+`pruefstand/ereignis-ids.cjs`: einmalige Kennungsvergabe für historische Antworten; mit `--write` nur auf einen noch nicht migrierten Katalog anwenden. Bestehende IDs und altIndex niemals neu nummerieren.
+
+`pruefstand/android-version.cjs`: Android-Versionsname und aufsteigender Versionscode aus package.json.
