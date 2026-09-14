@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Projekt holen
@@ -18,18 +18,18 @@ jobs:
       - name: Node einrichten
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Java 17 einrichten
+      - name: Java 21 einrichten
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Android-SDK einrichten
         uses: android-actions/setup-android@v3
         with:
-          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
       - name: Umgebung anzeigen
         run: |
@@ -39,78 +39,44 @@ jobs:
           echo "SDK:    ${ANDROID_SDK_ROOT:-nicht gesetzt}"
           ls -la
 
-      - name: Signaturschluessel bereitstellen
+      - name: Vorhandenen Signaturschluessel bereitstellen
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_BASE64 }}
         run: |
-          # Ein fester Schluessel sorgt dafuer, dass sich spaetere Fassungen ueber
-          # die installierte App legen lassen, ohne Daten zu verlieren.
-          mkdir -p signing
-          if [ ! -f signing/debug.keystore ]; then
-            echo "Kein Schluessel vorhanden - es wird einmalig einer erzeugt."
-            keytool -genkeypair -v \
-              -keystore signing/debug.keystore \
-              -storepass android -keypass android \
-              -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 20000 \
-              -dname "CN=Android Debug,O=Android,C=US"
-            echo "NEUER_SCHLUESSEL=ja" >> $GITHUB_ENV
-          else
-            echo "Vorhandener Schluessel wird verwendet - Updates bleiben moeglich."
-          fi
+          set -euo pipefail
           mkdir -p "$HOME/.android"
-          cp signing/debug.keystore "$HOME/.android/debug.keystore"
-          keytool -list -v -keystore signing/debug.keystore -storepass android | grep -i "SHA1:" | head -1
-
-      - name: Fingerabdruck festhalten und vergleichen
-        run: |
-          # Android verweigert JEDE Installation ueber eine App mit anderer
-          # Signatur. Aendert sich dieser Fingerabdruck zwischen zwei Bauten,
-          # laesst sich die App auf dem Geraet nicht mehr aktualisieren und
-          # muss deinstalliert werden - der Spielstand geht dabei verloren,
-          # wenn er nicht vorher gesichert wurde.
-          #
-          # Bis 35.1 stand der Wert nur im Protokoll und niemand verglich ihn.
-          NEU=$(keytool -list -v -keystore signing/debug.keystore \
-                -storepass android | grep -i "SHA1:" | head -1 \
-                | sed 's/.*SHA1: *//' | tr -d ' \r')
-          echo "Fingerabdruck dieses Baus: $NEU"
-          ALT=""
-          [ -f signing/fingerabdruck.txt ] && ALT=$(tr -d ' \r\n' < signing/fingerabdruck.txt)
-          if [ -z "$ALT" ]; then
-            echo "$NEU" > signing/fingerabdruck.txt
-            echo "Erster Bau mit diesem Schluessel - Fingerabdruck festgehalten."
-            echo "MERKEN=ja" >> $GITHUB_ENV
-          elif [ "$ALT" != "$NEU" ]; then
-            echo "::error::Der Signaturschluessel hat sich geaendert."
-            echo "  vorher:  $ALT"
-            echo "  jetzt:   $NEU"
-            echo "Die neue APK laesst sich NICHT ueber die installierte legen."
-            echo "Entweder ist signing/debug.keystore verlorengegangen, oder der"
-            echo "Rueckschreib-Schritt hat beim ersten Bau nicht gegriffen."
-            echo "Vor dem Deinstallieren den Spielstand sichern."
-            exit 1
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+          elif [ -f signing/debug.keystore ]; then
+            cp signing/debug.keystore "$HOME/.android/debug.keystore"
           else
-            echo "Unveraendert - Updates auf dem Geraet bleiben moeglich."
+            echo "::error::Bisheriger Signaturschluessel fehlt. signing/debug.keystore erhalten oder ANDROID_DEBUG_KEYSTORE_BASE64 als Repository-Secret setzen. Siehe GITHUB-APK-ANLEITUNG.md."
+            exit 1
           fi
-
-      - name: Fingerabdruck sichern
-        if: env.MERKEN == 'ja'
-        run: |
-          git config user.name "APK-Bauvorgang"
-          git config user.email "actions@github.com"
-          git add -f signing/fingerabdruck.txt
-          git commit -m "Fingerabdruck der Signatur festgehalten"
-          git push
-
-      - name: Schluessel im Projekt sichern
-        if: env.NEUER_SCHLUESSEL == 'ja'
-        run: |
-          git config user.name "APK-Bauvorgang"
-          git config user.email "actions@github.com"
-          git add -f signing/debug.keystore
-          git commit -m "Signaturschluessel angelegt - bitte nicht loeschen"
-          git push
+          NEU=$(keytool -J-Duser.language=en -list -v -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey | sed -n 's/.*SHA1: *//p' | tr -d ' \r\n')
+          test -n "$NEU"
+          if [ -f signing/fingerabdruck.txt ]; then
+            ALT=$(tr -d ' \r\n' < signing/fingerabdruck.txt)
+            if [ -n "$ALT" ] && [ "$ALT" != "$NEU" ]; then
+              echo "::error::Signatur weicht vom hinterlegten Fingerabdruck ab. Build abgebrochen."
+              exit 1
+            fi
+          fi
+          echo "Signatur SHA1: $NEU"
 
       - name: Pakete installieren
-        run: npm install --no-audit --no-fund
+        # npm ci statt npm install: installiert GENAU die Fassungen aus
+        # package-lock.json und bricht ab, wenn Sperrdatei und package.json
+        # auseinanderlaufen. Mit npm install wurden die Fassungen bei jedem
+        # Bau neu aufgeloest — dieselbe App.jsx konnte dann ein anderes
+        # Buendel ergeben, und eine Fassungsnummer bezeichnete kein
+        # bestimmtes Ergebnis. Seit 35.46 ist der Bau wiederholbar.
+        # Preis: Sicherheitsnachtraege kommen nicht mehr von allein.
+        # Nachziehen mit `npm update` und die neue Sperrdatei einchecken.
+        run: npm ci --no-audit --no-fund
+
+      - name: Korrekturen pruefen
+        run: npm run test:korrekturen
 
       - name: Weboberflaeche bauen
         run: npm run build
@@ -127,21 +93,30 @@ jobs:
           N=$(grep -o '@font-face' "$BUENDEL" | wc -l)
           echo "Schriftschnitte im Buendel: $N"
           [ "$N" -ge 5 ] || { echo "FEHLER: erwartet 5 Schriftschnitte, gefunden $N"; exit 1; }
-          grep -q 'fonts.googleapis' "$BUENDEL" \
-            && { echo "FEHLER: Buendel laedt Schriften aus dem Netz nach"; exit 1; } \
-            || echo "Kein Nachladen aus dem Netz."
+          if grep -q 'fonts.googleapis' "$BUENDEL"; then
+            echo "FEHLER: Buendel laedt Schriften aus dem Netz nach"
+            exit 1
+          fi
+          echo "Kein Nachladen aus dem Netz."
           # Seit 35.6 liegen die Ereignisse in einer eigenen Datei. Vite loest
           # den Import selbst auf, ein fehlendes ereignisse.js braeche den Bau
           # also laut ab. Was NICHT laut abbricht: eine abgeschnittene oder
           # halb eingecheckte Datei. Dasselbe Muster wie bei den Schriften.
           EV=$(grep -o 'tag:"' "$BUENDEL" | wc -l)
           echo "Ereignisse im Buendel: $EV"
+          # Seit 35.17 gibt es zusaetzlich verein.js. Auch hier gilt: eine
+          # fehlende Datei braeche laut ab, eine abgeschnittene nicht.
+          # Minifizierung darf Funktionsnamen verändern. Das Vereinsverhalten
+          # wird bereits durch test:korrekturen geprüft; den Quellimport prüft Vite.
+          test -s verein.js || { echo "FEHLER: Vereinsmodul fehlt"; exit 1; }
+          echo "Vereinsmodul: Quelle vorhanden, Regressionen und Web-Build erfolgreich."
           [ "$EV" -ge 400 ] || { echo "FEHLER: erwartet mindestens 400 Ereignisse, gefunden $EV"; exit 1; }
 
       - name: Android-Projekt anlegen
         run: |
           if [ ! -d android ]; then npx cap add android; fi
           npx cap sync android
+          node pruefstand/android-version.cjs android/app/build.gradle package.json
 
       - name: App-Symbol erzeugen und einsetzen
         run: |
@@ -152,13 +127,15 @@ jobs:
           # Im Projekt liegt nur EIN Bild (symbol/appicon.png). Der ganze Satz
           # aus fuenf Bildschirmdichten wird hier erzeugt - so muss beim
           # Wechseln des Symbols nur diese eine Datei getauscht werden.
-          if [ -f symbol/appicon.png ] && [ -f symbol/appicon.py ]; then
+          ICON=symbol/appicon.png
+          if [ ! -f "$ICON" ]; then ICON=symbol/appicon-klein.png; fi
+          if [ -f "$ICON" ] && [ -f symbol/appicon.py ]; then
             python3 -m pip install --quiet --upgrade Pillow
             # Die 0 am Ende ist die Rahmenbreite. Das Bild im Projekt ist bereits
             # randlos aufbereitet - die automatische Erkennung soll hier nicht raten,
             # sie wuerde am dunklen Nachthimmel weiterschneiden. Wer ein gerahmtes
             # Bild einsetzt, streicht die 0 und laesst erkennen.
-            python3 symbol/appicon.py symbol/appicon.png symbol/erzeugt 0
+            python3 symbol/appicon.py "$ICON" symbol/erzeugt 0
             RES=android/app/src/main/res
             # Nur die Bilder und die Zusammensetzungsvorschrift ersetzen.
             # Die Farbe in values/ und die Vektorvorlagen in drawable/ bleiben
@@ -170,8 +147,8 @@ jobs:
             echo "--- eingesetzte Symbole ---"
             find $RES -name 'ic_launcher*' | sort
           else
-            echo "HINWEIS: symbol/appicon.png oder symbol/appicon.py fehlt -"
-            echo "         es bleibt beim Standardsymbol von Capacitor."
+            echo "FEHLER: Symbolquelle oder Erzeugungsskript fehlt."
+            exit 1
           fi
 
       - name: Name und Symbol im Ergebnis pruefen
@@ -201,14 +178,12 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug --stacktrace --warning-mode=none
 
-      - name: Signatur der fertigen APK anzeigen
-        if: always()
+      - name: Signatur der fertigen APK pruefen
         run: |
-          APK=$(find android -name "app-debug.apk" -type f | head -1)
-          if [ -n "$APK" ]; then
-            echo "APK: $APK"
-            "$ANDROID_SDK_ROOT"/build-tools/34.0.0/apksigner verify --print-certs "$APK" | grep -i "SHA-1" | head -2 || true
-          fi
+          set -euo pipefail
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          "$ANDROID_SDK_ROOT"/build-tools/35.0.0/apksigner verify --verbose --print-certs "$APK"
 
       - name: Ergebnis suchen
         if: always()
