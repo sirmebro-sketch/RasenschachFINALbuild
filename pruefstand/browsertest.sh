@@ -30,6 +30,7 @@ set -eu
 QUELLE="${1:-/mnt/project/App.jsx}"
 PS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 QUELLDIR="$(cd "$(dirname "$QUELLE")" && pwd)"
+QUELLE="$QUELLDIR/$(basename "$QUELLE")"
 ARBEIT="${ARBEIT:-/tmp/bt}"
 
 rm -rf "$ARBEIT"; mkdir -p "$ARBEIT"; cd "$ARBEIT"
@@ -54,24 +55,13 @@ grep -m1 'const VERSION' App.jsx | sed 's/^/Fassung: /'
 
 # ---- der einzige Unterschied zur App -------------------------------------
 cat > storage.js << 'EOF'
-/* BROWSERTEST-FASSUNG. In der APK laeuft das ueber Capacitor Preferences.
-   Alles in try/catch: sperrt der Browser den Speicher (bei file:// und
-   content:// kommt das vor), kommt null zurueck und die App verhaelt sich
-   wie ohne Spielstand, statt abzustuerzen. */
-export const store = {
-  async get(key) {
-    try { const value = window.localStorage.getItem(key); return value == null ? null : { key, value }; }
-    catch (e) { return null; }
-  },
-  async set(key, value) {
-    try { window.localStorage.setItem(key, value); return { key, value }; }
-    catch (e) { return null; }
-  },
-  async delete(key) {
-    try { window.localStorage.removeItem(key); return { key, deleted: true }; }
-    catch (e) { return null; }
-  },
-};
+/* Gleicher Fehler- und Reihenfolgevertrag wie Capacitor Preferences. */
+import { serialisierterSpeicher } from "./sicherung.js";
+export const store = serialisierterSpeicher({
+  async get(key) { const value = window.localStorage.getItem(key); return value == null ? null : {key,value}; },
+  async set(key,value) { window.localStorage.setItem(key,value); return {key,value}; },
+  async delete(key) { window.localStorage.removeItem(key); return {key,deleted:true}; },
+});
 EOF
 
 cat > vite.config.js << 'EOF'
@@ -93,14 +83,9 @@ EOF
 # Seit 35.46 mit Sperrdatei: die Datei, die auf dem Telefon geprueft wird,
 # soll dieselben Bibliotheken enthalten wie die APK. Ohne sie waere ein
 # Geraetetest gegen ein anderes Buendel gelaufen als das ausgelieferte.
-if [ -f package-lock.json ]; then
-  npm ci --no-audit --no-fund --silent 2>&1 | tail -1
-else
-  echo "HINWEIS: keine package-lock.json — Browsertest baut mit anderen"
-  echo "         Bibliotheken als die APK. Siehe 35.46."
-  npm install --no-audit --no-fund --silent 2>&1 | tail -1
-fi
-npx vite build 2>&1 | grep -E "index-.*js|built in|error"
+npm ci --no-audit --no-fund > npm-ci.log 2>&1 || { cat npm-ci.log; exit 1; }
+npx vite build > build.log 2>&1 || { cat build.log; exit 1; }
+cat build.log
 
 # ---- einbetten -----------------------------------------------------------
 cp "$PS/messwerkzeug.js" .
@@ -187,5 +172,9 @@ printf 'Nachladen: %s externe Verweise · %s @import · %s fonts.googleapis\n' \
   "$(grep -oE 'src="[^"]*"|href="[^"]*"' $F | wc -l)" \
   "$(grep -o '@import' $F | wc -l)" "$(grep -o 'fonts.googleapis' $F | wc -l)"
 printf '@font-face: %s (weniger als 5 heisst: Schriften fehlen)\n' "$(grep -o '@font-face' $F | wc -l)"
-node "$PS/startprobe.cjs" "$ARBEIT/$F" "$QUELLE"
+if [ "${SKIP_STARTPROBE:-0}" = "1" ]; then
+  echo "Startprobe ausdrücklich ausgelassen; kein interaktiver Browsernachweis."
+else
+  node "$PS/startprobe.cjs" "$ARBEIT/$F" "$QUELLE"
+fi
 echo "FERTIG: $ARBEIT/$F"

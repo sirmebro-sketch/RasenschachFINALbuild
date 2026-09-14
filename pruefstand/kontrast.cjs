@@ -98,6 +98,53 @@ if (!datei) { console.error("Aufruf: kontrast.cjs <html>"); process.exit(1); }
       });
       await seite.waitForTimeout(700);
     }],
+
+    /* ---- MEHR ALS DREI ANSICHTEN (35.145, F53) ----------------------
+       Bis 35.144 pruefte dieser Waechter genau drei Seiten. Kevins Befund
+       aus 35.121 — dunkelblaue Schrift auf dunkelbraunem Grund, Kontrast
+       1,13 — lag im Karriererueckblick und wurde deshalb nie gesehen; die
+       Meldung „145 Textstellen · 0 Befunde" stand daneben und stimmte.
+
+       Diese vier sind vom Hauptmenue aus erreichbar, ohne eine Laufbahn zu
+       spielen. Der Karriererueckblick selbst bleibt offen: er braucht einen
+       vollstaendigen Abschluss, und den fuehrt `browsertest.sh` durch. Das
+       waere die naechste Erweiterung — hier ist sie nicht gemacht, und das
+       gehoert gesagt, statt „alle Ansichten geprueft" zu behaupten. */
+    ["Ruhmeshalle", async () => {
+      await seite.goto("file://" + datei, { waitUntil: "load" }); await seite.waitForTimeout(700);
+      await seite.evaluate(() => {
+        const b = [...document.querySelectorAll("button")]
+          .find((x) => /RUHMESHALLE|Ruhmeshalle/i.test(x.textContent || ""));
+        if (b) b.click();
+      });
+      await seite.waitForTimeout(700);
+    }],
+    ["Errungenschaften", async () => {
+      await seite.goto("file://" + datei, { waitUntil: "load" }); await seite.waitForTimeout(700);
+      await seite.evaluate(() => {
+        const b = [...document.querySelectorAll("button")]
+          .find((x) => /Errungenschaft/i.test(x.textContent || ""));
+        if (b) b.click();
+      });
+      await seite.waitForTimeout(700);
+    }],
+    ["Optionen", async () => {
+      await seite.goto("file://" + datei, { waitUntil: "load" }); await seite.waitForTimeout(700);
+      await seite.evaluate(() => {
+        const b = [...document.querySelectorAll("button")]
+          .find((x) => /Optionen|Einstellungen/i.test(x.textContent || ""));
+        if (b) b.click();
+      });
+      await seite.waitForTimeout(700);
+    }],
+    ["Sicherung", async () => {
+      await seite.evaluate(() => {
+        const b = [...document.querySelectorAll("button")]
+          .find((x) => /Sicherung/i.test(x.textContent || ""));
+        if (b) b.click();
+      });
+      await seite.waitForTimeout(700);
+    }],
   ];
 
   let schlimm = 0, gemessen = 0;

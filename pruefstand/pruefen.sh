@@ -191,7 +191,7 @@ if [ -f "$SCHRIFTQUELLE" ] && [ -f "$PS/schriftabdeckung.cjs" ]; then
 fi
 EREIGNISQUELLE="$(dirname "$(readlink -f "$QUELLE")")/ereignisse.js"
 if [ -f "$EREIGNISQUELLE" ]; then
-  echo "Ereignisse: $(grep -c 'id:"' "$EREIGNISQUELLE") Einträge"
+  echo "Ereignisse: $(node "$PS/ereignis-ids.cjs" "$EREIGNISQUELLE" | python3 -c 'import json,sys; print(json.load(sys.stdin)["events"])') Einträge"
 fi
 # Doppelte Namen in der Ausfuhrliste. Das hat den Aufbau schon zweimal
 # abgebrochen, und esbuild meldet es als "was originally exported here" mit
@@ -412,7 +412,7 @@ fi
 if [ -f "$QUELLDIR/STAND.md" ] && [ -f "$QUELLDIR/LIESMICH.md" ]; then
   python3 - "$QUELLDIR/STAND.md" "$QUELLDIR/LIESMICH.md" "$EREIGNISQUELLE" \
            "$PS" "$QUELLDIR" "${BASH_SOURCE[0]}" <<'PYEOF' || DOK=$((DOK+1))
-import os, re, sys
+import os, re, sys, json, subprocess
 stand, liesmich, ereignisdatei, ps, quelldir, selbst = sys.argv[1:7]
 S  = open(stand,    encoding="utf-8").read()
 L  = open(liesmich, encoding="utf-8").read()
@@ -487,7 +487,7 @@ else:
 # ("2-3 Ereignisse je Saison"). Ohne diese Schranke meldete die Pruefung die
 # Zeile aus Abschnitt 3 als Abweichung — ein Falschalarm bei jedem Lauf, und
 # der ist nach zwei Wochen unsichtbar.
-echt_e = open(ereignisdatei, encoding="utf-8").read().count('id:"')
+echt_e = json.loads(subprocess.check_output(["node", os.path.join(ps, "ereignis-ids.cjs"), ereignisdatei], text=True))["events"]
 for wo, text in (("STAND.md", lebend), ("LIESMICH.md", L)):
     treffer = set()
     for zahl in re.findall(r"(\d[\d.]*)\s+Ereignisse\b", text) + \
@@ -579,7 +579,8 @@ else:
 PYEOF
 
 cp "$PS/ansichten.jsx" "$PS/rueckwaerts.jsx" "$PS/jsdom.cjs" "$BAU/"
-E="npx --yes esbuild@0.23.0"
+E="$QUELLDIR/node_modules/.bin/esbuild"
+[ -x "$E" ] || { echo "Bitte zuerst npm ci im Quellverzeichnis ausführen."; exit 1; }
 $E "$BAU/probe.jsx"      --bundle --outfile="$BAU/motor.js"  --platform=node --format=cjs --log-level=error || FEHLER=1
 $E "$BAU/ansichten.jsx"  --bundle --outfile="$BAU/a.js"      --platform=node --format=cjs --log-level=error || FEHLER=1
 $E "$BAU/rueckwaerts.jsx" --bundle --outfile="$BAU/r.js"     --platform=node --format=cjs --log-level=error || FEHLER=1
@@ -629,6 +630,11 @@ titel "EREIGNISSE"
 # deshalb vergessen (siehe sicht.sh).
 if [ -f "$BAU/motor.js" ]; then
   ( cd "$BAU" && node "$PS/ereignispruefung.cjs" --quelle="$ARBEIT/App.jsx" ) || FEHLER=1
+  # Der Textkatalog (35.155, V12): erzeugt die FERTIGEN Texte und sucht darin
+  # nach dem, was niemand lesen soll. Laeuft direkt hinter der
+  # Ereignispruefung, weil beide dieselbe Quelle betreffen — die eine prueft
+  # die Struktur, die andere das Ergebnis.
+  teil_fahren "Textkatalog" "$PS/texte.cjs"
 else
   echo "ÜBERSPRUNGEN — kein Bündel. Ohne TEILE=aufbau ist das kein Ergebnis."
   FEHLER=1
@@ -874,6 +880,23 @@ else
 fi
 fi
 
+if hat verein; then
+  titel "REGRESSIONEN 35.165"
+  # DER PRODUKTIONSBAU LOESCHT node_modules IM QUELLVERZEICHNIS (Zeile ~747,
+  # `rm -rf "$ARBEIT/node_modules"`). Er laeuft VOR diesem Teil — die
+  # Regressionen fanden danach kein `esbuild` mehr und meldeten
+  # "Cannot find module 'esbuild'", obwohl sie allein aufgerufen durchlaufen.
+  #
+  # Nachgetragen 35.168: fehlt die Umgebung, wird sie hier einmal
+  # wiederhergestellt. Das kostet ein paar Sekunden und macht den Teil
+  # ueberhaupt erst aussagefaehig.
+  if [ ! -d "$QUELLDIR/node_modules/esbuild" ]; then
+    echo "  node_modules fehlt (vom Produktionsbau entfernt) — wird wiederhergestellt"
+    ( cd "$QUELLDIR" && npm ci --no-audit --no-fund >/dev/null 2>&1 ) \
+      || echo "  ACHTUNG: Wiederherstellung fehlgeschlagen"
+  fi
+  (cd "$QUELLDIR" && npm run test:korrekturen) || FEHLER=1
+fi
 titel "ERGEBNIS"
 if [ "$SICHER" != 0 ]; then
   echo "$SICHER Sicherheitsbefund(e) im Auslieferungspfad — oder nicht pruefbar."

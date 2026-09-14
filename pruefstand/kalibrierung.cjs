@@ -35,6 +35,7 @@ const {
   ovrOf, verdict, makeSquad, pick, CONT, POS, NATIONS, TYPES, MODES, CLUBS,
   leereAkademie, akaGruenden, akaJahr, akaVerbuchen, vcFuer, akaBonus, vcAusHaeusern,
   ABTEILUNGEN, akaStufe, akaPreis, akaRestkosten, akaRuhm, talentBauen,
+  offeneWahlen,
 } = E;
 
 const clone = (x) => ({ ...x, attrs: { ...x.attrs }, flags: { ...x.flags }, evLog: { ...x.evLog },
@@ -62,10 +63,50 @@ function laufbahn(aka) {
     const evs = drawEvents(q, 2);
     evs.forEach((e) => {
       q.evLog[e.id] = q.seasons.length;
-      const ch = pick(e.choices);
+      /* NUR OFFENE OPTIONEN (35.135, F07). Bis 35.134 stand hier
+         `pick(e.choices)` — die Kalibrierung waehlte also auch Optionen, die
+         der Spieler gar nicht anklicken kann: „Auf einen Spezialisten
+         bestehen" ohne das noetige Geld, „Auf dem Trainerschein aufbauen"
+         ohne Schein. Gemessen: 36 der 1.156 Optionen tragen eine Bedingung
+         (3 %), und jede davon war fuer die Simulation offen.
+
+         Das Spiel selbst nimmt `pick(offeneWahlen(e, q))` — dieselbe
+         Funktion, die hier jetzt auch steht. Eine Kalibrierung, die andere
+         Entscheidungen trifft als das Spiel, misst ein anderes Spiel.
+
+         Bleibt keine Option offen, wird das Ereignis uebersprungen, so wie
+         `nextEvent` es auch tut. */
+      const offen = offeneWahlen(e, q);
+      if (!offen.length) return;
+      const ch = pick(offen);
       let out;
-      if (ch.roll) { const r = Math.random(); let acc = 0; out = ch.roll[ch.roll.length - 1];
-        for (const o of ch.roll) { acc += o.p; if (r <= acc) { out = o; break; } } } else out = { fx: ch.fx };
+      /* UEBER DIESELBE QUELLE WIE DAS SPIEL (35.156, V10). Hier stand
+         `Math.random()` — die Kalibrierung wuerfelte an dieser einen Stelle
+         an der austauschbaren Quelle vorbei, und ein fester Startwert wirkte
+         nur zur Haelfte: zwei Laeufe mit demselben Seed ergaben 21,2 und
+         20,8. Dieselbe Sorte Fehler wie F07, nur eine Ebene tiefer. */
+      /* `E.rnd(0, 1)` STATT `E.zufall()` (35.156). `zufall` ist eine
+         Variable — beim Ausfuehren wird ihr WERT eingefroren, nicht die
+         spaeter gesetzte Funktion. `rnd` dagegen liest sie bei jedem Aufruf
+         neu und folgt dem Startwert. Zwei Laeufe mit demselben Seed ergaben
+         vorher 20,5 und 20,2; erst so stimmen sie ueberein. */
+      /* UEBER `pick`, das bereits ausgefuehrt ist und `zufall` bei jedem
+         Aufruf neu liest (35.156). `E.zufall` direkt geht NICHT: es ist eine
+         Variable, deren Wert beim Ausfuehren eingefroren wird — zwei Laeufe
+         mit demselben Seed ergaben damit 20,5 und 20,2.
+
+         Die Ausgangswahl bleibt gewichtet: statt eine Zufallszahl mit den
+         Wahrscheinlichkeiten zu vergleichen, wird aus einem nach Gewicht
+         gefuellten Korb gezogen. Dasselbe Ergebnis, aber ueber dieselbe
+         Quelle wie das Spiel. */
+      if (ch.roll) {
+        const korb = [];
+        ch.roll.forEach((o) => {
+          const n = Math.max(1, Math.round((o.p || 0) * 100));
+          for (let z = 0; z < n; z++) korb.push(o);
+        });
+        out = korb.length ? pick(korb) : ch.roll[ch.roll.length - 1];
+      } else out = { fx: ch.fx };
       applyFx(q, out.fx); q.ovr = ovrOf(q.attrs, q.pos);
     });
     if (q.endNow) break;
@@ -127,6 +168,30 @@ const z = (x, k = 1) => (Math.round(x * Math.pow(10, k)) / Math.pow(10, k)).toFi
    --anzahl=1000` misst dreimal dieselbe Stichprobe und sieht nach einer
    Verbesserung aus, die es nicht gibt. Direkt `kalibrierung.cjs` aufrufen. */
 const N = require("./argumente.cjs").anzahl(600);   // --anzahl=  oder reine Zahl
+
+/* FESTER STARTWERT (35.156, V10). `--seed=<zahl>` macht den Lauf
+   reproduzierbar: derselbe Seed ergibt dieselben Laufbahnen und damit
+   dieselbe Zahl.
+
+   WOZU. Bisher liess sich nicht sagen, ob eine Aenderung gewirkt hat oder
+   der Wuerfel anders fiel — das Zielband hat viermal grundlos rot gemeldet,
+   und sechs Pruefungen mussten auf groessere Stichproben umgestellt werden.
+   Mit festem Startwert vergleicht man zwei Faessungen bei IDENTISCHEN
+   Laufbahnen; der Unterschied ist dann die Aenderung, nicht der Zufall.
+
+   OHNE `--seed` bleibt alles wie bisher zufaellig. Das ist wichtig: eine
+   Kalibrierung, die immer denselben Verlauf misst, misst nur einen Verlauf.
+   Der Seed ist ein Werkzeug fuer den Vergleich, nicht der Normalfall. */
+const SEED = (() => {
+  const roh = require("./argumente.cjs").benannt("seed");
+  if (roh == null) return null;
+  const z = parseInt(roh, 10);
+  return Number.isFinite(z) ? z : null;
+})();
+if (SEED != null && typeof E.zufallSetzen === "function") {
+  E.zufallSetzen(SEED);
+  console.log("  Fester Startwert: " + SEED + " — dieser Lauf ist wiederholbar.");
+}
 console.log("=== Vermächtnis-Coins über " + N + " Laufbahnen (ohne Akademiebonus) ===");
 const vcs = [], scores = [], jahre = [];
 for (let i = 0; i < N; i++) {

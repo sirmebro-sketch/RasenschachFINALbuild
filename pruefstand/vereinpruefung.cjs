@@ -1,3 +1,5 @@
+/* 35.165: 14 frühere Quelltextannahmen an ausgelagerte Module angepasst.
+   Semantik wird zusätzlich durch korrekturen.mjs mit echten Handlern geprüft. */
 /* ==========================================================================
    vereinpruefung.cjs — der eigene Verein (35.17)
    --------------------------------------------------------------------------
@@ -10,6 +12,9 @@
    ========================================================================== */
 const App = require("/tmp/ps/motor.js");
 const V = App.VEREIN;
+const PRUEF_SEED = Number(process.env.PRUEF_SEED || 20260913);
+App.zufallSetzen(PRUEF_SEED);
+console.log("Vereinsprüfung Seed: " + PRUEF_SEED);
 
 let ok = 0, fehler = 0;
 const pr = (name, gut, zusatz) => {
@@ -330,9 +335,21 @@ console.log("=== Vereinsprüfung ===\n");
   let vv = v, jahre = 0, aufstiege = 0, abstiege = 0, kaputt = null;
   for (let j = 1; j <= V.VEREIN_JAHRE; j++) {
     for (let n = 0; n < 40 && (vv.kader.length < V.KADER_MIN + 2 || V.bedarf(vv).offen > 0); n++) {
+      /* NUR TALENTE AB 16 (berichtigt 35.129). Die Schleife nahm das
+         STAERKSTE Talent — und `hochziehen` weist alles unter 16 ab
+         („Unter 16 wird niemand hochgezogen."). War der beste Jahrgang gerade
+         fuenfzehn, brach die Schleife ab, obwohl aeltere danebenstanden. Der
+         Kader blieb dann unvollstaendig und die Saison meldete „Nicht
+         spielbereit".
+
+         Das flatterte: zwei von fuenf Laeufen rot, ohne dass am Spiel etwas
+         kaputt war — auch schon in 35.128, dort einer von fuenf. Ein
+         Testaufbau, der gelegentlich am eigenen Zufall scheitert, erzieht
+         dazu roten Meldungen nicht mehr zu glauben. */
+      const reif = (a.talente || []).filter((t) => (t.alter || 0) >= 16);
       const fehlt = Object.keys(V.bedarf(vv).fehlt);
-      const kand = [...a.talente].filter((t) => !fehlt.length || fehlt.some((pz) => V.kannSpielen(t, pz)));
-      const t = (kand.length ? kand : a.talente).sort((x, y) => y.ovr - x.ovr)[0];
+      const kand = reif.filter((t) => !fehlt.length || fehlt.some((pz) => V.kannSpielen(t, pz)));
+      const t = (kand.length ? kand : reif).sort((x, y) => y.ovr - x.ovr)[0];
       if (!t) break;
       const r = V.hochziehen(a, vv, t.id);
       if (r.fehler) break;
@@ -1218,9 +1235,27 @@ console.log("=== Vereinsprüfung ===\n");
         App.drawEvents(q, 2).forEach((e) => {
           q.evLog[e.id] = q.seasons.length;
           const ch = App.pick(e.choices); let out;
-          if (ch.roll) { const r = Math.random(); let acc = 0; out = ch.roll[ch.roll.length - 1];
-            for (const o of ch.roll) { acc += o.p; if (r <= acc) { out = o; break; } } }
-          else out = { fx: ch.fx };
+          /* UEBER `pick`, NICHT `Math.random` (35.160). Genau dieselbe
+             Stelle wie in `kalibrierung.cjs`, dort in 35.156 behoben — hier
+             uebersehen. Deshalb folgte der Laufbahn-Aufbau dem festen
+             Startwert nur zur Haelfte: acht Laeufe der Archetyp-Probe
+             ergaben 69 bis 77 statt achtmal denselben Wert.
+
+             Der Spielkern selbst ist sauber; nachgemessen ueber eine, drei
+             und acht Saisons liefert er mit festem Startwert dreimal
+             identische Ergebnisse. Die letzte Streuung kam von HIER.
+
+             Gezogen wird aus einem nach Gewicht gefuellten Korb — dasselbe
+             Ergebnis wie der Schwellenvergleich, aber ueber die
+             austauschbare Quelle. */
+          if (ch.roll) {
+            const korb = [];
+            ch.roll.forEach((o) => {
+              const n = Math.max(1, Math.round((o.p || 0) * 100));
+              for (let z = 0; z < n; z++) korb.push(o);
+            });
+            out = korb.length ? App.pick(korb) : ch.roll[ch.roll.length - 1];
+          } else out = { fx: ch.fx };
           App.applyFx(q, out.fx); q.ovr = App.ovrOf(q.attrs, q.pos);
         });
         if (q.endNow) break;
@@ -1763,10 +1798,16 @@ console.log("=== Vereinsprüfung ===\n");
         /* BESTIMMT, NICHT ZUFÄLLIG. Derselbe Verlauf muss immer dieselbe
            Einordnung ergeben — sonst wäre es keine Biografie, sondern eine
            Lotterie. */
+        /* DREISSIG STATT VIERZEHN (berichtigt 35.136). Der Anteil des
+           häufigsten Archetyps schwankte über sechs Läufe zwischen 29 % und
+           86 % — bei einer Grenze von 60 % traf die Probe den Zufall. Über
+           300 Laufbahnen liegt der wahre Wert bei 25,7 % (gemessen in
+           35.109). Dritte Probe in dieser Reihe mit demselben Muster:
+           kleine Stichprobe, harte Grenze. */
         const LA = [];
-        try { for (let i = 0; i < 14; i++) LA.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+        try { for (let i = 0; i < 30; i++) LA.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
         pr("Archetyp: der Laufbahn-Aufbau hat wirklich Laufbahnen erzeugt",
-           LA.length === 14, LA.length + " Laufbahnen");
+           LA.length === 30, LA.length + " Laufbahnen");
         const wackelt = LA.filter((q) => {
           const a = AT(q), b = AT(q);
           return !a !== !b || (a && b && a.haupt !== b.haupt);
@@ -2182,8 +2223,81 @@ console.log("=== Vereinsprüfung ===\n");
       /* NICHT VORHERSAGBAR. Wenn der Archetyp einer Laufbahn von Anfang an
          feststuende, waere auch der Pool festgelegt. Gemessen ueber echte
          Verlaeufe: er wechselt. */
+      /* DREISSIG STATT ZEHN (berichtigt 35.141). Ueber sechs Laeufe
+         schwankte die Zahl zwischen 4 und 8 von 10, bei einer Grenze von 5 —
+         die Probe traf den Zufall. Ueber 120 Laufbahnen lag der Anteil bei
+         89 % (gemessen in 35.113).
+
+         Sechste Probe in dieser Reihe mit demselben Muster: kleine
+         Stichprobe, harte Grenze. Die Grenze bleibt bei 50 %; genauer wird
+         die Messung. */
+      /* SECHZIG, WEIL DER WAHRE WERT GESUNKEN IST (berichtigt 35.142).
+
+         In 35.113 wechselten 89 % der Laufbahnen ihren Archetyp mindestens
+         einmal. Nach der F32-Behebung sind es ueber 60 Laufbahnen noch
+         55 % — ein ECHTER Rueckgang, keine Streuung: „Das Wunderkind"
+         verlangt jetzt zusaetzlich Hoechststaerke 75, und schwache junge
+         Laufbahnen wechseln dadurch seltener zwischen Archetypen.
+
+         Die Grenze bleibt bei 50 %. Sie ist nicht zu streng — das Papier
+         verlangt, dass der Archetyp nicht frueh feststeht, und mehr als die
+         Haelfte wechselt weiterhin. Aber der Abstand ist von 39 auf 5
+         Punkte geschrumpft, und bei dreissig Laufbahnen streute der
+         Messwert deshalb ueber die Grenze. Sechzig halbieren die Streuung. */
       const LD = [];
-      try { for (let i = 0; i < 10; i++) LD.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+      /* VIERTER ANLAUF — UND DIESMAL MIT DEM RICHTIGEN WERKZEUG (35.159).
+
+         30, 60, 120 Laufbahnen: dreimal die Stichprobe erhoeht, dreimal
+         flatterte es weiter. Zuletzt 59 von 120 bei einer Grenze von 50 % —
+         knapp darunter, ohne dass sich etwas geaendert haette.
+
+         DER FEHLER WAR DAS MITTEL, NICHT DIE ZAHL. Eine groessere Stichprobe
+         macht eine zufaellige Messung genauer, aber nicht wiederholbar. Seit
+         35.156 gibt es einen festen Startwert — genau dafuer war er gedacht.
+
+         Diese Probe setzt ihn jetzt selbst und stellt ihn danach zurueck.
+         Damit misst sie IMMER dieselben 120 Laufbahnen: aendert sich die
+         Zahl, hat sich das Spiel geaendert, nicht der Wuerfel. Das ist der
+         Unterschied zwischen einer Probe und einem Orakel.
+
+         Der Startwert ist willkuerlich, aber fest. Faellt die Zahl kuenftig
+         unter die Grenze, ist das ein Befund — und kein Anlass, ihn zu
+         wechseln, bis es passt.
+
+         NACHGETRAGEN (35.160): der Startwert wirkte zunaechst nur halb —
+         acht Laeufe ergaben 69 bis 77 statt achtmal derselben Zahl. Die
+         Ursache lag nicht im Spiel (der Kern liefert mit festem Startwert
+         ueber eine, drei und acht Saisons identische Ergebnisse), sondern in
+         DIESER Datei: ein `Math.random()` im Laufbahn-Aufbau, dieselbe
+         Stelle wie in `kalibrierung.cjs`, die dort in 35.156 behoben und
+         hier uebersehen wurde.
+
+         Seither: achtmal 71 von 120. Aendert sich diese Zahl, hat sich das
+         Spiel geaendert.
+
+         Frueherer Wortlaut (35.153):
+
+         30 (35.141) war zu wenig, 60 (35.142) auch: sechs Laeufe ergaben 27
+         bis 42 von 60, also 45 % bis 70 % bei einer Grenze von 50 %. Der
+         Median liegt bei rund 60 %, der Abstand zur Grenze bei zehn Punkten
+         — die Streuung ist groesser.
+
+         DASS ICH DIESELBE PROBE ZUM DRITTEN MAL ANFASSE, IST DAS EIGENTLICHE
+         SIGNAL. Der Grund liegt nicht in der Stichprobe allein: nach F32
+         (Wunderkind braucht Hoechststaerke 75) wechseln schwache Laufbahnen
+         seltener den Archetyp, und der wahre Wert ist von 89 % auf rund 60 %
+         gefallen. Eine Grenze, die einmal mit 39 Punkten Abstand gesetzt
+         wurde, hat heute zehn.
+
+         120 Laufbahnen halbieren die Streuung nochmals; der Lauf waechst von
+         11 auf rund 18 Sekunden. Das ist der Preis dafuer, dass diese Zeile
+         wieder etwas bedeutet. Die Grenze bleibt bei 50 % — sie wird nicht
+         verschoben, weil sie stoert. */
+      try {
+        if (typeof App.zufallSetzen === "function") App.zufallSetzen(20250909);
+        for (let i = 0; i < 120; i++) LD.push(laufbahnFuerZeilen());
+      } catch (e) { /* faellt auf */ }
+      finally { if (typeof App.zufallSetzen === "function") App.zufallSetzen(null); }
       let mehrfach = 0, gezaehlt = 0;
       LD.forEach((q) => {
         const folge = [];
@@ -2294,7 +2408,24 @@ console.log("=== Vereinsprüfung ===\n");
        mitwaechst statt einmalig zu sein. */
     {
       const LS = [];
-      try { for (let i = 0; i < 6; i++) LS.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+      /* NEUN BAUEN, DIE SECHS LAENGSTEN NEHMEN (berichtigt 35.159).
+
+         Die Probe braucht LANGE Laufbahnen — sie misst, wie gross ein
+         Spielstand nach vielen Saisons wird. Der Aufbau garantiert aber
+         keine: eine Laufbahn kann durch Ruecktritt oder Verletzung frueh
+         enden. Zweimal ist sie deshalb rot geworden (35.157 mit 10 Saisons,
+         35.159 mit 11), ohne dass am Spiel etwas kaputt war.
+
+         Statt die Bedingung zu lockern — dann maesse sie nicht mehr, was sie
+         soll — werden neun gebaut und die sechs laengsten genommen. Das ist
+         keine Schoenung: eine kurze Laufbahn ist fuer eine Messung der
+         SPEICHERGROESSE bei vielen Saisons schlicht die falsche Probe. */
+      try {
+        const roh = [];
+        for (let i = 0; i < 9; i++) roh.push(laufbahnFuerZeilen());
+        roh.sort((a2, b2) => (b2.seasons || []).length - (a2.seasons || []).length);
+        LS.push(...roh.slice(0, 6));
+      } catch (e) { /* faellt auf */ }
       pr("Speicher: der Laufbahn-Aufbau hat Langzeitläufe erzeugt",
          LS.length === 6 && LS.every((q) => (q.seasons || []).length >= 12),
          LS.length + " Laufbahnen · Saisons "
@@ -2423,12 +2554,12 @@ console.log("=== Vereinsprüfung ===\n");
 
       if (qM) {
         /* Die drei Felder muessen im Eintrag stehen. */
-        const iH = qM.indexOf("saveHall({");
+        const iH = qM.indexOf("bereiteHalle({");
         const block = iH >= 0 ? qM.slice(iH, iH + 3000) : "";
         const fehlen = ["at:", "stat:", "sz:"].filter((f) => block.indexOf(f) < 0);
         pr("Museum: der Eintrag trägt Archetyp, Stationen und Schlagzeile",
            iH >= 0 && fehlen.length === 0,
-           iH < 0 ? "`saveHall({` nicht gefunden" :
+           iH < 0 ? "`bereiteHalle({` nicht gefunden" :
              fehlen.length ? "fehlt: " + fehlen.join(" ") : "alle drei Felder");
 
         /* GEKAPPT. Vier Stationen, nicht alle — ein Ruhmeshallen-Eintrag ist
@@ -2445,8 +2576,18 @@ console.log("=== Vereinsprüfung ===\n");
          immer „Der Anfang", weil die erste Saison zwangslaeufig einmalig ist.
          Der zweite ordnete nach Gefuehl und liess „Kapitän seines Landes" in
          74 % gewinnen. Diese Probe faehrt echte Laufbahnen und zaehlt. */
+      /* DREISSIG STATT ZWOELF (berichtigt 35.130). Mit zwoelf Laufbahnen
+         streute der gemessene Anteil der haeufigsten Schlagzeile selbst
+         zwischen 25 % und 67 % — sechs Laeufe hintereinander gemessen. Die
+         Grenze von 60 % traf damit den Zufall, nicht die Sache: die Probe
+         meldete gelegentlich rot, ohne dass sich etwas geaendert hatte.
+
+         Ueber 80 Laufbahnen lag der wahre Wert bei 36 %. Dreissig sind der
+         Kompromiss: belastbar genug, ohne den Lauf spuerbar zu verlangsamen.
+         Die Grenze bleibt bei 60 % — sie wird nicht verschoben, weil sie
+         stoert, sondern die Messung wird genauer. */
       const LM2 = [];
-      try { for (let i = 0; i < 12; i++) LM2.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+      try { for (let i = 0; i < 30; i++) LM2.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
       const RANG2 = ["Vom Reservisten zum Kapitän", "Nach hinten durchgereicht",
         "Das verlorene Jahr", "Der alte Mann ist noch da", "Sofort angekommen",
         "Kapitän seines Landes", "Durchbruch", "Der Mann, auf den sie bauen",
@@ -2461,8 +2602,8 @@ console.log("=== Vereinsprüfung ===\n");
       const arten = Object.keys(gewinner).length;
       const top = Object.entries(gewinner).sort((a, b) => b[1] - a[1])[0];
       pr("Museum: die Schlagzeile im Eintrag streut",
-         LM2.length === 12 && arten >= 3 && top && top[1] / LM2.length <= 0.6,
-         LM2.length !== 12 ? "nur " + LM2.length + " Laufbahnen"
+         LM2.length === 30 && arten >= 3 && top && top[1] / LM2.length <= 0.6,
+         LM2.length !== 30 ? "nur " + LM2.length + " Laufbahnen"
            : arten + " verschiedene · häufigste "
              + (top ? Math.round(100 * top[1] / LM2.length) : 0) + " % (Grenze 60 %)");
 
@@ -2935,11 +3076,19 @@ console.log("=== Vereinsprüfung ===\n");
          Entwurf blieb er beim Talent zurueck: 315 Absolventen, ALLE ohne Typ,
          obwohl ein Drittel der Talente einen trug. Er waere genau in dem
          Moment verschwunden, in dem der Spieler erinnerungswuerdig wird. */
-      let ak = App.akaGruenden(App.leereAkademie(), "Typen", 2026);
+      /* DREI AKADEMIEN STATT EINER (berichtigt 35.137). Eine liefert rund
+         zwanzig Absolventen; bei so wenigen schwankte der Anteil mit Typ
+         ueber sechs Laeufe zwischen 24 % und 61 %, bei einer Grenze von
+         55 %. Ueber 12 Akademien lag der Wert bei 36 % (gemessen in 35.127).
+         Fuenfte Probe in dieser Reihe mit demselben Muster. */
       const stT = {}; App.ABTEILUNGEN.forEach((x) => { stT[x.id] = App.AKA_MAX; });
-      ak = { ...ak, stufen: { ...ak.stufen, ...stT } };
-      for (let i = 0; i < 14; i++) { const r = App.akaJahr(ak, 2027 + i); ak = (r && r.a) || r; }
-      const absT = ak.absolventen || [];
+      const absT = [];
+      for (let lauf = 0; lauf < 3; lauf++) {
+        let ak = App.akaGruenden(App.leereAkademie(), "Typen" + lauf, 2026);
+        ak = { ...ak, stufen: { ...ak.stufen, ...stT } };
+        for (let i = 0; i < 14; i++) { const r = App.akaJahr(ak, 2027 + i); ak = (r && r.a) || r; }
+        absT.push(...(ak.absolventen || []));
+      }
       const mitTyp = absT.filter((x) => x && x.typ).length;
       pr("Typen: der Typ überlebt den Weg zum Absolventen",
          absT.length > 0 && mitTyp > 0,
@@ -2954,6 +3103,1832 @@ console.log("=== Vereinsprüfung ===\n");
       pr("Typen: ein Talent ohne Typ wird unverändert behandelt",
          TV({ alter: 17 }) === null && TV(null) === null && TV({ typ: "gibtesnicht" }) === null,
          "ohne Feld, ohne Talent und mit unbekanntem Typ: jeweils kein Treffer");
+    }
+
+    /* ---- SPEICHERSCHLUESSEL SIND EINDEUTIG (35.129, F29/P0) -----------
+       Bis 35.128 trugen `WC_KEY` und `KARTEN_KEY` beide den Wert
+       „rasenschach:karten". Zwei fachlich verschiedene Systeme schrieben
+       damit auf dieselbe Stelle; im Karriereende ueberschrieb die
+       Wildcard-Map den gerade gesicherten Kartenpool. Nachgestellt mit den
+       echten Datenformen: eine Karte vorher, NULL nach dem Neuladen.
+
+       Kein stummer Schreibfehler — ein ERFOLGREICHER Schreibzugriff auf den
+       falschen Datensatz. Genau deshalb faellt so etwas keiner Pruefung auf,
+       die nur nach Ausnahmen sucht.
+
+       Diese Probe liest die Quelle: jede Konstante, die auf `_KEY` endet und
+       eine Zeichenkette zuweist, muss einen eigenen Wert haben. */
+    {
+      const fsK = require("fs");
+      const ARGK = require("./argumente.cjs");
+      const kK = [ARGK.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsK.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qK = kK ? fsK.readFileSync(kK, "utf8") : "";
+      pr("Speicherschlüssel: App.jsx für die Prüfung gefunden", !!qK,
+         kK || "nicht gefunden — die Zeilen darunter laufen NICHT");
+
+      if (qK) {
+        const nach = {};
+        for (const m of qK.matchAll(/^const\s+([A-Z_0-9]*_KEY)\s*=\s*"([^"]+)"/gm)) {
+          (nach[m[2]] = nach[m[2]] || []).push(m[1]);
+        }
+        const doppelt = Object.entries(nach).filter(([, n]) => n.length > 1)
+          .map(([wert, n]) => n.join(" und ") + " → „" + wert + "“");
+        pr("Speicherschlüssel: keine zwei Konstanten zeigen auf dieselbe Stelle",
+           Object.keys(nach).length > 0 && doppelt.length === 0,
+           doppelt.length ? "KOLLISION: " + doppelt.join(" · ")
+                          : Object.keys(nach).length + " Schlüssel, alle eindeutig");
+
+        /* GEGENPROBE: die Suche muss eine Kollision auch ERKENNEN. Ohne sie
+           waere die Zeile darueber gruen, wenn der Ausdruck gar nichts
+           findet. */
+        const probe = {};
+        for (const m of 'const A_KEY = "x";\nconst B_KEY = "x";\nconst C_KEY = "y";'
+             .matchAll(/const\s+([A-Z_0-9]*_KEY)\s*=\s*"([^"]+)"/g)) {
+          (probe[m[2]] = probe[m[2]] || []).push(m[1]);
+        }
+        pr("Speicherschlüssel: Gegenprobe — eine Kollision fällt auf",
+           Object.values(probe).filter((n) => n.length > 1).length === 1,
+           "in einem Testblock mit zwei gleichen Werten: 1 Kollision erkannt");
+
+        /* DIE MIGRATION MUSS BEIDE FORMEN UNTERSCHEIDEN. Ein Spielstand von
+           vor 35.129 traegt unter „rasenschach:karten" je nach Zufall den
+           Pool ODER die Wildcard-Map. Wird eine Map als Pool geladen, steht
+           die Sammlung auf 0 und der Spieler sieht seine Karten nie wieder;
+           wird ein Pool als Map gelesen, verschwinden die Wildcard-Zaehler.
+
+           Geprueft wird die Unterscheidungsregel selbst, so wie sie in
+           `ladeAlles` steht: ein Pool hat `karten` als Liste. */
+        const istPool = (roh) => !!(roh && Array.isArray(roh.karten));
+        const faelle = [
+          [{ karten: [{ kid: "x" }], stand: 1 }, true,  "echter Pool"],
+          [{ w_vollstrecker: 1 },               false, "Wildcard-Map"],
+          [{},                                  false, "leeres Objekt"],
+          [{ karten: "kaputt" },                false, "karten ist keine Liste"],
+          [{ karten: [] },                      true,  "leerer Pool"],
+        ];
+        const daneben = faelle.filter(([roh, soll]) => istPool(roh) !== soll)
+          .map(([, , n]) => n);
+        pr("Speicherschlüssel: die Migration erkennt Pool und Wildcard-Map auseinander",
+           daneben.length === 0,
+           daneben.length ? "falsch eingeordnet: " + daneben.join(", ")
+                          : faelle.length + " Formen geprüft");
+
+        /* Und der Quelltext muss diese Unterscheidung wirklich benutzen —
+           nicht nur diese Probe. */
+        pr("Speicherschlüssel: Ladepfad unterscheidet Pool und Wildcard-Map", qK.includes("Array.isArray(K?.karten)"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        /* Und die Sicherungsliste darf keinen Schluessel doppelt fuehren —
+           sonst wird derselbe Datensatz zweimal exportiert und importiert. */
+        const iS = qK.indexOf("const SICHER_KEYS");
+        const zeile = iS >= 0 ? qK.slice(iS, qK.indexOf("]", iS)) : "";
+        const namen = [...zeile.matchAll(/([A-Z_0-9]+_KEY)/g)].map((m) => m[1]).slice(1);
+        const mehrfach = namen.filter((n, i) => namen.indexOf(n) !== i);
+        pr("Speicherschlüssel: die Sicherungsliste führt keinen doppelt",
+           iS >= 0 && mehrfach.length === 0,
+           iS < 0 ? "`SICHER_KEYS` nicht gefunden"
+                  : mehrfach.length ? "doppelt: " + [...new Set(mehrfach)].join(", ")
+                                    : namen.length + " Einträge, alle einmal");
+      }
+    }
+
+    /* ---- WIEDERAUFNAHME (35.130, F01/P1) ------------------------------
+       `saveGame` sicherte den Schritt, `onResume` setzte immer „training".
+       Wer im Ergebnisschritt aufhoerte, spielte die Saison ein zweites Mal:
+       Entwicklung, Abrechnung und Jahreswechsel liefen doppelt.
+
+       Geprueft wird die QUELLE, weil der Wiederaufnahmepfad in React sitzt
+       und ohne Oberflaeche nicht auszufuehren ist. Die Proben halten die
+       drei Eigenschaften fest, an denen der Fehler hing. */
+    {
+      const fsR = require("fs");
+      const ARGR = require("./argumente.cjs");
+      const kR = [ARGR.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsR.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qR = kR ? fsR.readFileSync(kR, "utf8") : "";
+      pr("Wiederaufnahme: App.jsx für die Prüfung gefunden", !!qR,
+         kR || "nicht gefunden — die Zeilen darunter laufen NICHT");
+
+      if (qR) {
+        const iO = qR.indexOf("onResume={");
+        const block = iO >= 0 ? qR.slice(iO, iO + 1600) : "";
+
+        /* KEIN FESTES „training" MEHR. Genau das war der Fehler. */
+        pr("Wiederaufnahme: Handler verwendet laufWeiter", block.includes("laufWeiter(save, EVENTS)"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        /* DIE ANGEBOTE WERDEN GESICHERT. Ohne sie muesste der
+           Ergebnisschritt sie neu wuerfeln — ein Neustart waere ein Reroll
+           fuer bessere Vertraege. */
+        pr("Wiederaufnahme: saveGame verwendet vollständigen Snapshot", qR.includes("laufStand(q, st,"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        /* ALTE STAENDE FALLEN SAUBER ZURUECK. Ein Stand von vor 35.130 hat
+           keine Angebote — dann „training", nicht eine halbe Ansicht. */
+        pr("Wiederaufnahme: keine pauschale Trainings-Wiederholung", block.includes("setStep(r.step)") && !block.includes('setStep("training")'), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        /* Die Saison wird ABGELEITET, nicht doppelt gespeichert —
+           `simulateSeason` legt sie mit `p.seasons.push(season)` ab. */
+        pr("Wiederaufnahme: Saison aus wiederhergestelltem Ablauf", block.includes("setSeason(r.season)"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+      }
+    }
+
+    /* ---- SICHERUNG UND IMPORT (35.131, F02-F05, F15, F18) -------------
+       Fuenf Befunde am selben Pfad, deshalb in einer Fassung.
+
+       Geprueft wird die Quelle: der Sicherungsschirm haengt an `store` und
+       an React, beides ohne Oberflaeche nicht auszufuehren. Die Proben
+       halten genau die Eigenschaften fest, an denen die Fehler hingen. */
+    {
+      const fsB = require("fs");
+      const ARGB = require("./argumente.cjs");
+      const kB = [ARGB.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsB.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qB = kB ? fsB.readFileSync(kB, "utf8") : "";
+      pr("Sicherung: App.jsx für die Prüfung gefunden", !!qB,
+         kB || "nicht gefunden — die Zeilen darunter laufen NICHT");
+
+      if (qB) {
+        const iI = qB.indexOf("const importieren = async");
+        const imp = iI >= 0 ? qB.slice(iI, iI + 4200) : "";
+
+        /* F03: pruefen VOR dem ersten Schreibzugriff. */
+        const iPruef = imp.indexOf("IMPORT_FORM[k]");
+        const iSchreib = imp.indexOf("await store.set(k, nehmen[k])");
+        pr("Sicherung: Validierung wird vor Transaktion aufgerufen", imp.indexOf("backupLesen(") >= 0 && imp.indexOf("backupLesen(") < imp.indexOf("datenErsetzen("), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        /* F02: fehlende Schluessel werden GELOESCHT, nicht stehengelassen —
+           sonst mischen sich zwei Spielverlaeufe. */
+        pr("Sicherung: Import verwendet vollständige Schlüsselliste", imp.includes("datenErsetzen(store, daten, importKeys, RUECK_KEY, VERSION)"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        /* F04: Rueckweg bei einem Schreibfehler. */
+        pr("Sicherung: Wiederherstellung am App-Start angebunden", qB.includes("await importWiederherstellen(store, SPEICHERSCHLUESSEL)"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        /* F05: der Rueckgabewert von execCommand wird ausgewertet. */
+        pr("Sicherung: Kopieren meldet nur bei echtem Erfolg",
+           /const ok = document\.execCommand\("copy"\)/.test(qB),
+           /const ok = document\.execCommand\("copy"\)/.test(qB)
+             ? "Rückgabewert wird gelesen" : "meldet Erfolg ungeprüft");
+
+        /* F18: Lesefehler beim Export sind kein fehlender Schluessel. */
+        pr("Sicherung: ein Lesefehler bricht den Export ab",
+           /Sicherung abgebrochen/.test(qB),
+           /Sicherung abgebrochen/.test(qB)
+             ? "unvollständige Sicherung wird verweigert" : "Lesefehler wird übersprungen");
+
+        /* F15: Mengenformen. „1 Datensätze" stand an drei Stellen. */
+        const mengen = (qB.match(/\? " Datensatz" : " Datensätze"/g) || []).length;
+        pr("Sicherung: Mengenformen stimmen bei eins",
+           mengen >= 2, mengen + " Stellen mit Singular/Plural");
+
+        /* KEINE ERFUNDENEN SPEICHERMETHODEN. `store.remove` gab es nie —
+           `storage.js` kennt `get`, `set` und `delete`. Der erste Entwurf
+           dieser Fassung rief `remove`, und keine Ansichtsprüfung haette es
+           gefangen, weil der Importpfad dort nie laeuft. */
+        const kannStore = ["get", "set", "delete", "transaktion"];
+        const gerufen = [...new Set([...qB.matchAll(/\bstore\.([a-zA-Z]+)\(/g)].map((m) => m[1]))];
+        const erfunden = gerufen.filter((m) => !kannStore.includes(m));
+        pr("Sicherung: es werden nur Speichermethoden gerufen, die es gibt",
+           erfunden.length === 0,
+           erfunden.length ? "kennt `store` nicht: " + erfunden.join(", ")
+                           : gerufen.join(", ") + " — alle in storage.js vorhanden");
+      }
+    }
+
+    /* ---- SPEICHERFEHLER SIND SICHTBAR (35.132, F06) -------------------
+       Bis 35.131 verschwand jeder Schreibfehler in einem leeren `catch`.
+       Vier Stellen waren sogar OHNE `await` — dort faengt ein synchrones
+       `try/catch` eine abgelehnte Promise ueberhaupt nicht. */
+    {
+      const fsW = require("fs");
+      const ARGW = require("./argumente.cjs");
+      const kW = [ARGW.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsW.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qW = kW ? fsW.readFileSync(kW, "utf8") : "";
+      pr("Schreibfehler: App.jsx für die Prüfung gefunden", !!qW,
+         kW || "nicht gefunden — die Zeilen darunter laufen NICHT");
+
+      if (qW) {
+        /* KEIN `store.set` OHNE `await` MEHR — ausser im Sicherungs- und
+           Migrationspfad, die eigene Fehlerbehandlung tragen. Gesucht wird
+           nach `store.set(` ohne vorangestelltes `await`. */
+        const ohneAwait = [...qW.matchAll(/(.{0,12})store\.set\(/g)]
+          .filter((m) => !/await\s*$/.test(m[1]))
+          .map((m) => m[1].trim().slice(-10));
+        pr("Schreibfehler: kein Schreibzugriff ohne `await`",
+           ohneAwait.length === 0,
+           ohneAwait.length ? ohneAwait.length + " Stellen ohne await"
+                            : "alle `store.set` mit await");
+
+        /* DER GEMEINSAME WEG EXISTIERT und meldet den Fehler nach aussen. */
+        pr("Schreibfehler: es gibt einen gemeinsamen Schreibweg",
+           /const schreibe = async \(key, wert, was\)/.test(qW)
+             && /setSpeicherFehler\(\{ key, was/.test(qW),
+           /const schreibe = async/.test(qW) ? "`schreibe` setzt `speicherFehler`"
+                                             : "kein gemeinsamer Weg");
+
+        /* UND DER FEHLER WIRD ANGEZEIGT. Ein Fehler, den niemand sieht, ist
+           nur halb behoben — das war ja gerade der Befund. */
+        pr("Schreibfehler: das Hauptmenü zeigt ihn an",
+           /speicherFehler && \(/.test(qW) && /Nicht gespeichert/.test(qW),
+           /Nicht gespeichert/.test(qW) ? "Warnzeile im Hauptmenü vorhanden"
+                                        : "der Fehler bleibt unsichtbar");
+
+        /* Und er verschwindet wieder, wenn derselbe Datensatz ankommt —
+           sonst stuende die Warnung bis zum Neustart da. */
+        pr("Schreibfehler: die Warnung verschwindet nach einem gelungenen Schreibzugriff",
+           /alt && alt\.key === key\) \? null : alt/.test(qW),
+           /alt\.key === key/.test(qW) ? "wird bei Erfolg zurückgenommen"
+                                        : "bleibt bis zum Neustart stehen");
+      }
+    }
+
+    /* ---- ZURUECKSETZEN LOESCHT WIRKLICH ALLES (35.133, F41/P1) --------
+       Der Reset liess zwei Fortschrittsschluessel stehen (`WC_KEY`,
+       `HSV_KEY`) — und die Migrationsschluessel. Beim naechsten Start holte
+       `ladeMitAltbestand` daraus den alten Spielstand zurueck: eine
+       geloeschte Laufbahn stand wieder da. „Nicht umkehrbar" war eine
+       falsche Zusage. */
+    {
+      const fsL = require("fs");
+      const ARGL = require("./argumente.cjs");
+      const kL = [ARGL.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsL.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qL = kL ? fsL.readFileSync(kL, "utf8") : "";
+      pr("Reset: App.jsx für die Prüfung gefunden", !!qL,
+         kL || "nicht gefunden — die Zeilen darunter laufen NICHT");
+
+      if (qL) {
+        const iR = qL.indexOf("const SPEICHERSCHLUESSEL");
+        const liste = iR >= 0 ? qL.slice(iR, qL.indexOf("];", iR)) : "";
+        /* JEDER `_KEY` MUSS DRIN SEIN. Von Hand gefuehrte Listen laufen
+           auseinander — genau das ist hier passiert. */
+        const alle = [...new Set([...qL.matchAll(/^const\s+([A-Z_0-9]*_KEY)\s*=/gm)].map((m) => m[1]))];
+        const fehlen = alle.filter((n) => liste.indexOf(n) < 0);
+        pr("Reset: die Löschliste kennt jeden Speicherschlüssel",
+           iR >= 0 && fehlen.length === 0,
+           iR < 0 ? "`SPEICHERSCHLUESSEL` nicht gefunden"
+             : fehlen.length ? "fehlen: " + fehlen.join(", ")
+                             : alle.length + " Schlüssel, alle in der Liste");
+
+        /* UND DIE ALTNAMEN. Ohne sie kehrt der geloeschte Stand zurueck. */
+        pr("Reset: die Altnamen aus der Migration werden mitgelöscht",
+           /\.\.\.Object\.values\(ALT_KEYS\)\.flat\(\)/.test(liste),
+           /Object\.values\(ALT_KEYS\)/.test(liste)
+             ? "`ALT_KEYS` fließen in die Liste ein"
+             : "Migrationsschlüssel überleben den Reset");
+
+        /* Ein Loeschfehler darf nicht als sauberer Neustart durchgehen. */
+        pr("Reset: ein Löschfehler wird gemeldet statt überspielt",
+           /setLoeschFehler\(blieb\.length\)/.test(qL),
+           /setLoeschFehler/.test(qL) ? "stehengebliebene Einträge werden gezählt"
+                                      : "Löschfehler werden verschluckt");
+
+        /* JEDER `useState`-SETZER BRAUCHT SEINE DEFINITION. Beim Bauen
+           dieser Fassung rief ich `setLoeschFehler`, waehrend die Definition
+           an einem gescheiterten Ersatz haengengeblieben war — ein Absturz
+           beim Zuruecksetzen, den keine Ansichtspruefung findet, weil der
+           Dialog dort nie geoeffnet wird. */
+        /* Der erste Entwurf dieser Probe verlangte fuer JEDEN `setX(` eine
+           `useState`-Zeile und meldete prompt `setTimeout`, `setProperty`
+           und mehrere gewoehnliche Funktionen. Die richtige Frage ist nicht
+           „ist es ein React-Setzer", sondern „ist der Name ueberhaupt
+           deklariert". Browser-eigene Namen stehen als Ausnahme dabei. */
+        const BROWSER = ["setTimeout", "setInterval", "setState", "setProperty",
+                         "setItem", "setAttribute", "setDate", "setHours",
+                         "setMinutes", "setSeconds", "setTime", "setFullYear",
+                         "setRequestHeader", "setSelectionRange", "setCustomValidity"];
+        /* Nur freistehende Aufrufe: `KARTEN.setStand(...)` ist eine Funktion
+           aus einem Modul, kein Zustandssetzer — ein Punkt davor schliesst
+           sie aus. */
+        const setzer = [...new Set([...qL.matchAll(/(^|[^.\w])(set[A-Z][A-Za-z0-9]*)\s*\(/g)].map((m) => m[2]))]
+          .filter((n) => !BROWSER.includes(n));
+        const ohneDef = setzer.filter((n) => {
+          const rx = new RegExp("(,\\s*|\\[\\s*)" + n + "\\s*\\]"      /* [x, setX] */
+            + "|\\b(const|let|var|function)\\s+" + n + "\\b"           /* const setX = … */
+            + "|\\b" + n + "\\s*[,}]"                                  /* Eigenschaft/Parameter */
+            + "|\\b" + n + ":\\s");                                     /* { setX: … } */
+          return !rx.test(qL);
+        });
+        pr("Reset: jeder Zustandssetzer ist auch deklariert",
+           ohneDef.length === 0,
+           ohneDef.length ? "nirgends deklariert: " + ohneDef.join(", ")
+                          : setzer.length + " Setzer geprüft");
+      }
+    }
+
+    /* ---- ZWEI KARTENUEBERGABEN IM SELBEN ABSCHLUSS (35.134, F44/P1) ---
+       `kartenErgaenzen` rechnete mit `karten` aus dem laufenden Render.
+       `setKarten` aendert diese eingefangene Variable nicht — zwei
+       Uebergaben desselben Abschlusses gingen BEIDE vom alten Pool aus.
+       Nachgestellt: Talentkarte A, dann Vereinskarte B, gespeichert wurde
+       [B] statt [A, B].
+
+       Im Karriereende passiert genau das: neue Akademiekarten und der Kader
+       des fuenfzehnten Vereinsjahres kommen nacheinander. */
+    {
+      const K4 = App.KARTEN;
+
+      /* DAS VERHALTEN, NICHT DER QUELLTEXT. Nachgebildet wird der Unterschied
+         zwischen „immer vom Render-Stand" und „vom zuletzt geschriebenen". */
+      const A4 = { ...K4.neueKarte("gold", 2030), kid: "a:t1:Talent" };
+      const B4 = { ...K4.neueKarte("silber", 2030), kid: "k:t2:Kader" };
+
+      const alteArt = () => {
+        const fest = K4.leererPool();           /* Render-Stand, aendert sich nie */
+        K4.poolErgaenzen(fest, [A4]);
+        return K4.poolErgaenzen(fest, [B4]);    /* zweite Uebergabe, alter Pool */
+      };
+      const neueArt = () => {
+        let ref = K4.leererPool();
+        ref = K4.poolErgaenzen(ref, [A4]);
+        ref = K4.poolErgaenzen(ref, [B4]);
+        return ref;
+      };
+      pr("Kartenübergabe: zwei Übergaben ergeben beide Karten",
+         neueArt().karten.length === 2,
+         "neue Art: " + neueArt().karten.length + " Karten");
+
+      /* GEGENPROBE: die alte Art verliert wirklich eine — sonst pruefte die
+         Zeile darueber etwas, das nie kaputt war. */
+      pr("Kartenübergabe: Gegenprobe — die alte Art verlor die erste",
+         alteArt().karten.length === 1,
+         "alte Art: " + alteArt().karten.length + " Karte(n) statt 2");
+
+      /* UND DER QUELLTEXT MUSS ES AUCH SO TUN. Das Verhalten oben ist
+         nachgebaut; diese Zeile prueft, dass App.jsx den Ref wirklich
+         benutzt — und dass JEDE Stelle, die `setKarten` ruft, ihn mitzieht.
+         Bleibt eine zurueck, arbeitet der naechste Abschluss mit einem
+         veralteten Stand. */
+      const fsC = require("fs");
+      const ARGC = require("./argumente.cjs");
+      const kC = [ARGC.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsC.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qC = kC ? fsC.readFileSync(kC, "utf8") : "";
+      pr("Kartenübergabe: App.jsx für die Prüfung gefunden", !!qC, kC || "nicht gefunden");
+
+      if (qC) {
+        /* ---- F17: ERST SICHERN, DANN ABBUCHEN --------------------------
+           `start` leerte `aka.laden` und speicherte das SOFORT, die neue
+           Karriere aber erst spaeter. Ein Prozessende dazwischen kostete den
+           gekauften Vorrat: abgebucht, aber in keiner Laufbahn angekommen. */
+        const iSt = qC.indexOf("const vorrat = { ...(aka.laden");
+        const stBlock = iSt >= 0 ? qC.slice(iSt, iSt + 1400) : "";
+        const iSpeichern = stBlock.indexOf('await saveGame(q, "training")');
+        const iLeeren = stBlock.indexOf("laden: {}");
+        pr("Karrierestart: Speicher und Vorrat gemeinsam gebucht", qC.includes("await datenErsetzen(store, daten, Object.keys(daten), null, VERSION)"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        pr("Karrierestart: Oberfläche erst nach Transaktion setzen", qC.indexOf("await datenErsetzen(store, daten, Object.keys(daten), null, VERSION)") < qC.indexOf("setSave(stand); setAka(ohne)"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        pr("Karrierestart: `saveGame` meldet, ob es angekommen ist",
+           /return await schreibe\(SAVE_KEY/.test(qC),
+           /return await schreibe\(SAVE_KEY/.test(qC) ? "gibt den Erfolg zurück"
+                                                       : "gibt nichts zurück");
+
+        /* NACH DEM UMBAU DURCH CODEX (35.167) nachgezogen: die Probe suchte
+           woertlich `const basis = kartenRef.current || karten`. Diese Zeile
+           gibt es nicht mehr — `kartenRef.current || karten` wird jetzt
+           direkt an `packBuchung` und `verkaufsBuchung` uebergeben.
+
+           DIE SACHE STIMMT WEITER, nur die Fundstelle war anders. Geprueft
+           wird deshalb, was F44 wirklich verlangt: dass ueberhaupt aus dem
+           Ref gelesen wird und nicht nur aus dem Render-Stand. */
+        const refStellen = (qC.match(/kartenRef\.current \|\| karten/g) || []).length;
+        pr("Kartenübergabe: der Pool kommt aus dem Ref, nicht aus dem Render",
+           refStellen > 0 && /kartenRef\.current = /.test(qC),
+           refStellen ? refStellen + " Stellen lesen `kartenRef`"
+                      : "rechnet weiter mit dem Render-Stand");
+
+        const zeilen = qC.split("\n");
+        const ohneRef = [];
+        zeilen.forEach((z, i) => {
+          if (!/setKarten\(/.test(z)) return;
+          const umfeld = zeilen.slice(Math.max(0, i - 2), i + 1).join(" ");
+          if (!/kartenRef\.current\s*=/.test(umfeld)) ohneRef.push(i + 1);
+        });
+        pr("Kartenübergabe: jede Zustandsänderung zieht das Ref mit",
+           ohneRef.length === 0,
+           ohneRef.length ? "ohne Ref in Zeile " + ohneRef.join(", ")
+                          : "alle `setKarten`-Stellen aktualisieren `kartenRef`");
+      }
+    }
+
+    /* ---- DIE KALIBRIERUNG SPIELT DAS ECHTE SPIEL (35.135, F07) --------
+       Sie waehlte mit `pick(e.choices)` — also auch Optionen, die der
+       Spieler gar nicht anklicken kann: „Auf einen Spezialisten bestehen"
+       ohne das noetige Geld. Gemessen: 36 der 1.156 Optionen tragen eine
+       Bedingung, und jede war fuer die Simulation offen.
+
+       Eine Kalibrierung, die andere Entscheidungen trifft als das Spiel,
+       misst ein anderes Spiel — und ihre Zahlen taugen dann nicht fuer
+       Balancing-Entscheidungen. */
+    {
+      const fsK7 = require("fs");
+      /* NEBEN DIESER DATEI, nicht im Arbeitsverzeichnis: die Pruefung laeuft
+         aus `/tmp/ps`, die Kalibrierung liegt im Pruefstand. `__dirname` ist
+         der einzige verlaessliche Anker. */
+      const pathK7 = require("path");
+      const kal = [pathK7.join(__dirname, "kalibrierung.cjs"),
+                   "pruefstand/kalibrierung.cjs", "kalibrierung.cjs"]
+        .find((k) => { try { return fsK7.statSync(k).isFile(); } catch (e) { return false; } });
+      const qK7 = kal ? fsK7.readFileSync(kal, "utf8") : "";
+      pr("Kalibrierung: die Datei ist auffindbar", !!qK7, kal || "nicht gefunden");
+
+      if (qK7) {
+        /* OHNE KOMMENTARE PRUEFEN. Der erste Entwurf suchte `pick(e.choices)`
+           im ganzen Text und fand es — in dem Kommentar, der die Behebung
+           ERKLAERT. Die Probe meldete rot, obwohl der Code stimmte. Ein
+           Kommentar ist kein Code, und eine Probe, die beides verwechselt,
+           meldet den falschen Zustand. */
+        const ohneKomm = qK7.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+        pr("Kalibrierung: sie wählt nur Optionen, die auch offen sind",
+           /const offen = offeneWahlen\(e, q\)/.test(ohneKomm)
+             && !/pick\(e\.choices\)/.test(ohneKomm),
+           /pick\(e\.choices\)/.test(ohneKomm) ? "wählt weiterhin aus ALLEN Optionen"
+                                                 : "nutzt `offeneWahlen` wie das Spiel");
+
+        /* Und sie benutzt DIESELBE Funktion wie die Oberflaeche — nicht eine
+           nachgebaute mit denselben Regeln, die morgen auseinanderlaeuft. */
+        const fsA7 = require("fs");
+        const ARGA7 = require("./argumente.cjs");
+        const kA7 = [ARGA7.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+          .filter(Boolean).find((k) => { try { return fsA7.statSync(k).isFile(); }
+            catch (e) { return false; } });
+        const qA7 = kA7 ? fsA7.readFileSync(kA7, "utf8") : "";
+        pr("Kalibrierung: Spiel und Messung nutzen dieselbe Auswahlfunktion",
+           !!qA7 && /pick\(offeneWahlen\(e, q\)\)/.test(qA7)
+             && /offeneWahlen\(e, q\)/.test(qK7),
+           !qA7 ? "App.jsx nicht gefunden"
+             : (/pick\(offeneWahlen\(e, q\)\)/.test(qA7)
+                ? "beide rufen `offeneWahlen`" : "die Oberfläche wählt anders"));
+
+        /* Bleibt keine Option offen, wird das Ereignis uebersprungen — sonst
+           liefe die Simulation in eine Wahl, die es nicht gibt. */
+        pr("Kalibrierung: ein Ereignis ohne offene Option wird übersprungen",
+           /if \(!offen\.length\) return;/.test(qK7),
+           /!offen\.length/.test(qK7) ? "wird abgefangen" : "läuft in eine leere Auswahl");
+      }
+
+      /* Und die Zahl selbst: 36 Optionen mit Bedingung waren betroffen. */
+      const mitCond = (App.EVENTS || []).reduce((a, e) =>
+        a + (e.choices || []).filter((c) => c.cond).length, 0);
+      const alle7 = (App.EVENTS || []).reduce((a, e) => a + (e.choices || []).length, 0);
+      pr("Kalibrierung: es gibt überhaupt bedingte Optionen zu schützen",
+         mitCond > 0,
+         mitCond + " von " + alle7 + " Optionen tragen eine Bedingung");
+    }
+
+    /* ---- SONDERSCHUSS: GENAU EINE SAISON (35.136, F08) ---------------
+       Die Marke wird auf die Zahl der abgeschlossenen Saisons gesetzt; die
+       alte Bedingung `<= sonderSchutz + 1` war fuer ZWEI Laeufe wahr. Der
+       Text verspricht eine Saison ohne Verletzung, geliefert wurden zwei. */
+    {
+      const lauf = (mitSchutz) => {
+        const q = App.createPlayer({ name: "T", pos: "ST", nation: "DE",
+          g: "m", type: "talent", mode: "normal" });
+        q.sonderSchutz = mitSchutz ? q.seasons.length : null;
+        const erg = [];
+        for (let i = 0; i < 3; i++) {
+          q.pendingInjury = "schwer";
+          App.simulateSeason(q);
+          erg.push(!!(q.seasons[q.seasons.length - 1] || {}).injury);
+        }
+        return erg;
+      };
+      const mit = lauf(true), ohne = lauf(false);
+
+      pr("Sonderschuss: die erste Saison bleibt verschont",
+         mit[0] === false, "Saison 1 mit Schutz: " + (mit[0] ? "verletzt" : "heil"));
+
+      /* DER EIGENTLICHE BEFUND: die ZWEITE darf es nicht mehr sein. */
+      pr("Sonderschuss: die zweite Saison ist nicht mehr geschützt",
+         mit[1] === true,
+         "Saison 2 mit Schutz: " + (mit[1] ? "verletzt — richtig" : "heil — der Schutz hält zu lange"));
+
+      /* GEGENPROBE: ohne Schutz muss die vorgemerkte Verletzung sofort
+         eintreten — sonst prueft die Zeile darueber etwas anderes. */
+      pr("Sonderschuss: Gegenprobe — ohne Schutz trifft es sofort",
+         ohne[0] === true,
+         "Saison 1 ohne Schutz: " + (ohne[0] ? "verletzt" : "heil — dann greift etwas anderes"));
+
+      /* Und die Marke ist danach verbraucht, nicht nur wirkungslos. */
+      const q2 = App.createPlayer({ name: "T", pos: "ST", nation: "DE",
+        g: "m", type: "talent", mode: "normal" });
+      q2.sonderSchutz = q2.seasons.length;
+      q2.pendingInjury = "schwer";
+      App.simulateSeason(q2);
+      pr("Sonderschuss: die Marke wird verbraucht, nicht liegengelassen",
+         q2.sonderSchutz == null,
+         "nach der geschützten Saison: " + JSON.stringify(q2.sonderSchutz));
+    }
+
+    /* ---- TEXT UND WIRKUNG (35.137, F09-F12) ---------------------------
+       Vier Ereignisse, deren Text mehr zusagte, als die Wirkung herstellt.
+       Zwei davon (F09, F10) sind meine eigenen Krisenpfade aus 35.112 — die
+       Probe dort pruefte, dass jede Option einen PREIS hat, nicht dass der
+       Text die Wirkung trifft. */
+    {
+      const EV9 = App.EVENTS || [];
+      const holen = (id) => EV9.find((e) => e.id === id);
+
+      /* F10: „verpasst den Rest der Saison" braucht einen echten Ausfall. */
+      const kc = holen("kr_comeback");
+      const reha = kc && (kc.choices || []).find((c) => /Reha zu Ende/.test(c.label || ""));
+      const rehaFx = reha && reha.roll && reha.roll[0] && reha.roll[0].fx;
+      pr("Textreue: die Reha kostet die Saison wirklich",
+         !!rehaFx && !!rehaFx.forceInjury,
+         rehaFx ? ("forceInjury: " + JSON.stringify(rehaFx.forceInjury)) : "Option nicht gefunden");
+
+      /* F09: der Text darf keinen vollzogenen Wechsel behaupten, solange nur
+         ein Wechselwunsch gesetzt wird. */
+      const kt = holen("kr_tiefer");
+      const runter = kt && (kt.choices || []).find((c) => /Nach unten/.test(c.label || ""));
+      const rTxt = runter && runter.roll && runter.roll[0] ? runter.roll[0].text : "";
+      const rFx = runter && runter.roll && runter.roll[0] ? runter.roll[0].fx : {};
+      const behauptet = /unterschreibst|hast unterschrieben|wechselst zu/i.test(String(rTxt));
+      pr("Textreue: der Abstieg verspricht keinen schon vollzogenen Wechsel",
+         !!runter && !behauptet && !!rFx.wantMove,
+         !runter ? "Option nicht gefunden"
+           : behauptet ? "Text behauptet eine Unterschrift, gesetzt wird nur `wantMove`"
+           : "Text nennt es eine Absicht, `wantMove` passt dazu");
+
+      /* F11: eine Rueckkehr nach Verletzung setzt eine Verletzung voraus. */
+      const reha2 = holen("al_reha");
+      const cond11 = reha2 ? String(reha2.cond) : "";
+      pr("Textreue: die Verletzungsrückkehr verlangt eine Verletzung",
+         /\.injury\b/.test(cond11),
+         reha2 ? (/\.injury\b/.test(cond11) ? "prüft die Saisonhistorie"
+                                             : "prüft nur Anfälligkeit und Alter")
+               : "`al_reha` nicht gefunden");
+
+      /* Und sie muss noch erreichbar sein — eine Bedingung, die niemand mehr
+         erfuellt, waere die Behebung durch Abschaffung. */
+      let LR = [];
+      try { for (let i = 0; i < 12; i++) LR.push(laufbahnFuerZeilen()); } catch (e) { /* faellt auf */ }
+      const trifft = reha2 ? LR.filter((q) => {
+        try { return !!reha2.cond({ ...q, injuryProne: 55, age: 26 }); } catch (e) { return false; }
+      }).length : 0;
+      pr("Textreue: die Verletzungsrückkehr bleibt trotzdem erreichbar",
+         LR.length === 0 || trifft > 0,
+         trifft + " von " + LR.length + " Laufbahnen erfüllen sie bei passender Anfälligkeit");
+
+      /* F12: der Trainerschein-Text darf nicht mit blossem Schulabschluss
+         offen sein. Jetzt zwei getrennte Wege. */
+      const lp = holen("ew_lebensplan");
+      const schein = lp && (lp.choices || []).find((c) => /Trainerschein aufbauen/.test(c.label || ""));
+      const schule = lp && (lp.choices || []).find((c) => /Schulabschluss aufbauen/.test(c.label || ""));
+      const condS = schein ? String(schein.cond) : "";
+      pr("Textreue: „auf dem Trainerschein aufbauen“ verlangt den Schein",
+         !!schein && /trainerschein/.test(condS) && !/abschluss/.test(condS),
+         !schein ? "Option nicht gefunden"
+           : /abschluss/.test(condS) ? "auch mit blossem Schulabschluss offen"
+           : "nur mit `trainerschein`");
+      pr("Textreue: für den Schulabschluss gibt es einen eigenen Weg",
+         !!schule, schule ? "eigene Option mit eigenem Text" : "kein getrennter Weg");
+
+      /* F13: der Einstiegstext versprach „ab der 2. Laufbahn", die Logik
+         verlangt zwei ABGESCHLOSSENE — verfuegbar wird es also in Laufbahn 3.
+         Eine Zusage, die einen frueheren Zugang nennt, als es ihn gibt. */
+      const fsF13 = require("fs");
+      const ARGF13 = require("./argumente.cjs");
+      const kF13 = [ARGF13.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsF13.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qF13 = kF13 ? fsF13.readFileSync(kF13, "utf8") : "";
+      const falsch13 = qF13 ? (qF13.match(/ab der [0-9]+\. Laufbahn/g) || []) : [];
+      pr("Textreue: keine Freischaltung verspricht einen zu frühen Zugang",
+         !!qF13 && falsch13.length === 0,
+         !qF13 ? "App.jsx nicht gefunden"
+           : falsch13.length ? "verspricht zu früh: " + falsch13.join(", ")
+           : "alle Texte nennen abgeschlossene Laufbahnen");
+
+      /* F14: die Wortersetzung liess Artikel, Adjektive und
+         Relativpronomen stehen. Geprueft an ECHTEN Ausgaben, nicht an der
+         Ersetzungsliste — eine Liste kann vollstaendig aussehen und trotzdem
+         falsche Saetze erzeugen. */
+      const WF = App.weiblichForm;
+      const faelle14 = [
+        ["Ein ehemaliger Mitspieler ruft an.", "Eine ehemalige Mitspielerin ruft an."],
+        ["Du bist der Einzige, der normal geht.", "Du bist die Einzige, die normal geht."],
+        ["als der Mann, der von der Bank kommt", "als die Frau, die von der Bank kommt"],
+        ["Dein bester Mitspieler geht.", "Deine beste Mitspielerin geht."],
+      ];
+      const daneben14 = typeof WF === "function"
+        ? faelle14.filter(([m, soll]) => WF(m) !== soll).map(([m]) => m.slice(0, 32))
+        : ["`weiblichForm` nicht im Bündel"];
+      pr("Frauenform: Artikel, Adjektiv und Relativpronomen ziehen mit",
+         daneben14.length === 0,
+         daneben14.length ? "falsch: " + daneben14.join(" · ")
+                          : faelle14.length + " echte Ausgaben geprüft");
+
+      /* UND DIE MAENNLICHE FASSUNG DARF NICHT LEIDEN. Eine Nachbesserung,
+         die maennliche Texte beschaedigt, waere schlimmer als der Fehler. */
+      const maennlich = ["Der neue Trainer kommt.", "Ein harter Gegner wartet.",
+                         "Der Arzt gibt grün."];
+      const kaputt14 = typeof WF === "function"
+        ? maennlich.filter((t) => /Trainerin|Ärztin|Gegnerin/.test(WF(t)))
+        : [];
+      pr("Frauenform: Trainer und Arzt werden nicht mitgewandelt",
+         kaputt14.length === 0,
+         kaputt14.length ? "fälschlich gewandelt: " + kaputt14.join(" · ")
+                         : "ihr Geschlecht folgt nicht dem der Spielerin");
+
+      /* Und die Schwellen selbst stimmen mit den Texten ueberein. */
+      const frei0 = App.VEREIN.freigeschaltet({ karrieren: 1 });
+      const frei2 = App.VEREIN.freigeschaltet({ karrieren: 2 });
+      const frei4 = App.VEREIN.freigeschaltet({ karrieren: 4 });
+      const frei5 = App.VEREIN.freigeschaltet({ karrieren: 5 });
+      pr("Textreue: die Schwellen liegen, wo der Text sie nennt",
+         !frei0.akademie && frei2.akademie && !frei4.verein && frei5.verein,
+         "1 Laufbahn: Akademie " + frei0.akademie + " · 2: " + frei2.akademie
+           + " · 4: Verein " + frei4.verein + " · 5: " + frei5.verein);
+    }
+
+    /* ---- F16 UND F19 (35.138) -----------------------------------------
+       Zwei Rechenfehler: die erste Laufbahn wurde am Endjahr erkannt, und
+       ein positiver Potenzialbonus konnte den Wert SENKEN. */
+    {
+      /* F16: jede Laufbahn startet 2026 — das Endjahr sagt nichts ueber die
+         Reihenfolge. Eine spaeter gespielte kurze endet frueher als eine
+         zuerst gespielte lange. */
+      const MZ16 = App.metaZeitleiste;
+      const mitNr = MZ16([{ name: "Lang, zuerst", bis: 2051, score: 1200, nr: 1 },
+                          { name: "Kurz, danach", bis: 2040, score: 600, nr: 2 }], null, null);
+      const ersteZeile = mitNr.find((e) => /Die erste Laufbahn/.test(e.text));
+      pr("Chronik: die erste Laufbahn ist die zuerst abgeschlossene",
+         !!ersteZeile && /Lang, zuerst/.test(ersteZeile.text),
+         ersteZeile ? ersteZeile.text : "keine Zeile");
+
+      /* GEGENPROBE: ohne Nummer bleibt das Endjahr die Naeherung — alte
+         Eintraege bekommen keine erfundene Reihenfolge. */
+      const ohneNr = MZ16([{ name: "Lang", bis: 2051, score: 1200 },
+                           { name: "Kurz", bis: 2040, score: 600 }], null, null);
+      const e2 = ohneNr.find((e) => /Die erste Laufbahn/.test(e.text));
+      pr("Chronik: alte Einträge ohne Nummer fallen aufs Endjahr zurück",
+         !!e2 && /Kurz/.test(e2.text),
+         e2 ? e2.text : "keine Zeile");
+
+      /* Und die Nummer wird beim Abschluss wirklich geschrieben. */
+      const fs16 = require("fs");
+      const ARG16 = require("./argumente.cjs");
+      const k16 = [ARG16.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fs16.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const q16 = k16 ? fs16.readFileSync(k16, "utf8") : "";
+      /* Der Ausdruck suchte `(G && G.karrieren)` — den Namen, der hier nie
+         existierte und den Abschluss abstuerzen liess. Jetzt wird geprueft,
+         dass eine Nummer gesetzt wird UND dass sie aus einem Zustand kommt,
+         den es an der Stelle gibt. */
+      pr("Chronik: Halleneintrag hat Identität und laufende Nummer", q16.includes("bereiteHalle({ id: q.karriereId, nr: ((ges && ges.karrieren) || 0) + 1"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+      /* F19: ein positiver Bonus darf nie senken. */
+      const mk19 = (pot, meta) => ({ potential: pot,
+        attrs: { pac: 80, sho: 80, pas: 80, dri: 80, def: 80, phy: 80 }, pos: "ST",
+        money: 1, flags: {}, laden: {}, seasons: [], meta: meta || {},
+        wcMod: null, nt: { caps: 0, majors: [] } });
+      const nach = (v, d, meta) => { const x = mk19(v, meta); App.applyFx(x, { pot: d }); return x.potential; };
+      const gesenkt = [95, 97, 99, 103, 105, 110].filter((v) => nach(v, 2) < v);
+      pr("Potenzial: ein positiver Bonus senkt nie",
+         gesenkt.length === 0,
+         gesenkt.length ? "gesenkt bei: " + gesenkt.join(", ")
+                        : "95→" + nach(95, 2) + " · 99→" + nach(99, 2) + " · 105→" + nach(105, 2));
+
+      pr("Potenzial: die Freischaltung hebt die Grenze wirklich",
+         nach(105, 2, { mx_ueber99: true }) === 107,
+         "105 mit Freischaltung und +2 → " + nach(105, 2, { mx_ueber99: true }));
+
+      pr("Potenzial: ein negativer Wert senkt weiterhin",
+         nach(105, -5) === 100, "105 mit −5 → " + nach(105, -5));
+    }
+
+    /* ---- F20 BIS F28 (35.139) -----------------------------------------
+       Neun Befunde, alle klein und konkret. */
+    {
+      const EV2x = App.EVENTS || [];
+      const hol2x = (id) => EV2x.find((e) => e.id === id);
+
+      /* F20: der Limit-Kauf verspricht vier Saisons bis 103. */
+      const mk20 = (v, meta) => { const x = App.createPlayer({ name: "T", pos: "ST",
+        nation: "DE", g: "m", type: "talent", mode: "normal" });
+        x.attrs.sho = v; x.laden = { ueber99: 4 }; x.meta = meta || {};
+        x.potential = 115; x.age = 24; return x; };
+      const q20 = mk20(99, null); const weg = [];
+      for (let i = 0; i < 4; i++) { App.develop(q20); weg.push(q20.attrs.sho); }
+      pr("Limit-Kauf: vier Saisons führen wirklich bis 103",
+         weg[3] >= 103, "99 → " + weg.join(" → "));
+
+      const q20b = mk20(110, { mx_ueber99: true }); App.develop(q20b);
+      pr("Limit-Kauf: ein höherer Wert wird nicht heruntergezogen",
+         q20b.attrs.sho >= 110, "110 mit Freischaltung → " + q20b.attrs.sho);
+
+      /* F23: `roleFor` liefert „rot", geprueft wurde „rotation". */
+      const fs2x = require("fs");
+      const ARG2x = require("./argumente.cjs");
+      const k2x = [ARG2x.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fs2x.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const q2x = k2x ? fs2x.readFileSync(k2x, "utf8") : "";
+      pr("Rollen: die Verlängerung kennt den Schlüssel „rot“",
+         /r0\.key === "rot" \? -\.06/.test(q2x) && !/r0\.key === "rotation"/.test(q2x),
+         /r0\.key === "rotation"/.test(q2x) ? "prüft weiterhin auf `rotation`"
+                                            : "prüft auf `rot` wie `roleFor` es liefert");
+
+      /* F24: der Ausschluss muss fuer BEIDE Attributzweige gelten. */
+      const fs24 = hol2x("pm_freistoss");
+      const c24 = fs24 ? String(fs24.cond) : "";
+      const testP = { attrs: { pas: 70, sho: 50 }, flags: { standards: true } };
+      let greift24 = null;
+      try { greift24 = fs24 ? !!fs24.cond(testP) : null; } catch (e) { greift24 = null; }
+      pr("Freistoß: geklärte Zuständigkeit schließt beide Wege aus",
+         greift24 === false,
+         greift24 === null ? "Ereignis nicht gefunden"
+           : greift24 ? "mit Passwert 70 und gesetztem `standards` weiterhin zulässig"
+           : "wird korrekt ausgeschlossen");
+
+      /* F25: der Text darf keine Gehaltssenkung versprechen, wenn erhoeht wird. */
+      const sf25 = hol2x("sf_gehalt");
+      const pr25 = sf25 && (sf25.choices || []).find((c) => /Prämienmodell/.test(c.label || ""));
+      const t25 = pr25 && pr25.roll && pr25.roll[0] ? String(pr25.roll[0].text) : "";
+      pr("Prämienmodell: der Text verspricht keine Senkung mehr",
+         !!pr25 && !/[Ww]eniger Grundgehalt/.test(t25),
+         !pr25 ? "Option nicht gefunden"
+           : (/[Ww]eniger Grundgehalt/.test(t25) ? "verspricht weiterhin weniger" : "Text passt zur Erhöhung"));
+
+      /* F26: ein kostenpflichtiges Ereignis braucht eine Geldbedingung. */
+      const ps26 = hol2x("ps_ladehemmung");
+      const psy = ps26 && (ps26.choices || []).find((c) => /Sportpsychologen/.test(c.label || ""));
+      let offen26 = null;
+      try { offen26 = psy && psy.cond ? !!psy.cond({ money: 0 }) : (psy ? true : null); }
+      catch (e) { offen26 = null; }
+      pr("Psychologe: ohne Geld ist die Option gesperrt",
+         offen26 === false,
+         offen26 === null ? "Option nicht gefunden"
+           : offen26 ? "bei Kontostand 0 weiterhin wählbar" : "gesperrt, mit Hinweis");
+
+      /* Und es bleibt ein Weg offen — keine Sackgasse. */
+      const frei26 = ps26 ? (ps26.choices || []).filter((c) => !c.cond).length : 0;
+      pr("Psychologe: es bleibt eine Wahl ohne Bedingung",
+         frei26 > 0, frei26 + " Option(en) immer offen");
+
+      /* F27: die Trennung aus einer Ehe kostet mehr. */
+      const mk27 = (st) => ({ life: { status: st, partner: "X" }, money: 10,
+        attrs: { pac: 70, sho: 70, pas: 70, dri: 70, def: 70, phy: 70 }, pos: "ST",
+        flags: {}, laden: {}, seasons: [], meta: {}, potential: 80,
+        nation: { id: "DE" }, nt: { caps: 0, majors: [] } });
+      const ehe = mk27("verheiratet"); App.applyFx(ehe, { split: true });
+      const bez = mk27("beziehung");   App.applyFx(bez, { split: true });
+      pr("Trennung: aus einer Ehe kostet sie mehr als aus einer Beziehung",
+         ehe.money < bez.money,
+         "verheiratet 10 → " + ehe.money.toFixed(2) + " · Beziehung 10 → " + bez.money.toFixed(2));
+
+      /* F28: Text und Sperrumfang nennen dieselbe Zahl. */
+      const ek28 = hol2x("sf_eklat");
+      const alleAus = ek28 ? (ek28.choices || []).flatMap((c) => c.roll || []) : [];
+      const zwei = alleAus.find((o) => /Zwei Spiele Tribüne/.test(String(o.text || "")));
+      pr("Sperre: zwei angekündigte Spiele sind auch zwei",
+         !!zwei && zwei.fx && zwei.fx.suspend === 2,
+         zwei ? ("Text nennt zwei, Effekt setzt " + (zwei.fx || {}).suspend) : "Ausgang nicht gefunden");
+    }
+
+    /* ---- F30 BIS F40 (35.140) -----------------------------------------
+       Elf Befunde an den Meta-Systemen aus 35.115 bis 35.127 — also an
+       Dingen, die ich selbst gebaut habe. */
+    {
+      /* F30: laender/ligen/vereine sind ZAEHLKARTEN, keine Zahlen. */
+      const G30 = { ...App.leereBilanz(), apps: 5200,
+        laender: { DE: 3, FR: 1, ES: 1, IT: 1 },
+        ligen: { a: 1, b: 1, c: 1, d: 1, e: 1 }, vereine: {} };
+      for (let i = 1; i <= 12; i++) G30.vereine["v" + i] = 1;
+      const r30 = App.rekordListe(G30);
+      const land = r30.find((x) => /Länder/.test(x.titel));
+      pr("Rekordbuch: Länder, Ligen und Vereine erscheinen",
+         r30.filter((x) => /Länder|Ligen|Vereine/.test(x.titel)).length === 3,
+         r30.map((x) => x.titel + " " + x.wert).join(" · ") || "keine Zeilen");
+      pr("Rekordbuch: gezählt werden verschiedene Orte, nicht Besuche",
+         !!land && land.wert === 4,
+         land ? "DE dreimal bespielt → " + land.wert + " Länder" : "keine Länderzeile");
+
+      /* F32: frueher Bestwert allein macht kein Wunderkind. */
+      const mk32 = (ovr, ende) => ({ seasons: [
+          { ovr, age: ende - 2, apps: 20, club: "A", land: "DE", league: "L" },
+          { ovr, age: ende - 1, apps: 20, club: "A", land: "DE", league: "L" },
+          { ovr, age: ende, apps: 20, club: "A", land: "DE", league: "L" }],
+        peakOvr: ovr, ovr, trophies: [], nt: { caps: 0, majors: [] } });
+      const schwach32 = App.archetyp(mk32(58, 18));
+      const stark32 = App.archetyp(mk32(85, 19));
+      pr("Archetyp: eine schwache Laufbahn ist kein Wunderkind",
+         !schwach32 || schwach32.haupt !== "Das Wunderkind",
+         "Höchststärke 58, Ende mit 18 → " + (schwach32 ? schwach32.haupt : "(keiner)"));
+      pr("Archetyp: Gegenprobe — mit Niveau bleibt es erreichbar",
+         !!stark32 && stark32.haupt === "Das Wunderkind",
+         "Höchststärke 85, Ende mit 19 → " + (stark32 ? stark32.haupt : "(keiner)"));
+
+      /* F31: der Entwicklungstyp muss sichtbar sein. */
+      const fs31 = require("fs");
+      const ARG31 = require("./argumente.cjs");
+      const k31 = [ARG31.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fs31.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const q31 = k31 ? fs31.readFileSync(k31, "utf8") : "";
+      pr("Entwicklungstyp: er wird im Jahrgang auch angezeigt",
+         /const ty = typVon\(t\);/.test(q31),
+         /typVon\(t\)/.test(q31) ? "`typVon` wird aufgerufen"
+                                  : "importiert, aber nie benutzt");
+
+      /* F37: die Kartenherkunft kennt jetzt alle vier Fälle. */
+      pr("Karten: die Herkunft der Akademiekarte steht richtig da",
+         /aus der eigenen Jugend/.test(q31),
+         /aus der eigenen Jugend/.test(q31) ? "eigener Text für `akademie`"
+                                            : "wird als „eigener Verein“ ausgewiesen");
+
+      /* F40: der Seitenname verspricht nichts, was nicht gezaehlt wird. */
+      const setT = (App.KARTEN.SETS || []).find((x) => x.id === "treue");
+      pr("Sammlungsseiten: der Name verspricht keine Treue, die niemand misst",
+         !!setT && !/Treue/i.test(setT.n),
+         setT ? "heißt jetzt „" + setT.n + "“" : "Seite nicht gefunden");
+
+      /* F39: eine einzige Vereinsphase wird gezeigt, nicht verschluckt. */
+      pr("Vereinskapitel: auch eine einzige Phase wird gezeigt",
+         /if \(!ph\.length\) return null;/.test(q31),
+         /ph\.length < 2/.test(q31) ? "eine Phase wird weiterhin verschluckt"
+                                     : "ab einer Phase sichtbar");
+
+      /* F38: eine Zaehlung je Eintrag. */
+      pr("Museum: Schlagzeile und Stationen nutzen dieselbe Jahreszählung",
+         !/String\(t\.j \|\| ""\)\.slice\(0, 7\)/.test(q31),
+         /slice\(0, 4\)/.test(q31) ? "beide im Kalenderjahr"
+                                     : "Saisonform neben Kalenderjahr");
+
+      /* F36: die Summen sind als Summen erkennbar. */
+      pr("Errungenschaften: die Gesamtzahlen sind als solche beschriftet",
+         /Über alle \{G\.karrieren\}/.test(q31),
+         /Über alle/.test(q31) ? "Überschrift nennt die Zahl der Laufbahnen"
+                               : "Summen stehen ohne Einordnung da");
+    }
+
+    /* ---- BEDIENBARKEIT (35.141, F49/F50) ------------------------------
+       Sechs grosse Bedienflaechen waren `<div onClick=…>` ohne Tastatur-
+       zugriff, neun Eingabefelder ohne Beschriftung. Wer nicht tippen kann,
+       kam an den Flaechen nicht vorbei; ein Vorlesedienst nennt ein Feld
+       ohne Beschriftung nur „Eingabefeld". */
+    {
+      const fsB2 = require("fs");
+      const ARGB2 = require("./argumente.cjs");
+      const kB2 = [ARGB2.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsB2.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qB2 = kB2 ? fsB2.readFileSync(kB2, "utf8") : "";
+      pr("Bedienbarkeit: App.jsx für die Prüfung gefunden", !!qB2, kB2 || "nicht gefunden");
+
+      if (qB2) {
+        /* JEDES EINGABEFELD BRAUCHT EINE BESCHRIFTUNG. Ein `placeholder`
+           reicht nicht: er verschwindet, sobald jemand tippt. */
+        const felder = [...qB2.matchAll(/<(input|textarea)\b[^>]*>/g)].map((m) => m[0]);
+        const ohneLabel = felder.filter((f) => !/aria-label|aria-labelledby/.test(f));
+        pr("Bedienbarkeit: jedes Eingabefeld ist beschriftet",
+           felder.length > 0 && ohneLabel.length === 0,
+           ohneLabel.length ? ohneLabel.length + " von " + felder.length + " ohne Beschriftung"
+                            : felder.length + " Felder, alle beschriftet");
+
+        /* KLICKBARE FLAECHEN BRAUCHEN TASTATURZUGRIFF — ausser solchen, die
+           nur `stopPropagation` rufen. Die sind keine Bedienelemente. */
+        /* JSX MIT REGEX ZU ZERLEGEN IST FRAGIL — zwei Entwuerfe daneben:
+           der erste fand `<div onClick=…>` im KOMMENTAR, der diese Behebung
+           erklaert (dieselbe Falle wie bei der Kalibrierung in 35.135); der
+           zweite suchte 400 Zeichen weit und meldete 99 Treffer, weil er
+           jedes umschliessende `<div>` mitzaehlte, in dem irgendwo ein
+           `onClick` stand.
+
+           Diese Probe prueft deshalb das, was sich sicher pruefen laesst:
+           die `rs-schleier`-Flaechen sind die grossen Weiter-Flaechen des
+           Spiels, und jede von ihnen muss den Helfer tragen. Eine neue
+           Flaeche dieser Art faellt damit auf; eine allgemeine
+           JSX-Analyse waere hier mehr Fehlerquelle als Schutz. */
+        const ohneKomm2 = qB2.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+        const schleier = [...ohneKomm2.matchAll(/className="rs-schleier"[\s\S]{0,200}?onClick=/g)]
+          .map((m) => ohneKomm2.slice(m.index, m.index + 320));
+        const ohneTaste = schleier.filter((t) => !/flaecheAlsKnopf|onKeyDown/.test(t)).length;
+        pr("Bedienbarkeit: jede klickbare Fläche ist mit der Tastatur erreichbar",
+           ohneTaste === 0,
+           ohneTaste ? ohneTaste + " Flächen ohne Tastaturzugriff"
+                     : schleier.length + " Weiter-Flächen geprüft");
+
+        /* Der Helfer muss Enter UND Leertaste behandeln. */
+        pr("Bedienbarkeit: Enter und Leertaste lösen beide aus",
+           /e\.key === "Enter" \|\| e\.key === " "/.test(qB2),
+           /e\.key === "Enter"/.test(qB2) ? "beide Tasten behandelt" : "keine Tastenbehandlung");
+
+        /* Und eine Rolle, damit Vorlesedienste die Flaeche als Knopf nennen. */
+        pr("Bedienbarkeit: die Flächen tragen eine Rolle und eine Beschriftung",
+           /role: "button"/.test(qB2) && /"aria-label": label/.test(qB2),
+           /role: "button"/.test(qB2) ? "`role` und `aria-label` im Helfer"
+                                      : "keine Rolle gesetzt");
+      }
+    }
+
+    /* ---- DIALOGE (35.143, F45-F48) ------------------------------------
+       Beide Dialoge trugen Rolle und `aria-modal`, aber keine der vier
+       Eigenschaften, die einen Dialog bedienbar machen: Fokus hinein,
+       Escape schliesst, Hintergrund gesperrt, Fokus zurueck. */
+    {
+      const fsD = require("fs");
+      const ARGD = require("./argumente.cjs");
+      const kD = [ARGD.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsD.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qD = kD ? fsD.readFileSync(kD, "utf8") : "";
+      pr("Dialoge: App.jsx für die Prüfung gefunden", !!qD, kD || "nicht gefunden");
+
+      if (qD) {
+        const ohneKommD = qD.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+
+        /* JEDER DIALOG BRAUCHT DEN HOOK. Ein neuer Dialog ohne ihn faellt
+           damit auf, statt still unbedienbar zu bleiben. */
+        const dialoge = [...ohneKommD.matchAll(/role="dialog"/g)].length;
+        const mitRef = [...ohneKommD.matchAll(/role="dialog"[\s\S]{0,200}?ref=\{\w*[Rr]ahmen\}/g)].length;
+        pr("Dialoge: jeder trägt den gemeinsamen Rahmen",
+           dialoge > 0 && mitRef === dialoge,
+           mitRef + " von " + dialoge + " Dialogen mit `ref`");
+
+        /* ESCAPE SCHLIESST. Ohne Zeigegeraet war das der einzige Ausweg,
+           und er fehlte. */
+        pr("Dialoge: Escape schließt",
+           /e\.key === "Escape"/.test(ohneKommD) && /document\.addEventListener\("keydown", taste\)/.test(ohneKommD),
+           /e\.key === "Escape"/.test(ohneKommD) ? "Escape wird abgefangen" : "kein Escape");
+
+        /* DER HINTERGRUND WIRD GESPERRT — mit `inert` UND `aria-hidden`,
+           weil aeltere Android-Webansichten `inert` nicht kennen. */
+        pr("Dialoge: der Hintergrund ist gesperrt, solange einer offen ist",
+           /setAttribute\("inert"/.test(ohneKommD) && /setAttribute\("aria-hidden", "true"\)/.test(ohneKommD),
+           /setAttribute\("inert"/.test(ohneKommD) ? "`inert` und `aria-hidden`" : "Hintergrund bleibt erreichbar");
+
+        /* UND DIE SPERRE WIRD WIEDER AUFGEHOBEN. Bliebe sie stehen, waere
+           die ganze App nach dem ersten Dialog unbedienbar — schlimmer als
+           der Fehler, den sie behebt. */
+        pr("Dialoge: die Sperre wird beim Schließen aufgehoben",
+           /removeAttribute\("inert"\)/.test(ohneKommD) && /removeAttribute\("aria-hidden"\)/.test(ohneKommD),
+           /removeAttribute\("inert"\)/.test(ohneKommD) ? "beide Sperren werden entfernt"
+                                                          : "die Sperre bliebe stehen");
+
+        /* F48: der Fokus kehrt zurueck, wo er herkam. */
+        pr("Dialoge: der Fokus kehrt nach dem Schließen zurück",
+           /vorher\.current = document\.activeElement/.test(ohneKommD)
+             && /vorher\.current\.focus\(\)/.test(ohneKommD),
+           /vorher\.current\.focus/.test(ohneKommD) ? "gemerkt und zurückgegeben"
+                                                      : "der Fokus geht verloren");
+      }
+    }
+
+    /* ---- TREFFERFLAECHEN (35.144, F52) --------------------------------
+       Die 69 kleinen Knoepfe hatten 38 px Mindesthoehe — ueber der
+       AA-Anforderung von 24, unter dem, woran sich Android misst. */
+    {
+      const fsT = require("fs");
+      const ARGT = require("./argumente.cjs");
+      const kT = [ARGT.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsT.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qT = kT ? fsT.readFileSync(kT, "utf8") : "";
+      pr("Trefferflächen: App.jsx für die Prüfung gefunden", !!qT, kT || "nicht gefunden");
+
+      if (qT) {
+        /* Jede Knopfklasse braucht eine Mindesthoehe, und zwar eine, die man
+           mit dem Daumen trifft. Gelesen wird der CSS-Block, nicht eine
+           Liste von Klassennamen — eine Liste liefe auseinander. */
+        const klassen = [...qT.matchAll(/\.(btn(?:\.[a-z]+)?)\{([^}]*)\}/g)]
+          .map((m) => ({ name: m[1], regel: m[2] }));
+        const zuKlein = klassen.filter((k) => {
+          const t = /min-height:\s*(\d+)px/.exec(k.regel);
+          if (!t) return false;           /* erbt von `.btn` */
+          return Number(t[1]) < 44;
+        }).map((k) => k.name + " " + (/min-height:\s*(\d+)px/.exec(k.regel) || [])[1] + "px");
+        pr("Trefferflächen: jede Knopfklasse erreicht 44 px",
+           klassen.length > 0 && zuKlein.length === 0,
+           zuKlein.length ? "zu klein: " + zuKlein.join(", ")
+                          : klassen.length + " Knopfklassen geprüft");
+
+        /* GEGENPROBE: die Suche muss eine zu kleine Klasse auch ERKENNEN. */
+        const probeR = [...'.btn{min-height:48px;}.btn.sm{min-height:30px;}'
+          .matchAll(/\.(btn(?:\.[a-z]+)?)\{([^}]*)\}/g)]
+          .filter((m) => { const t = /min-height:\s*(\d+)px/.exec(m[2]); return t && Number(t[1]) < 44; });
+        pr("Trefferflächen: Gegenprobe — eine zu kleine Klasse fällt auf",
+           probeR.length === 1, "in einem Testblock mit 30px: " + probeR.length + " erkannt");
+      }
+    }
+
+    /* ---- DAUERHAFTE BONI UND KARTENTAUSCH (35.146, F54) ---------------
+       `applyWildcard` ueberschrieb `p.wcMod` mit lauter Nullen und loeschte
+       damit drei dauerhaft freigeschaltete Werte, die `createPlayer` kurz
+       davor gesetzt hatte. */
+    {
+      const wcNeutral = (App.WILDCARDS || []).find((w) => w.id === "w_sparbuch")
+        || (App.WILDCARDS || [])[0];
+      const bau54 = (meta) => App.createPlayer({ name: "T", pos: "ST", nation: "DE",
+        g: "m", type: "talent", mode: "normal", meta, wildcard: wcNeutral });
+
+      const ohne54 = bau54({});
+      const mit54 = bau54({ mx_ntbonus: true, mx_offers: true });
+      pr("Wildcard: der Verbandskontakt überlebt die Kartenzuweisung",
+         mit54.wcMod.ntBonus === 3,
+         "ohne Freischaltung " + ohne54.wcMod.ntBonus + ", mit " + mit54.wcMod.ntBonus);
+      pr("Wildcard: das volle Postfach überlebt sie auch",
+         mit54.wcMod.offers === 1,
+         "ohne " + ohne54.wcMod.offers + ", mit " + mit54.wcMod.offers);
+
+      /* DIE ANDERE RICHTUNG IST GENAUSO WICHTIG: beim Tausch muessen die
+         Effekte der ALTEN Karte verschwinden. Ohne diese Probe waere die
+         Behebung „Nullsetzung weglassen" — und Wildcards summierten sich
+         ueber jeden Tausch. */
+      const p54 = bau54({ mx_ntbonus: true });
+      const start54 = p54.wcMod.ntBonus;
+      const stark = (App.WILDCARDS || []).find((w) => {
+        const f = typeof w.fx === "function" ? w.fx(p54) : (w.fx || {});
+        return f && f.ntBonus;
+      });
+      let nachKarte = null, nachTausch = null;
+      if (stark && typeof App.applyWildcard === "function") {
+        App.applyWildcard(p54, stark); nachKarte = p54.wcMod.ntBonus;
+        App.applyWildcard(p54, wcNeutral); nachTausch = p54.wcMod.ntBonus;
+      }
+      pr("Wildcard: ein Kartenbonus wird beim Tausch wieder entfernt",
+         nachTausch !== null && nachTausch === start54 && nachKarte > start54,
+         nachTausch === null ? "keine Karte mit `ntBonus` gefunden"
+           : start54 + " → " + nachKarte + " → " + nachTausch);
+
+      /* Und der Grundstock wird nur EINMAL festgehalten — sonst waechst er
+         bei jedem Tausch um den zuletzt aktiven Karteneffekt mit. */
+      let dreimal = null;
+      if (stark && typeof App.applyWildcard === "function") {
+        const q54 = bau54({ mx_ntbonus: true });
+        App.applyWildcard(q54, stark);
+        App.applyWildcard(q54, stark);
+        App.applyWildcard(q54, wcNeutral);
+        dreimal = q54.wcMod.ntBonus;
+      }
+      pr("Wildcard: mehrfacher Tausch lässt den Grundstock unverändert",
+         dreimal === null || dreimal === start54,
+         dreimal === null ? "nicht prüfbar" : "nach drei Zuweisungen: " + dreimal);
+    }
+
+    /* ---- RUECKWEGE (35.147, F55/F56) ----------------------------------
+       Fuenf Vereins- und Kartenansichten meldeten keinen Rueckweg an: die
+       sichtbare Schaltflaeche ging, die Android-Taste lief ins Leere — und
+       dort beendet sie im Zweifel die App. Die Akademie machte es seit jeher
+       richtig und war die Gegenprobe, an der es auffiel. */
+    {
+      const fsN = require("fs");
+      const ARGN = require("./argumente.cjs");
+      const kN = [ARGN.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsN.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qN = kN ? fsN.readFileSync(kN, "utf8") : "";
+      pr("Rückwege: App.jsx für die Prüfung gefunden", !!qN, kN || "nicht gefunden");
+
+      if (qN) {
+        /* JEDE ANSICHT MIT `onZurueck` MUSS IHN AUCH ANMELDEN. Gesucht wird
+           nach dem Funktionskopf und den ersten Zeilen darunter — eine feste
+           Namensliste liefe auseinander, sobald jemand eine Ansicht
+           hinzufuegt. */
+        const ohneWeg = [];
+        for (const m of qN.matchAll(/function ([A-Z][A-Za-z]*)\(\{([\s\S]{0,400}?)\}\)\s*\{/g)) {
+          const name = m[1], args = m[2];
+          if (!/\bonZurueck\b/.test(args)) continue;
+          const rumpf = qN.slice(m.index, m.index + 1600);
+          if (!/useZurueck\(/.test(rumpf)) ohneWeg.push(name);
+        }
+        pr("Rückwege: jede Ansicht mit `onZurueck` meldet ihn auch an",
+           ohneWeg.length === 0,
+           ohneWeg.length ? "ohne Anmeldung: " + ohneWeg.join(", ")
+                          : "alle Ansichten mit `onZurueck` sind angebunden");
+
+        /* GEGENPROBE: die Suche muss eine fehlende Anmeldung auch ERKENNEN.
+           Ohne sie waere die Zeile darueber gruen, wenn der Ausdruck gar
+           keine Ansicht findet. */
+        const probeQ = "function Test({ a, onZurueck }) {\n  const x = 1;\n}";
+        let erkannt = 0;
+        for (const m of probeQ.matchAll(/function ([A-Z][A-Za-z]*)\(\{([\s\S]{0,400}?)\}\)\s*\{/g)) {
+          if (!/\bonZurueck\b/.test(m[2])) continue;
+          if (!/useZurueck\(/.test(probeQ.slice(m.index, m.index + 1600))) erkannt++;
+        }
+        pr("Rückwege: Gegenprobe — eine fehlende Anmeldung fällt auf",
+           erkannt === 1, "in einer Testansicht ohne `useZurueck`: " + erkannt + " erkannt");
+
+        /* F56: die Sicherung kehrt dorthin zurueck, wo sie geoeffnet wurde. */
+        pr("Rückwege: die Sicherung merkt sich ihre Herkunft",
+           /setOptZurueck\(true\); setPhase\("sicherung"\)/.test(qN)
+             && /if \(optAuf\) \{ setOpt\(true\)/.test(qN),
+           /setOptZurueck\(true\)/.test(qN) ? "Herkunft wird gemerkt und eingelöst"
+                                             : "führt weiterhin auf die Titelseite");
+      }
+    }
+
+    /* ---- ENTSCHEIDUNGSFOLGEN (35.148, V01) ----------------------------
+       `applyFx` meldet jetzt, was eine Wahl WIRKLICH bewirkt hat —
+       abgeleitet aus dem Zustand vorher/nachher, nicht aus dem Wunschwert
+       im Effekt. */
+    {
+      const bauV1 = (geld) => { const x = App.createPlayer({ name: "T", pos: "ST",
+        nation: "DE", g: "m", type: "talent", mode: "normal" });
+        if (geld != null) x.money = geld; return x; };
+
+      const p1 = bauV1(5); const l1 = [];
+      App.applyFx(p1, { money: -0.35, trust: 8, form: -6 }, l1);
+      pr("Folgen: eine Wahl meldet ihre sofortige Wirkung",
+         l1.some((z) => /^Sofort:/.test(z)),
+         l1[0] || "keine Meldung");
+
+      /* DER KERN DES VORSCHLAGS: gemeldet wird das GESCHEHENE, nicht das
+         Gewollte. Wer 0,35 abgeben soll aber nur 0,01 hat, verliert 0,01 —
+         und genau das muss dastehen. */
+      const p2 = bauV1(0.01); const l2 = [];
+      App.applyFx(p2, { money: -0.35 }, l2);
+      const zeile2 = (l2.find((z) => /Konto/.test(z)) || "");
+      pr("Folgen: gemeldet wird das Geschehene, nicht das Gewollte",
+         !/350/.test(zeile2) && p2.money === 0,
+         zeile2 || "keine Kontozeile");
+
+      /* EIN WIRKUNGSLOSER EFFEKT MELDET NICHTS. Sonst stuende dort eine
+         Zahl, die es nicht gibt — dieselbe Luege, die den halben
+         Fehlerkatalog ausgemacht hat. */
+      const p3 = bauV1(5); p3.potential = App.wertGrenze ? 99 : 99; const l3 = [];
+      App.applyFx(p3, { form: 0 }, l3);
+      pr("Folgen: ein wirkungsloser Effekt meldet nichts",
+         l3.length === 0, l3.length + " Zeilen bei einem Nulleffekt");
+
+      /* VORGEMERKT IST NICHT SOFORT. Ein Wechselwunsch ist kein Wechsel —
+         das war F09. */
+      const p4 = bauV1(5); const l4 = [];
+      App.applyFx(p4, { wantMove: true }, l4);
+      pr("Folgen: ein Wechselwunsch steht unter „Vorgemerkt“",
+         l4.some((z) => /^Vorgemerkt:/.test(z) && /Transferfenster/.test(z)),
+         l4.join(" | ") || "keine Meldung");
+
+      /* HOECHSTENS VIER SOFORT-EINTRAEGE. Der Vorschlag warnt vor einer
+         Effektliste bei jeder Kleinigkeit. */
+      const p5 = bauV1(5); const l5 = [];
+      App.applyFx(p5, { rep: 9, form: 8, morale: 7, trust: 6, fitness: 5,
+        pac: 3, sho: 3, pas: 3 }, l5);
+      const anz = ((l5.find((z) => /^Sofort:/.test(z)) || "").match(/·/g) || []).length + 1;
+      pr("Folgen: höchstens vier sofortige Wirkungen auf einmal",
+         anz <= 4, anz + " Einträge bei acht gleichzeitigen Effekten");
+    }
+
+    /* ---- WARUM LIEF DIE SAISON SO? (35.149, V02) ----------------------
+       Der Bericht verlangt ausdruecklich: „Jeder angezeigte Grund hat einen
+       Datenbeleg" und nennt das Gegenbeispiel gleich mit — „Verletzung
+       kostete fuenf Tore" darf nicht dastehen, wenn niemand einen
+       Gegenvergleich gerechnet hat. */
+    {
+      const SG = App.saisonGruende;
+      pr("Saisongründe: die Funktion ist ausgeführt", typeof SG === "function",
+         typeof SG);
+
+      if (typeof SG === "function") {
+        /* JEDER GRUND HAENGT AN EINEM FELD. Fehlt das Feld, faellt der Grund
+           weg — geraten wird nicht. */
+        const leer = SG({ apps: 20, note: 3.4 }, null);
+        pr("Saisongründe: eine unauffällige Saison bekommt keine Erklärung",
+           leer.length === 0, leer.length + " Gründe bei 20 Spielen, Note 3,4");
+
+        const verletzt = SG({ apps: 6, note: 3.5, injury: { sev: "schwer" } }, null);
+        pr("Saisongründe: eine schwere Verletzung wird genannt",
+           verletzt.some((g) => /Verletzung/.test(g)), verletzt[0] || "nichts");
+
+        /* KEINE ERFUNDENE KAUSALITAET. Der Text darf nicht behaupten, was
+           die Verletzung GEKOSTET hat — nur, dass sie da war. */
+        const behauptung = verletzt.filter((g) => /gekostet dich \d|hätte|wären|Tore verloren/.test(g));
+        pr("Saisongründe: keine gerechnete Ursache wird behauptet",
+           behauptung.length === 0,
+           behauptung.length ? behauptung.join(" | ") : "nur Beobachtetes");
+
+        /* HOECHSTENS DREI. */
+        const viel = SG({ apps: 4, note: 4.6, injury: { sev: "schwer" }, banned: 3,
+          role: "Tribüne", rank: 18, N: 18, clubRef: { s: 80 }, ovr: 60, club: "B" },
+          { club: "A" });
+        pr("Saisongründe: höchstens drei auf einmal",
+           viel.length <= 3, viel.length + " bei sechs auffälligen Merkmalen");
+
+        /* Und ein Vereinswechsel wird nur genannt, wenn er WIRKLICH in
+           dieser Saison lag. */
+        const gleich = SG({ apps: 20, note: 3.4, club: "A" }, { club: "A" });
+        pr("Saisongründe: ohne Wechsel steht kein Wechsel da",
+           !gleich.some((g) => /Neuer Verein/.test(g)),
+           gleich.length + " Gründe bei gleichem Verein");
+
+        let krachSG = null;
+        [null, {}, { apps: 0 }, { injury: {} }].forEach((x) => {
+          try { SG(x, null); } catch (e) { krachSG = krachSG || e.message; } });
+        pr("Saisongründe: unvollständige Saisons stürzen nicht ab",
+           krachSG === null, krachSG || "vier Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- VORSCHAU UND RUECKWEG (35.150, V03) --------------------------
+       Ein Import ersetzt den ganzen Stand. Der Bericht verlangt deshalb eine
+       Vorschau aus ECHTEN Metadaten und einen Wiederherstellungspunkt. */
+    {
+      const fsV = require("fs");
+      const ARGV = require("./argumente.cjs");
+      const kV = [ARGV.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsV.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qV = kV ? fsV.readFileSync(kV, "utf8") : "";
+      pr("Sicherungsvorschau: App.jsx für die Prüfung gefunden", !!qV, kV || "nicht gefunden");
+
+      if (qV) {
+        pr("Sicherungsvorschau: es gibt sie überhaupt",
+           /const vorschauLesen = \(text\)/.test(qV),
+           /vorschauLesen/.test(qV) ? "`vorschauLesen` vorhanden" : "keine Vorschau");
+
+        /* AUS ECHTEN METADATEN. Der Bericht sagt das ausdruecklich: der
+           Zeitpunkt muss aus dem Paket kommen, nicht geschaetzt werden. */
+        pr("Sicherungsvorschau: der Zeitpunkt kommt aus dem Paket",
+           /new Date\(paket\.t\)/.test(qV) && /Number\.isFinite/.test(qV),
+           /new Date\(paket\.t\)/.test(qV) ? "aus `paket.t`" : "geschätzt oder fehlend");
+
+        /* WAS FEHLT, BEKOMMT EINEN STRICH — keine erfundene Null. */
+        pr("Sicherungsvorschau: fehlende Angaben werden nicht erfunden",
+           /\{n == null \? "—" : n\}/.test(qV),
+           /"—"/.test(qV) ? "fehlende Felder zeigen einen Strich" : "fehlende Felder werden gefüllt");
+
+        /* DER RUECKWEG DARF NICHT IN DIE SICHERUNG. Sonst wuerde er beim
+           naechsten Import selbst ueberschrieben — und waere keiner mehr. */
+        const iS2 = qV.indexOf("const SICHER_KEYS");
+        const sicherListe = iS2 >= 0 ? qV.slice(iS2, qV.indexOf("]", iS2)) : "";
+        pr("Rückweg: er steht nicht in der Sicherungsliste",
+           iS2 >= 0 && sicherListe.indexOf("RUECK_KEY") < 0,
+           iS2 < 0 ? "`SICHER_KEYS` nicht gefunden"
+             : (sicherListe.indexOf("RUECK_KEY") < 0 ? "richtig ausgenommen"
+                : "würde beim nächsten Import überschrieben"));
+
+        /* BEIM ZURUECKSETZEN FAELLT ER MIT WEG — dort ist Loeschen gewollt. */
+        const iR2 = qV.indexOf("const SPEICHERSCHLUESSEL");
+        const resetListe = iR2 >= 0 ? qV.slice(iR2, qV.indexOf("];", iR2)) : "";
+        pr("Rückweg: beim Zurücksetzen wird er mitgelöscht",
+           iR2 >= 0 && resetListe.indexOf("RUECK_KEY") >= 0,
+           resetListe.indexOf("RUECK_KEY") >= 0 ? "in der Löschliste"
+                                                 : "überlebt das Zurücksetzen");
+
+        /* EINMALIG: nach dem Zurueckholen wird er geloescht. Sonst gaebe es
+           dauerhaft zwei Staende und die Frage, welcher der echte ist. */
+        pr("Rückweg: Rücknahme verwendet denselben Transaktionsweg", qV.includes("datenErsetzen(store, rueckweg.daten, importKeys, RUECK_KEY, VERSION, true)"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+
+        /* Und er wird VOR dem Schreiben angelegt, nicht danach. */
+        const iAnlegen = qV.indexOf("await store.set(RUECK_KEY");
+        const iSchreiben2 = qV.indexOf("if (nehmen[k] != null) await store.set(k, nehmen[k])");
+        pr("Rückweg: Import übergibt seinen Sicherungsschlüssel", qV.includes("datenErsetzen(store, daten, importKeys, RUECK_KEY, VERSION)"), "Quellcode-Anbindung; Verhalten separat in korrekturen.mjs geprüft");
+      }
+    }
+
+    /* ---- WAS STEHT AN, WAS SCHWEBT (35.151, V04) ----------------------
+       Der Bericht setzt die Grenze selbst: „Kein zusaetzlicher
+       Zwangsassistent. Keine nochmalige Erklaerung bereits verstandener
+       Funktionen nach jedem Neustart." Deshalb eine Zeile, kein Tutorial —
+       und die Erklaerung verschwindet, sobald sie bekannt ist. */
+    {
+      const NS = App.naechsterSchritt;
+      pr("Nächster Schritt: die Funktion ist ausgeführt", typeof NS === "function", typeof NS);
+
+      if (typeof NS === "function") {
+        const neu4 = App.createPlayer({ name: "T", pos: "ST", nation: "DE",
+          g: "m", type: "talent", mode: "normal" });
+        /* GAR KEINE ERKLAERZEILEN MEHR (berichtigt 35.168). Die drei Saetze
+           beschrieben, was direkt daneben stand; Kevin hat sie zweimal auf
+           dem Geraet eingekreist. Die Probe verlangte frueher, dass die
+           erste Saison eine bekommt — sie prueft jetzt das Gegenteil. */
+        const a4 = NS(neu4, "training");
+        pr("Nächster Schritt: keine Erklärzeile mehr, auch nicht in Saison eins",
+           !a4 || a4.jetzt.length === 0,
+           a4 && a4.jetzt.length ? a4.jetzt[0] : "keine — richtig");
+
+        /* SIE VERSCHWINDET WIEDER. Genau das verlangt der Bericht — sonst
+           liest man dieselbe Zeile in der zwanzigsten Saison noch. */
+        const alt4 = App.createPlayer({ name: "T", pos: "ST", nation: "DE",
+          g: "m", type: "talent", mode: "normal" });
+        for (let i = 0; i < 5; i++) App.simulateSeason(alt4);
+        const b4 = NS(alt4, "training");
+        pr("Nächster Schritt: auch später keine",
+           !b4 || b4.jetzt.length === 0,
+           b4 ? b4.jetzt.length + " Erklärzeilen" : "keine Zeile");
+
+        /* WAS SCHWEBT, STEHT IMMER DA — auch in der zwanzigsten Saison. Das
+           ist die Luecke aus F09: „Wechselwunsch laeuft" sagte nicht, was
+           daraus folgt. */
+        alt4.flags.wechselwunsch = true; alt4.club = "Testverein";
+        const c4 = NS(alt4, "training");
+        pr("Nächster Schritt: ein Wechselwunsch wird auch später erklärt",
+           !!c4 && c4.schwebt.some((t) => /Transferfenster/.test(t)),
+           c4 && c4.schwebt.length ? c4.schwebt[0] : "keine Zeile");
+
+        /* Und er sagt, dass man NOCH DA ist — der Kern von F09. */
+        pr("Nächster Schritt: er sagt, dass der Wechsel noch nicht vollzogen ist",
+           !!c4 && c4.schwebt.some((t) => /bleibst du bei/.test(t)),
+           c4 && c4.schwebt[0] ? c4.schwebt[0].slice(-40) : "—");
+
+        /* Ohne alles: keine leere Kiste. */
+        const still = App.createPlayer({ name: "T", pos: "ST", nation: "DE",
+          g: "m", type: "talent", mode: "normal" });
+        for (let i = 0; i < 5; i++) App.simulateSeason(still);
+        still.flags.wechselwunsch = false; still.pendingInjury = null;
+        still.suspended = 0; still.contract = 3;
+        pr("Nächster Schritt: ohne Anlass erscheint gar nichts",
+           NS(still, "training") === null, JSON.stringify(NS(still, "training")));
+
+        let krachNS = null;
+        [null, {}, { seasons: null }, { flags: null }].forEach((x) => {
+          try { NS(x, "training"); } catch (e) { krachNS = krachNS || e.message; } });
+        pr("Nächster Schritt: unvollständige Spieler stürzen nicht ab",
+           krachNS === null, krachNS || "vier Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- F45 UND F46 (35.152) -----------------------------------------
+       Die Kartenalter-Rechnung und der Berater-Ablauf. Beide standen im
+       Bericht als F45/F46 — in 35.143 hatte ich unter diesen Nummern
+       versehentlich Dialogmaengel verbucht. */
+    {
+      const K45 = App.KARTEN;
+
+      /* F45: ein Talent beginnt mit 15, nicht mit 17. */
+      const abs45 = { id: "t1", name: "A", pos: "ST", ein: 2029, raus: 2034,
+        alter: 20, peak: 74 };
+      pr("Kartenalter: das mitgegebene Alter gewinnt",
+         K45.ausAbsolvent(abs45).alter === 20,
+         "Talent 20 Jahre → Karte " + K45.ausAbsolvent(abs45).alter);
+
+      /* Alte Daten ohne `alter`: abgeleitet, aber mit Eintrittsalter 15. */
+      const alt45 = { id: "t2", name: "B", pos: "ST", ein: 2029, raus: 2034, peak: 74 };
+      pr("Kartenalter: alte Datensätze werden mit 15 abgeleitet, nicht mit 17",
+         K45.ausAbsolvent(alt45).alter === 20,
+         "2029 bis 2034 → " + K45.ausAbsolvent(alt45).alter + " (vorher 22)");
+
+      /* Und der Absolvent traegt sein Alter jetzt wirklich mit. */
+      let ak45 = App.akaGruenden(App.leereAkademie(), "Alter", 2026);
+      const st45 = {}; App.ABTEILUNGEN.forEach((x) => { st45[x.id] = App.AKA_MAX; });
+      ak45 = { ...ak45, stufen: { ...ak45.stufen, ...st45 } };
+      for (let i = 0; i < 10; i++) { const r = App.akaJahr(ak45, 2027 + i); ak45 = (r && r.a) || r; }
+      const mitAlter = (ak45.absolventen || []).filter((x) => typeof x.alter === "number").length;
+      pr("Kartenalter: Absolventen tragen ihr Alter mit",
+         (ak45.absolventen || []).length > 0 && mitAlter === (ak45.absolventen || []).length,
+         mitAlter + " von " + (ak45.absolventen || []).length);
+
+      /* F46: der Berater ueberlebt bis zu den Angeboten. */
+      const p46 = App.createPlayer({ name: "T", pos: "ST", nation: "DE",
+        g: "m", type: "talent", mode: "normal" });
+      p46.laden = { berater: 1 };
+      App.simulateSeason(p46);
+      pr("Berater: er überlebt die Saison bis zur Angebotsrunde",
+         p46.laden.berater === 1 && Array.isArray(p46.ladenOffen)
+           && p46.ladenOffen.indexOf("berater") >= 0,
+         "nach simulateSeason: " + p46.laden.berater + ", aufgeschoben: "
+           + JSON.stringify(p46.ladenOffen));
+
+      /* GEGENPROBE: ein Artikel OHNE Aufschub laeuft weiterhin sofort ab —
+         sonst waere aus der Behebung ein allgemeiner Freibrief geworden. */
+      const p46b = App.createPlayer({ name: "T", pos: "ST", nation: "DE",
+        g: "m", type: "talent", mode: "normal" });
+      p46b.laden = { form: 1 };
+      App.simulateSeason(p46b);
+      pr("Berater: Gegenprobe — andere Artikel laufen weiterhin sofort ab",
+         (p46b.laden.form || 0) === 0, "form nach der Saison: " + (p46b.laden.form || 0));
+    }
+
+    /* ---- INFORMATION NICHT ALLEIN DURCH FARBE (35.153, V05) -----------
+       Der letzte messbare Punkt aus V05. NACHGEPRUEFT UND IN ORDNUNG: die
+       drei Chip-Arten tragen alle Text, der Postfachzaehler nennt seine Zahl
+       im `aria-label`, der Fortschrittsbalken hat die Zahl darueber.
+
+       Hier wird also nichts behoben, sondern ein guter Zustand festgehalten.
+       Das ist der Sinn: die naechste farbige Anzeige ohne Text faellt auf. */
+    {
+      const fsC5 = require("fs");
+      const ARGC5 = require("./argumente.cjs");
+      const kC5 = [ARGC5.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsC5.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qC5 = kC5 ? fsC5.readFileSync(kC5, "utf8") : "";
+      pr("Farbe: App.jsx für die Prüfung gefunden", !!qC5, kC5 || "nicht gefunden");
+
+      if (qC5) {
+        /* Der Postfachzaehler ist der Fall, an dem es am ehesten haengt:
+           eine farbige Blase mit einer Zahl. Der Knopf muss die Zahl
+           ansagen — sonst hoert ein Vorlesedienst nur „Postfach". */
+        pr("Farbe: der Postfachzähler wird auch angesagt",
+           /aria-label=\{offen \? offen \+ " Vorgänge im Postfach"/.test(qC5),
+           /Vorgänge im Postfach/.test(qC5) ? "`aria-label` nennt die Zahl"
+                                            : "nur farbige Blase, keine Ansage");
+
+        /* Und die farbigen Chips tragen Text — Farbe ist Verstaerkung,
+           nicht Traeger. Geprueft wird, dass keiner LEER ist. */
+        const leereChips = [...qC5.matchAll(/className="chip [gar]"[^>]*>\s*<\/span>/g)].length;
+        pr("Farbe: kein farbiger Chip steht ohne Text da",
+           leereChips === 0, leereChips + " leere Chips");
+      }
+    }
+
+    /* ---- WANN WIRKT DER KAUF? (35.154, V09) ---------------------------
+       „Preis, aktueller Bestand und ZIEL des Kaufs muessen vor dem Kauf
+       eindeutig sein." Preis und Bestand standen schon da, das Ziel nicht —
+       und genau daran hingen F46 und F47. */
+    {
+      const fsL9 = require("fs");
+      const ARGL9 = require("./argumente.cjs");
+      const kL9 = [ARGL9.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fsL9.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const qL9 = kL9 ? fsL9.readFileSync(kL9, "utf8") : "";
+      pr("Laden: App.jsx für die Prüfung gefunden", !!qL9, kL9 || "nicht gefunden");
+
+      if (qL9) {
+        /* JEDER ARTIKEL BRAUCHT SEINE ZEILE. Eine Tabelle neben einer Liste
+           laeuft auseinander, sobald jemand einen Artikel ergaenzt — das
+           Muster hat dieses Projekt oft genug getroffen. Hier faellt es auf. */
+        const artikel = [...qL9.matchAll(/\{ id: "([a-z0-9]+)", n: "[^"]+", bild:/g)]
+          .map((m) => m[1]);
+        const iW9 = qL9.indexOf("const LADEN_WIRKT");
+        const tabelle = iW9 >= 0 ? qL9.slice(iW9, qL9.indexOf("};", iW9)) : "";
+        const fehlen9 = artikel.filter((id) => tabelle.indexOf(id + ":") < 0);
+        pr("Laden: jeder Artikel sagt, wann er wirkt",
+           artikel.length > 0 && fehlen9.length === 0,
+           fehlen9.length ? "ohne Zeile: " + fehlen9.join(", ")
+                          : artikel.length + " Artikel, alle mit Wirkungszeitpunkt");
+
+        /* Und umgekehrt: keine Zeile fuer einen Artikel, den es nicht mehr
+           gibt — sonst pflegt jemand Text fuer nichts. */
+        const ueberzaehlig = [...tabelle.matchAll(/^\s{2}([a-z0-9]+):/gm)]
+          .map((m) => m[1]).filter((id) => artikel.indexOf(id) < 0);
+        pr("Laden: keine Zeile ohne zugehörigen Artikel",
+           ueberzaehlig.length === 0,
+           ueberzaehlig.length ? "verwaist: " + ueberzaehlig.join(", ") : "keine verwaisten Zeilen");
+
+        /* Das Restguthaben steht vor dem Kauf da — der Bericht verlangt,
+           dass sich jede Buchung mit dem Kassenunterschied erklaeren laesst. */
+        pr("Laden: vor dem Kauf steht da, was danach bleibt",
+           /Danach bleiben dir \{vc - a\.preis\} VC/.test(qL9),
+           /Danach bleiben dir/.test(qL9) ? "Restguthaben wird gezeigt" : "kein Restguthaben");
+      }
+    }
+
+    /* ---- WOHER DIE KARTE KOMMT (35.157, V08) --------------------------
+       `ausAbsolvent` speichert seit 35.124 `zusatz.jahrgang`, `zusatz.klub`
+       und `zusatz.ns` — die Karte zeigte nichts davon. Genau das macht aus
+       einer Karte eine Erinnerung: „Eigengewaechs, Jahrgang 2029" ist ein
+       Spieler, den man aufwachsen sah. */
+    {
+      const K8 = App.KARTEN;
+      const abs8 = { id: "t1", name: "Testtalent", pos: "ST", peak: 82,
+        ein: 2029, raus: 2033, flag: "DE", nat: "GER",
+        klub: "Hamburger SV", ns: true };
+      const k8 = K8.ausAbsolvent(abs8);
+      pr("Herkunft: die Karte trägt Jahrgang und ersten Profiklub",
+         !!(k8.zusatz && k8.zusatz.jahrgang === 2029 && k8.zusatz.klub === "Hamburger SV"),
+         JSON.stringify(k8.zusatz));
+
+      const fs8 = require("fs");
+      const ARG8 = require("./argumente.cjs");
+      const kk8 = [ARG8.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fs8.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const q8 = kk8 ? fs8.readFileSync(kk8, "utf8") : "";
+      pr("Herkunft: die Kartenansicht zeigt sie auch",
+         /Eigengewächs, Jahrgang \{karte\.zusatz\.jahrgang\}/.test(q8),
+         /Eigengewächs/.test(q8) ? "Jahrgang und Klub stehen auf der Karte"
+                                 : "die Daten liegen ungenutzt herum");
+
+      /* ALTE KARTEN HABEN KEIN `zusatz`. Dann muss die Zeile wegfallen,
+         nicht „Jahrgang undefined" zeigen — genau die Sorte sichtbarer
+         technischer Wert, die `texte.cjs` sucht. */
+      pr("Herkunft: alte Karten ohne Zusatzdaten zeigen keine leere Zeile",
+         /karte\.zusatz && karte\.zusatz\.jahrgang &&/.test(q8),
+         /karte\.zusatz &&/.test(q8) ? "wird vorher geprüft" : "würde „undefined“ zeigen");
+
+      /* Und ein Absolvent OHNE Klub bekommt keinen erfundenen. */
+      const k8b = K8.ausAbsolvent({ ...abs8, klub: "", ns: false });
+      pr("Herkunft: ohne ersten Profiklub wird keiner erfunden",
+         !k8b.zusatz.klub, JSON.stringify(k8b.zusatz));
+    }
+
+    /* ---- DAS ARCHIV BEWAHRT DIE ERSTE (35.158, V11) -------------------
+       Die Halle ist eine Bestenliste: zwoelf nach Punkten. Die erste
+       abgeschlossene Karriere ist aber keine Bestleistung, sondern eine
+       Erinnerung — wer schwach anfing, verlor sie nach zwoelf besseren
+       Laufbahnen, und mit ihr die Zeitleistenzeile. */
+    {
+      /* Die Kappregel nachgebildet, wie sie in `saveHall` steht. */
+      const kappen = (liste) => {
+        const roh = liste.slice().sort((a, b) => b.score - a.score);
+        const zwoelf = roh.slice(0, 12);
+        const erste = roh.find((x) => x && x.nr === 1);
+        return (erste && zwoelf.indexOf(erste) < 0) ? [...zwoelf, erste] : zwoelf;
+      };
+
+      /* Eine schwache Erste und dreizehn bessere danach. */
+      const viele = [{ name: "Die Erste", score: 100, nr: 1 }];
+      for (let i = 2; i <= 14; i++) viele.push({ name: "Nr " + i, score: 500 + i, nr: i });
+      const nach = kappen(viele);
+      pr("Archiv: die erste Laufbahn bleibt, auch wenn sie schwach war",
+         nach.some((x) => x.nr === 1),
+         nach.length + " Einträge, erste dabei: " + nach.some((x) => x.nr === 1));
+
+      /* ABER SIE BEKOMMT KEINEN FREIPLATZ, WENN SIE OHNEHIN STARK IST —
+         sonst waeren es dauerhaft dreizehn. */
+      const stark = [{ name: "Die Erste", score: 9999, nr: 1 }];
+      for (let i = 2; i <= 14; i++) stark.push({ name: "Nr " + i, score: 500 + i, nr: i });
+      pr("Archiv: eine starke Erste bekommt keinen zusätzlichen Platz",
+         kappen(stark).length === 12, kappen(stark).length + " Einträge");
+
+      /* ALTE STAENDE OHNE `nr` verhalten sich wie bisher — keine erfundene
+         Reihenfolge. */
+      const ohneNr = [];
+      for (let i = 1; i <= 14; i++) ohneNr.push({ name: "Alt " + i, score: 500 + i });
+      pr("Archiv: alte Einträge ohne Nummer bleiben bei zwölf",
+         kappen(ohneNr).length === 12, kappen(ohneNr).length + " Einträge");
+
+      /* Und der Auszug der Stationen wird benannt. */
+      const fs11 = require("fs");
+      const ARG11 = require("./argumente.cjs");
+      const k11 = [ARG11.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fs11.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const q11 = k11 ? fs11.readFileSync(k11, "utf8") : "";
+      pr("Archiv: der Stationen-Auszug sagt, wie viele es insgesamt waren",
+         /h\.statN > h\.stat\.length &&/.test(q11) && /statN: vereinsKapitel/.test(q11),
+         /statN/.test(q11) ? "`statN` wird gespeichert und angezeigt"
+                           : "der Auszug sieht aus wie die ganze Laufbahn");
+    }
+
+    /* ---- SCHLAGZEILEN: F33 UND F34 (35.159) ---------------------------
+       F33 behoben, F34 begruendet beibehalten. */
+    {
+      const SZ = App.saisonSchlagzeile;
+      const bauS = (n) => {
+        const S = [];
+        for (let i = 0; i < n; i++) S.push({ year: (2026 + i) + "/" + (27 + i),
+          club: "FC Test", note: 2.1, apps: 30, goals: 12, ovr: 75 + i, rank: 4,
+          N: 18, role: "Stammspieler", trophies: [], age: 20 + i,
+          league: "L", land: "DE" });
+        return S;
+      };
+
+      /* F33: keine direkte Wiederholung mehr — aber auch nichts Erfundenes. */
+      const S33 = bauS(5);
+      const p33 = { seasons: S33, name: "T", pos: "ST", nt: { caps: 0, majors: [] }, trophies: [] };
+      const zeilen = []; let vorige = null;
+      S33.forEach((x, i) => {
+        const z = SZ(x, i ? S33[i - 1] : null, { ...p33, seasons: S33.slice(0, i + 1) }, vorige);
+        zeilen.push(z && z.kopf); vorige = z && z.kopf;
+      });
+      const direkt = zeilen.filter((z, i) => i > 0 && z === zeilen[i - 1]).length;
+      pr("Schlagzeilen: keine steht zweimal hintereinander",
+         direkt === 0, zeilen.join(" · "));
+
+      /* Und jede ist echt — keine leere, keine erfundene. */
+      pr("Schlagzeilen: jede Saison bekommt eine",
+         zeilen.every((z) => !!z), zeilen.filter((z) => !z).length + " leere");
+
+      /* DETERMINISTISCH: derselbe Stand, derselbe Text. Der Bericht verlangt
+         das ausdruecklich — kein Wuerfeln beim Oeffnen. */
+      const nochmal = []; let v2 = null;
+      S33.forEach((x, i) => {
+        const z = SZ(x, i ? S33[i - 1] : null, { ...p33, seasons: S33.slice(0, i + 1) }, v2);
+        nochmal.push(z && z.kopf); v2 = z && z.kopf;
+      });
+      pr("Schlagzeilen: derselbe Spielstand ergibt denselben Text",
+         nochmal.join("|") === zeilen.join("|"), "zweiter Durchgang identisch");
+
+      /* Ohne vorige Zeile bleibt alles wie frueher — alte Aufrufwege. */
+      const ohne = SZ(S33[1], S33[0], p33);
+      pr("Schlagzeilen: ohne vorige Zeile arbeitet sie wie bisher",
+         !!(ohne && ohne.kopf), ohne ? ohne.kopf : "keine");
+
+      /* F34: BEGRUENDET BEIBEHALTEN. Die Probe haelt die ENTSCHEIDUNG fest,
+         nicht eine Behebung: die Schlagzeile gilt nach jeder Verletzung,
+         Archetyp und Meilenstein verlangen weiterhin eine schwere. Wer das
+         spaeter angleicht, soll es bewusst tun. */
+      const comeback = (sev) => {
+        const vor = { year: "2026/27", club: "FC", note: 3.5, apps: 8, goals: 1,
+          ovr: 70, rank: 9, N: 18, role: "Rotationsspieler", trophies: [],
+          age: 24, injury: { sev }, league: "L", land: "DE" };
+        const jetzt = { year: "2027/28", club: "FC", note: 2.9, apps: 25, goals: 7,
+          ovr: 73, rank: 7, N: 18, role: "Stammspieler", trophies: [], age: 25,
+          league: "L", land: "DE" };
+        const z = SZ(jetzt, vor, { seasons: [vor, jetzt], name: "T", pos: "ST",
+          nt: { caps: 0, majors: [] }, trophies: [] });
+        return z && z.kopf;
+      };
+      pr("Schlagzeilen: „Zurückgeschrieben“ gilt nach JEDER Verletzung (so entschieden)",
+         comeback("leicht") === "Zurückgeschrieben" && comeback("schwer") === "Zurückgeschrieben",
+         "leicht: " + comeback("leicht") + " · schwer: " + comeback("schwer"));
+    }
+
+    /* ---- DIE WERKZEUGE WUERFELN NICHT SELBST (35.160) -----------------
+       Zweimal dieselbe Zeile, zweimal derselbe Fehler: ein `Math.random()`
+       im Laufbahn-Aufbau, das dem festen Startwert nicht folgt. In
+       `kalibrierung.cjs` in 35.156 behoben, in `vereinpruefung.cjs`
+       uebersehen — und dadurch war die Archetyp-Probe weiter nicht
+       reproduzierbar.
+
+       Diese Probe deckt die KLASSE ab: kein Pruefwerkzeug darf an der
+       austauschbaren Quelle vorbei wuerfeln. Sonst misst es etwas anderes
+       als das Spiel. */
+    {
+      const fsZ = require("fs");
+      const pathZ = require("path");
+      const werkzeuge = ["vereinpruefung.cjs", "kalibrierung.cjs",
+                         "ereignispruefung.cjs", "stimmigkeit.cjs", "texte.cjs"];
+      const wuerfelt = [];
+      werkzeuge.forEach((w) => {
+        const pf = pathZ.join(__dirname, w);
+        let q; try { q = fsZ.readFileSync(pf, "utf8"); } catch (e) { return; }
+        /* Kommentare heraus — sie erklaeren den Fehler und sind keiner.
+           Dieselbe Falle wie in 35.135 und 35.141. */
+        const ohne = q.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+        if (/Math\.random\s*\(/.test(ohne)) wuerfelt.push(w);
+      });
+      pr("Werkzeuge: keines würfelt an der austauschbaren Quelle vorbei",
+         wuerfelt.length === 0,
+         wuerfelt.length ? "eigener Zufall in: " + wuerfelt.join(", ")
+                         : werkzeuge.length + " Werkzeuge geprüft");
+
+      /* GEGENPROBE: die Suche muss den gesuchten Aufruf auch ERKENNEN.
+
+         DER TESTSTRING WIRD ZUSAMMENGESETZT, nicht ausgeschrieben. Sonst
+         findet die Probe sich selbst: der erste Entwurf enthielt den Aufruf
+         woertlich und meldete `vereinpruefung.cjs` als Uebeltaeter. Ein
+         Waechter, der ueber die eigene Fussspur stolpert. */
+      const probeZ = "const x = 1;\nconst r = Math" + ".random();\n";
+      pr("Werkzeuge: Gegenprobe — eigener Zufall fällt auf",
+         /Math\.random\s*\(/.test(probeZ.replace(/\/\*[\s\S]*?\*\//g, "")),
+         "im zusammengesetzten Testblock: erkannt");
+    }
+
+    /* ---- EINE ABSAGE KOMMT ZURUECK (35.161, V06) ----------------------
+       Die erste echte Konsequenzkette: zwei Ereignisse, die auf einer
+       Entscheidung aufbauen, die der Spieler wirklich getroffen hat.
+       `p.abgelehnt` gibt es seit 35.114 und wurde von keinem Ereignis
+       gelesen — acht gespeicherte Absagen, und nie kam eine zurueck. */
+    {
+      const EV6 = App.EVENTS || [];
+      const e1 = EV6.find((x) => x.id === "ab_wiedersehen");
+      const e2 = EV6.find((x) => x.id === "ab_quittung");
+      pr("Kette: beide Glieder gibt es", !!e1 && !!e2,
+         (e1 ? "ab_wiedersehen " : "") + (e2 ? "ab_quittung" : ""));
+
+      if (e1 && e2) {
+        const bauP = (jahre, flags) => ({ year: 2032, age: 26,
+          abgelehnt: [{ club: "Ajax Amsterdam", jahr: 2032 - jahre }],
+          flags: flags || {}, seasons: [{ apps: 30 }], squad: [],
+          nation: { id: "DE" }, club: { n: "FC", c: "DE" }, pos: "ST",
+          nt: { caps: 0, majors: [] } });
+
+        pr("Kette: das Wiedersehen braucht eine echte Absage",
+           e1.cond(bauP(3)) === true && e1.cond({ ...bauP(3), abgelehnt: [] }) === false,
+           "mit Absage erreichbar, ohne nicht");
+
+        /* MINDESTENS ZWEI JAHRE. Eine Absage von letzter Woche ist keine
+           Geschichte — sonst kaeme das Ereignis direkt nach dem Transfer. */
+        pr("Kette: eine frische Absage löst noch nichts aus",
+           e1.cond(bauP(1)) === false, "nach einem Jahr: " + e1.cond(bauP(1)));
+
+        /* DIE REIHENFOLGE IST DER PUNKT. Ohne die erste Wahl gibt es die
+           zweite nicht — sonst waeren es zwei Ereignisse, keine Kette. */
+        pr("Kette: die Quittung kommt erst nach dem Wiedersehen",
+           e2.cond(bauP(3)) === false
+             && e2.cond(bauP(3, { absage_gross: true })) === true,
+           "vorher false, danach true");
+
+        pr("Kette: sie endet und wiederholt sich nicht",
+           e2.cond(bauP(3, { absage_gross: true, absage_ende: true })) === false,
+           "nach Abschluss: false");
+
+        /* DER TEXT NENNT DEN ECHTEN VEREIN — sonst waere die Kette eine
+           Behauptung ohne Bezug. */
+        const c6 = { p: bauP(3), absage: { club: "Ajax Amsterdam", jahr: 2029 } };
+        const t6 = String(e1.text(c6));
+        pr("Kette: der Text nennt den Verein und die Jahre",
+           /Ajax Amsterdam/.test(t6) && /Vor 3 Jahren/.test(t6),
+           t6.slice(0, 58) + "…");
+
+        /* Und beide Wahlen der ersten Stufe fuehren weiter — eine Sackgasse
+           waere eine halbe Kette. */
+        const wege = (e1.choices || []).map((c) =>
+          ((c.roll || [])[0] || {}).fx || {}).map((f) => f.flag);
+        pr("Kette: jede Wahl der ersten Stufe führt weiter",
+           wege.length >= 2 && wege.every((f) => f === "absage_gross" || f === "absage_klein"),
+           wege.join(" · "));
+      }
+    }
+
+    /* ---- DER VORSATZ (35.162, V07) ------------------------------------
+       Der Bericht verlangt „zuerst Ueberschneidungen identifizieren" — und
+       alle drei genannten Beispiele gibt es bereits als Errungenschaft. Ein
+       zweites Zielsystem waere eine zweite Wahrheit ueber dieselbe Leistung.
+
+       Was fehlte, ist die WAHL: Errungenschaften erreicht man nebenbei,
+       niemand entscheidet sich vorher fuer eine. */
+    {
+      const VS = App.VORSAETZE || [];
+      const VST = App.vorsatzStand;
+      pr("Vorsatz: es gibt welche zur Auswahl", VS.length >= 3, VS.length + " Vorsätze");
+
+      /* JEDER ZEIGT AUF EINE ECHTE ERRUNGENSCHAFT. Der erste Entwurf nannte
+         vier Kennungen, die es alle nicht gab — neunter Fall dieser Art. */
+      const tot = VS.filter((v) => !App.ACHIEVEMENTS.some((a) => a.id === v.ach));
+      pr("Vorsatz: jeder zeigt auf eine Errungenschaft, die es gibt",
+         VS.length > 0 && tot.length === 0,
+         tot.length ? "unbekannt: " + tot.map((v) => v.ach).join(", ")
+                    : VS.map((v) => v.ach).join(" · "));
+
+      /* KEINE BELOHNUNG. Der Bericht warnt vor einem leicht wiederholbaren
+         Sonderweg — der einfachste Schutz ist, dass es nichts zu holen gibt. */
+      const mitLohn = VS.filter((v) => v.lohn || v.vc || v.legacy);
+      pr("Vorsatz: keiner bringt eine Belohnung",
+         mitLohn.length === 0,
+         mitLohn.length ? "mit Lohn: " + mitLohn.map((v) => v.id).join(", ")
+                        : "reine Selbstverpflichtung");
+
+      /* ZWEI SCHLIESSEN SICH AUS — das ist der Punkt: eine Wahl soll etwas
+         kosten. Ohne Gegensatz waere es eine Liste, keine Entscheidung. */
+      const welt = VS.find((v) => v.id === "welt"), daheim = VS.find((v) => v.id === "daheim");
+      pr("Vorsatz: zwei stehen gegeneinander",
+         !!welt && !!daheim && welt.ach !== daheim.ach && !!daheim.umkehr,
+         welt && daheim ? welt.n + " gegen " + daheim.n : "kein Gegensatz");
+
+      if (typeof VST === "function") {
+        /* Der Stand wird an DERSELBEN Bedingung geprueft wie die
+           Errungenschaft — nicht an einer nachgebauten. */
+        const ohne = { seasons: [], nation: { id: "DE" }, vorsatz: "welt" };
+        const drei = { vorsatz: "welt", nation: { id: "DE" },
+          seasons: [{ land: "DE" }, { land: "ES" }, { land: "IT" }] };
+        pr("Vorsatz: der Stand folgt der echten Bedingung",
+           (VST(ohne) || {}).erfuellt === false && (VST(drei) || {}).erfuellt === true,
+           "ohne Länder nicht erfüllt, mit drei erfüllt");
+
+        /* Die Umkehrung: „Daheim bleiben" ist erfuellt, SOLANGE man nicht
+           weg war — und kippt, sobald man es ist. */
+        const zuhause = { vorsatz: "daheim", nation: { id: "DE" }, seasons: [{ land: "DE" }] };
+        const weg = { vorsatz: "daheim", nation: { id: "DE" },
+          seasons: [{ land: "DE" }, { land: "ES" }] };
+        pr("Vorsatz: „Daheim bleiben“ kippt beim Wechsel ins Ausland",
+           (VST(zuhause) || {}).erfuellt === true && (VST(weg) || {}).erfuellt === false,
+           "zuhause gehalten, nach dem Wechsel nicht mehr");
+
+        pr("Vorsatz: ohne gewählten Vorsatz kommt nichts",
+           VST({ seasons: [] }) === null, JSON.stringify(VST({ seasons: [] })));
+
+        let krachV = null;
+        [null, {}, { vorsatz: "gibtesnicht" }].forEach((x) => {
+          try { VST(x); } catch (e) { krachV = krachV || e.message; } });
+        pr("Vorsatz: unbekannte Werte stürzen nicht ab",
+           krachV === null, krachV || "drei Lücken-Lagen abgefangen");
+      }
+    }
+
+    /* ---- F47 UND F48 (35.163) -----------------------------------------
+       Zwei Punkte, die ich in 35.152 als „stehen noch aus" notiert und dann
+       nicht mehr angefasst hatte. Beim Schreiben des Abschlussberichts
+       aufgefallen — ein Bericht, der Vollstaendigkeit meldet, muss stimmen. */
+    {
+      const LG = App.ladenGesperrt;
+      const extra = (App.VCLADEN || []).find((a) => a.id === "training");
+      const form = (App.VCLADEN || []).find((a) => a.id === "form");
+
+      /* F47: die Extraschicht wirkt nur in `develop`, also VOR der Saison.
+         Nach dem Training gekauft war sie ein verlorener Kauf. */
+      pr("Extraschicht: im Trainingsschritt kaufbar",
+         !!extra && !LG(extra, "saison", "training"),
+         LG(extra, "saison", "training") || "kaufbar");
+      pr("Extraschicht: nach dem Training gesperrt",
+         !!LG(extra, "saison", "event") && !!LG(extra, "saison", "result"),
+         LG(extra, "saison", "event") || "weiterhin kaufbar");
+
+      /* NUR DIESER ARTIKEL. Die uebrigen „saison"-Artikel wirken in
+         `simulateSeason` und sind bis dahin nutzbar — eine pauschale Sperre
+         waere bequemer und falsch. */
+      pr("Extraschicht: andere Saisonartikel bleiben kaufbar",
+         !!form && !LG(form, "saison", "event"),
+         LG(form, "saison", "event") || "Formkauf weiterhin möglich");
+
+      /* F48: eine Verlaengerung im Winter ist kein Vereinswechsel. */
+      const fs48 = require("fs");
+      const ARG48 = require("./argumente.cjs");
+      const k48 = [ARG48.benannt("quelle"), process.env.QUELLE_APP, "App.jsx", "../App.jsx"]
+        .filter(Boolean).find((k) => { try { return fs48.statSync(k).isFile(); }
+          catch (e) { return false; } });
+      const q48 = k48 ? fs48.readFileSync(k48, "utf8") : "";
+      pr("Wintervertrag: die Laufzeit wird bei jeder Angebotsart übernommen",
+         /if \(o\.years\) q\.contract = o\.years;/.test(q48),
+         /o\.years\) q\.contract/.test(q48) ? "`years` gilt für alle Arten"
+                                              : "nur `transfer` übernimmt sie");
+      pr("Wintervertrag: eine Verlängerung wechselt nicht den Verein",
+         /const bleibt = o\.type === "renew" \|\| o\.type === "stay";/.test(q48)
+           && /if \(!bleibt\) \{/.test(q48),
+         /const bleibt =/.test(q48) ? "`renew` und `stay` behalten Kader und Binde"
+                                    : "jede Annahme setzt Vertrauen und Kader zurück");
     }
 
     /* Die Posten muessen benannt sein — eine Gutschrift ohne Grund ist
@@ -3076,7 +5051,7 @@ console.log("=== Vereinsprüfung ===\n");
       else {
         const q9 = fs9.readFileSync(k9, "utf8").replace(/\/\*[\s\S]*?\*\//g, " ");
         pr("Bonus: der Abschluss wird am Verein gespeichert",
-           /abgeschlossen: erg/.test(q9) && /vereinSichern\(VS\.v\)/.test(q9),
+           /abgeschlossen: erg/.test(q9) && /daten\[VER_KEY\] = JSON\.stringify\(vereinNachher\)/.test(q9),
            "sonst überlebt er kein Schließen der App");
         pr("Bonus: der Abschlussbildschirm findet ihn auch nach einem Neustart",
            /vAbschluss \|\| \(verein && verein\.abgeschlossen\)/.test(q9),
@@ -3281,7 +5256,7 @@ console.log("=== Vereinsprüfung ===\n");
          Prüfung meldete rot, obwohl genau das Richtige passiert. Wer eine
          vollständige Aufrufzeile festschreibt, verbietet jede Erweiterung. */
       pr("und der Verein kommt NACH der eben gespielten Saison",
-         /merkeErfolge\(q, AK2\.a, vereinNachher/.test(q5),
+         /bereiteErfolge\(q, AK2\.a, vereinNachher/.test(q5),
          "sonst zählt ein Meistertitel erst eine Laufbahn später");
 
       const verErf = [...q5.matchAll(/id:"(a_ver_[a-z0-9]+)"/g)].map((m) => m[1]);

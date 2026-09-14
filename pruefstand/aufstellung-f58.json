@@ -1,0 +1,168 @@
+{
+  "v": {
+    "gegruendet": false,
+    "name": "",
+    "stadt": "",
+    "land": "",
+    "liga": "",
+    "farben": {
+      "primaer": "#c0392b",
+      "sekundaer": "#f4f1ea"
+    },
+    "wappen": null,
+    "jahr": 0,
+    "eingeschrieben": false,
+    "kader": [
+      {
+        "id": "s0",
+        "name": "S0",
+        "pos": "TW",
+        "ovr": 34,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s1",
+        "name": "S1",
+        "pos": "AF",
+        "ovr": 88,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s2",
+        "name": "S2",
+        "pos": "AF",
+        "ovr": 88,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s3",
+        "name": "S3",
+        "pos": "AF",
+        "ovr": 41,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s4",
+        "name": "S4",
+        "pos": "AV",
+        "ovr": 66,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s5",
+        "name": "S5",
+        "pos": "ST",
+        "ovr": 32,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s6",
+        "name": "S6",
+        "pos": "AF",
+        "ovr": 69,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s7",
+        "name": "S7",
+        "pos": "IV",
+        "ovr": 34,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s8",
+        "name": "S8",
+        "pos": "IV",
+        "ovr": 87,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s9",
+        "name": "S9",
+        "pos": "ZOM",
+        "ovr": 36,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s10",
+        "name": "S10",
+        "pos": "AF",
+        "ovr": 67,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s11",
+        "name": "S11",
+        "pos": "ZM",
+        "ovr": 69,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s12",
+        "name": "S12",
+        "pos": "ST",
+        "ovr": 33,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s13",
+        "name": "S13",
+        "pos": "ST",
+        "ovr": 45,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s14",
+        "name": "S14",
+        "pos": "AF",
+        "ovr": 51,
+        "pot": 95,
+        "alter": 20
+      },
+      {
+        "id": "s15",
+        "name": "S15",
+        "pos": "ZDM",
+        "ovr": 80,
+        "pot": 95,
+        "alter": 20
+      }
+    ],
+    "formation": "352",
+    "taktik": "ausgeglichen",
+    "aufstellung": {},
+    "bonus": {},
+    "chronik": [],
+    "bilanz": {
+      "saisons": 0,
+      "aufstiege": 0,
+      "abstiege": 0,
+      "meister": 0,
+      "tore": 0,
+      "gegentore": 0,
+      "punkte": 0,
+      "bestePlatzierung": null
+    },
+    "ausbau": {
+      "training": 1,
+      "stadion": 1,
+      "medizin": 1
+    }
+  },
+  "got": 10,
+  "expected": 11
+}

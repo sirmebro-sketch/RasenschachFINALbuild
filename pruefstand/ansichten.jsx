@@ -5,7 +5,7 @@ import App, {
   CLUBS,
   kopfPfad,
   drawWildcard, LAUFBAHN_MAX,
-  MenuScreen, EndScreen, AkademieScreen, TalentZeile, WildcardEnthuellung, Balken,
+  MenuScreen, Optionen, EndScreen, AkademieScreen, TalentZeile, WildcardEnthuellung, Balken,
   AusbauRing, akaNaechster, akaLeistbar, ACHIEVEMENTS, RARITY, STUFEN, META, WildcardCard,
   RAHMEN, grundAufhellen, kontrast, haarDunkelste, GRUND_MIN, mischFarbe, HAIRC,
   Sonderschuss, SCHUSS_FELDER, SCHUSS_TROST, SCHUSS_PREISE, Spielerkarte, KARTEN, MERKSYMBOL, Packladen,
@@ -641,47 +641,6 @@ mach("Akademie · Stufen halb", <AkademieScreen aka={{ name:"X", gegruendet:2026
       else if (h.className.indexOf("eng") < 0)
         zeige("Elfkarte", "der breite Schimmer auf einer kleinen Karte");
       else ok++;
-    }
-  }
-
-  /* ---- Der Aufdecktisch räumt sich auf (35.92) ----------------------------
-     Kevin: „Wenn man alle Karten im Pack angenommen hat, dann soll die Ansicht
-     wieder in den Shop wechseln."
-     Ein leerer Tisch mit einem „Fertig"-Knopf ist ein Bildschirm, der nur noch
-     aus einer Aufforderung besteht, ihn zu verlassen. */
-  {
-    const vollV2 = { gegruendet: true, name: "P", liga: "3. Liga",
-      /* Kader mit VOLLEM Packkontingent — dann gibt es nur „Annehmen". */
-      kader: Array.from({ length: 5 }, (_, i) => ({ id: "v" + i, name: "V" + i,
-        pos: "ST", ovr: 70, ausPack: true })) };
-    const rz = mach("Packladen · voller Kader", <Packladen vc={0}
-      pool={KARTEN.leererPool()} verein={vollV2} gratis={1}
-      onKauf={leer} onGratis={leer} onStartpaket={leer}
-      onEinsetzen={() => "voll"} onEntfernen={() => null} onVerkauf={() => null}
-      onZurueck={leer} />);
-    if (rz) {
-      if (!klick(rz.div, "Gratispack öffnen", "Pack öffnen")) {
-        zeige("Packladen", "das Gratispack lässt sich nicht öffnen");
-      } else {
-        /* Aufdecken. */
-        let verdeckt = rz.div.querySelectorAll("[aria-label*=Verdeckte]");
-        let runde = 0;
-        while (verdeckt.length && runde < 6) {
-          act(() => { verdeckt[0].dispatchEvent(new window.MouseEvent("click", { bubbles: true })); });
-          verdeckt = rz.div.querySelectorAll("[aria-label*=Verdeckte]");
-          runde++;
-        }
-        const kn = [...rz.div.querySelectorAll("button")]
-          .map((b2) => (b2.textContent || "").trim());
-        /* BEI VOLLEM KADER GIBT ES KEIN „In den Kader" — sonst stünde dort ein
-           Knopf, der nichts tut. Das war der Befund aus 35.90. */
-        if (kn.some((x) => x === "In den Kader"))
-          zeige("Packladen", "„In den Kader“ trotz vollem Kontingent");
-        else ok++;
-        if (!kn.some((x) => x === "Annehmen"))
-          zeige("Packladen", "kein Weg, die Karte anzunehmen");
-        else ok++;
-      }
     }
   }
 
@@ -1631,6 +1590,24 @@ const menuProps = { hall: [], onNew:()=>{}, onHall:()=>{}, save:null, onResume:(
 mach("Hauptmenü · ohne Akademie", <MenuScreen {...menuProps} aka={leer} />);
 mach("Hauptmenü · Coins bereit", <MenuScreen {...menuProps} aka={mitCoins} />);
 mach("Hauptmenü · Akademie läuft", <MenuScreen {...menuProps} aka={reif} />);
+
+/* DIE OPTIONEN ALS EIGENE ANSICHT (35.164).
+
+   Sie sind ein Unterzustand des Hauptmenues (`opt`) und wurden deshalb NIE
+   gerendert. Genau dort ist in 35.162 ein `vorsatz is not defined`
+   gelandet — die Vorsatz-Auswahl kam versehentlich in `Optionen` statt in
+   `CreateScreen`, weil beide einen „Spielweise"-Block haben. Der Fehler ging
+   durch alle Pruefungen und wurde erst auf dem Geraet sichtbar: Kevin kam
+   nicht mehr in die Einstellungen.
+
+   In 35.142 hatte ich die Luecke schon notiert („die Sichtpruefung oeffnet
+   die Optionen nicht") und nicht geschlossen. Jetzt geschlossen. */
+mach("Optionen · ohne Laufbahn", <Optionen ruhe={false} aufRuhe={() => {}}
+  onBackup={() => {}} onZu={() => {}} onAnleitung={() => {}}
+  hall={[]} aka={leer} laeuft={false} meta={{}} aufRahmen={() => {}} />);
+mach("Optionen · Laufbahn läuft", <Optionen ruhe aufRuhe={() => {}}
+  onBackup={() => {}} onZu={() => {}} onAnleitung={() => {}}
+  hall={[halleintrag]} aka={mitCoins} laeuft meta={{ mx_bei1: true }} aufRahmen={() => {}} />);
 mach("Hauptmenü · aka undefined", <MenuScreen {...menuProps} aka={undefined} />);
 mach("Menü · Sicherung ohne Bilanz", <MenuScreen {...menuProps} aka={{ name:"X", gegruendet:2026, jahr:2030 }} />);
 /* Die Vereinszeile im Menü in beiden Zuständen (35.21). Der gesperrte ist der
@@ -1875,7 +1852,7 @@ console.log("\n=== Durchklicktest ===");
              Eine Regel, die man beim Umbauen vergisst, ist nach dem zweiten
              Umbau weg — diese hier meldet sich. */
           const knopf = plaetze[5];
-          const reihe = knopf.closest("div[style*='flex']") || knopf.parentElement;
+          const reihe = knopf.closest("div[style*='display: flex']") || knopf.parentElement;
           const reihenBlock = reihe && reihe.parentElement === null ? null : reihe;
           let n = (reihenBlock || knopf).nextElementSibling, dazwischen = 0, kasten = null;
           while (n) {
@@ -1920,17 +1897,11 @@ console.log("\n=== Durchklicktest ===");
   /* Ganze App: Menü → Akademie → zurück */
   const r = mach("Gesamt-App", <App />);
   if (r) {
-    /* Seit 35.50 fuehrt der Weg ueber das Dach: Hauptmenue → Dein Verein →
-       Jugendakademie. Bei NULL Laufbahnen ist das Dach gesperrt — genau das
-       wird hier zuerst geprueft, denn bis 35.49 stand die Akademie sofort
-       offen. Ein frischer Start hat keine beendete Laufbahn. */
-    const knoepfe0 = [...r.div.querySelectorAll("button")];
-    const dach = knoepfe0.find((b2) => (b2.textContent || "").includes("Dein Verein"));
-    if (!dach) zeige("App: Menü", "Zeile „Dein Verein“ fehlt im Hauptmenü");
-    else if (!dach.disabled) zeige("App: Menü", "„Dein Verein“ ist bei 0 Laufbahnen NICHT gesperrt");
+    // Vor dem asynchronen Lesen darf keine Mutation angeboten werden.
+    // Das geladene Hauptmenü wird in korrekturen.mjs nach await geprüft.
+    if (!(r.div.textContent || "").includes("Spielstand wird geladen")) zeige("App: Laden", "Ladezustand fehlt");
     else ok++;
-    if (knoepfe0.some((b2) => /^Jugendakademie/.test((b2.textContent || "").trim())))
-      zeige("App: Menü", "eigene Menüzeile „Jugendakademie“ ist zurück");
+    if (r.div.querySelectorAll("button").length) zeige("App: Laden", "Vor Speicherantwort schon bedienbar");
     else ok++;
     /* Und der Weg selbst, mit einer Bilanz, die das Dach oeffnet. `App`
        liest die Bilanz aus dem Speicher; hier wird stattdessen das Dach
@@ -4057,6 +4028,50 @@ function zustand(div) {
 }
 
 async function ablauf() {
+  const leer = () => {};
+  /* ---- Der Aufdecktisch räumt sich auf (35.92) ----------------------------
+     Kevin: „Wenn man alle Karten im Pack angenommen hat, dann soll die Ansicht
+     wieder in den Shop wechseln."
+     Ein leerer Tisch mit einem „Fertig"-Knopf ist ein Bildschirm, der nur noch
+     aus einer Aufforderung besteht, ihn zu verlassen. */
+  {
+    const vollV2 = { gegruendet: true, name: "P", liga: "3. Liga",
+      /* Kader mit VOLLEM Packkontingent — dann gibt es nur „Annehmen". */
+      kader: Array.from({ length: 5 }, (_, i) => ({ id: "v" + i, name: "V" + i,
+        pos: "ST", ovr: 70, ausPack: true })) };
+    const rz = mach("Packladen · voller Kader", <Packladen vc={0}
+      pool={KARTEN.leererPool()} verein={vollV2} gratis={1}
+      onKauf={leer} onGratis={leer} onStartpaket={leer}
+      onEinsetzen={() => "voll"} onEntfernen={() => null} onVerkauf={() => null}
+      onZurueck={leer} />);
+    if (rz) {
+      if (!klick(rz.div, "Gratispack öffnen", "Pack öffnen")) {
+        zeige("Packladen", "das Gratispack lässt sich nicht öffnen");
+      } else {
+        await warte(0); // Enthüllung folgt erst der bestätigten Buchung.
+        /* Aufdecken. */
+        let verdeckt = rz.div.querySelectorAll("[aria-label*=Verdeckte]");
+        let runde = 0;
+        while (verdeckt.length && runde < 6) {
+          act(() => { verdeckt[0].dispatchEvent(new window.MouseEvent("click", { bubbles: true })); });
+          verdeckt = rz.div.querySelectorAll("[aria-label*=Verdeckte]");
+          runde++;
+        }
+        const kn = [...rz.div.querySelectorAll("button")]
+          .map((b2) => (b2.textContent || "").trim());
+        /* BEI VOLLEM KADER GIBT ES KEIN „In den Kader" — sonst stünde dort ein
+           Knopf, der nichts tut. Das war der Befund aus 35.90. */
+        if (kn.some((x) => x === "In den Kader"))
+          zeige("Packladen", "„In den Kader“ trotz vollem Kontingent");
+        else ok++;
+        if (!kn.some((x) => x === "Annehmen"))
+          zeige("Packladen", "kein Weg, die Karte anzunehmen");
+        else ok++;
+      }
+    }
+  }
+
+
   console.log("\n=== Ablauf der Enthüllung ===");
   for (const art of ["goat", "hsv", "normal"]) {
     const karte = { id: "z_" + art, r: art, n: "Zeitprobe", t: "Beschreibung der Karte." };
